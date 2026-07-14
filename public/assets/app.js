@@ -243,9 +243,8 @@
     content.innerHTML = `<div class="page">
       <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
       <div class="toolbar history-toolbar">
-        <div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${index.last}" value="${selected}" tabindex="-1" aria-hidden="true"></div><span id="history-date-error" class="field-error" role="alert"></span></div>
-        <button class="button button-dark" type="button" id="history-apply">Apply date</button>
-        <button class="button" type="button" id="history-year-start">Start of year</button><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button>
+        <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${index.last}" value="${selected}" tabindex="-1" aria-hidden="true"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
+        <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
         <div class="field field-grow"><label for="history-world-cup">World Cup moments</label><select id="history-world-cup"><option value="">Choose a tournament…</option>${index.world_cups.flatMap((cup) => [`<option value="${cup.before}">Before ${cup.year} World Cup</option>`, `<option value="${cup.after}">After ${cup.year} World Cup</option>`]).join("")}</select></div>
       </div>
       <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
@@ -389,25 +388,25 @@
 
   function matchTable(matches) {
     if (!matches.length) return `<div class="empty">No matches found.</div>`;
-    return `<div class="table-shell"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th class="numeric hide-mobile">Combined rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
-      <td class="mono">${validDate(match.date)}</td>
-      <td>${teamLink(match.a, match.an)} <span class="muted">v</span> ${teamLink(match.b, match.bn)}</td>
-      <td>${venueHTML(match.home === 0 ? "N" : match.home === 1 ? "H" : "A")}</td>
-      <td class="numeric"><span class="score">${match.sa}–${match.sb}</span></td>
+    return `<div class="table-shell match-history-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th class="numeric hide-mobile">Combined rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
+      <td class="mono" data-label="Date">${validDate(match.date)}</td>
+      <td data-label="Match">${teamLink(match.a, match.an)} <span class="muted">v</span> ${teamLink(match.b, match.bn)}</td>
+      <td data-label="Venue">${venueHTML(match.home === 0 ? "N" : match.home === 1 ? "H" : "A")}</td>
+      <td class="numeric" data-label="Score"><span class="score">${match.sa}–${match.sb}</span></td>
       <td class="hide-mobile">${escapeHTML(match.t)}</td>
-      <td>${probabilityHTML(match.p)}</td>
+      <td data-label="Forecast">${probabilityHTML(match.p)}</td>
       <td class="numeric hide-mobile">${rating(match.combined)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function peakTable(peaks) {
-    return `<div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Peak NR</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Peak NR</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
       <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">strength ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function matchRecordTable(matches) {
-    return `<div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
       <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined strength ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
@@ -610,7 +609,7 @@
     let shown = 100;
     const update = () => {
       const matches = availableMatches.slice(0, shown);
-      document.getElementById("team-matches").innerHTML = `<div class="table-shell"><table><thead><tr><th>Date</th><th>Opponent</th><th>H/A/N</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th class="numeric hide-mobile">Rating after match</th></tr></thead><tbody>${matches.map((match) => `<tr><td>${validDate(match.date)}</td><td>${teamLink(match.opponent_code, match.opponent)}</td><td>${venueHTML(match.site)}</td><td class="numeric"><span class="score">${match.gf}–${match.ga}</span></td><td>${formHTML([match.result])}</td><td class="hide-mobile">${escapeHTML(match.tournament)}</td><td class="numeric hide-mobile">${rating(match.post)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("team-matches").innerHTML = `<div class="table-shell team-match-table"><table><thead><tr><th>Date</th><th>Opponent</th><th>H/A/N</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th class="numeric hide-mobile">Rating after match</th></tr></thead><tbody>${matches.map((match) => `<tr><td data-label="Date">${validDate(match.date)}</td><td data-label="Opponent">${teamLink(match.opponent_code, match.opponent)}</td><td data-label="Venue">${venueHTML(match.site)}</td><td class="numeric" data-label="Score"><span class="score">${match.gf}–${match.ga}</span></td><td data-label="Result">${formHTML([match.result])}</td><td class="hide-mobile">${escapeHTML(match.tournament)}</td><td class="numeric hide-mobile">${rating(match.post)}</td></tr>`).join("")}</tbody></table></div>`;
       document.getElementById("team-count").textContent = `Showing ${number(matches.length)} of ${number(availableMatches.length)}`;
       document.getElementById("team-more").hidden = shown >= availableMatches.length;
     };
@@ -645,7 +644,7 @@
         <div class="formula">δ = a(y)(μ₁ − μ₂) + H(y)h<br>E = 1 / (1 + 10^(−δ/400))</div>
         <p><code>μ</code> is underlying team strength, <code>a(y)</code> controls how strongly a rating gap predicts results in year <code>y</code>, and <code>H(y)</code> is home advantage. <code>E</code> is the expected fractional score: 1 for a win, 0.5 for a draw and 0 for a loss.</p>
         <p>Football and international schedules have changed over time, so the model uses the following era values. Values between the listed years are smoothly interpolated.</p>
-        <div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent Elo divisor</th><th class="numeric">Home advantage</th><th class="numeric">Draw chance at equal strength</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === 4 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
+        <div class="table-hint" aria-hidden="true">Swipe to see all parameters →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent Elo divisor</th><th class="numeric">Home advantage</th><th class="numeric">Draw chance at equal strength</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === 4 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
 
         <h2>2. Win, draw and loss probabilities</h2>
         <p>The expected score is divided into three probabilities. The draw probability is highest when teams are evenly matched and falls as the gap grows:</p>

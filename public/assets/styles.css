@@ -161,6 +161,7 @@ h3 { font-size: 18px; }
 .date-combo > input[type="text"] { flex: 1; min-width: 145px; }
 .date-combo .button { flex: 0 0 auto; min-height: 42px; border-radius: 10px; }
 .native-date-proxy { position: absolute; right: 0; bottom: 0; width: 1px !important; height: 1px; min-height: 1px !important; padding: 0 !important; opacity: 0; pointer-events: none; }
+.history-date-actions, .history-nav-actions { display: contents; }
 .toggle-group { display: flex; gap: 6px; }
 .toggle-group .button { min-height: 42px; padding: 8px 13px; }
 
@@ -276,11 +277,12 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   :root { --content: calc(100vw - 24px); }
   .site-header { min-height: 66px; padding: 0 14px; }
   .page { padding-top: 28px; }
-  .hero { min-height: 480px; padding: 34px 24px; border-radius: 24px; }
+  .hero { min-height: 0; padding: 30px 22px; border-radius: 24px; }
   .hero h1 { font-size: clamp(40px, 12vw, 58px); }
   .stat-grid { grid-template-columns: 1fr 1fr; margin-top: -18px; padding: 0 10px; }
   .stat-card { min-height: 135px; padding: 17px; }
   .stat-card .value { font-size: 29px; }
+  .hero-meta { margin-top: 36px; }
   .section { margin-top: 48px; }
   .section-heading { display: block; }
   .section-heading .button { margin-top: 12px; }
@@ -297,6 +299,10 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .team-rating { text-align: left; }
   .team-rating strong { font-size: 58px; }
   .team-stats { grid-template-columns: repeat(2, 1fr); }
+  .chart-summary { display: grid; gap: 5px; }
+  .pagination { flex-wrap: wrap; }
+  .pagination > span { order: -1; width: 100%; text-align: center; }
+  .pagination > .button { flex: 1 1 120px; }
   .site-footer { display: block; padding: 28px 18px; }
   .site-footer p + p { margin-top: 12px; }
   .fixture-table { overflow: visible; margin: 0; border: 0; background: transparent; }
@@ -310,7 +316,25 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .fixture-table td:nth-child(4) { grid-column: 1 / -1; }
   .fixture-table td.hide-mobile { display: none; }
   .fixture-table .probability { width: 100%; }
-  .history-toolbar .button { flex: 1 1 180px; }
+  .history-toolbar { display: grid; grid-template-columns: 1fr; }
+  .history-date-actions { display: block; }
+  .history-date-actions > .button { width: 100%; margin-top: 8px; }
+  .history-nav-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .history-nav-actions .button { min-width: 0; padding-inline: 10px; }
+  .history-nav-actions .button:last-child { grid-column: 1 / -1; }
+  .history-toolbar > .field { width: 100%; }
+  .match-history-table, .team-match-table { overflow: visible; margin: 0; border: 0; background: transparent; }
+  .match-history-table table, .match-history-table tbody, .team-match-table table, .team-match-table tbody { display: block; }
+  .match-history-table thead, .team-match-table thead { display: none; }
+  .match-history-table tr, .team-match-table tr { display: grid; grid-template-columns: 1fr auto auto; gap: 11px 14px; margin-bottom: 10px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 15px; }
+  .match-history-table td, .team-match-table td { display: block; padding: 0; border: 0; }
+  .match-history-table td.hide-mobile, .team-match-table td.hide-mobile { display: none; }
+  .match-history-table td[data-label="Date"], .team-match-table td[data-label="Date"] { grid-column: 1 / -1; color: var(--ink-soft); font-size: 12px; font-weight: 750; }
+  .match-history-table td[data-label="Match"], .team-match-table td[data-label="Opponent"] { grid-column: 1 / -1; font-size: 16px; }
+  .match-history-table td[data-label="Forecast"] { grid-column: 1 / -1; }
+  .match-history-table .probability { width: 100%; }
+  .team-match-table td[data-label="Result"] { align-self: center; }
+  .formula::before { content: "Swipe to see the full formula →"; display: block; margin-bottom: 8px; color: var(--mint); font-family: Calibri, "Segoe UI", Roboto, Arial, sans-serif; font-size: 11px; font-weight: 700; }
 }
 
 @media (max-width: 430px) {
@@ -319,6 +343,9 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .hero-meta > span { width: calc(50% - 8px); }
   .toggle-group { width: 100%; }
   .toggle-group .button { flex: 1; }
+  .date-combo { display: grid; grid-template-columns: 1fr auto; }
+  .date-combo > input[type="text"] { min-width: 0; }
+  .team-stats strong { font-size: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
