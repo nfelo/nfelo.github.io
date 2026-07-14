@@ -27,7 +27,7 @@ jobs:
 
       - name: Replace placeholder with prepared project
         run: |
-          rsync -a --delete --exclude='.git/' \
+          rsync -a --delete --exclude='.git/' --exclude='.github/workflows/' \
             /tmp/network-football-elo-import/network-football-elo/ ./
 
       - name: Commit and publish project
