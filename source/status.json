@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-07-14T13:23:03+00:00",
+  "source_checked_at": "2026-07-14T12:52:03+00:00",
   "mode": "GitHub-hosted open-results supplement",
   "base_snapshot_through": "2026-07-11",
   "supplemental_results": 0,
@@ -10,7 +10,7 @@
   "integrity": "CSV schema, row count, dates, scores and team aliases validated",
   "base_snapshot": {
     "source_checked_at": "2026-07-14T00:00:00+00:00",
-    "mode": "validated bake-off release snapshot",
+    "mode": "validated historical results snapshot",
     "world_teams": 248,
     "pages_checked": 248,
     "pages_changed": 0,

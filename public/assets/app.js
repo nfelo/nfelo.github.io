@@ -35,6 +35,15 @@
       ? value
       : parsed.toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
   };
+  const validTimestamp = (value) => {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.valueOf())
+      ? "—"
+      : parsed.toLocaleString("en-GB", {
+          year: "numeric", month: "short", day: "numeric",
+          hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short",
+        });
+  };
   const teamURL = (code) => `#/team/${encodeURIComponent(code)}`;
   const teamLink = (code, name) => `<a class="team-link" href="${teamURL(code)}">${escapeHTML(name)}</a>`;
 
@@ -333,8 +342,8 @@
     const fixtures = payload.fixtures || [];
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Future fixtures from the open international-results feed, paired with probabilities from the current network state. W and L are from the perspective of the first-listed team.</p></header>
-        <div class="record-note"><strong>${number(fixtures.length)}</strong><div><b>Known future pairings.</b> Placeholder knockout matches remain hidden until both teams are identified. Feed checked ${payload.checked_at ? validDate(payload.checked_at.slice(0, 10)) : "—"}.</div></div>
+        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Future fixtures from the open international-results feed, paired with probabilities from the current ratings. W and L are from the perspective of the first-listed team. Kickoff times are not available from the current fixture source.</p></header>
+        <div class="record-note"><strong>${number(fixtures.length)}</strong><div><b>Known future pairings.</b> Placeholder knockout matches remain hidden until both teams are identified. Feed checked ${validTimestamp(payload.checked_at)}.</div></div>
         ${fixtures.length ? `<div class="table-shell"><table><thead><tr><th>Date</th><th>Match</th><th class="numeric">Combined rating</th><th>W / D / L</th><th class="hide-mobile">Competition</th><th class="hide-mobile">Location</th></tr></thead><tbody>${fixtures.map((fixture) => `<tr>
           <td>${validDate(fixture.date)}</td>
           <td>${teamLink(fixture.team1_code, fixture.team1_name)} <span class="muted">v</span> ${teamLink(fixture.team2_code, fixture.team2_name)}<span class="rating-sub">${rating(fixture.rating1)} + ${rating(fixture.rating2)}</span></td>
@@ -555,13 +564,13 @@
         <p class="eyebrow">Data · updates · limitations</p><h1>About</h1>
         <p class="lede">Network Football Elo is an independent international football rating and prediction system. It covers senior men's internationals from 1872 to the present.</p>
         <section class="section split">
-          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Data last checked: ${update.source_checked_at ? validDate(update.source_checked_at.slice(0, 10)) : validDate(summary.meta.results_through)}</p></div>
-          <div class="panel panel-dark"><p class="eyebrow">Automatic updates</p><h2>Updated every day.</h2><p class="muted">New results and upcoming fixtures are retrieved daily. Each update is validated and the complete rating history is rebuilt before publication. If new data fails validation, the existing site remains online unchanged.</p></div>
+          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
+          <div class="panel panel-dark"><p class="eyebrow">Automatic updates</p><h2>Checked twice daily.</h2><p class="muted">New results and upcoming fixtures are retrieved each morning and evening. Each update is validated and the complete rating history is rebuilt before publication. If new data fails validation, the existing site remains online unchanged.</p></div>
         </section>
         <article class="section prose">
           <h2>Data sources</h2>
           <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results and future fixtures come from the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a>. Team names and successor histories are standardised so that the same national side is followed consistently over time.</p>
-          <h2>Daily updates</h2>
+          <h2>Automatic updates</h2>
           <p>When new results arrive, the entire history is recalculated in chronological order. This matters because each rating depends on the teams' earlier results, opponents and uncertainty. Model parameters remain fixed during routine daily updates, so historical changes come from source corrections rather than silent changes to the method.</p>
           <h2>What the model does not know</h2>
           <p>It does not use line-ups, player availability, injuries, red cards, travel, rest, tactical matchups, weather or betting markets. Its probabilities describe the historical-information model, not certainty and not a recommendation to wager.</p>

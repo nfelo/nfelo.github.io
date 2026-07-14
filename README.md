@@ -1,59 +1,48 @@
 # Network Football Elo
 
-A static, searchable international-football rating site built from a validated
-World Football Elo Ratings TSV snapshot, a current CC0 results supplement, and
-the frozen winner of the Great Elo Bake-off. It includes current rankings,
-historical results, upcoming fixtures with probabilities, one all-time peak per
-nation, the highest-rated match instances, team histories, and a current-state
-probability calculator.
+Network Football Elo is an independent international football rating and
+prediction site covering senior men's internationals from 1872 to the present.
+It provides current rankings, complete historical results, upcoming fixtures,
+match probabilities, national-team histories and all-time records.
 
-The predictive state is a full-covariance dynamic Gaussian opponent network.
-The familiar base-10 Elo curve remains the observation link; uncertainty,
-debut priors, era-adjusted home advantage, goal-margin information and the
-friendly/competitive probability temperatures are all replayed chronologically.
+**Live site:** <https://benyominnemoff-lab.github.io/network-football-elo/>
 
-## What is automatic
+## How it works
 
-The Pages workflow runs every day at 04:17 UTC and can also be run manually.
-It:
+The model retains the familiar Elo relationship between a rating gap and an
+expected result, while adding three features that ordinary scalar Elo does not
+have:
 
-1. downloads the GitHub-hosted `martj42/international_results` CSV;
-2. validates its schema, size, dates, scores and team aliases;
-3. admits completed matches only after the frozen TSV snapshot date;
-4. extracts identified future fixtures and computes current model probabilities;
-5. replays all history with the frozen model;
-6. runs Python and JavaScript checks;
-7. deploys the new static artifact only after every check passes.
+- uncertainty for every team's estimated strength;
+- connections through shared opponents; and
+- era-adjusted home advantage, draw rates and winning-margin information.
 
-Routine updates never refit the model. A re-fit is a separate research release.
+The public rating is deliberately conservative. It adjusts estimated strength
+for the breadth of a team's opponents and subtracts an uncertainty allowance.
+This prevents teams with a narrow or poorly connected schedule from appearing
+artificially high.
 
-## Connect GitHub so Codex can publish it
+The complete explanation and exact equations are available on the site's
+[Methodology page](https://benyominnemoff-lab.github.io/network-football-elo/#/methodology).
+A summary of the historical evaluation is in
+[`docs/model-validation.md`](docs/model-validation.md).
 
-Do **not** paste a personal access token into chat. Use the GitHub App flow:
+## Data and automatic updates
 
-1. Create an empty GitHub repository, ideally public and named
-   `network-football-elo`.
-2. Open [Codex](https://chatgpt.com/codex), sign in with ChatGPT, choose
-   **Connect GitHub**, and authorize that repository.
-3. In Codex environment settings, create an environment for the repository.
-4. Give Codex the exact `owner/repository` name. Codex can then put this project
-   into the repository and open the initial pull request (or push if the
-   repository permissions allow it).
-5. In the repository, open **Settings → Pages** and choose **GitHub Actions** as
-   the publishing source.
-6. In **Settings → Actions → General → Workflow permissions**, select
-   **Read and write permissions**. This lets the scheduled bot preserve newly
-   validated source snapshots. Pages deployment also uses its dedicated token
-   permissions in the workflow.
-7. Merge the initial pull request if branch protection requires review. The
-   first run builds and publishes the site; no further manual updates are
-   required.
+Historical results and labels are based on
+[World Football Elo Ratings](https://eloratings.net/). Recent results and future
+fixtures come from the CC0-licensed
+[international_results](https://github.com/martj42/international_results)
+dataset.
 
-GitHub may take several minutes to show a newly authorized repository in Codex.
-Organization repositories can also require an administrator to approve the
-GitHub App.
+GitHub Actions checks for new data at 04:17 and 18:17 UTC every day. Before a
+new version is published, the update process validates the source, rebuilds the
+complete chronological rating history, runs the automated test suite and checks
+the browser code. If any check fails, the existing site remains online.
 
-## Local build
+Routine data updates do not change the model parameters.
+
+## Local development
 
 ```bash
 python -m venv .venv
@@ -65,42 +54,34 @@ node --check public/assets/app.js
 python -m http.server 8000 --directory public
 ```
 
-Open `http://localhost:8000`. The site has no application server and sends no
-visitor data to a project backend.
+Open <http://localhost:8000>.
 
-To check the public source before building:
+To retrieve the current results and fixture feed before building:
 
 ```bash
 python scripts/fetch_sources.py --source source
 ```
 
-The compatibility flags `--full` and `--full-if-sunday` are accepted by the
-existing workflow but do not rewrite the frozen historical snapshot. The
-fetcher stages every derived file before replacing the last good supplement.
-
 ## Repository layout
 
-- `source/` — validated WFE TSV snapshot plus the current open-data supplement.
-- `config/` — exact bake-off parameters and tournament metadata.
-- `scripts/ledger.py` — canonicalisation, deduplication and same-day ordering.
-- `scripts/model.py` — frozen network replay and conservative record layer.
-- `scripts/build_site.py` — static JSON generation and build manifest.
-- `scripts/fetch_sources.py` — guarded public-source updater.
-- `public/` — GitHub Pages application shell; generated data is ignored by Git.
-- `.github/workflows/pages.yml` — scheduled refresh, checks and deployment.
-- `docs/great-elo-bakeoff.md` — held-out model-selection report.
+- `source/` — historical match data and the current open-data supplement.
+- `config/` — model parameters and tournament metadata.
+- `scripts/` — data retrieval, validation, replay and static-site generation.
+- `public/` — the GitHub Pages site and generated data.
+- `tests/` — consistency, probability and static-build checks.
+- `.github/workflows/pages.yml` — scheduled updates and Pages deployment.
 
 ## Rating conventions
 
-Predictions use the joint posterior mean and covariance directly. The displayed
-network rating is intentionally conservative:
+Predictions use the complete strength and uncertainty state. The displayed team
+rating is:
 
 ```text
 M_i  = 2000 + breadth_reliability_i × (mu_i - elite_reference)
 NR_i = M_i - 1.6448536269514715 × sqrt(Sigma_ii)
 ```
 
-The record score for a match is:
+The combined rating for a matchup is:
 
 ```text
 Q_ij = M_i + M_j
@@ -108,21 +89,17 @@ Q_ij = M_i + M_j
          × sqrt(Sigma_ii + Sigma_jj + 2 Sigma_ij)
 ```
 
-Both participants need 30 prior matches. Every match instance is retained;
-there is no one-per-pair rule.
+Both teams need 30 previous matches before a historical rating or matchup is
+eligible for the record tables. Repeat pairings are retained.
 
-## Source and status
+## Limitations
 
-Historical match rows and labels are from
-[World Football Elo Ratings](https://eloratings.net/). Results after the frozen
-snapshot and future fixtures come from the CC0-licensed
-[martj42/international_results](https://github.com/martj42/international_results)
-dataset. Supplemental matches are never used to rewrite the fitted historical
-period. This project is independent and is not affiliated with either source,
-FIFA or any confederation.
+The model does not use squad selection, injuries, red cards, travel, rest,
+weather, tactics or betting-market information. Ratings and probabilities are
+estimates, not certainties or betting advice.
 
-The model omits line-ups, injuries, red cards, travel, rest, weather, tactics and
-betting markets. Its probabilities are model estimates, not betting advice.
+This project is independent and is not affiliated with its data sources, FIFA
+or any confederation.
 
 ## License
 

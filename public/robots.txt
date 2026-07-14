@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://benyominnemoff-lab.github.io/network-football-elo/sitemap.xml

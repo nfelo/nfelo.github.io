@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Frozen Great Elo Bake-off deployment model and record-rating layer."""
+"""Deployed opponent-network rating model and record-rating layer."""
 
 from __future__ import annotations
 
@@ -620,7 +620,7 @@ class NetworkEloReplay:
 
         summary = {
             "meta": {
-                "model": "Great Elo Bake-off — network temperature common update",
+                "model": "Network Football Elo — shared-opponent uncertainty model",
                 "results_through": last_match.date_text,
                 "matches": len(self.matches),
                 "teams": self.count,

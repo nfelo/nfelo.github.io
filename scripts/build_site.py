@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay the frozen model and write compact static JSON for GitHub Pages."""
+"""Replay the published model and write compact static JSON for GitHub Pages."""
 
 from __future__ import annotations
 
@@ -179,8 +179,6 @@ def main() -> None:
     )
 
     (args.output / ".nojekyll").write_text("", encoding="utf-8")
-    shutil.copyfile(args.output / "index.html", args.output / "404.html")
-
     manifest_files = [
         path
         for path in sorted(args.output.rglob("*"))

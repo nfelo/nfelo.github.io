@@ -119,6 +119,17 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("index.html", manifest["files"])
         self.assertIn("data/summary.json", manifest["files"])
 
+    def test_public_metadata_and_discovery_files(self) -> None:
+        public = ROOT / "public"
+        html = (public / "index.html").read_text(encoding="utf-8")
+        self.assertIn('rel="canonical"', html)
+        self.assertIn('property="og:image"', html)
+        self.assertIn('rel="icon"', html)
+        self.assertEqual((public / "social-card.png").stat().st_size > 10_000, True)
+        self.assertIn("Sitemap:", (public / "robots.txt").read_text(encoding="utf-8"))
+        self.assertIn("<urlset", (public / "sitemap.xml").read_text(encoding="utf-8"))
+        self.assertIn("Page not found", (public / "404.html").read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()
