@@ -155,6 +155,12 @@ h3 { font-size: 18px; }
 .field label { color: var(--ink-soft); font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .field input, .field select { width: 100%; min-height: 42px; padding: 9px 11px; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
 .field input:focus, .field select:focus { outline: 3px solid rgba(167,216,189,.55); border-color: #4a796c; }
+.field-error { min-height: 14px; color: #a43f36; font-size: 12px; }
+.history-date-field { flex: 1 1 300px; }
+.date-combo { position: relative; display: flex; gap: 7px; }
+.date-combo > input[type="text"] { flex: 1; min-width: 145px; }
+.date-combo .button { flex: 0 0 auto; min-height: 42px; border-radius: 10px; }
+.native-date-proxy { position: absolute; right: 0; bottom: 0; width: 1px !important; height: 1px; min-height: 1px !important; padding: 0 !important; opacity: 0; pointer-events: none; }
 .toggle-group { display: flex; gap: 6px; }
 .toggle-group .button { min-height: 42px; padding: 8px 13px; }
 
@@ -172,6 +178,10 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .rating-sub { display: block; margin-top: 3px; color: var(--ink-soft); font-size: 11px; }
 .table-hint { display: none; margin: 0 0 7px; color: var(--ink-soft); font-size: 12px; text-align: right; }
 .score { display: inline-flex; min-width: 52px; justify-content: center; padding: 5px 9px; color: #fff; background: var(--navy); border-radius: 7px; font-weight: 850; letter-spacing: .03em; }
+.venue-code { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #fff; background: var(--navy-2); font-size: 11px; font-weight: 850; }
+.venue-H { background: #347c68; }
+.venue-A { background: #a75a4f; }
+.venue-N { color: var(--ink); background: var(--paper-deep); }
 .form { display: inline-flex; gap: 3px; }
 .form i { display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; color: #fff; font-size: 10px; font-style: normal; font-weight: 900; }
 .form .W { background: #3f8e70; }

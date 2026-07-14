@@ -29,11 +29,9 @@
   const validDate = (value) => {
     const [year, month, day] = String(value).split("-");
     if (month === "00") return year;
-    if (day === "00") return `${year}-${month}`;
+    if (day === "00") return `${month}/${year}`;
     const parsed = new Date(`${value}T00:00:00Z`);
-    return Number.isNaN(parsed.valueOf())
-      ? value
-      : parsed.toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+    return Number.isNaN(parsed.valueOf()) ? value : `${day}/${month}/${year}`;
   };
   const validTimestamp = (value) => {
     const parsed = new Date(value);
@@ -44,8 +42,8 @@
           hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short",
         });
   };
-  const teamURL = (code) => `#/team/${encodeURIComponent(code)}`;
-  const teamLink = (code, name) => `<a class="team-link" href="${teamURL(code)}">${escapeHTML(name)}</a>`;
+  const teamURL = (code, date = "") => `#/team/${encodeURIComponent(code)}${date ? `?date=${encodeURIComponent(date)}` : ""}`;
+  const teamLink = (code, name, date = "") => `<a class="team-link" href="${teamURL(code, date)}">${escapeHTML(name)}</a>`;
 
   async function getJSON(path) {
     if (!dataCache.has(path)) {
@@ -81,6 +79,20 @@
   const isoDate = (value) => {
     const parsed = new Date(`${value}T00:00:00Z`);
     return Number.isNaN(parsed.valueOf()) ? "" : parsed.toISOString().slice(0, 10);
+  };
+  const inputDate = (value) => {
+    const match = String(value).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!match) return "";
+    const [, rawDay, rawMonth, year] = match;
+    const day = rawDay.padStart(2, "0");
+    const month = rawMonth.padStart(2, "0");
+    const iso = `${year}-${month}-${day}`;
+    const parsed = new Date(`${iso}T00:00:00Z`);
+    return Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== iso ? "" : iso;
+  };
+  const venueHTML = (code) => {
+    const labels = { H: "Home", A: "Away", N: "Neutral" };
+    return `<span class="venue-code venue-${code}" title="${labels[code]}" aria-label="${labels[code]}">${code}</span>`;
   };
 
   function loading(label = "Loading rating history…") {
@@ -212,11 +224,11 @@
     update();
   }
 
-  function historicalRankingsTable(items) {
+  function historicalRankingsTable(items, selectedDate) {
     if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>Teams enter the table after their 30th recorded match.</p></div>`;
     return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table>
       <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Model strength</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
-      <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${index + 1}</td><td>${teamLink(team.code, team.nation)}</td>
+      <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
         <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
         <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`).join("")}</tbody></table></div>`;
@@ -231,7 +243,8 @@
     content.innerHTML = `<div class="page">
       <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
       <div class="toolbar history-toolbar">
-        <div class="field"><label for="history-date">Ranking date</label><input id="history-date" type="date" min="${index.first}" max="${index.last}" value="${selected}"></div>
+        <div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${index.last}" value="${selected}" tabindex="-1" aria-hidden="true"></div><span id="history-date-error" class="field-error" role="alert"></span></div>
+        <button class="button button-dark" type="button" id="history-apply">Apply date</button>
         <button class="button" type="button" id="history-year-start">Start of year</button><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button>
         <div class="field field-grow"><label for="history-world-cup">World Cup moments</label><select id="history-world-cup"><option value="">Choose a tournament…</option>${index.world_cups.flatMap((cup) => [`<option value="${cup.before}">Before ${cup.year} World Cup</option>`, `<option value="${cup.after}">After ${cup.year} World Cup</option>`]).join("")}</select></div>
       </div>
@@ -240,18 +253,23 @@
       <div id="history-table"></div></div>`;
 
     let teams = [];
+    let currentDate = selected;
     const dateInput = document.getElementById("history-date");
+    const calendarInput = document.getElementById("history-calendar");
     const table = document.getElementById("history-table");
     const updateTable = () => {
       const query = document.getElementById("history-search").value.trim().toLocaleLowerCase();
       const sort = document.getElementById("history-sort").value;
       const visible = teams.filter((team) => team.nation.toLocaleLowerCase().includes(query));
       visible.sort((a, b) => sort === "name" ? a.nation.localeCompare(b.nation) : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity) || a.nation.localeCompare(b.nation));
-      table.innerHTML = historicalRankingsTable(visible);
+      table.innerHTML = historicalRankingsTable(visible, currentDate);
     };
     const loadDate = async (value) => {
       const chosen = value < index.first ? index.first : value > index.last ? index.last : value;
-      dateInput.value = chosen;
+      currentDate = chosen;
+      dateInput.value = validDate(chosen);
+      calendarInput.value = chosen;
+      document.getElementById("history-date-error").textContent = "";
       history.replaceState(null, "", `#/history?date=${chosen}`);
       table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
       const payload = await getJSON(`data/rankings-history/${chosen.slice(0, 4)}.json`);
@@ -265,7 +283,7 @@
       updateTable();
     };
     const adjacentMatchday = async (direction) => {
-      let chosen = dateInput.value;
+      let chosen = currentDate;
       let year = Number(chosen.slice(0, 4));
       const firstYear = Number(index.first.slice(0, 4));
       const lastYear = Number(index.last.slice(0, 4));
@@ -277,8 +295,22 @@
         chosen = direction < 0 ? `${year + 1}-01-01` : `${year - 1}-12-31`;
       }
     };
-    dateInput.addEventListener("change", () => loadDate(dateInput.value));
-    document.getElementById("history-year-start").addEventListener("click", () => loadDate(`${dateInput.value.slice(0, 4)}-01-01`));
+    const applyTypedDate = () => {
+      const chosen = inputDate(dateInput.value);
+      if (!chosen) {
+        document.getElementById("history-date-error").textContent = "Enter a valid date as DD/MM/YYYY.";
+        return;
+      }
+      loadDate(chosen);
+    };
+    document.getElementById("history-apply").addEventListener("click", applyTypedDate);
+    dateInput.addEventListener("keydown", (event) => { if (event.key === "Enter") applyTypedDate(); });
+    document.getElementById("history-calendar-button").addEventListener("click", () => {
+      if (typeof calendarInput.showPicker === "function") calendarInput.showPicker();
+      else calendarInput.click();
+    });
+    calendarInput.addEventListener("change", () => { if (calendarInput.value) loadDate(calendarInput.value); });
+    document.getElementById("history-year-start").addEventListener("click", () => loadDate(`${currentDate.slice(0, 4)}-01-01`));
     document.getElementById("history-prev").addEventListener("click", () => adjacentMatchday(-1));
     document.getElementById("history-next").addEventListener("click", () => adjacentMatchday(1));
     document.getElementById("history-world-cup").addEventListener("change", (event) => { if (event.target.value) loadDate(event.target.value); });
@@ -357,9 +389,10 @@
 
   function matchTable(matches) {
     if (!matches.length) return `<div class="empty">No matches found.</div>`;
-    return `<div class="table-shell"><table><thead><tr><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th class="numeric hide-mobile">Combined rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
+    return `<div class="table-shell"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th class="numeric hide-mobile">Combined rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
       <td class="mono">${validDate(match.date)}</td>
       <td>${teamLink(match.a, match.an)} <span class="muted">v</span> ${teamLink(match.b, match.bn)}</td>
+      <td>${venueHTML(match.home === 0 ? "N" : match.home === 1 ? "H" : "A")}</td>
       <td class="numeric"><span class="score">${match.sa}–${match.sb}</span></td>
       <td class="hide-mobile">${escapeHTML(match.t)}</td>
       <td>${probabilityHTML(match.p)}</td>
@@ -544,29 +577,42 @@
     </div>`;
   }
 
-  async function renderTeam(code) {
+  async function renderTeam(code, query = new URLSearchParams()) {
     loading("Loading the team history…");
     const page = await getJSON(`data/teams/${encodeURIComponent(code)}.json`);
     const team = page.team;
+    const requestedDate = isoDate(query.get("date"));
+    const cutoff = requestedDate && requestedDate <= summary.meta.results_through ? requestedDate : "";
+    const history = cutoff ? page.history.filter((point) => point.date <= cutoff) : page.history;
+    const availableMatches = cutoff ? page.matches.filter((match) => match.date <= cutoff) : page.matches;
+    const latestPoint = history.length ? history[history.length - 1] : null;
+    const historicalStats = availableMatches.reduce((stats, match) => {
+      stats.matches += 1;
+      stats.gf += match.gf;
+      stats.ga += match.ga;
+      stats[match.result] += 1;
+      return stats;
+    }, { matches: 0, gf: 0, ga: 0, W: 0, D: 0, L: 0 });
+    const historicalPeak = history.length ? history.reduce((best, point) => point.rating > best.rating ? point : best, history[0]) : null;
     setTitle(team.nation);
     content.innerHTML = `
       <div class="page">
         <section class="team-hero">
-          <div><p class="eyebrow">${team.rank ? `Current world no. ${team.rank}` : "Historical team record"}</p><h1>${escapeHTML(team.nation)}</h1></div>
-          <div class="team-rating"><strong>${rating(team.rating)}</strong><span>rating · uncertainty ${rating(team.se)}</span></div>
+          <div><p class="eyebrow">${cutoff ? `Historical record through ${validDate(cutoff)}` : team.rank ? `Current world no. ${team.rank}` : "Historical team record"}</p><h1>${escapeHTML(team.nation)}</h1></div>
+          <div class="team-rating"><strong>${rating(cutoff ? latestPoint?.rating : team.rating)}</strong><span>${cutoff && latestPoint ? `after ${validDate(latestPoint.date)} · ` : ""}uncertainty ${rating(cutoff ? latestPoint?.se : team.se)}</span></div>
         </section>
         <div class="team-stats">
-          <div><span>Matches</span><strong>${number(team.matches)}</strong></div><div><span>Record</span><strong>${team.wins}–${team.draws}–${team.losses}</strong></div><div><span>Goals</span><strong>${team.gf}–${team.ga}</strong></div><div><span>Opponent breadth</span><strong>${number(team.breadth, 1)}</strong></div><div><span>All-time peak</span><strong>${team.peak ? rating(team.peak.rating) : "—"}</strong></div>
+          <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span>${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Peak by date" : "All-time peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
         </div>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history</h2></div></div>${ratingChart(page.history, team.nation)}</section>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Complete match history</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small"></span><button id="team-more" class="button">Show more</button></div></section>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, team.nation)}</section>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">${cutoff ? "Matches through selected date" : "Complete match history"}</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small"></span><button id="team-more" class="button">Show more</button></div></section>
       </div>`;
     let shown = 100;
     const update = () => {
-      const matches = page.matches.slice(0, shown);
-      document.getElementById("team-matches").innerHTML = `<div class="table-shell"><table><thead><tr><th>Date</th><th>Opponent</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th class="numeric hide-mobile">Rating after match</th></tr></thead><tbody>${matches.map((match) => `<tr><td>${validDate(match.date)}</td><td>${teamLink(match.opponent_code, match.opponent)}</td><td class="numeric"><span class="score">${match.gf}–${match.ga}</span></td><td>${formHTML([match.result])}</td><td class="hide-mobile">${escapeHTML(match.tournament)}</td><td class="numeric hide-mobile">${rating(match.post)}</td></tr>`).join("")}</tbody></table></div>`;
-      document.getElementById("team-count").textContent = `Showing ${number(matches.length)} of ${number(page.matches.length)}`;
-      document.getElementById("team-more").hidden = shown >= page.matches.length;
+      const matches = availableMatches.slice(0, shown);
+      document.getElementById("team-matches").innerHTML = `<div class="table-shell"><table><thead><tr><th>Date</th><th>Opponent</th><th>H/A/N</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th class="numeric hide-mobile">Rating after match</th></tr></thead><tbody>${matches.map((match) => `<tr><td>${validDate(match.date)}</td><td>${teamLink(match.opponent_code, match.opponent)}</td><td>${venueHTML(match.site)}</td><td class="numeric"><span class="score">${match.gf}–${match.ga}</span></td><td>${formHTML([match.result])}</td><td class="hide-mobile">${escapeHTML(match.tournament)}</td><td class="numeric hide-mobile">${rating(match.post)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("team-count").textContent = `Showing ${number(matches.length)} of ${number(availableMatches.length)}`;
+      document.getElementById("team-more").hidden = shown >= availableMatches.length;
     };
     document.getElementById("team-more").addEventListener("click", () => { shown += 100; update(); });
     update();
@@ -678,7 +724,7 @@
         case "fixtures": await renderFixtures(); break;
         case "records": renderRecords(); break;
         case "predict": await renderPredict(); break;
-        case "team": current.value ? await renderTeam(current.value) : renderNotFound(); break;
+        case "team": current.value ? await renderTeam(current.value, current.query) : renderNotFound(); break;
         case "methodology": renderMethodology(); break;
         case "about": renderAbout(); break;
         default: renderNotFound();

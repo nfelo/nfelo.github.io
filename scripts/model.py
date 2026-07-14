@@ -513,6 +513,9 @@ class NetworkEloReplay:
                     "tournament": self.tournament_name(match.tournament),
                     "level": level,
                     "venue": row["venue"],
+                    "site": "N" if match.home_sign == 0 else (
+                        "H" if (index == i and match.home_sign == 1) or (index == j and match.home_sign == -1) else "A"
+                    ),
                     "pre": None if pre is None else pre["rating"],
                     "post": None if post is None else post["rating"],
                 }

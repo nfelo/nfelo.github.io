@@ -63,10 +63,17 @@ class StaticBuildTests(unittest.TestCase):
             self.assertEqual(len(payload["matches"]), item["count"])
             total += item["count"]
             for match in payload["matches"]:
+                self.assertIn(match["home"], (-1, 0, 1))
                 self.assertAlmostEqual(sum(match["p"]), 1.0, places=6)
                 self.assertNotIn(match["id"], ids)
                 ids.add(match["id"])
         self.assertEqual(total, self.summary["meta"]["matches"])
+
+    def test_team_match_venue_codes(self) -> None:
+        for code in ("AR", "EN", "JP"):
+            page = json.loads((self.data / "teams" / f"{code}.json").read_text(encoding="utf-8"))
+            self.assertTrue(page["matches"])
+            self.assertTrue(all(match["site"] in {"H", "A", "N"} for match in page["matches"]))
 
     def test_probability_swap_invariance(self) -> None:
         first = three_way_probabilities(137.5, 12_345.0, 2026, friendly=False)
