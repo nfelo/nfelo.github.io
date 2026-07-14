@@ -20,7 +20,7 @@ jobs:
           curl --fail --location --retry 5 --retry-all-errors \
             https://network-football-elo-import-20260714.benyominnemoff.chatgpt.site/network-football-elo-github-import.zip \
             --output /tmp/network-football-elo.zip
-          echo "ae37b6ef0b0446178c2fdea342fd7a55d88d38968fca817ef212ba90885689ea  /tmp/network-football-elo.zip" \
+          echo "6f8b3f6149058b6b8f72d1635e222c43ce01f5c1dfdab77483aa92bbed59b9d9  /tmp/network-football-elo.zip" \
             | sha256sum --check --strict
           mkdir -p /tmp/network-football-elo-import
           unzip -q /tmp/network-football-elo.zip -d /tmp/network-football-elo-import
