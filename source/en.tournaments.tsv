@@ -1,0 +1,660 @@
+WC	World Cup
+OG	Olympic Games
+EC	European Championship	Euro Championship	Euro Champ
+CA	Copa America
+SA	South American Championship	South American Champ	South American Ch	South Am Champ	S Am Champ	South Am Ch	S Am Ch
+SA1	South American Championship I	South American Champ I	South American Ch I	South Am Champ I	S Am Champ I	South Am Ch I	S Am Ch I
+SA2	South American Championship II	South American Champ II	South American Ch II	South Am Champ II	S Am Champ II	South Am Ch II	S Am Ch II
+AC	Asian Cup
+AR	African Nations Cup	African Cup
+PAC	Panamerican Championship	Panamerican Champ	Panamerican Ch	Panam Champ
+PAG	Panamerican Games	Panamerican G	Panam Games
+CCH	CONCACAF Championship	CONCACAF Champ	N Am Champ
+CCF	CCCF Championship	CCCF Champ
+CGC	CONCACAF Gold Cup
+NAC	North American Championship	North American Champ	N American Champ	N Am Champ
+WQN	World Cup qualifier and North American Championship	North American Champ and World Cup qual	N American Champ and World Cup qual	N Am Champ & World Cup qual	NA Champ & WC qual	NA Ch & WC q
+OC	Oceania Nations Cup	Oceania Nat Cup	Oceania Cup
+OCT	Oceania Nations Cup and Trans-Tasman Cup	Oceania Nations Cup & Trans-Tasman Cup	Oceania Cup and Trans-Tasman Cup	Oceania Cup & Trans-Tasman Cup	Oce Cup & Trans-Tasman Cup	Oce Cup & Tr-Tasman Cup	Oce C & Tr-Tasman C	Oceania Nations Cup	Oceania Nat Cup	Oceania Cup
+CC	Confederations Cup	Confed Cup
+CFC	Confederations Cup qualifier and CONCACAF Cup	Confederations Cup qual and CONCACAF Cup	Confed Cup qual & CONCACAF Cup	Conf C q & CONCACAF C	CONCACAF Cup	CONCACAF C
+IC	Intercontinental Championship	Intercontinental Champ	Intercont Champ	Intercont Ch	Interc Ch
+AAC	Afro-Asian Cup	Afro-Asian C
+AAG	Afro-Asian Games
+AFT	Artemio Franchi Trophy	A Franchi Trophy	A Franchi T
+WFC	World Football Cup	World Ftbl Cup	World Ftbl C
+VWC	VIVA World Cup	VIVA World C	VIVA WC
+MWC	Mini World Cup	Mini World C	Mini WC
+WQT	World Cup qualifying	World Cup qual	World Cup q
+WQ	World Cup qualifier	World Cup qual	World Cup q
+WQA	World Cup and African Nations Cup qualifier	World Cup and African Cup qualifier	World Cup & African Cup qual	World Cup & Afr Cup q	WC & Afr Cup q
+WQS	World Cup and Asian Cup qualifier	World Cup & Asian Cup qual	World Cup & As Cup q	WC & As Cup q
+WQC	World Cup qualifier and CONCACAF Championship	World Cup qual & CONCACAF Champ	World Cup q & CONCACAF Ch	WC q & NA Ch
+WQO	World Cup qualifier and Oceania Nations Cup	World Cup qualifier and Oceania Cup	World Cup qual & Oceania Cup	WC q & Oce Cup
+WCQ	World Cup and CONCACAF Championship qualifier	World Cup & CONCACAF Champ qual	World Cup & CONCACAF Ch q	WC & NA Ch q
+WOQ	World Cup and Oceania Nations Cup qualifier	World Cup and Oceania Cup qualifier	World Cup & Oceania Cup qual	WC & Oce Cup q
+WOS	World Cup and Oceania Nations Cup qualifier and South Pacific Games	World Cup and Oceania Cup qualifier and South Pacific Games	World Cup & Oceania Cup qual & S Pacific Games	World Cup & Oceania Cup q & S Pac Games	World Cup & Oce Cup q & S Pac Games	World Cup & Oce Cup q & S Pac G	W Cup & Oce Cup q & S Pac G	WC & Oce Cup q & S Pac G	WC & OC q & SPG
+OQG	Oceania Nations Cup qualifier and South Pacific Games	Oceania Cup qualifier and South Pacific Games	Oceania Cup qual & S Pacific Games	Oceania Cup q & S Pac Games	Oce Cup q & S Pac Games	Oce Cup q & S Pac G	Oce Cup q & S Pac G	Oce Cup q & S Pac G	OC q & SPG
+WQL	World Cup qualifier and Baltic Cup	World Cup qual & Baltic Cup	World Cup q & Baltic Ch	WC q & Blt C
+WQB	World Cup qualifier and British Championship	World Cup qual & British Champ	World Cup q & British Ch	WC q & Br Ch
+WQD	World Cup qualifier and Nordic Championship	World Cup qual & Nordic Champ	World Cup q & Nordic Ch	WC q & Nrd Ch
+AFQ	World Cup AFC and CAF qualifying	World Cup AFC and CAF qual	World Cup AFC & CAF qual	WC AFC & CAF qual	WC AFC & CAF q	WC AFC/CAF q	AFC/CAF WCq
+AOQ	World Cup AFC and OFC qualifying	World Cup AFC and OFC qual	World Cup AFC & OFC qual	WC AFC & OFC qual	WC AFC & OFC q	WC AFC/OFC q	AFC/OFC WCq
+ACQ	World Cup AFC qualifying	World Cup AFC qual	WC AFC qual	WC AFC q
+CFQ	World Cup CAF qualifying	World Cup CAF qual	WC CAF qual	WC CAF q
+CNQ	World Cup CCCF and NAFC qualifying	World Cup CCCF & NAFC qual	WC CCCF/NAFC qual	WC CCCF/NAFC q	WC N Am q
+NCQ	World Cup CONCACAF qualifying	World Cup CONCACAF qual	WC CONCACAF qual	WC CONCACAF q	WC N Am q
+MBQ	World Cup CONMEBOL qualifying	World Cup CONMEBOL qual	WC CONMEBOL qual	WC CONMEBOL q	WC S Am q
+OFQ	World Cup OFC qualifying	World Cup OFC qual	WC OFC qual	WC OFC q
+UEQ	World Cup UEFA qualifying	World Cup UEFA qual	WC UEFA qual	WC UEFA q
+WQP	World Cup qualifying playoffs	World Cup qual playoffs	World Cup q playoffs	WC q playoffs
+OGC	Olympic Games Consolation Tournament	Olympic Games Cons Tourn	Oly G Cons
+OQ	Olympic Games qualifier	Olympic Games qual	Olympic qual	Olympic q
+ON	Olympic Games qualifier and Nordic Championship	Olympic Games qual & Nordic Champ	Oly qual & Nrd Ch	Oly q & Nrd Ch
+ENL	European Nations League	European League	Euro League
+ENA	European Nations League A	European League A	Euro League A
+EAB	European Nations League A/B Play-off	European Nations League A/B	European League A/B	Euro League A/B	E League A/B
+ABT	European Nations League A/B Play-offs	European Nations League A/B	European League A/B	Euro League A/B	E League A/B
+ENB	European Nations League B	European League B	Euro League B
+EBC	European Nations League B/C Play-off	European Nations League B/C	European League B/C	Euro League B/C	E League B/C
+BCT	European Nations League B/C Play-offs	European Nations League B/C	European League B/C	Euro League B/C	E League B/C
+ENC	European Nations League C	European League C	Euro League C
+ECD	European Nations League C/D Play-off	European Nations League C/D	European League C/D	Euro League C/D	E League C/D
+CDT	European Nations League C/D Play-offs	European Nations League C/D	European League C/D	Euro League C/D	E League C/D
+END	European Nations League D	European League D	Euro League D
+CLQ	CONCACAF Nations League qualifier	CONCACAF Nations League qual	CONCACAF Nations League q	CONCACAF Nat League q	CONCACAF League q	N Am League q
+NLQ	CONCACAF Nations League qualifying	CONCACAF Nations League qual	CONCACAF Nations League q	CONCACAF Nat League q	CONCACAF League q	N Am League q
+CNL	CONCACAF Nations League	CONCACAF Nat League	CONCACAF League	N Am League
+CLA	CONCACAF Nations League A	CONCACAF Nat League A	CONCACAF League A	N Am League A
+CLB	CONCACAF Nations League B	CONCACAF Nat League B	CONCACAF League B	N Am League B
+CLC	CONCACAF Nations League C	CONCACAF Nat League C	CONCACAF League C	N Am League C
+LA	League A
+LAB	League A/B
+LB	League B
+LBC	League B/C
+LC	League C
+LCD	League C/D
+LD	League D
+ACF	AFC and CAF
+AOF	AFC and OFC
+CNA	CCCF and NAFC
+P	Playoffs
+Q	Qualifying
+T	Tournaments
+I	Intercontinental
+EQ	European Championship qualifier	European Championship qual	European Champ qual	Euro Champ qual	Euro Ch q
+EQT	European Championship qualifying	European Championship qual	European Champ qual	Euro Champ qual	Euro Ch q
+EQB	European Championship qualifier and British Championship	European Champ qual & British Champ	Euro Champ qual & British Champ	Euro Champ q & British Champ	Euro Ch q & British Ch	Euro Ch q & Br Ch
+EQN	European Championship qualifier and Nordic Championship	European Champ qual & Nordic Champ	Euro Champ qual & Nordic Champ	Euro Champ q & Nordic Champ	Euro Ch q & Nordic Ch	Euro Ch q & Nrd Ch
+CAQ	Copa America qualifier	Copa America qual	Copa America q
+CQT	Copa America qualifying	Copa America qual	Copa America q
+SAQ	South American Championship qualifier	South American Championship qual	South American Champ qual	South American Champ q	South American Ch q	South Am Champ q	S Am Champ q	South Am Ch q	S Am Ch q
+SQT	South American Championship qualifying	South American Championship qual	South American Champ qual	South American Champ q	South American Ch q	South Am Champ q	S Am Champ q	South Am Ch q	S Am Ch q
+SQ	Asian Cup qualifier	Asian Cup qual	Asian Cup q
+AQ	Asian Cup qualifying	Asian Cup qual	Asian Cup q
+SQC	Asian Cup qualifier and Asian Challenge Cup	Asian Cup qualifier & Asian Challenge Cup	Asian Cup qual & Asian Challenge Cup	Asian Cup q & Asian Challenge Cup	Asian Cup q & Asian Chlg Cup	As Cup q & As Chlg Cup	As C q & As Chlg C	As C q & As Ch C	Asian Challenge Cup	Asian Chlg Cup	As Chlg Cup	As Ch Cup
+SCQ	Asian Cup and Asian Challenge Cup qualifier	Asian Cup & Asian Challenge Cup qualifier	Asian Cup & Asian Challenge Cup qual	Asian Cup & Asian Challenge Cup q	Asian Cup & Asian Chlg Cup q	As Cup & As Chlg Cup q	As C & As Chlg C q	As C & As Ch C q	Asian Challenge Cup qualifier	Asian Challenge Cup qual	Asian Challenge Cup q	Asian Chlg Cup q	As Chlg Cup q	As Ch Cup q
+FQ	African Nations Cup qualifier	African Nations Cup qual	African Cup qualifier	African Cup qual	African Cup q
+FQT	African Nations Cup qualifying	African Nations Cup qual	African Cup qualifying	African Cup qual	African Cup q
+PAQ	Panamerican Games qualifier	Panamerican Games qual	Panam Games qual	Panam Games q
+CCQ	CONCACAF Championship qualifier	CONCACAF Championship qual	CONCACAF Champ qual	CONCACAF Ch q	N Am Ch q
+NQT	CONCACAF Championship qualifying	CONCACAF Championship qual	CONCACAF Champ qual	CONCACAF Ch q	N Am Ch q
+GCQ	CONCACAF Gold Cup qualifier	CONCACAF Gold Cup qual	CONCACAF Gold Cup q	Gold Cup q
+OCQ	Oceania Nations Cup qualifier	Oceania Cup qualifier	Oceania Cup qual	Oceania Cup q	Oce Cup qual
+OQT	Oceania Nations Cup qualifying	Oceania Cup qualifying	Oceania Cup qual	Oceania Cup q	Oce Cup qual
+ASG	Asian Games
+MR	May Revolution Centennial Cup	May Revolution Cent Cup	May Rev Cent Cup	May Rev Cent C	May Rev C C
+CCC	Central American Cup	Central Am Cup	C Am Cup
+UNC	UNCAF Nations Cup	UNCAF Nat Cup	UNCAF Cup
+UNQ	UNCAF Nations Cup qualifier	UNCAF Nations Cup qual	UNCAF Nat Cup qual	UNCAF Nat Cup q	UNCAF Cup q
+UNT	UNCAF Nations Cup qualifying	UNCAF Nations Cup qual	UNCAF Nat Cup qual	UNCAF Nat Cup q	UNCAF Cup q
+NQC	CONCACAF Championship qualifier and Central American Cup	CONCACAF Championship qualifier & Central American Cup	CONCACAF Championship qual & Central American Cup	CONCACAF Champ qual & Central American Cup	CONCACAF Champ qual & Central Am Cup	CONCACAF Champ q & Central Am Cup	CONCACAF Champ q & C Am Cup	CONCACAF Ch q & C Am Cup	N Am Ch q & C Am Cup	Central American Cup	Central Am Cup	C Am Cup
+NQU	CONCACAF Championship qualifier and UNCAF Nations Cup	CONCACAF Championship qualifier & UNCAF Nations Cup	CONCACAF Championship qual & UNCAF Nations Cup	CONCACAF Champ qual & UNCAF Nations Cup	CONCACAF Champ qual & UNCAF Nat Cup	CONCACAF Champ q & UNCAF Nat Cup	CONCACAF Champ q & UNCAF Cup	CONCACAF Ch q & UNCAF Cup	N Am Ch q & UNCAF Cup	UNCAF Nations Cup	UNCAF Nat Cup	UNCAF Cup
+NUQ	CONCACAF Championship and UNCAF Nations Cup qualifier	CONCACAF Championship & UNCAF Nations Cup qualifier	CONCACAF Championship & UNCAF Nations Cup qual	CONCACAF Champ & UNCAF Nations Cup qual	CONCACAF Champ & UNCAF Nat Cup qual	CONCACAF Champ & UNCAF Nat Cup q	CONCACAF Champ & UNCAF Cup q	CONCACAF Ch & UNCAF Cup q	N Am Ch & UNCAF Cup q	UNCAF Nations Cup qualifier	UNCAF Nations Cup qual	UNCAF Nat Cup qual	UNCAF Nat Cup q	UNCAF Cup q
+CRC	Caribbean Championship	Caribbean Champ	Caribbean Ch	Carib Ch
+CRP	Caribbean Championship playoffs	Caribbean Champ playoffs	Caribbean Champ play	Caribbean Champ PO	Caribbean Ch play	Caribbean Ch PO	Carib Ch play	Carib Ch PO
+CRQ	Caribbean Championship qualifier	Caribbean Championship qual	Caribbean Champ qual	Caribbean Champ q	Caribbean Ch q	Carib Ch q
+CRT	Caribbean Championship qualifying	Caribbean Championship qual	Caribbean Champ qual	Caribbean Champ q	Caribbean Ch q	Carib Ch q
+CBC	Caribbean Cup
+CBQ	Caribbean Cup qualifier	Caribbean Cup qual	Caribbean Cup q	Carib Cup q
+CBT	Caribbean Cup qualifying	Caribbean Cup qual	Caribbean Cup q	Carib Cup q
+CIB	Caribbean Cup
+CIQ	Caribbean Cup qualifier	Caribbean Cup qual	Caribbean Cup q	Carib Cup q
+CIT	Caribbean Cup qualifying	Caribbean Cup qual	Caribbean Cup q	Carib Cup q
+FQC	CONCACAF Championship qualifier and Caribbean Cup	CONCACAF Championship qualifier & Caribbean Cup	CONCACAF Championship qual & Caribbean Cup	CONCACAF Champ qual & Caribbean Cup	CONCACAF Champ qual & Carib Cup	CONCACAF Champ q & Carib Cup	CONCACAF Champ q & Car Cup	CONCACAF Ch q & Car Cup	N Am Ch q & Car Cup	Caribbean Cup	Carib Cup
+FCQ	CONCACAF Championship and Caribbean Cup qualifier	CONCACAF Championship & Caribbean Cup qualifier	CONCACAF Championship & Caribbean Cup qual	CONCACAF Champ & Caribbean Cup qual	CONCACAF Champ & Carib Cup qual	CONCACAF Champ & Carib Cup q	CONCACAF Champ & Car Cup q	CONCACAF Ch & Car Cup q	N Am Ch & Car Cup q	Caribbean Cup qualifier	Caribbean Cup qual	Caribbean Cup q	Carib Cup q
+FQB	CONCACAF Championship qualifier and Caribbean Championship	CONCACAF Championship qualifier & Caribbean Championship	CONCACAF Championship qual & Caribbean Championship	CONCACAF Champ qual & Caribbean Champ	CONCACAF Champ qual & Carib Champ	CONCACAF Champ q & Carib Champ	CONCACAF Champ q & Car Champ	CONCACAF Ch q & Car Ch	N Am Ch q & Car Ch	Caribbean Championship	Caribbean Champ	Caribbean Ch	Carib Ch
+FQP	CONCACAF Championship qualifier and Caribbean Championship playoff	CONCACAF Championship qualifier & Caribbean Championship playoff	CONCACAF Championship qual & Caribbean Championship play	CONCACAF Champ qual & Caribbean Champ play	CONCACAF Champ qual & Carib Champ play	CONCACAF Champ q & Carib Champ PO	CONCACAF Champ q & Car Champ PO	CONCACAF Ch q & Car Ch play	CONCACAF Ch q & Car Ch PO	N Am Ch q & Car Ch PO	Caribbean Championship playoff	Caribbean Championship play	Caribbean Champ play	Caribbean Champ PO	Caribbean Ch PO	Carib Ch PO	CONCACAF_Car_Champ_Q	CONCACAF Championship and Caribbean Championship qualifier	CONCACAF Championship & Caribbean Championship qualifier	CONCACAF Championship & Caribbean Championship qual	CONCACAF Champ & Caribbean Champ qual	CONCACAF Champ & Carib Champ qual	CONCACAF Champ & Carib Champ q	CONCACAF Champ & Car Champ q	CONCACAF Ch & Car Ch q	N Am Ch & Car Ch q	Caribbean Championship qualifier	Caribbean Championship qual	Caribbean Champ qual	Caribbean Champ q	Caribbean Ch q	Carib Ch q
+FBQ	CONCACAF Championship and Caribbean Championship qualifier	CONCACAF Championship & Caribbean Championship qualifier	CONCACAF Championship & Caribbean Championship qual	CONCACAF Champ & Caribbean Champ qual	CONCACAF Champ & Carib Champ qual	CONCACAF Champ & Carib Champ q	CONCACAF Champ & Car Champ q	CONCACAF Ch & Car Ch q	N Am Ch & Car Ch q	Caribbean Championship qualifier	Caribbean Championship qual	Caribbean Champ qual	Caribbean Champ q	Caribbean Ch q	Carib Ch q
+CUC	Caribbean Championship	Caribbean Champ	Carib Champ
+CUQ	Caribbean Championship qualifier	Caribbean Championship qual	Caribbean Champ qual	Carib Champ qual	Carib Ch qual	Carib Ch q
+CUT	Caribbean Championship qualifying	Caribbean Championship qual	Caribbean Champ qual	Carib Champ qual	Carib Ch qual	Carib Ch q
+ARC	Arab Cup
+ARQ	Arab Cup qualifier	Arab Cup qual	Arab Cup q
+AQT	Arab Cup qualifying	Arab Cup qual	Arab Cup q
+PAR	Pan-Arab Games
+PGC	Pan-Arab Games and Arab Cup	Pan-Arab Games & Arab Cup	Pan-Arab G & Arab C	Arab G & Arab C
+GLF	Gulf Cup
+TGR	Tiger Cup
+TGQ	Tiger Cup qualifier	Tiger Cup qual
+ASE	ASEAN Championship	ASEAN Champ
+AEQ	ASEAN Championship qualifier	ASEAN Championship qual	ASEAN Champ qual	ASEAN Ch q
+SEA	Southeast Asian Championship	Southeast Asian Champ	SE Asian Champ
+SEQ	Southeast Asian Championship qualifier	Southeast Asian Championship qual	Southeast Asian Champ qual	SE Asian Champ qual	SE Asian Ch q
+SET	Southeast Asian Championship qualifying	Southeast Asian Championship qual	Southeast Asian Champ qual	SE Asian Champ qual	SE Asian Ch q
+CEC	CECAFA Cup
+ECA	East and Central African Senior Challenge Cup	East and Central African Challenge Cup	East and Central African Cup	East & Central African Cup	E & C African Cup	E & C Afr Cup
+WFQ	West African Nations Cup qualifier	West African Cup qualifier	West African Cup qual	W Afr Cup q
+WFU	West African Nations Cup	West African Cup	W African Cup
+UEM	UEMOA Tournament	UEMOA Tourn
+CMC	CEMAC Cup
+ZVT	Zone V Tournament	Zone V Tourn
+SAG	South Asian Games	S Asian Games
+CNU	Central Asian Nations Cup	Central Asian Cup	C Asian Cup
+CAU	Central Asian Cup	C Asian Cup
+SFF	South Asian Championship	South Asian Champ	S Asian Champ
+SEG	Southeast Asian Games	SE Asian Games
+SEP	Southeast Asian Peninsula Games	SE Asian Peninsula Games	SE Asian Pen Games	SEAP Games
+CSF	COSAFA Cup
+NGC	Nehru Gold Cup	Nehru G Cup	Nehru Cup
+BGC	Bangabandhu Gold Cup	Bangabandhu G Cup	Bangabandhu Cup
+ACC	Amilcar Cabral Cup	A Cabral Cup
+AWA	West African Cup and Amilcar Cabral Cup	W African Cup and Amilcar Cabral Cup	W African Cup and A Cabral Cup	W Afr Cup and A Cabral Cup	W Afr C & A Cabral C	W Afr C & Cabral C	W Afr & Cabral C	W Afr & Cabr C
+WAH	West Asian Championship	West Asian Champ	W Asian Champ
+WAG	West Asian Games	W Asian Games
+EAH	East Asian Championship	East Asian Champ	E Asian Champ
+EAQ	East Asian Championship qualifier	East Asian Championship qual	East Asian Champ qual	E Asian Champ qual	E Asian Champ q	E Asian Ch q
+EAT	East Asian Championship qualifying	East Asian Championship qual	East Asian Champ qual	E Asian Champ qual	E Asian Champ q	E Asian Ch q
+EQM	East Asian Championship qualifier and Marianas Cup	East Asian Champ qual & Marianas Cup	E Asian Champ q & Marianas Cup	E Asian Ch q & Marianas C	E Asian q & Marianas C	E Asian q & Mar C	E As q & Mar C
+ACH	Asian Challenge Cup	Asian Chlg Cup
+CHQ	Asian Challenge Cup qualifier	Asian Challenge Cup qual	Asian Chlg Cup qual	Asian Ch Cup q
+CHT	Asian Challenge Cup qualifying	Asian Challenge Cup qual	Asian Chlg Cup qual	Asian Ch Cup q
+ASC	Asian Solidarity Cup	Asian Sldt Cup
+PG	Pacific Games
+PMG	Pacific Mini-Games	Pac Mini-Games	Pac Mini-G
+SPG	South Pacific Games	S Pacific Games	S Pac Games
+SPM	South Pacific Mini-Games	S Pacific Mini-Games	S Pac Mini-Games	S Pac Mini-G
+IG	Island Games
+MNG	Micronesian Games	Micron Games
+MNC	Micronesian Cup	Micron Cup
+MLN	Melanesian Cup	Melanes Cup	Melan Cup
+PLN	Polynesian Cup	Polynes Cup	Polyn Cup
+OCM	Oceania Nations Cup qualifier and Melanesian Cup	Oceania Nations Cup qualifier & Melanesian Cup	Oceania Nations Cup qual & Melanesian Cup	Oceania Cup qualifier and Melanesian Cup	Oceania Cup qualifier & Melanesian Cup	Oceania Cup qual & Melanesian Cup	Oceania Cup q & Melanesian Cup	Oce Cup q & Melanesian Cup	Oce Cup q & Melan Cup	Melanesian Cup	Melanes Cup	Melan Cup
+OCP	Oceania Nations Cup qualifier and Polynesian Cup	Oceania Nations Cup qualifier & Polynesian Cup	Oceania Nations Cup qual & Polynesian Cup	Oceania Cup qualifier and Polynesian Cup	Oceania Cup qualifier & Polynesian Cup	Oceania Cup qual & Polynesian Cup	Oceania Cup q & Polynesian Cup	Oce Cup q & Polynesian Cup	Oce Cup q & Polyn Cup	Polynesian Cup	Polynes Cup	Polyn Cup
+BC	British Championship	British Champ	British Ch
+FEG	Far Eastern Games	Far East Games	Far E Games
+EAG	East Asian Games	E Asian Games
+EAM	East Asia Games	E Asia Games
+DGC	European International Cup	International Cup	Internat Cup	Intl Cup
+BLK	Balkan Cup
+BCE	Balkan and Central European Championship	Balkan and Central European Champ	Balkan & Central European Champ	Balkan & C European Champ	Balkan & CE Champ	Balkan & CE Ch
+BKG	Balkan and Central European Championship and European International Cup	Balkan and Central European Champ & European International Cup	Balkan & Central Euro Champ & Euro International Cup	Balkan & Central Euro Champ & Intl Cup	Balkan & C Euro Champ & Intl Cup	Balkan & CE Champ & Intl Cup	Balkan & CE Ch & Intl Cup	Balkan & CE & Intl Cup	Bkn & CE & Intl Cup	Bkn & CE & Intl C	Bkn & Intl Cup	Bkn & Intl C
+AFG	African Games
+AGQ	African Games qualifier	African Games qual	African Games q	Afr Games q
+AGT	African Games qualifying	African Games qual	African Games q	Afr Games q
+AQC	African Games qualifier and Central African Cup	African Games qual & Central African Cup	African Games qual & C African Cup	Afr Games q & C Afr Cup	AG q & CA Cup
+ACG	African Games qualifier and Central African Games	African Games qual & Central African Games	African Games qual & C African Games	Afr Games q & C Afr Games	Afr G q & C Afr G	AG q & CA G
+AQW	African Games qualifier and West African Cup	African Games qual & West African Cup	African Games qual & W African Cup	Afr Games q & W Afr Cup	AG q & WA Cup
+CAG	Central American Games	C American Games	C Am Games
+CAC	Central American and Caribbean Games	C American & Caribbean Games	C Am & Caribbean Games	C Am & Carib Games	C Am & Crb Games	CA & Crb Games
+CCG	C Am and Caribbean Games
+BG	Bolivarian Games	Bolivar Games
+ILG	Islamic Games
+MFT	Mediterranean Friendship Cup	Medit Friendship Cup	Medit Friendship C	Friendship Cup	Friendship C
+MDG	Mediterranean Games	Medit Games
+MDC	Mediterranean Cup	Medit Cup
+EMC	East Mediterranean Cup	E Mediterranean Cup	E Medit Cup
+ECW	ECOWAS Tournament	ECOWAS Tourn
+COC	CEDEAO Cup
+COQ	CEDEAO Cup qualifier	CEDEAO Cup qual	CEDEAO Cup q
+COT	CEDEAO Cup qualifying	CEDEAO Cup qual	CEDEAO Cup q
+CAR	Central African Cup	C African Cup
+CFG	Central African Games	C African Games
+MND	World Champions Gold Cup	World Champ Gold Cup	World Ch Gold Cup	W Ch Gold Cup	Gold Cup
+PAL	Palestine Cup
+UDE	UDEAC Cup
+UDC	UDEAC / CEMAC Cup
+UFC	UNIFAC Cup
+WAN	West African Nations Cup	West African Cup	W African Cup
+WAC	West African Cup	W African Cup
+PRG	President's Gold Cup	President's Gold C	President's Cup	President's C
+PRS	President's Cup	President's C
+CLM	Colombo Cup
+PCF	Pacific Cup
+SPC	South Pacific Cup	S Pacific Cup	S Pacific C
+ATL	Atlantic Cup
+ATA	Atlantic Cup and Artigas Cup	Atlantic Cup & Artigas Cup	Atl Cup & Artigas Cup	Atl & Artigas Cup	Atl & Art Cup
+ATB	Atlantic Cup and Felix Bogado Cup	Atlantic Cup & F Bogado Cup	Atl Cup & Bogado Cup	Atl & Bogado Cup	Atl & Bog Cup
+ATR	Atlantic Cup and Julio Roca Cup	Atlantic Cup and Roca Cup	Atlantic Cup & Roca Cup	Atl Cup & Roca Cup	Atl & Roca Cup
+ALP	Atlantic Cup and Lipton Cup	Atlantic Cup & Lipton Cup	Atl Cup & Lipton Cup	Atl & Lipton Cup	Atl & Lpt Cup
+ATN	Atlantic Cup and Newton Cup	Atlantic Cup & Newton Cup	Atl Cup & Newton Cup	Atl & Newton Cup	Atl & Nwt Cup
+ATC	Atlantic Cup and Oswaldo Cruz Cup	Atlantic Cup & Oswaldo Cruz Cup	Atl Cup & O Cruz Cup	Atl & Cruz Cup
+ARB	Atlantic Cup and Rio Branco Cup	Atlantic Cup & Rio Branco Cup	Atl Cup & Rio Branco Cup	Atl Cup & R Branco Cup	Atl & R Branco Cup	Atl & R Br Cup
+BGD	Felix Bogado Cup	F Bogado Cup	Bogado Cup
+LPT	Lipton Cup
+NWT	Newton Cup
+POA	Argentinian Honor Award Cup	Argentine Honor Award Cup	Arg Honor Award Cup	Arg Honor Award C	A Honor Award C	Honor Award C
+POU	Uruguayan Honor Award Cup	Uru Honor Award Cup	Uru Honor Award C	U Honor Award C	Honor Award C
+MTV	Montevideo Cup
+SZP	Saenz Pena Cup
+CCP	Press Circle Cup	Press Circle C
+ROC	Julio Argentino Roca Cup	Julio Roca Cup	Roca Cup
+RCB	Rosa Chevallier Boutell Cup	Rosa Chevallier Cup	Chevallier Cup
+RBC	Rio Branco Cup
+HGC	Hector Gomez Cup	H Gomez Cup
+JMC	Juan Mignaburu Cup	J Mignaburu Cup	Mignaburu Cup
+RGP	Roque Gomez Pena Cup	R Gomez Pena Cup	Gomez Pena Cup
+OCC	Oswaldo Cruz Cup	O Cruz Cup
+OHC	Bernardo O'Higgins Cup	B O'Higgins Cup	O'Higgins Cup
+CDC	Carlos Dittborn Cup	C Dittborn Cup	Dittborn Cup
+CPD	Juan Pinto Duran Cup	Pinto Duran Cup	Pinto Duran C
+RCO	Raul Colombo Cup	R Colombo Cup	R Colombo C
+ART	Artigas Cup
+CDM	Mexico City Cup	Mexico City C
+AZT	Azteca 2000 Tournament	Azteca 2000 Tourn	Azteca 2000 T
+MAZ	Mexico City Cup and Azteca 2000 Tournament	Mexico City Cup & Azteca 2000 Tourn	Mexico City C & Azteca 2000 T	Mexico C & Azteca T	Mexico & Azteca T	Mexico & Azteca
+RCC	Ramon Castilla Cup	R Castilla Cup	Castilla Cup
+TRE	Triangulaire
+AAT	Addis Ababa 25th Anniversary Tournament	Addis Ababa 25th Anniversary Tourn	Addis Ababa 25th Anniv Tourn	Addis Ababa Anniv Tourn	Addis Ababa Tourn	Addis Ababa T
+BJG	Beijing Invitational Cup	Beijing Inv Cup
+EAC	East African Friendship Cup	East African Fr Cup	E African Fr Cup	East African Cup	E African Cup
+IOC	Indian Ocean Cup	Indian Ocn Cup	Indian Ocn C
+IOG	Indian Ocean Games	Indian Ocn Games	Indian Ocn G
+SDC	SADCC Tournament	SADCC Tourn
+AMT	Amitie Tournament	Amitie Tourn
+BRI	Independence Cup	Indep Cup
+IPC	Independence Cup	Indep Cup
+IND	Independence Tournament	Independence Tourn	Indep Tourn
+ING	Independence Games	Indep Games
+RPB	Republic Bank Cup	Rep Bank Cup	Rep Bank C
+RDC	Republic Day Cup	Rep Day Cup
+FRC	Friendship Cup	Friend Cup
+FRT	Friendship Tournament	Friendship Tourn	Friend Tourn
+FRY	Friendship Trophy	Friendship Tr	Friend Tr
+FRH	Friendship Challenge	Friendship Chal	Friend Chal
+FRG	Friendship Games	Friend Games
+BLC	Baltic Cup
+BLT	Baltic Tournament	Baltic Tourn
+CNY	Centenary Cup	Centenary C
+ACT	AFA Centenary Cup	AFA Centenary C	AFA Centenary
+CNT	Centenary Tournament	Centenary Tourn	Centenary T
+CGU	Copa Guatemala
+AGC	Bicentenary Gold Cup	Bicent Gold Cup	Bicent Gold C
+USC	US Cup
+CAN	Canada Cup
+UMB	Umbro Cup
+KOR	Korea Cup
+KNG	King's Cup
+CBG	Carlsberg Cup
+DNH	Dunhill Cup
+DNS	Dynasty Cup
+KRN	Kirin Cup
+KRC	Kirin Challenge	Kirin Chlg
+SMB	Simba Cup
+LGR	Castle Lager Cup
+CMS	COMESA Cup
+DNC	Danube Cup
+DKM	Danube Cup and King Mihai Cup	Danube C & King Mihai C	Danube C & K Mihai C	Danube & K Mihai C
+EBN	Eduard Benes Cup	Eduard Benes C	E Benes C
+KAC	King Alexander Cup	King Alexander C	King Alex C
+KCC	King Carol Cup	King Carol C
+KHC	King Hassan Tournament	King Hassan Tourn	King Hassan T
+KPC	King Piotr II Cup	King Piotr II C	King Piotr C
+BAT	Belier d'Afrique Tournament	Belier d'Afrique Tourn	Belier d'Afr Tourn	B d'Afr Tourn
+ARR	Great Artificial River Tournament	Artificial River Tournament	Artificial River Tourn	Art River Tourn	Art River T
+NRD	Nordic Championship	Nordic Champ
+CVP	Valparaiso City Cup	Valparaiso City C	Valparaiso C
+IOT	Indian Ocean Tournament	Indian Ocean Tourn	Indian Ocn Tourn	Indian Ocn T
+LAF	LA Friendship Cup	Friendship Cup	LA Friend Cup	Friend Cup
+CPC	Chaco Peace Cup	Chaco Peace C
+CRD	Copa Residentes	C Residentes
+CLS	Copa Coliseo
+CCB	Carta Blanca Cup	Carta Blanca C	Carta Bl C
+CCN	Castillo Najera Cup	Castillo Najera C	Cast Najera C
+CMZ	Moctezuma Cup	Moctezuma C
+CPR	Chile President's Cup	Chile Pres Cup	Chile Pres C
+APR	Argentina President's Cup	Argentina Pres Cup	Argentina Pres C	Arg Pres C
+BST	Black Stars Tournament	Black Stars Tourn	Black Stars T
+MRL	Merlion Cup
+MRD	Independence Tournament	Independence Tourn	Indep Tourn
+SRJ	Sarjah Tournament	Sarjah Tourn
+TTC	Trans-Tasman Cup	Tr-Tasman Cup	Tr-Tasman C
+SKD	Skydome Cup
+CBN	Caribana Cup	Caribana C
+LIT	Leeward Islands Tournament	Leeward Islands Tourn	Leeward Isl Tourn	Leeward Isl T	Leeward I T
+WIT	Windward Islands Tournament	Windward Islands Tourn	Windward Isl Tourn	Windward Isl T	Windward I T
+OEC	OECS Championship	OECS Champ
+GJC	Golden Jubilee Cup	Golden Jubilee C	Gld Jubilee C
+MLM	Millenium Cup
+CLT	Civilizations Cup	Civiliz Cup
+AOC	AFC-OFC Challenge Cup	AFC-OFC Chlg Cup	AFC-OFC Ch Cup	AFC-OFC Cup
+JCN	Central American Independence Centennial Games	Central American Indep Cent Games	C American Indep Cent Games	C American Indep Games	C Am Indep Cent Games	C Am Indep Games	C Am Indep G	C Am Ind G
+LCC	Lion City Cup
+GSG	Gossage Cup
+AKC	Akwei Cup
+JLC	Jalco Cup
+NKR	Nkrumah Cup
+AZK	Azikiwe Cup
+LVY	Levy Cup
+CRR	Currie Cup
+KUN	Kuneitra Cup
+TCC	Trans-Caucasian Championship	Trans-Caucasian Champ	Tr Caucasian Champ	Tr Caucasian Ch	Caucasian Ch
+ANF	ANFA Cup
+MRN	Marianas Cup
+FRN	French Territory Cup	Fr Territory Cup	Fr Terr Cup
+VIC	South Vietnam National Day Tournament	South Vietnam National Day Tourn	S Vietnam National Day Tourn	S Vietnam Natl Day Tourn	S Vietnam Natl Day	Vietnam Natl Day	Vietnam N Day
+JAT	Jakarta Anniversary Tournament	Jakarta Anniversary Tourn	Jakarta Anniv Tourn	Jakarta Anniv T	Jakarta Tourn
+GNF	GANEFO Tournament	GANEFO Tourn
+GRN	Greenland Cup
+RCD	RCD Pact Tournament	RCD Tournament	RCD Tourn
+TRP	Tropical Cup
+NBT	Nile Basin Tournament	Nile Basin Tourn	Nile Basin T
+FPG	Francophone Games	Franc Games
+JAM	Friendship Games	Friend Games
+JCM	French Commonwealth Games	Fr Commonwealth Games	Fr Commonw Games	Fr Commw Games
+ELF	ELF Cup
+BIC	Bicentennial Cup	Bicentennial C
+50A	50th Anniversary Cup	50th Anniv Cup	50th Anniv C
+ABC	ABC Tournament	ABC Tourn
+ABS	ABCS Tournament	ABCS Tourn
+ADC	Adidas Challenge	Adidas Chlg
+ADI	Adidas Cup
+AIM	Airmarine Cup	Airmarine C
+AMB	Albena-Mobitel Tournament	Albena-Mobitel Tourn	Albena-Mobitel T	Albena-Mob T
+ALM	Almada Cup
+ATV	Alma TV Cup	Alma TV C
+NKB	Al Nakba Cup	Nakba Cup
+NSM	Al-Nashama Tournament	Al-Nashama Tourn	Al-Nashama T
+AMO	Amo Amateur Cup	Amo Amat Cup	Amo Cup
+AMP	Ampol Cup
+ACV	Ancient Civilizations Cup	Civilizations Cup	A Civ Cup
+ANN	Anniversary Cup	Anniversary C
+ACD	Argentine Chamber of Deputies Cup	Arg Chamber of Deputies Cup	Arg Cham Dep Cup	Cham Dep Cup	Cham Dep C
+ANT	Antel Cup
+AFD	Armed Forces Day Tournament	Armed Forces Day Tourn	Armed Forces Day T	A Forces Day T	A Forces Day
+ACS	Asics Cup
+AHM	Aw Hoe Memorial Cup	Aw Hoe Mem Cup	Aw Hoe Cup
+AYA	AYA Bank Cup	AYA Bank C
+BLW	Balewa Trophy	Balewa Tr
+BRT	Pier Cesare Baretti Memorial	Baretti Memorial	Baretti Mem
+BQS	Barquisimeto City Cup	Barquisimeto Cup	Barquisimeto C
+BPT	Basdeo Panday Trophy	Basdeo Panday Tr	B Panday Tr
+BLA	African Ram Tournament	African Ram Tourn	African Ram T
+BGZ	Benghazi Invitational Cup	Benghazi Inv Cup	Benghazi Cup	Benghazi C
+BLR	Blair Trophy	Blair Tr
+BQR	Boqueron Cup	Boqueron C
+BOC	Bossio Cup
+BFC	Bristol Freedom Cup	Freedom Cup
+BBC	Brown Betty Cup	Brown Betty C	Br Betty Cup	Br Betty C
+BRG	Bruno Garisto Cup	B Garisto Cup	B Garisto C
+BSE	BSE 100th Anniversary Cup	BSE 100th Anniv Cup	BSE Anniv Cup	BSE Anniv C
+BDW	Budweiser Cup	Budweiser C
+BAC	Buenos Aires Cup	Buenos Aires C	B Aires Cup
+BAP	Buenos Aires Province Cup	Buenos Aires Pr Cup	B Aires Pr Cup
+CRO	Cairo Cup
+CML	Camel Cup
+CDS	Canadian Shield	Canadian Sh
+CSW	Causeway Challenge Cup	Causeway Chlg Cup	Causeway Chlg C	Causeway Chlg	Causeway C
+CWY	Causeway Cup	Causeway C
+CAI	Central American Independence Cup	C American Independence Cup	C Am Independence Cup	C Am Indep Cup	Independence Cup	Indep Cup
+CHC	Chaco Cup
+CLG	Challenge Cup	Challenge C
+CHN	China Cup
+CHP	Chippie Polar Cup	Polar Cup
+CFA	Clarin 50th Anniversary Cup	Clarin 50th Anniv Cup	Clarin 50th Anniv Cup	Clarin Anniv Cup	Clarin Anniv
+CSM	Coliseum Cup
+CBS	Columbus Cup
+CFS	CONCACAF Series	CONCACAF Ser	CONCACAF S
+CYC	Confraternity Cup	Confrat Cup
+CTS	Continents Tournament	Continents Tourn	Continents T
+CDB	Cordoba Municipality Cup	Cordoba Muni Cup	Cordoba Cup
+SVC	Cornelio Saavedra Cup	C Saavedra Cup	Saavedra Cup
+COR	Corsica Cup	Corsica C
+CCL	Courts Caribbean Classic	Courts Carib Classic	Courts Classic
+CON	Cup of Nations	C of Nations
+DNT	Daily Nation Trophy	Daily Nation Tr	D Nation Tr
+DLT	Delta Cup
+DNR	Dennert Cup	Dennert C
+DJB	Diamond Jubilee Tournament	Diamond Jubilee Tourn	Diamond Jubilee T	Diamond Jub T
+DCS	Digicel Shield	Digicel Sh
+DBT	Djamila Bouhired Tournament	Djamila Bouhired Tourn	Djamila Bouhired T	Dj Bouhired T
+DBC	Dubai Challenge	Dubai Chlg
+EVE	Dudley Eve Memorial Trophy	Dudley Eve Mem Trophy	Dudley Eve Trophy	Dudley Eve Tr	D Eve Tr
+DVC	Duvalier Cup	Duvalier C
+ETR	Easter Tournament	Easter Tourn
+CGL	ECGLC Tournament	ECGLC Tourn
+ECO	ECO Cup
+EIC	El Inca Cup
+EIE	Elisabethville International Exhibition Tournament	Elisabethville Intl Exhibition Tournament	Elisabethville Intl Exhibition Tourn	Intl Exhibition Tourn	Exhibition Tourn	Exhibition T
+EGM	Emilio Garrastazu Medici Cup	Emilio Medici Cup	Emilio Medici C	E Medici C
+EDT	Evacuation Day Tournament	Evacuation Day Tourn	Evacuation Day T	Evac Day T
+ECT	Evence Coppee Trophy	Evence Coppee Tr	E Coppee Tr
+FFS	FIFA Series
+FFC	FIFA Series and Capital Cup	FIFA Series & Capital Cup	FIFA Series & Capital C	FIFA Ser & Cap C	FIFA Series
+FCC	Financing City Cup	Fin City Cup	Fin City C
+FFL	Football Festival	Football Fest	Foot Fest
+FMC	Foreign Minister Cup	Foreign Min Cup	Foreign Min C
+FCS	Francisco Cup	Francisco C
+FFT	Frantz Fanon Tournament	Frantz Fanon Tourn	Frantz Fanon T	Fr Fanon T
+GRC	Gabon Radio Cup	Radio Cup
+GRD	Garuda Championship Series	Garuda Champ Series	Garuda Ch Series	Garuda Series	Garuda Ser
+GCC	Genocide Commemoration Cup	Genocide Comm Cup	Genocide Cup	Genocide C
+GWT	Goodwill Tournament	Goodwill Tourn	Goodwill T
+GCH	Grand Royal Challenge Cup	Royal Challenge Cup	Challenge Cup	Challenge C
+GLT	Great Leader Cup	Great Leader C	Gr Leader C
+GWC	Great Wall Cup	Great Wall C
+GCT	Guadalajara City Cup	Guadalajara Cup	Guadalajara C
+HGG	Hage Geingob Cup	H Geingob Cup	Geingob Cup	Geingob C
+HOC	Harold Oduber Cup	H Oduber Cup
+HEC	Heineken Cup	Heineken C
+HET	Heineken Trophy	Heineken Tr
+HRS	Heroes Cup
+HHC	Hispanic Heritage Cup	Hispanic Her Cup	Hispanic Her C	Hispanic Her
+HCM	Ho Chi Minh City Cup	HCM City Cup
+HRT	Hurricane Relief Tournament	Hurricane Relief Tourn	Hurricane Relief T	Hurricane Relief	Hurr Relief
+INL	Intercontinental Cup	Intercont Cup	Intercont C
+IEC	Inter Expo Cup	Inter Expo C
+IIC	Inter-Island Cup	Inter-Island C
+IPF	Inter-Port Friendship Cup	Friendship Cup	Friendship C
+ISL	Islands Tournament	Islands Tourn
+JWM	Jigme Wangchuk Memorial King's Cup	Jigme Wangchuk Mem King's Cup	J Wangchuk Mem King's Cup	King's Cup
+GJQ	Gonzalo Jimenez de Quesada Cup	G Jimenez de Quesada Cup	Jimenez de Quesada Cup	Jimenez de Q Cup	Jimenez Q Cup	Jimenez Cup
+JRC	Joe Robbie Cup	J Robbie Cup	J Robbie C
+JKC	Jomo Kenyatta Cup	J Kenyatta Cup	Kenyatta Cup	Kenyatta C
+JCS	Jorge Chavez-Santos Dumont Cup	J Chavez-Santos Dumont Cup	Chavez-Santos Dumont Cup	J Chavez-Santos Cup	Chavez-Santos Cup	Chavez-Santos C	Chavez-S Cup	Chavez-S C
+JSC	Juan Santamaria Cup	J Santamaria Cup	J Santamaria C	Santamaria C
+KPV	Andre Kamperveen Memorial Trophy	A Kamperveen Memorial Tr	Kamperveen Memorial	Kamperveen Mem	Kamperveen M
+KWT	Kam Wo Trophy	Kam Wo Tr
+KMC	King's Millenium Cup	Millenium Cup	Millenium C
+LHT	Lahti Cup
+LPC	La Plata Cup
+LPR	La Plata River Confraternity Cup	La Plata Confraternity Cup	La Plata Confrat Cup	La Plata Confrat C	La Plata C Cup	La Plata Cup
+LVC	Laveleye Cup
+LGC	LG Cup
+LYN	Libyana Cup	Libyana C
+VLM	Valeri Lobanovsky Memorial	V Lobanovsky Memorial	Lobanovsky Memorial	Lobanovsky Mem	Lobanovsky M
+LTC	Long Teng Cup	Long Teng C
+LNY	Lunar New Year Cup	Lunar New Year C	L New Year C	L N Year C
+MGC	President Paul Magloire Cup	Pres Paul Magloire Cup	Pres Magloire Cup	Magloire Cup
+MRU	Mano River Union Tournament	Mano River Union Tourn	Mano River Tourn	Mano River T
+MHC	Marah Halim Cup	Marah Halim C	M Halim C
+MJT	Marjan Trophy	Marjan Tr
+SCR	Marshal Sucre Cup	Mar Sucre Cup	Mar Sucre C
+MS	Martinez Shield	Martinez Sh
+SMC	Stanley Matthews Cup	S Matthews Cup	Matthews Cup
+MRS	Mayors' Cup
+MIA	Miami Cup
+MKS	Mikasa Challenge Cup	Mikasa Chlg Cup	Mikasa Chlg C	Mikasa Chlg
+MVC	Mohammed V Cup	Mohammed V C
+MRC	Montreal Cup	Montreal C
+MFP	MUFP Cup
+MKR	Mukuru Tournament	Mukuru Tourn	Mukuru T
+NTC	Nations Cup
+NRZ	Navruz Cup
+NMC	Nelson Mandela Challenge Cup	Nelson Mandela Challenge	N Mandela Challenge	N Mandela Chlg	Mandela Chlg
+NPC	Nepal Panchayat Silver Jubilee Cup	Nepal Panchayat Cup	Panchayat Cup	Panchayat C
+NLC	Nicolas Leoz Cup	N Leoz Cup
+NOA	North African Cup	N African Cup	N African C
+N1C	November 1st Cup	Nov 1st Cup
+N7C	November 7th Cup	Nov 7th Cup
+OIC	Open International Championship	Open Intl Championship	Open Intl Champ	Open Intl Ch
+OPS	Optus World Series	Optus Series
+OSN	Saudi Arabia FF Cup	Saudi FF Cup
+OCH	Outrigger Challenger Cup	Outrigger Chlgr Cup	Challenger Cup	Challenger C
+OVC	Ovaltine Cup	Ovaltine C
+PNF	Panafest Trophy	Panafest Tr
+PBC	Parbo Beer Cup	Parbo Cup
+PDR	Parra del Riego Cup	Parra del Riego C	P del Riego C
+BAL	Buenos Aires Province Lottery Cup	Buenos Aires Lottery Cup	PBA Lottery Cup	Lottery Cup
+PCC	Peace Cup
+PFT	Peace and Friendship Tournament	Peace & Friendship Tourn	Peace & Friendship T	Peace & Friend T	Peace & Fr T
+PTR	Peace Trophy
+PEL	Pelican Cup
+PHL	Philips Cup
+PLR	Polar Beer Cup	Polar Cup
+PRC	President's Cup Challenge	President's Cup Chlg	President's Cup	President's C
+PMC	Prime Minister's Cup	Prime Min's Cup	Prime Min's C	Pr Min's C
+PMT	Prime Minister's Trophy	Prime Min's Trophy	Prime Min's Tr	Pr Min's Tr
+PVC	Provoste Cup	Provoste C
+PRD	Prudent Cup
+RMD	Sheikh Rashid bin Mohammed Ramadan Championship	Sheikh Rashid bin Mohammed Ramadan Champ	Rashid bin Mohammed Ramadan Champ	Rashid bin Mohammed Champ	Ramadan Champ
+RBK	Reebok Cup
+RUC	Reunification Cup	Reunif Cup
+RVA	Revolution Anniversary Tournament	Revolution Anniversary Tourn	Revolution Anniv Tourn	Revolution Anniv T	Revolution Anniv	Revol Anniv
+RVC	Revolution Cup	Revolution C
+RVT	Revolution Tournament	Revolution Tourn	Revolution T
+RCT	Rhodes Centenary Trophy	Rhodes Cent Trophy	Rhodes Cent Tr	Rhodes Trophy
+RMA	Ricardo Morales Aviles Cup	R Morales Aviles Cup	R Morales A Cup	R Morales Cup	R Morales C
+RJC	Robert Jobez Cup	R Jobez Cup
+RCH	Roberto Chery Cup	R Chery Cup
+RAC	Rodrigues Alves Cup	R Alves Cup
+RTR	Rotary Cup
+RNC	Rotterdamsch Nieuwsblad Cup	Rotterdamsch Nieuwsblad C	Rdam Nieuwsblad Cup	Rdam Nieuwsblad C	Rdam Nieuws C
+RSC	Stanley Rous Cup	S Rous Cup	Rous Cup
+SBA	Saba Saba Festival Tournament	Saba Saba Tournament	Saba Saba T
+SZP	President Roque Saenz Peña Cup	Pres Roque Saenz Peña Cup	Pres R Saenz Peña Cup	R Saenz Peña Cup	R Saenz Peña C	Saenz Peña C
+SLT	Salta Cup
+SMD	Samuel K Doe Cup	Samuel Doe Cup	Samuel Doe C
+PLG	San Pellegrino Tournament	San Pellegrino Tourn	San Pellegrino T	S Pellegrino T
+SAS	South Asian Super Cup	S Asian Super Cup	S Asian S Cup	S Asian S C
+SAT	Saudi Arabia FF Tournament	Saudi Arabia FF Tourn	S Arabia FF Tourn	S Arabia FF T	S Arabia T
+SCN	Scania 100 Tournament	Scania 100 Tourn	Scania 100 T
+PSC	Phillip Seaga Cup	Seaga Cup
+SKS	Siaka Stevens Cup	Siaka Stevens C	S Stevens C
+SKL	Sikelia Cup
+SGC	Sikkim Governor's Gold Cup	Sikkim Governor's Cup	Governor's Cup	Governor's C
+SLV	Slavic Tournament	Slavic Tourn	Slavic T
+GSC	Governor van Slobbe Cup	Gov van Slobbe Cup	Van Slobbe Cup	Slobbe Cup
+GBT	Governor Brons Trophy	Gov Brons Trophy	Gov Brons Tr
+GBS	Governor Brons Trophy and Governor van Slobbe Cup	Gov Brons Trophy and Gov van Slobbe Cup	Brons Trophy & Slobbe Cup	Brons Tr & Slobbe C	Br Tr & Sl C
+ASH	Soccer Ashes Trophy	Soccer Ashes Tr	Soccer Ashes
+SLD	Solidarity Tournament	Solidarity Tourn	Solidarity T
+SMT	Sportsman's Trophy	Sportsman's Tr	Sportsman's T
+PST	Peter Stuyvesant Trophy	P Stuyvesant Trophy	P Stuyvesant Tr	Stuyvesant Tr
+TXR	Teixeira Cup	Teixeira C
+TLC	Millennium Cup	Millennium C
+TFC	TIFOCO Tournament	TIFOCO Tourn
+TGB	Tiger Bay Challenge Trophy	Tiger Bay Chlg Trophy	Tiger Bay Chlg Tr	Tiger Bay Chlg	Tiger Bay Ch
+TGC	Tiger Challenge	Tiger Chlg
+TGF	Tiger Football Festival	Tiger Festival	Tiger Fest
+TOI	Times of India Cup	Times of India C	T of India C
+TCH	Toyota Challenge Cup	Challenge Cup	Challenge C
+TFT	Trade Fair Tournament	Trade Fair Tourn	Trade Fair T	Trade Fair
+ETF	Elisabethville Trade Fair	Elisabethv Trade Fair	Elis Trade Fair	E Trade Fair
+THU	President Tran Huu Cup	Pres Tran Huu Cup	Tran Huu Cup	Tran Huu C
+TIF	Tripoli International Fair Tournament	Tripoli International Fair Tourn	Tripoli Intl Fair Tourn	Tripoli Intl Fair T	Tripoli Fair T
+TPC	Trompowski Cup	Trompowski C
+TT	Turaani Tournament	Turaani Tourn
+INC	International Cup	Intl Cup
+UHR	Freedom Cup
+UTC	Unity Cup
+UAC	Uruguayan Automotive Center Cup	Uruguayan Auto Center Cup	Uru Auto Center Cup	Auto Center Cup	Auto Center C
+UCT	US Consulate Tournament	US Consulate Tourn	US Consulate T	US Cons T
+VDA	Van den Abeele Cup	Vd Abeele Cup	Abeele Cup
+VFF	Vietnam FF Cup	VFF Cup
+WGN	Wagner Trophy	Wagner Tr
+WTC	Walcott Cup
+WTK	Wantok Cup
+WUC	Western Union Championship	Western Union Champ	Western Union Ch	W Union Ch
+WUS	Western Union Super Cup	Western Union S Cup	WU Super Cup
+WCO	WICO Challenge Cup	WICO Chlg Cup	WICO Chlg C
+WPC	William Poole Cup	W Poole Cup
+ZHC	Zero Hora 35th Anniversary Cup	Zero Hora 35th Anniv Cup	Zero Hora Anniv Cup	Zero Hora Anniv	Zero Hora Ann	Zero Hora A
+FT	Friendly tournament	Friendly tourn	Friendly t
+F	Friendly
+WRL	World
+WR	World Ratings
+YR	Year
+YRL	Yearly Ratings
+R	Regions
+E	Europe
+CE	Central Europe
+EE	Eastern Europe
+NE	Northern Europe
+SEE	Southeast Europe
+SE	Southern Europe
+WE	Western Europe
+AM	America
+CB	Caribbean
+CM	Central America
+LM	Latin America
+NM	North America
+SM	South America
+AF	Africa
+CF	Central Africa
+EF	Eastern Africa	East Africa
+NF	Northern Africa	North Africa
+SF	Southern Africa	South Africa
+WF	Western Africa	West Africa
+AS	Asia
+CS	Central Asia
+ES	Eastern Asia	East Asia
+SES	Southeast Asia
+SS	Southern Asia	South Asia
+WS	Western Asia	West Asia
+O	Oceania
+ME	Melanesia
+MI	Micronesia
+PO	Polynesia
+C	Confederations
+UEF	Union of European Football Associations	Union of European FAs	UEFA
+AFC	Asian Football Confederation	Asian FC	AFC
+AFF	ASEAN Football Federation	ASEAN FF	AFF
+CAA	Central Asian Football Association	Central Asian FA	CAFA
+EAF	East Asian Football Federation	East Asian FF	EAFF
+SAF	South Asian Football Federation	South Asian FF	SAFF
+WAF	West Asian Football Federation	West Asian FF	WAFF
+CAF	Confederation of African Football	African FC	CAF
+CEF	Council for East and Central Africa Football Associations	Council for East and Central Africa FAs	CECAFA
+COF	Council of Southern Africa Football Associations	Council of Southern Africa FAs	COSAFA
+UNA	Union of North African Football Federations	Union of North African FFs	UNAF
+CFF	Central African Football Federations' Union	Central African FF Union	UNIFFAC
+WAU	West African Football Union	West African FU	WAFU
+CNC	Confederation of North, Central American and Caribbean Association Football	CONCACAF
+CFU	Caribbean Football Union	Caribbean FU	CFU
+UNF	Central American Football Union	Central American FU	UNCAF
+CMB	South American Football Confederation	South American FC	CONMEBOL
+OFC	Oceania Football Confederation	Oceania FC	OFC
+UAF	Union of Arab Football Associations	Union of Arab FAs	UAFA
+UN	Unaffiliated Countries and Territories	Unaffiliated
+UE	UEFA
+MB	CONMEBOL
+NC	CONCACAF
+CU	CFU
+UF	UNCAF
+FF	CAF
+EFF	CECAFA
+SFA	COSAFA
+NAF	UNAF
+UCA	UNIFFAC
+WFF	WAFU
+SC	AFC
+SNF	AFF
+CSA	CAFA
+EAS	EAFF
+SSF	SAFF
+WSF	WAFF
+OF	OFC
+AFA	UAFA
+UFL	Unaffiliated
+YRS	Years 1872–1901

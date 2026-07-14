@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+public/data/
+public/build-manifest.json
+public/404.html
+source/source-refresh-*/

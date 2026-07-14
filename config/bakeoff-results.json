@@ -1,0 +1,1242 @@
+{
+  "release": {
+    "name": "Great Elo Bake-off",
+    "date": "2026-07-14",
+    "results_through": "2026-07-11",
+    "status": "complete rolling-origin model comparison"
+  },
+  "verdict": {
+    "recommended_model": "network_temperature_common_update",
+    "raw_log_loss_winner": "network_temperature_level_update",
+    "reason_for_recommending_second_raw_place": "The unequal-update gain is 0.0000154 log-loss per match, its year-cluster 95% interval crosses zero, and its fitted competition ratios reverse across eras.",
+    "recommended_metrics": {
+      "candidate": "network_temperature_common_update",
+      "matches": 46801,
+      "log_loss": 0.8842187104883077,
+      "brier": 0.5205728970927473,
+      "rps": 0.17317944421892195,
+      "accuracy": 0.5909489113480482
+    },
+    "raw_winner_metrics": {
+      "candidate": "network_temperature_level_update",
+      "matches": 46801,
+      "log_loss": 0.8842033340938159,
+      "brier": 0.5205737312752629,
+      "rps": 0.17318905137267598,
+      "accuracy": 0.5906497724407598
+    },
+    "relative_log_loss_reduction_vs_published_percent": 2.038491917219555,
+    "relative_log_loss_reduction_vs_old_network_percent": 0.2974113793139291,
+    "relative_log_loss_reduction_vs_best_scalar_percent": 0.9799939427571921
+  },
+  "data_and_protocol": {
+    "historical_matches": 52302,
+    "canonical_teams": 248,
+    "history": [
+      "1872-11-30",
+      "2026-07-11"
+    ],
+    "scored_matches": 46801,
+    "outer_test_blocks": [
+      "1960-1979",
+      "1980-1999",
+      "2000-2009",
+      "2010-2019",
+      "2020-2026"
+    ],
+    "parameter_rule": "Every scored probability is pre-match. Observation parameters are estimated only through the outer training cutoff; network and forecast hyperparameters use the immediately preceding inner block.",
+    "primary_metric": "three-way logarithmic loss",
+    "secondary_metrics": [
+      "Brier score",
+      "ranked probability score",
+      "accuracy"
+    ],
+    "uncertainty": "20,000 paired calendar-year cluster-bootstrap draws; conditional on fitted rolling models",
+    "neutral_ordering_audit": "Neutral decisive rows are winner-first in the source. Every fitted forecast transform is team-swap invariant; neutral rows are deterministically reoriented only for classwise calibration summaries."
+  },
+  "leaderboard": [
+    {
+      "candidate": "network_temperature_level_update",
+      "matches": 46801,
+      "log_loss": 0.8842033340938159,
+      "brier": 0.5205737312752629,
+      "rps": 0.17318905137267598,
+      "accuracy": 0.5906497724407598
+    },
+    {
+      "candidate": "network_temperature_common_update",
+      "matches": 46801,
+      "log_loss": 0.8842187104883077,
+      "brier": 0.5205728970927473,
+      "rps": 0.17317944421892195,
+      "accuracy": 0.5909489113480482
+    },
+    {
+      "candidate": "network_five_temperature",
+      "matches": 46801,
+      "log_loss": 0.8842857735870677,
+      "brier": 0.5206317987368668,
+      "rps": 0.17320674223426477,
+      "accuracy": 0.5909489113480482
+    },
+    {
+      "candidate": "network_temperature_expanded_search",
+      "matches": 46801,
+      "log_loss": 0.8845622690337684,
+      "brier": 0.5207771094011713,
+      "rps": 0.17326912633396335,
+      "accuracy": 0.5909275442832418
+    },
+    {
+      "candidate": "network_global_temperature",
+      "matches": 46801,
+      "log_loss": 0.8851586865786871,
+      "brier": 0.5210861543897093,
+      "rps": 0.1733752657965747,
+      "accuracy": 0.5909489113480482
+    },
+    {
+      "candidate": "equal_blend",
+      "matches": 46801,
+      "log_loss": 0.8852383292543877,
+      "brier": 0.5211368224835041,
+      "rps": 0.17331312762230702,
+      "accuracy": 0.5908420760240166
+    },
+    {
+      "candidate": "nested_blend",
+      "matches": 46801,
+      "log_loss": 0.885247084128598,
+      "brier": 0.5210938784795781,
+      "rps": 0.173289447806462,
+      "accuracy": 0.5909061772184355
+    },
+    {
+      "candidate": "network_level_update",
+      "matches": 46801,
+      "log_loss": 0.8852624868980307,
+      "brier": 0.5211731381174753,
+      "rps": 0.17335086485901705,
+      "accuracy": 0.5906497724407598
+    },
+    {
+      "candidate": "ordered_se",
+      "matches": 46801,
+      "log_loss": 0.8852701832379167,
+      "brier": 0.5211349653967488,
+      "rps": 0.17329557765014722,
+      "accuracy": 0.5908848101536291
+    },
+    {
+      "candidate": "expectation",
+      "matches": 46801,
+      "log_loss": 0.8852743100931199,
+      "brier": 0.5211689393299143,
+      "rps": 0.17334047062031924,
+      "accuracy": 0.5909489113480482
+    },
+    {
+      "candidate": "network_expectation_levels",
+      "matches": 46801,
+      "log_loss": 0.8855090012154971,
+      "brier": 0.5212703912372795,
+      "rps": 0.1734010623446511,
+      "accuracy": 0.5907352406999851
+    },
+    {
+      "candidate": "network_incumbent",
+      "matches": 46801,
+      "log_loss": 0.8868563221084231,
+      "brier": 0.522045919613288,
+      "rps": 0.17372119136290406,
+      "accuracy": 0.5897309886540886
+    },
+    {
+      "candidate": "network_two_temperature_home_draw",
+      "matches": 46801,
+      "log_loss": 0.8886154215698808,
+      "brier": 0.5228810344130864,
+      "rps": 0.17402693897199956,
+      "accuracy": 0.5856712463408902
+    },
+    {
+      "candidate": "scalar_incumbent_common",
+      "matches": 46801,
+      "log_loss": 0.8929697600474259,
+      "brier": 0.5259852144702606,
+      "rps": 0.1754196976006407,
+      "accuracy": 0.5852652721095704
+    },
+    {
+      "candidate": "scalar_expectation_common",
+      "matches": 46801,
+      "log_loss": 0.8931941562012171,
+      "brier": 0.526102463242675,
+      "rps": 0.17552880614924393,
+      "accuracy": 0.5864190936091109
+    },
+    {
+      "candidate": "scalar_expectation_monotone_k",
+      "matches": 46801,
+      "log_loss": 0.8932915466194902,
+      "brier": 0.5261626252580288,
+      "rps": 0.1755547020641639,
+      "accuracy": 0.5864831948035298
+    },
+    {
+      "candidate": "scalar_expectation_independent_k",
+      "matches": 46801,
+      "log_loss": 0.8935563933968916,
+      "brier": 0.5263299452172255,
+      "rps": 0.1756348831888062,
+      "accuracy": 0.5863763594794983
+    },
+    {
+      "candidate": "scalar_expectation_constant_debut",
+      "matches": 46801,
+      "log_loss": 0.8939593429709497,
+      "brier": 0.5265275374227152,
+      "rps": 0.17572714163365968,
+      "accuracy": 0.585799448729728
+    },
+    {
+      "candidate": "gelo",
+      "matches": 46801,
+      "log_loss": 0.8951867643842724,
+      "brier": 0.5267255555418776,
+      "rps": 0.17545171029696147,
+      "accuracy": 0.5877865857567146
+    },
+    {
+      "candidate": "scalar_incumbent_ratio",
+      "matches": 46801,
+      "log_loss": 0.895390987985722,
+      "brier": 0.5275437889576691,
+      "rps": 0.1761525947661246,
+      "accuracy": 0.5846669942949937
+    },
+    {
+      "candidate": "scalar_expectation_no_margin",
+      "matches": 46801,
+      "log_loss": 0.8990110606437276,
+      "brier": 0.5298523081781384,
+      "rps": 0.1770709002439949,
+      "accuracy": 0.5833208692121963
+    },
+    {
+      "candidate": "scalar_expectation_median_debut",
+      "matches": 46801,
+      "log_loss": 0.900008401947166,
+      "brier": 0.5303917855910322,
+      "rps": 0.17754679902277717,
+      "accuracy": 0.5825302878143629
+    },
+    {
+      "candidate": "published_wfe",
+      "matches": 46801,
+      "log_loss": 0.9026185159798847,
+      "brier": 0.531975524944638,
+      "rps": 0.17740653429397552,
+      "accuracy": 0.5880429905343902
+    }
+  ],
+  "paired_year_cluster_bootstrap": {
+    "network_temperature_common_update_vs_published_wfe": {
+      "candidate_minus_reference": -0.01839980549157694,
+      "ci95_lower": -0.021477384698349616,
+      "ci95_upper": -0.015270067869068189,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_scalar_incumbent_common": {
+      "candidate_minus_reference": -0.008751049559118105,
+      "ci95_lower": -0.010159449348775561,
+      "ci95_upper": -0.007410695990126133,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_network_incumbent": {
+      "candidate_minus_reference": -0.002637611620115466,
+      "ci95_lower": -0.0034625630019668443,
+      "ci95_upper": -0.001835465865579394,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_expectation": {
+      "candidate_minus_reference": -0.0010555996048121946,
+      "ci95_lower": -0.0017310345799424812,
+      "ci95_upper": -0.00039439304525854695,
+      "bootstrap_probability_candidate_better": 0.9993,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_ordered_se": {
+      "candidate_minus_reference": -0.0010514727496088929,
+      "ci95_lower": -0.001741486795168345,
+      "ci95_upper": -0.00038031710778192355,
+      "bootstrap_probability_candidate_better": 0.99905,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_level_update_vs_network_temperature_common_update": {
+      "candidate_minus_reference": -1.5376394491869845e-05,
+      "ci95_lower": -0.000122907694943868,
+      "ci95_upper": 9.173849473669349e-05,
+      "bootstrap_probability_candidate_better": 0.61245,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_expanded_search_vs_network_temperature_common_update": {
+      "candidate_minus_reference": 0.0003435585454607215,
+      "ci95_lower": 0.00014962905436434706,
+      "ci95_upper": 0.0005850374943832324,
+      "bootstrap_probability_candidate_better": 5e-05,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_network_global_temperature": {
+      "candidate_minus_reference": -0.0009399760903793623,
+      "ci95_lower": -0.0013866581894220402,
+      "ci95_upper": -0.0005002892190073677,
+      "bootstrap_probability_candidate_better": 0.99995,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_network_five_temperature": {
+      "candidate_minus_reference": -6.706309875993685e-05,
+      "ci95_lower": -0.0003337373035044364,
+      "ci95_upper": 0.00019737839928779243,
+      "bootstrap_probability_candidate_better": 0.69295,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "network_temperature_common_update_vs_network_two_temperature_home_draw": {
+      "candidate_minus_reference": -0.004396711081573168,
+      "ci95_lower": -0.005842994625708747,
+      "ci95_upper": -0.003060507705751253,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "scalar_expectation_common_vs_scalar_expectation_monotone_k": {
+      "candidate_minus_reference": -9.739041827319067e-05,
+      "ci95_lower": -0.0001802010189010258,
+      "ci95_upper": -2.519403135896674e-05,
+      "bootstrap_probability_candidate_better": 0.9969,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "scalar_expectation_common_vs_scalar_expectation_independent_k": {
+      "candidate_minus_reference": -0.00036223719567455556,
+      "ci95_lower": -0.000567096751865312,
+      "ci95_upper": -0.00017546380842506506,
+      "bootstrap_probability_candidate_better": 0.99995,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "scalar_expectation_common_vs_scalar_expectation_no_margin": {
+      "candidate_minus_reference": -0.005816904442510514,
+      "ci95_lower": -0.00703112383331827,
+      "ci95_upper": -0.004602962809375649,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "scalar_expectation_common_vs_scalar_expectation_constant_debut": {
+      "candidate_minus_reference": -0.0007651867697325686,
+      "ci95_lower": -0.0011629876351632292,
+      "ci95_upper": -0.00037079349321329417,
+      "bootstrap_probability_candidate_better": 0.99995,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "scalar_expectation_common_vs_scalar_expectation_median_debut": {
+      "candidate_minus_reference": -0.006814245745949018,
+      "ci95_lower": -0.008613952381595753,
+      "ci95_upper": -0.005292937697000737,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "nested_blend_vs_ordered_se": {
+      "candidate_minus_reference": -2.3099109318572417e-05,
+      "ci95_lower": -7.483664428843867e-05,
+      "ci95_upper": 2.0800910478145728e-05,
+      "bootstrap_probability_candidate_better": 0.824,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "equal_blend_vs_ordered_se": {
+      "candidate_minus_reference": -3.1853983528976525e-05,
+      "ci95_lower": -9.416249653335336e-05,
+      "ci95_upper": 3.2026854525652185e-05,
+      "bootstrap_probability_candidate_better": 0.83345,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "expectation_vs_ordered_se": {
+      "candidate_minus_reference": 4.126855203301613e-06,
+      "ci95_lower": -0.00012007681573884074,
+      "ci95_upper": 0.00013383510255046018,
+      "bootstrap_probability_candidate_better": 0.47555,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "expectation_vs_network_incumbent": {
+      "candidate_minus_reference": -0.0015820120153032715,
+      "ci95_lower": -0.0022677150575963357,
+      "ci95_upper": -0.0008962882175588042,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "expectation_vs_scalar_incumbent_ratio": {
+      "candidate_minus_reference": -0.010116677892601967,
+      "ci95_lower": -0.011739343169820048,
+      "ci95_upper": -0.00853085780979059,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "expectation_vs_published_wfe": {
+      "candidate_minus_reference": -0.017344205886764746,
+      "ci95_lower": -0.02009614474596725,
+      "ci95_upper": -0.014491773636869685,
+      "bootstrap_probability_candidate_better": 1.0,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    },
+    "expectation_vs_network_expectation_levels": {
+      "candidate_minus_reference": -0.00023469112237715862,
+      "ci95_lower": -0.000626139374783925,
+      "ci95_upper": 0.00017303957577976666,
+      "bootstrap_probability_candidate_better": 0.87255,
+      "cluster": "calendar year",
+      "clusters": 67,
+      "draws": 20000
+    }
+  },
+  "calibration": {
+    "network_temperature_common_update": {
+      "classwise_ece": 0.01111330639190698,
+      "win_draw_loss_ece": [
+        0.006368296629829029,
+        0.016072640772672404,
+        0.010898981773219506
+      ],
+      "top_label_ece": 0.008488716186377506,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.0039481441392259856,
+            "slope": 1.0330025399668052
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.004953966214006043,
+            "slope": 0.9441277853110134
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.04014558697460205,
+            "slope": 1.0245396522306318
+          }
+        ]
+      }
+    },
+    "network_temperature_level_update": {
+      "classwise_ece": 0.01073461858980287,
+      "win_draw_loss_ece": [
+        0.005884496767095962,
+        0.015812667647912705,
+        0.01050669135439994
+      ],
+      "top_label_ece": 0.00819152759761459,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.004211205424126147,
+            "slope": 1.0316680619589895
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.002381320877620926,
+            "slope": 0.9469067674737607
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.039538698406435535,
+            "slope": 1.0240999648926499
+          }
+        ]
+      }
+    },
+    "expectation": {
+      "classwise_ece": 0.01193342797397859,
+      "win_draw_loss_ece": [
+        0.007567638683206226,
+        0.018563843616122434,
+        0.009668801622607113
+      ],
+      "top_label_ece": 0.010053772759806416,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.03121666789120728,
+            "slope": 1.0060765394638107
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.03453362231997039,
+            "slope": 0.9033762433961101
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.051570682923980024,
+            "slope": 0.9941082724468331
+          }
+        ]
+      }
+    },
+    "ordered_se": {
+      "classwise_ece": 0.012256527771837167,
+      "win_draw_loss_ece": [
+        0.007710432013594447,
+        0.02052287811133547,
+        0.00853627319058158
+      ],
+      "top_label_ece": 0.008856333417852786,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.030521039974372954,
+            "slope": 1.0037709596685485
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.08968906335211341,
+            "slope": 0.8567832719797052
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.0437027527513475,
+            "slope": 1.0048624208703647
+          }
+        ]
+      }
+    },
+    "nested_blend": {
+      "classwise_ece": 0.011786816959059218,
+      "win_draw_loss_ece": [
+        0.007730238612951796,
+        0.018568300121588204,
+        0.009061912142637648
+      ],
+      "top_label_ece": 0.008688465500876683,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.030088507059571737,
+            "slope": 1.0061319079635331
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.0691991151601362,
+            "slope": 0.8735185507574081
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.047127738345746094,
+            "slope": 1.0025005592311178
+          }
+        ]
+      }
+    },
+    "network_incumbent": {
+      "classwise_ece": 0.010904301555069412,
+      "win_draw_loss_ece": [
+        0.0059168906549306325,
+        0.019703056856336793,
+        0.0070929571539408145
+      ],
+      "top_label_ece": 0.005833899740437104,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.027050053333060587,
+            "slope": 1.0222787827044852
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.09521248770495727,
+            "slope": 0.863027869136331
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.017685082558592136,
+            "slope": 1.0237520112887384
+          }
+        ]
+      }
+    },
+    "scalar_incumbent_ratio": {
+      "classwise_ece": 0.012963600289267546,
+      "win_draw_loss_ece": [
+        0.010343787076761585,
+        0.0213178955350153,
+        0.007229118256025759
+      ],
+      "top_label_ece": 0.009988526862539671,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.029290550844995815,
+            "slope": 0.9626292793028778
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.1836692201308674,
+            "slope": 0.801596891280869
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.028675586380304503,
+            "slope": 0.9793813641722979
+          }
+        ]
+      }
+    },
+    "published_wfe": {
+      "classwise_ece": 0.044464364991442414,
+      "win_draw_loss_ece": [
+        0.040842096790747295,
+        0.048452362642259106,
+        0.04409863554132084
+      ],
+      "top_label_ece": 0.06031485190286402,
+      "equal_count_bins": 15,
+      "coefficients": {
+        "ideal_intercept": 0.0,
+        "ideal_slope": 1.0,
+        "one_vs_rest": [
+          {
+            "outcome": "team1_win",
+            "intercept": -0.07470805119550494,
+            "slope": 0.7827701094706645
+          },
+          {
+            "outcome": "draw",
+            "intercept": -0.08802773538620198,
+            "slope": 0.7173742494718575
+          },
+          {
+            "outcome": "team2_win",
+            "intercept": -0.33071301690427063,
+            "slope": 0.7989684423609363
+          }
+        ]
+      }
+    }
+  },
+  "key_bakeoffs": {
+    "scalar_formulae": [
+      {
+        "candidate": "incumbent_common",
+        "matches": 46801,
+        "log_loss": 0.8929697600474282,
+        "brier": 0.525985214470259,
+        "rps": 0.1754196976006406,
+        "accuracy": 0.5852652721095704,
+        "score_mse": 0.13163324278339553,
+        "soft_log_loss": 0.5597149040228536
+      },
+      {
+        "candidate": "ordered_se_common",
+        "matches": 46801,
+        "log_loss": 0.8931847929538825,
+        "brier": 0.5261258426979999,
+        "rps": 0.17548857017955363,
+        "accuracy": 0.5856712463408902,
+        "score_mse": 0.13170139459483143,
+        "soft_log_loss": 0.5598654950238094
+      },
+      {
+        "candidate": "expectation_common",
+        "matches": 46801,
+        "log_loss": 0.8931941562012187,
+        "brier": 0.5261024632426747,
+        "rps": 0.17552880614924374,
+        "accuracy": 0.5864190936091109,
+        "score_mse": 0.13176759341319685,
+        "soft_log_loss": 0.5600621726227781
+      },
+      {
+        "candidate": "expectation_independent",
+        "matches": 46801,
+        "log_loss": 0.8935563933968922,
+        "brier": 0.5263299452172261,
+        "rps": 0.1756348831888062,
+        "accuracy": 0.5863763594794983,
+        "score_mse": 0.1318698384789029,
+        "soft_log_loss": 0.5603238791963728
+      },
+      {
+        "candidate": "expectation_constdebut",
+        "matches": 46801,
+        "log_loss": 0.8939593429709478,
+        "brier": 0.5265275374227156,
+        "rps": 0.1757271416336599,
+        "accuracy": 0.585799448729728,
+        "score_mse": 0.13195882809481088,
+        "soft_log_loss": 0.5605349201748053
+      },
+      {
+        "candidate": "ordered_score_common",
+        "matches": 46801,
+        "log_loss": 0.8942032683841071,
+        "brier": 0.5267594927688362,
+        "rps": 0.17575295195333354,
+        "accuracy": 0.5845601589709621,
+        "score_mse": 0.13193955473779106,
+        "soft_log_loss": 0.5603971289866945
+      },
+      {
+        "candidate": "davidson_common",
+        "matches": 46801,
+        "log_loss": 0.8945281393969096,
+        "brier": 0.5265102487316397,
+        "rps": 0.17567031522003304,
+        "accuracy": 0.5872951432661695,
+        "score_mse": 0.13187791064714,
+        "soft_log_loss": 0.5603999322860035
+      },
+      {
+        "candidate": "gelo_common",
+        "matches": 46801,
+        "log_loss": 0.8951867643842732,
+        "brier": 0.5267255555418764,
+        "rps": 0.17545171029696136,
+        "accuracy": 0.5877865857567146,
+        "score_mse": 0.13149617655997295,
+        "soft_log_loss": 0.5595596058867379
+      },
+      {
+        "candidate": "expectation_nomargin",
+        "matches": 46801,
+        "log_loss": 0.8990110606437264,
+        "brier": 0.529852308178139,
+        "rps": 0.177070900243995,
+        "accuracy": 0.5833208692121963,
+        "score_mse": 0.13314327332145792,
+        "soft_log_loss": 0.5637025263752036
+      },
+      {
+        "candidate": "expectation_mediandebut",
+        "matches": 46801,
+        "log_loss": 0.9000084019471662,
+        "brier": 0.5303917855910327,
+        "rps": 0.1775467990227772,
+        "accuracy": 0.5825302878143629,
+        "score_mse": 0.13372225213640812,
+        "soft_log_loss": 0.5647867479335432
+      }
+    ],
+    "network_full_vs_diagonal": [
+      {
+        "candidate": "network_ordered_se",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8854073791662292,
+        "brier": 0.521203682117668,
+        "rps": 0.17334485129899396,
+        "accuracy": 0.5903933676630841
+      },
+      {
+        "candidate": "network_expectation",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8854890264425925,
+        "brier": 0.5212859290563333,
+        "rps": 0.17339623120925887,
+        "accuracy": 0.5907138736351787
+      },
+      {
+        "candidate": "network_expectation_levels",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8855090012154966,
+        "brier": 0.521270391237279,
+        "rps": 0.1734010623446513,
+        "accuracy": 0.5907352406999851
+      },
+      {
+        "candidate": "network_ordered_score",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8862620490718321,
+        "brier": 0.5217969724982169,
+        "rps": 0.17354680775306072,
+        "accuracy": 0.590179697015021
+      },
+      {
+        "candidate": "network_incumbent",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8868563221084239,
+        "brier": 0.5220459196132877,
+        "rps": 0.1737211913629043,
+        "accuracy": 0.5897309886540886
+      },
+      {
+        "candidate": "network_davidson",
+        "state": "full",
+        "matches": 46801,
+        "log_loss": 0.8873675046013417,
+        "brier": 0.5219466751488719,
+        "rps": 0.17358623817728025,
+        "accuracy": 0.591077113736886
+      },
+      {
+        "candidate": "network_expectation",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.8910816836048592,
+        "brier": 0.5248690564431131,
+        "rps": 0.1750344617186927,
+        "accuracy": 0.58746607978462
+      },
+      {
+        "candidate": "network_expectation_levels",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.8913859119599526,
+        "brier": 0.5249932627739776,
+        "rps": 0.1750942648158229,
+        "accuracy": 0.5876370163030704
+      },
+      {
+        "candidate": "network_ordered_score",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.8915766112663307,
+        "brier": 0.5251839808651575,
+        "rps": 0.17509861929229006,
+        "accuracy": 0.5859062840537596
+      },
+      {
+        "candidate": "network_ordered_se",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.8918752995159623,
+        "brier": 0.5253133982526865,
+        "rps": 0.17520987710133448,
+        "accuracy": 0.5863763594794983
+      },
+      {
+        "candidate": "network_incumbent",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.891895022660079,
+        "brier": 0.5252987364739271,
+        "rps": 0.17521450361799382,
+        "accuracy": 0.5870387384884939
+      },
+      {
+        "candidate": "network_davidson",
+        "state": "diagonal",
+        "matches": 46801,
+        "log_loss": 0.8922290632750104,
+        "brier": 0.525018101543811,
+        "rps": 0.17498958130866946,
+        "accuracy": 0.5882566611824533
+      }
+    ],
+    "forecast_layers": {
+      "global_temperature": {
+        "matches": 46801,
+        "log_loss": 0.8851586865786871,
+        "brier": 0.5210861543897093,
+        "rps": 0.1733752657965747,
+        "accuracy": 0.5909489113480482
+      },
+      "two_temperature": {
+        "matches": 46801,
+        "log_loss": 0.8842187103549181,
+        "brier": 0.5205728969887654,
+        "rps": 0.17317944410483757,
+        "accuracy": 0.5909489113480482
+      },
+      "five_temperature": {
+        "matches": 46801,
+        "log_loss": 0.8842857735870677,
+        "brier": 0.5206317987368668,
+        "rps": 0.17320674223426477,
+        "accuracy": 0.5909489113480482
+      },
+      "global_temperature_home_draw": {
+        "matches": 46801,
+        "log_loss": 0.8896160385146682,
+        "brier": 0.5234275293383395,
+        "rps": 0.17422884474326528,
+        "accuracy": 0.5857780816649217
+      },
+      "two_temperature_home_draw": {
+        "matches": 46801,
+        "log_loss": 0.8886154215698808,
+        "brier": 0.5228810344130864,
+        "rps": 0.17402693897199956,
+        "accuracy": 0.5856712463408902
+      },
+      "five_temperature_home_draw": {
+        "matches": 46801,
+        "log_loss": 0.8886314793908484,
+        "brier": 0.522883422462946,
+        "rps": 0.17402761240362424,
+        "accuracy": 0.5856926134056964
+      }
+    },
+    "competition_update_ratios_by_fold": [
+      {
+        "train_end": 1959,
+        "ratio": 0.7269615195495727,
+        "log_loss": 0.8951461830302445,
+        "brier": 0.5219135257440133,
+        "rps": 0.17963891088351794,
+        "accuracy": 0.6090342679127726,
+        "score_mse": 0.13897998488927535,
+        "soft_log_loss": 0.5616300496418208,
+        "matches": 8346.0
+      },
+      {
+        "train_end": 1979,
+        "ratio": 0.9465471246472581,
+        "log_loss": 0.9002403866330912,
+        "brier": 0.532901487830886,
+        "rps": 0.17458508252667418,
+        "accuracy": 0.5753435292290972,
+        "score_mse": 0.12865225183228776,
+        "soft_log_loss": 0.563087298997401,
+        "matches": 12881.0
+      },
+      {
+        "train_end": 1999,
+        "ratio": 1.1741642819599918,
+        "log_loss": 0.8727902968942516,
+        "brier": 0.5144121948517244,
+        "rps": 0.17052166633643778,
+        "accuracy": 0.5899159663865546,
+        "score_mse": 0.12717945079172685,
+        "soft_log_loss": 0.5468963070898596,
+        "matches": 9520.0
+      },
+      {
+        "train_end": 2009,
+        "ratio": 0.9793809800177403,
+        "log_loss": 0.8863320396401551,
+        "brier": 0.5222405423877485,
+        "rps": 0.17376413104140837,
+        "accuracy": 0.5881446476268749,
+        "score_mse": 0.13008606096517422,
+        "soft_log_loss": 0.5565518480023285,
+        "matches": 9734.0
+      },
+      {
+        "train_end": 2019,
+        "ratio": 1.1340796008445577,
+        "log_loss": 0.8588233362710324,
+        "brier": 0.5048316695943018,
+        "rps": 0.16615675837452026,
+        "accuracy": 0.6025316455696202,
+        "score_mse": 0.1230272201632053,
+        "soft_log_loss": 0.5375981585248099,
+        "matches": 6320.0
+      }
+    ],
+    "expanded_uncertainty_search": {
+      "aggregate": {
+        "matches": 46801,
+        "log_loss": 0.8845622690337684,
+        "brier": 0.5207771094011713,
+        "rps": 0.17326912633396335,
+        "accuracy": 0.5909275442832418
+      },
+      "comparison_to_regularized": {
+        "candidate_minus_reference": 0.0003435585454607215,
+        "ci95_lower": 0.00014962905436434706,
+        "ci95_upper": 0.0005850374943832324,
+        "bootstrap_probability_candidate_better": 5e-05,
+        "cluster": "calendar year",
+        "clusters": 67,
+        "draws": 20000
+      },
+      "conclusion": "The broader search improves its inner blocks but significantly worsens the next untouched blocks; retain the regularized hyperparameter space."
+    },
+    "main_conclusions": {
+      "k_levels": "Use a common state-information weight. Independent and monotone K ladders are worse in scalar Elo; the network unequal-update gain is not distinguishable from zero.",
+      "match_importance": "Use two forecast temperatures: friendly and competitive. One temperature is significantly worse; five temperatures do not improve on two.",
+      "goal_margin": "Retain the era-normalized margin curve; removing it raises scalar log loss from 0.893194 to 0.899011.",
+      "debut": "Use the active-pool debut prior; constant and raw-median starts are worse.",
+      "probability_link": "Expectation-preserving and ordered-logit network links are statistically tied. Use expectation-preserving because it exactly retains the Elo expected-score identity.",
+      "network": "Retain full opponent covariance. Diagonal approximations are materially worse.",
+      "home_and_draw_residuals": "Do not add a second home/draw correction layer; it overfits and is worse on the following era."
+    }
+  },
+  "recommended_model_formula": {
+    "state": "r ~ Normal(mu, Sigma), with a full team-by-team covariance matrix",
+    "era_interpolation": "Linear between 1900, 1930, 1960, 1990, 2020; calibration scale is interpolated in log space; home advantage linearly; draw rate in transformed-logit space.",
+    "effective_gap": "delta = a(year)*(mu_i-mu_j) + H(year)*home_sign",
+    "base_expected_score": "E = 1/(1+10^(-delta/400))",
+    "base_three_way": "D = draw_even(year)*4*E*(1-E); W=E-D/2; L=1-E-D/2",
+    "uncertainty_integration": "Integrate (W,D,L) over Normal(delta, a(year)^2*(Sigma_ii+Sigma_jj-2*Sigma_ij)) using 11-point Gauss-Hermite quadrature.",
+    "forecast_temperature": "P_final(o) = P_base(o)^T_c / sum_h P_base(h)^T_c; c=friendly when level=0, otherwise competitive.",
+    "drift": "Before a participant's match, Sigma_tt += drift_sd^2 * elapsed_years.",
+    "match_information": "lambda = quality_scale * G_environment_adjusted(margin); competition-level ratio is 1 for all five levels.",
+    "update": "Let v=Sigma[:,i]-Sigma[:,j], V=Sigma_ii+Sigma_jj-2*Sigma_ij, beta=ln(10)*a(year)/400, g=S-E, I=E*(1-E), d=1+lambda*beta^2*I*V. Then mu += v*lambda*beta*g/d and Sigma -= outer(v,v)*lambda*beta^2*I/d.",
+    "debut_mean": "median(active mature pool, fallback established pool) + newcomer_offset + active_pool_slope*ln((active_count+10)/50); zero if the reference pool is empty",
+    "debut_variance": "prior_sd^2",
+    "display_anchor": "Add 1500 to every latent mean if a conventional Elo-looking display scale is desired; the additive anchor does not affect predictions."
+  },
+  "deployment_parameters": {
+    "state_observation_fit_through": 2026,
+    "scalar_fallback_common_k": 15.400201447614121,
+    "network_competition_information_ratios": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "knot_years": [
+      1900,
+      1930,
+      1960,
+      1990,
+      2020
+    ],
+    "calibration_scale": [
+      1.9329803161851784,
+      1.5602143637570678,
+      1.3044459799655215,
+      1.1218570234757215,
+      1.0
+    ],
+    "effective_divisor": [
+      206.93433691524473,
+      256.37502723457925,
+      306.6435913356662,
+      356.5516742594575,
+      400.0
+    ],
+    "home_advantage": [
+      73.123115543503,
+      96.74246793815797,
+      112.89558566270792,
+      112.66052421548639,
+      83.53363897913016
+    ],
+    "draw_probability_at_even_strength": [
+      0.18451738305372078,
+      0.2174334339602218,
+      0.25965582882029153,
+      0.30867595078868215,
+      0.32513463832148676
+    ],
+    "goal_margin": {
+      "draw": 3.486642593835564,
+      "one": 1.0,
+      "two": 1.755270459152449,
+      "three": 2.20104735688078,
+      "tail_slope_per_effective_goal_over_three": 1.467767822525712,
+      "environment_power": 1.880272889370813
+    },
+    "debut": {
+      "newcomer_offset": -192.90021991733568,
+      "active_pool_slope": -84.24860586823341,
+      "scalar_only_provisional_multiplier": 3.1049308999960905
+    },
+    "network": {
+      "prior_sd": 299.99999999999994,
+      "drift_sd_per_sqrt_year": 19.750212594949737,
+      "quality_scale": 1.7440260583320362
+    },
+    "forecast": {
+      "friendly_temperature": 0.9697407083655329,
+      "competitive_temperature": 1.0635626456560392,
+      "binary_divisor_approximation_friendly": 412.4813948196392,
+      "binary_divisor_approximation_competitive": 376.0944422350103
+    },
+    "internal_parameter_vector": [
+      15.400201447614121,
+      15.400201447614121,
+      15.400201447614121,
+      15.400201447614121,
+      15.400201447614121,
+      3.486642593835564,
+      0.7552704591524491,
+      0.44577689772833096,
+      1.467767822525712,
+      1.880272889370813,
+      -192.90021991733568,
+      -84.24860586823341,
+      3.1049308999960905,
+      0.6590630171351215,
+      0.4448232244859773,
+      0.265778414208668,
+      0.11498536892331582,
+      0.0,
+      73.123115543503,
+      96.74246793815797,
+      112.89558566270792,
+      112.66052421548639,
+      83.53363897913016,
+      -0.6798559329172196,
+      -0.32859062651277754,
+      0.0966334150887766,
+      0.6045206482316517,
+      0.7900245215166508
+    ],
+    "fit_diagnostics": {
+      "seed": 20260715,
+      "global_objective": 0.890430900994392,
+      "global_evaluations": 115,
+      "local_objective": 0.8904309007914248,
+      "local_evaluations": 15042,
+      "local_success": true,
+      "elapsed_seconds": 147.972234715
+    },
+    "deployment_validation": {
+      "validation": "2020-2026",
+      "validation_matches": 6320,
+      "state_fit_through": 2019,
+      "hyperparameters": {
+        "prior_sd": 299.99999999999994,
+        "drift_sd_per_sqrt_year": 19.750212594949737,
+        "quality_scale": 1.7440260583320362
+      },
+      "friendly_temperature": 0.9697407083655329,
+      "competitive_temperature": 1.0635626456560392,
+      "base_metrics": {
+        "log_loss": 0.8580317507395241,
+        "brier": 0.5045644884715238,
+        "rps": 0.16607934299457477,
+        "accuracy": 0.6026898734177215,
+        "score_mse": 0.12297789237398168,
+        "soft_log_loss": 0.5371809953059744,
+        "matches": 6320.0
+      },
+      "temperature_adjusted_metrics": {
+        "matches": 6320,
+        "log_loss": 0.8575567124672431,
+        "brier": 0.5044839007167643,
+        "rps": 0.16605963152808273,
+        "accuracy": 0.6026898734177215
+      },
+      "deployment_state_parameters": "bakeoff/fits/final_expectation_common_2026_refined.json",
+      "deployment_results_through": "2026-07-11"
+    }
+  },
+  "rolling_winner_parameters": [
+    {
+      "outer_train_end": 1959,
+      "inner_validation": "1940-1959",
+      "friendly_temperature": 0.8911333380992356,
+      "competitive_temperature": 0.9541073002781707
+    },
+    {
+      "outer_train_end": 1979,
+      "inner_validation": "1960-1979",
+      "friendly_temperature": 0.8518871699282337,
+      "competitive_temperature": 1.0190076236643895
+    },
+    {
+      "outer_train_end": 1999,
+      "inner_validation": "1980-1999",
+      "friendly_temperature": 0.752980787893941,
+      "competitive_temperature": 0.9664398032658515
+    },
+    {
+      "outer_train_end": 2009,
+      "inner_validation": "2000-2009",
+      "friendly_temperature": 0.8989844660433214,
+      "competitive_temperature": 1.0906952336192235
+    },
+    {
+      "outer_train_end": 2019,
+      "inner_validation": "2010-2019",
+      "friendly_temperature": 0.9300644422371939,
+      "competitive_temperature": 1.0927218570110027
+    }
+  ],
+  "limitations": [
+    "This is the best tested model, not a proof of a globally best possible football forecaster.",
+    "The bootstrap does not refit parameters inside each draw.",
+    "The data contain match result, margin, venue and competition class, but no squad, player, red-card, travel, rest or market information.",
+    "The final 2026 deployment parameters are fit on all available data and therefore do not themselves have a future test block; the model class is justified by the nested historical bake-off."
+  ],
+  "implementation": {
+    "compiler": "g++ -O3 -shared -fPIC -std=c++17 -DELO_ERA_MODEL -DELO_ERA_INDEPENDENT_K -DELO_ONLINE_START elo_objective.cpp",
+    "primary_source": "elo_objective.cpp",
+    "hashes_sha256": {
+      "data/elo_matches.npz": "05151cb0af27226a165b52436137a87c93d4117508610001eb1441c57052481b",
+      "data/elo_matches.json": "2f34cab0bc2790191f7132a0162b9c04d3b036b1a585c6428cd51259dcdfc19a",
+      "elo_objective.cpp": "b41b3d27c2c6b43cbe97cabf2615e3b950949c73c7ce42fbe8d329585bd658e3",
+      "fit_bakeoff_candidate.py": "dcb3f8b4ef55318f8708252679a09d5a73d591890b064ec7b3e4ec4b839af4f4",
+      "network_bakeoff.py": "bf6dcabb38262d3187373c1e3188847d6b9688ef40aef4c54b857af7ea57a9fa",
+      "tune_competition_temperature.py": "ec1cb9a4beb41469e8bae5865868e81e9d8458664ff6b52d7093f451b99327f9",
+      "tune_forecast_layer.py": "03d942d83e4afab290c30517972fb78591a69ae5af161851ed7744d78a58dfcb",
+      "analyse_bakeoff.py": "248d5b661fc27c00a64256a9357d900489a5b5253e1c1cc4e3a19dc1b20c5af5"
+    }
+  }
+}
