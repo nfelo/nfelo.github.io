@@ -1,0 +1,50 @@
+{
+  "version": "2026-07-15",
+  "active_from_year": 1960,
+  "calibration_window_years": 8,
+  "goal_environment_years": 8,
+  "goal_prior_matches": 100,
+  "goal_prior_per_team": 1.3,
+  "release_schedule": [
+    {
+      "name": "selected-through-1959",
+      "first_year": 1960,
+      "last_year": 1979,
+      "gap_scale": 0.6,
+      "learning_rate": 0.03,
+      "annual_decay": 0.3
+    },
+    {
+      "name": "selected-through-1979",
+      "first_year": 1980,
+      "last_year": 1999,
+      "gap_scale": 0.7,
+      "learning_rate": 0.05,
+      "annual_decay": 0.3
+    },
+    {
+      "name": "selected-through-1999",
+      "first_year": 2000,
+      "last_year": 2009,
+      "gap_scale": 0.8,
+      "learning_rate": 0.05,
+      "annual_decay": 0.3
+    },
+    {
+      "name": "selected-through-2009",
+      "first_year": 2010,
+      "last_year": 2019,
+      "gap_scale": 0.7,
+      "learning_rate": 0.03,
+      "annual_decay": 0.3
+    },
+    {
+      "name": "selected-through-2019",
+      "first_year": 2020,
+      "last_year": null,
+      "gap_scale": 0.8,
+      "learning_rate": 0.05,
+      "annual_decay": 0.3
+    }
+  ]
+}

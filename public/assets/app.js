@@ -153,6 +153,63 @@
     return `<div class="probability" aria-label="Win ${percent(values[0])}, draw ${percent(values[1])}, loss ${percent(values[2])}">${values.map((value, index) => `<span class="${classes[index]}" style="width:${Math.max(12, value * 100)}%" title="${labels[index]} ${percent(value)}">${number(value * 100, 0)}</span>`).join("")}</div>`;
   }
 
+  function poissonWDL(lambdaA, lambdaB) {
+    const first = [Math.exp(-lambdaA)];
+    const second = [Math.exp(-lambdaB)];
+    for (let goals = 1; goals <= 40; goals += 1) {
+      first.push(first[goals - 1] * lambdaA / goals);
+      second.push(second[goals - 1] * lambdaB / goals);
+    }
+    let win = 0;
+    let draw = 0;
+    let loss = 0;
+    let firstBelow = first[0];
+    let secondBelow = second[0];
+    draw += first[0] * second[0];
+    for (let goals = 1; goals <= 40; goals += 1) {
+      win += first[goals] * secondBelow;
+      loss += second[goals] * firstBelow;
+      draw += first[goals] * second[goals];
+      firstBelow += first[goals];
+      secondBelow += second[goals];
+    }
+    const total = win + draw + loss;
+    return [win / total, draw / total, loss / total];
+  }
+
+  function applyForecastLayer(base, expected, first, second, friendly, day, layer) {
+    if (!layer) return base;
+    const decayRate = layer.parameters.annual_decay;
+    const decayed = (values, team) => {
+      const previous = layer.last_day[team];
+      const elapsed = previous < 0 ? 0 : Math.max(0, (day - previous) / 400);
+      return values[team] * Math.exp(-decayRate * elapsed);
+    };
+    const clipped = Math.min(1 - 1e-8, Math.max(1e-8, expected));
+    const gap = 0.5 * layer.parameters.gap_scale * Math.log(clipped / (1 - clipped));
+    const attackA = decayed(layer.attack, first);
+    const attackB = decayed(layer.attack, second);
+    const defenceA = decayed(layer.defence, first);
+    const defenceB = decayed(layer.defence, second);
+    const lambdaA = Math.min(8, Math.max(0.05, Math.exp(Math.log(layer.base_goal) + gap + attackA - defenceB)));
+    const lambdaB = Math.min(8, Math.max(0.05, Math.exp(Math.log(layer.base_goal) - gap + attackB - defenceA)));
+    const score = poissonWDL(lambdaA, lambdaB);
+    score[1] *= Math.exp(layer.calibration.draw_log_tilt);
+    let total = score.reduce((sum, value) => sum + value, 0);
+    const temperature = friendly
+      ? layer.calibration.friendly_temperature
+      : layer.calibration.competitive_temperature;
+    const calibrated = score.map((value) => Math.pow(Math.max(1e-15, value / total), temperature));
+    total = calibrated.reduce((sum, value) => sum + value, 0);
+    const normalised = calibrated.map((value) => value / total);
+    const pooled = base.map((value, index) => (
+      layer.calibration.nfelo_weight * value
+      + layer.calibration.score_weight * normalised[index]
+    ));
+    const top = (values) => values.indexOf(Math.max(...values));
+    return top(pooled) === top(base) ? pooled : base;
+  }
+
   async function renderHome() {
     setTitle("");
     const topTen = summary.current.slice(0, 10);
@@ -617,7 +674,7 @@
     const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Match probability calculator</p><h1>Predict a match</h1></div><p class="lede">Choose two teams, the venue and whether the match is friendly or competitive. The forecast uses current strength, home advantage and uncertainty.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Match probability calculator</p><h1>Predict a match</h1></div><p class="lede">Choose two teams, the venue and whether the match is friendly or competitive. The forecast combines current network strength and uncertainty with each team's recent scoring pattern.</p></header>
         <div class="predictor">
           <div class="team-picker"><p class="eyebrow">Team one</p><select id="predict-a" aria-label="Team one">${options(defaultA.code)}</select></div>
           <div class="versus" aria-hidden="true">v</div>
@@ -662,7 +719,18 @@
       const temperature = matchClass === "friendly" ? state.friendly_temperature : state.competitive_temperature;
       const powered = base.map((value) => Math.pow(Math.max(1e-15, value), temperature));
       const total = powered.reduce((sum, value) => sum + value, 0);
-      const probabilities = powered.map((value) => value / total);
+      const networkProbabilities = powered.map((value) => value / total);
+      const [todayYear, todayMonth, todayDay] = todayISO().split("-").map(Number);
+      const forecastDay = todayYear * 400 + todayMonth * 32 + todayDay;
+      const probabilities = applyForecastLayer(
+        networkProbabilities,
+        logistic(difference),
+        i,
+        j,
+        matchClass === "friendly",
+        Math.max(forecastDay, state.forecast_layer?.as_of_day || forecastDay),
+        state.forecast_layer,
+      );
       const max = Math.max(...probabilities);
       const jointSE = Math.sqrt(Math.max(0, cov(i, i) + cov(j, j) + 2 * cov(i, j)));
       const combined = teamA.mean + teamB.mean - confidenceZ * jointSE;
@@ -763,21 +831,25 @@
   function renderMethodology() {
     setTitle("Methodology");
     const p = summary.parameters;
+    const f = p.forecast_layer;
     content.innerHTML = `
       <article class="page page-narrow prose">
         <p class="eyebrow">How the ratings are calculated</p><h1>Methodology</h1>
-        <p class="lede">The system is based on Elo, but it also measures uncertainty and the connections between opponents. This page begins with the main ideas, then gives the exact calculations needed to reproduce the ratings.</p>
+        <p class="lede">The system is based on Elo, but it also measures uncertainty, connections between opponents and recent scoring patterns. This page begins with the main ideas, then gives the exact calculations needed to reproduce the ratings and forecasts.</p>
 
         <div class="method-summary">
           <h2>In plain English</h2>
           <ol>
             <li><b>Start with the teams before the match.</b> Each team has an estimated strength and a level of uncertainty.</li>
             <li><b>Calculate the expected result.</b> The strength difference, venue and historical era determine the expected score.</li>
-            <li><b>Compare expectation with reality.</b> An unexpected result creates a larger adjustment than an expected one.</li>
+            <li><b>Check how the teams have been scoring.</b> A separate hidden layer tracks whether each team has recently scored or conceded more than its network strength would suggest.</li>
+            <li><b>Combine the two forecasts.</b> The network supplies most of the final probability and the scoring layer makes a smaller correction. If that correction would change the network's most likely result, it is not used for that match.</li>
+            <li><b>Compare expectation with reality.</b> An unexpected result creates a larger rating adjustment than an expected one.</li>
             <li><b>Use the winning margin.</b> Larger victories contain more information, but the effect is capped and adjusted for the scoring environment of the era.</li>
             <li><b>Update the opponent network.</b> Shared opponents connect teams, so the model can compare teams that have never met directly.</li>
             <li><b>Allow for uncertainty.</b> The public rating is deliberately cautious when a team's evidence is limited or concentrated within a small group.</li>
           </ol>
+          <p><b>The important distinction:</b> the scoring layer changes match probabilities only. It does not change any team's rating, ranking, historical peak or the rating points gained from a result.</p>
         </div>
 
         <div class="callout"><b>Why use an opponent network?</b> A match tells us the difference between two teams, not either team's absolute strength. Connections through common opponents provide the wider context needed to compare regions and eras. The model keeps track of how certain those comparisons are.</div>
@@ -790,9 +862,22 @@
         <div class="table-hint" aria-hidden="true">Swipe to see all parameters →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent Elo divisor</th><th class="numeric">Home advantage</th><th class="numeric">Draw chance at equal strength</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === 4 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
 
         <h2>2. Win, draw and loss probabilities</h2>
-        <p>The expected score is divided into three probabilities. The draw probability is highest when teams are evenly matched and falls as the gap grows:</p>
+        <p>The network expected score is first divided into win, draw and loss probabilities. The draw probability is highest when teams are evenly matched and falls as the gap grows:</p>
         <div class="formula">D = pD(y) · 4E(1 − E)<br>W = E − D/2<br>L = 1 − E − D/2</div>
-        <p><code>W</code>, <code>D</code> and <code>L</code> are team 1's win, draw and loss probabilities. The calculation also integrates uncertainty in the difference between the teams. A final calibration makes friendly forecasts slightly less decisive than competitive forecasts. The fitted temperature is <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies and <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches.</p>
+        <p><code>W</code>, <code>D</code> and <code>L</code> are team 1's win, draw and loss probabilities. The calculation integrates the full uncertainty in the strength difference. Its fitted temperature is <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies and <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches. Call the resulting vector <code>Pnetwork</code>.</p>
+
+        <h3>Hidden attack and defence layer</h3>
+        <p>A second, parallel model tracks attack residual <code>Aᵢ</code> and defence residual <code>Dᵢ</code> for each team. These begin at zero and never enter the published rating. The causal goal baseline uses only matches already played in the current and preceding ${number(f.goal_environment_years)} years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
+        <div class="formula">B = [${number(2 * f.goal_prior_matches * f.goal_prior_per_team, 0)} + previous goals] / [${number(2 * f.goal_prior_matches)} + 2(previous matches)]<br>g = ${number(f.parameters.gap_scale, 1)} ln[E/(1−E)]<br>λ₁ = B exp(g/2 + A₁ − D₂)<br>λ₂ = B exp(−g/2 + A₂ − D₁)</div>
+        <p>Independent Poisson goal distributions with means <code>λ₁</code> and <code>λ₂</code> are summed into <code>Pscore(W/D/L)</code>. Expected goals are limited to 0.05–8.00. Before a team's next match, its attack and defence residuals are multiplied by <code>exp(−${number(f.parameters.annual_decay, 1)}t)</code>, where <code>t</code> is elapsed years. This gives a half-life of about 2.31 years.</p>
+        <p>After the forecast—not before it—the scoring state learns from the result:</p>
+        <div class="formula">rᵢ = clip[min(goalsᵢ, ${number(f.parameters.goal_update_cap)}) − λᵢ, −${number(f.parameters.goal_residual_cap)}, +${number(f.parameters.goal_residual_cap)}]<br>Aᵢ′ = Aᵢ + (${number(f.parameters.learning_rate, 2)}/2)rᵢ<br>Dⱼ′ = Dⱼ − (${number(f.parameters.learning_rate, 2)}/2)rᵢ</div>
+        <p>The same mirrored update is made for the opponent's goals. Friendlies and competitive matches update this hidden scoring state equally; testing did not support a separate friendly learning rate.</p>
+
+        <h3>Annual calibration, blend and safety rule</h3>
+        <p>At the start of each calendar year, the score probabilities and blend weight are refitted using only the preceding ${number(f.calibration_window_years)} complete calendar years. For ${number(f.calibration.year)}, that means ${number(f.calibration.training_matches)} matches from ${number(f.calibration.training_first_year)}–${number(f.calibration.training_last_year)}. The current score calibration uses draw log tilt <b>${number(f.calibration.draw_log_tilt, 4)}</b>, friendly power <b>${number(f.calibration.friendly_temperature, 4)}</b> and competitive power <b>${number(f.calibration.competitive_temperature, 4)}</b>.</p>
+        <div class="formula">Ppool = ${number(f.calibration.nfelo_weight, 4)} Pnetwork + ${number(f.calibration.score_weight, 4)} Pscore<br>Pfinal = Ppool, if argmax(Ppool) = argmax(Pnetwork)<br>Pfinal = Pnetwork, otherwise</div>
+        <p>The complete network vector is therefore restored whenever the blend would change the network's most-likely win/draw/loss call. This guarantees that the probability layer cannot lower the model's recorded top-outcome accuracy. The structural values are frozen; only the scheduled annual calibration is refitted by the published rule.</p>
 
         <h2>3. Winning margin</h2>
         <p>A 4–0 result is stronger evidence than a 1–0 result, but four times the margin should not produce four times the rating change. The margin is capped at seven goals and compared with decisive matches in the preceding 20 years. This prevents high-scoring eras from receiving unfairly large adjustments.</p>
@@ -802,7 +887,7 @@
         <h2>4. Updating team strength and uncertainty</h2>
         <p>The model stores all team strengths in <code>μ</code> and their joint uncertainty in <code>Σ</code>. Before a team plays, its uncertainty increases slightly according to the time since its previous match. A new team begins with standard deviation <b>${rating(p.network.prior_sd)}</b>. For the match, let <code>x=e₁−e₂</code>, <code>v=Σx</code>, <code>V=xᵀΣx</code>, <code>β=a(y)ln(10)/400</code>, and <code>λ=${number(p.network.quality_scale, 6)}G(m)</code>.</p>
         <div class="formula">d = 1 + λβ²E(1−E)V<br>μ′ = μ + v · λβ(S−E)/d<br>Σ′ = Σ − vvᵀ · λβ²E(1−E)/d</div>
-        <p><code>S</code> is the actual fractional score and <code>G(m)</code> is the margin weight. The mean update is larger when a result is surprising and informative. The uncertainty update reflects how much the match taught us. Every result receives the same evidence weight; friendly and competitive matches differ only in the final probability calibration.</p>
+        <p><code>S</code> is the actual fractional score and <code>G(m)</code> is the margin weight. The mean update is larger when a result is surprising and informative. The uncertainty update reflects how much the match taught us. Every result receives the same network-rating evidence weight; match class affects probability calibration, not the rating update.</p>
 
         <h2>5. New teams and successor histories</h2>
         <p>A new team starts near the median strength of active, established teams rather than at an arbitrary fixed rating. The starting value also adjusts modestly for the size of the active international pool:</p>
@@ -810,17 +895,17 @@
         <p>Historical names that represent the same continuing national side are joined into one successor history. Separate national teams are not merged merely because they share geography or political ancestry.</p>
 
         <h2>6. The rating shown on the site</h2>
-        <p>Match predictions use the full strength and uncertainty state directly. The public ranking uses a cautious presentation so that teams with a narrow or poorly connected schedule do not appear artificially high. Recent opponents receive more weight, with an eight-year half-life. The effective number of distinct opponents gives breadth reliability <code>ρ=N/(N+4)</code>. <code>B</code> is the average underlying strength of the active top ten.</p>
+        <p>The public ranking is calculated only from the opponent-network strength and uncertainty—not from the hidden scoring layer. It uses a cautious presentation so that teams with a narrow or poorly connected schedule do not appear artificially high. Recent opponents receive more weight, with an eight-year half-life. The effective number of distinct opponents gives breadth reliability <code>ρ=N/(N+4)</code>. <code>B</code> is the average underlying strength of the active top ten.</p>
         <div class="formula">Mᵢ = 2000 + ρᵢ(μᵢ − B)<br>NRᵢ = Mᵢ − 1.64485362695 √Σᵢᵢ<br>Qᵢⱼ = Mᵢ + Mⱼ − 1.64485362695 √(Σᵢᵢ+Σⱼⱼ+2Σᵢⱼ)</div>
         <p><code>M</code> is breadth-adjusted strength, <code>NR</code> is the displayed team rating, and <code>Q</code> is the combined rating of a matchup. The subtraction of 1.645 standard errors is a conservative uncertainty allowance. A historical peak or matchup enters the records after both teams have at least 30 earlier matches.</p>
 
         <h2>7. How the model was tested</h2>
-        <p>Testing used rolling historical cut-offs: parameters were chosen using earlier matches and evaluated only on later, unseen matches. This produced ${number(summary.validation.matches)} out-of-sample predictions from 1960 to 2026.</p>
+        <p>Testing used rolling historical cut-offs: score-state parameters were chosen using earlier matches, annual calibration used only the preceding eight complete years, and forecasts were evaluated on later matches. This produced ${number(summary.validation.matches)} pre-match predictions from 1960 to 2026. The outcome-preserving layer improved every one of the five chronological test blocks.</p>
         <div class="metric-grid"><div><span>Log loss</span><strong>${number(summary.validation.log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(summary.validation.brier, 4)}</strong></div><div><span>Ranked probability score</span><strong>${number(summary.validation.rps, 4)}</strong></div><div><span>Most likely outcome correct</span><strong>${percent(summary.validation.accuracy)}</strong></div></div>
-        <p>Lower values are better for the first three measures. Log loss is the primary measure because it rewards accurate probabilities and strongly penalises unjustified certainty. The comparison World Football Elo forecast scored <b>${number(summary.validation.published_wfe_log_loss, 4)}</b> on log loss, against <b>${number(summary.validation.log_loss, 4)}</b> for this model.</p>
+        <p>Lower values are better for the first three measures. Log loss is primary because it rewards accurate probabilities and strongly penalises unjustified certainty. Network-only NFELO scored <b>${number(summary.validation.network_only_log_loss, 4)}</b>; the final layer scored <b>${number(summary.validation.log_loss, 4)}</b>, with a paired year-cluster 95% difference interval of <b>${number(summary.validation.log_loss_difference_low_95, 4)}</b> to <b>${number(summary.validation.log_loss_difference_high_95, 4)}</b>. Both made exactly the same most-likely-result calls by construction. The comparison World Football Elo forecast scored <b>${number(summary.validation.published_wfe_log_loss, 4)}</b>.</p>
 
         <h2>8. Important limitations</h2>
-        <p>The model uses match results, date, venue, competition type and score margin. It does not know the selected squad, injuries, red cards, travel, rest, tactics, weather or betting-market information. Ratings and probabilities are estimates, not certainties or betting advice.</p>
+        <p>The model uses match results, score, date, venue and competition type. It does not know the selected squad, injuries, red cards, travel, rest, tactics, weather or betting-market information. The probability improvement is statistically supported but small; ratings and probabilities remain estimates, not certainties or betting advice.</p>
       </article>`;
   }
 
@@ -839,7 +924,7 @@
           <h2>Data sources</h2>
           <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
-          <p>When new results arrive, the entire history is recalculated in chronological order. This matters because each rating depends on the teams' earlier results, opponents and uncertainty. Model parameters remain fixed during routine daily updates, so historical changes come from source corrections rather than silent changes to the method.</p>
+          <p>When new results arrive, the entire history is recalculated in chronological order. This matters because each rating and hidden scoring state depends on earlier results. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is automatically refitted from the preceding eight complete calendar years under the published rule; this scheduled calculation does not alter ratings or rankings.</p>
           <h2>What the model does not know</h2>
           <p>It does not use line-ups, player availability, injuries, red cards, travel, rest, tactical matchups, weather or betting markets. Its probabilities describe the historical-information model, not certainty and not a recommendation to wager.</p>
           <h2>Quality checks</h2>

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
+from datetime import date
 import hashlib
 import json
 import math
@@ -14,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from forecast_layer import ForecastLayer
 from ledger import Match, read_dictionary, read_matches, read_successors
 
 
@@ -210,6 +212,11 @@ class NetworkEloReplay:
             raise ValueError(
                 f"Source integrity check failed: {len(self.matches)} matches, {self.count} teams"
             )
+
+        forecast_configuration = json.loads(
+            (config / "forecast_layer.json").read_text(encoding="utf-8")
+        )
+        self.forecast_layer = ForecastLayer(self.count, forecast_configuration)
 
         self.mean = np.full(self.count, np.nan, dtype=np.float64)
         self.covariance = np.zeros((self.count, self.count), dtype=np.float64)
@@ -418,10 +425,21 @@ class NetworkEloReplay:
                 ),
             )
             level = self.level(match.tournament)
-            probabilities = three_way_probabilities(
+            network_probabilities = three_way_probabilities(
                 difference,
                 difference_variance,
                 match.year,
+                friendly=level == 0,
+            )
+            probabilities = self.forecast_layer.predict_and_update(
+                first=i,
+                second=j,
+                day=match.day,
+                year=match.year,
+                goals1=match.score1,
+                goals2=match.score2,
+                expected_score=expected_score,
+                nfelo_probabilities=network_probabilities,
                 friendly=level == 0,
             )
 
@@ -564,6 +582,7 @@ class NetworkEloReplay:
 
     def finish(self) -> ReplayOutput:
         current_year = self.matches[-1].year
+        self.forecast_layer.ensure_calibration_year(max(current_year, date.today().year))
         baseline = self.reference(current_year)
         if baseline is None:
             raise RuntimeError("No current elite reference pool")
@@ -703,16 +722,24 @@ class NetworkEloReplay:
                     "friendly": FRIENDLY_TEMPERATURE,
                     "competitive": COMPETITIVE_TEMPERATURE,
                 },
+                "forecast_layer": self.forecast_layer.public_parameters(),
             },
             "validation": {
                 "matches": 46_801,
-                "log_loss": 0.8842187104883077,
-                "brier": 0.5205728970927473,
-                "rps": 0.17317944421892195,
-                "accuracy": 0.5909489113480482,
+                "log_loss": 0.8807100826944925,
+                "brier": 0.5184997489621612,
+                "rps": 0.17256936030842418,
+                "accuracy": 0.5913762526441743,
+                "network_only_log_loss": 0.8822119822881995,
+                "network_only_brier": 0.5191547340533864,
+                "network_only_rps": 0.17274543533622533,
+                "network_only_accuracy": 0.5913762526441743,
+                "log_loss_difference_low_95": -0.0027271710403593374,
+                "log_loss_difference_high_95": -0.0006482440509823246,
                 "published_wfe_log_loss": 0.9026185159798847,
             },
         }
+        forecast_state = self.forecast_layer.export()
         state = {
             "year": current_year,
             "baseline": baseline,
@@ -726,6 +753,7 @@ class NetworkEloReplay:
             "competitive_temperature": COMPETITIVE_TEMPERATURE,
             "nodes": QUADRATURE_NODES.tolist(),
             "weights": QUADRATURE_WEIGHTS.tolist(),
+            "forecast_layer": forecast_state,
         }
 
         if not np.all(np.isfinite(self.mean[~np.isnan(self.mean)])):

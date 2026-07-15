@@ -6,10 +6,12 @@ It includes current rankings, every historical source result, one
 all-time peak per nation, the highest-rated match instances, team histories,
 and a current-state probability calculator.
 
-The predictive state is a full-covariance dynamic Gaussian opponent network.
-The familiar base-10 Elo curve remains the observation link; uncertainty,
-debut priors, era-adjusted home advantage, goal-margin information and the
-friendly/competitive probability temperatures are all replayed chronologically.
+The rating state is a full-covariance dynamic Gaussian opponent network. The
+familiar base-10 Elo curve remains the observation link; uncertainty, debut
+priors, era-adjusted home advantage and goal-margin information are replayed
+chronologically. Match probabilities add a parallel attack/defence score state,
+an annually calibrated linear pool and an outcome-preserving safety rule. That
+hidden layer never changes the displayed ratings or rankings.
 
 ## What is automatic
 
@@ -25,7 +27,10 @@ It:
 6. runs Python and JavaScript checks;
 7. deploys the new static artifact only after every check passes.
 
-Routine updates never refit the model. A re-fit is a separate research release.
+Routine updates never refit rating or score-state structure. At the start of
+each calendar year, forecast calibration and the pool weight are refitted by a
+fixed rule using the preceding eight complete years. A structural re-fit remains
+a separate research release.
 
 ## Local build
 
@@ -58,6 +63,7 @@ good snapshot.
 - `config/` — fixed deployment parameters and tournament metadata.
 - `scripts/ledger.py` — canonicalisation, deduplication and same-day ordering.
 - `scripts/model.py` — frozen network replay and conservative record layer.
+- `scripts/forecast_layer.py` — hidden scoring state, annual calibration and probability gate.
 - `scripts/build_site.py` — static JSON generation and build manifest.
 - `scripts/fetch_sources.py` — guarded public-source updater.
 - `public/` — GitHub Pages application shell; generated data is ignored by Git.

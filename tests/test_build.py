@@ -8,11 +8,14 @@ import sys
 from tempfile import TemporaryDirectory
 import unittest
 
+import numpy as np
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
+from forecast_layer import outcome_preserving_pool, poisson_wdl  # noqa: E402
 from model import three_way_probabilities  # noqa: E402
 from open_results import merge_record, venue_country  # noqa: E402
 
@@ -125,6 +128,68 @@ class StaticBuildTests(unittest.TestCase):
         self.assertAlmostEqual(float(first[1]), float(second[1]), places=12)
         self.assertAlmostEqual(float(first[2]), float(second[0]), places=12)
         self.assertAlmostEqual(float(first.sum()), 1.0, places=12)
+
+    def test_score_layer_is_swap_invariant_and_preserves_the_network_pick(self) -> None:
+        first = poisson_wdl(1.91, 0.83)
+        second = poisson_wdl(0.83, 1.91)
+        self.assertTrue(np.allclose(first, second[::-1], atol=1e-14))
+        network = np.asarray((0.41, 0.30, 0.29))
+        score = np.asarray((0.10, 0.20, 0.70))
+        final, reverted = outcome_preserving_pool(network, score, 0.55)
+        self.assertTrue(reverted)
+        self.assertTrue(np.array_equal(final, network))
+
+    def test_deployed_forecast_layer_matches_the_audited_release(self) -> None:
+        layer = self.state["forecast_layer"]
+        calibration = layer["calibration"]
+        self.assertEqual(layer["release"], "selected-through-2019")
+        self.assertEqual(
+            (calibration["training_first_year"], calibration["training_last_year"]),
+            (2018, 2025),
+        )
+        self.assertEqual(calibration["training_matches"], 7922)
+        # Powell can differ by a few millionths across BLAS/libm builds while
+        # producing indistinguishable forecasts. Keep this tight enough to
+        # detect a real release change without requiring bitwise optimisation.
+        self.assertAlmostEqual(
+            calibration["draw_log_tilt"], 0.1502408248, delta=0.00005
+        )
+        self.assertAlmostEqual(
+            calibration["nfelo_weight"], 0.5655029347, delta=0.00005
+        )
+        self.assertEqual(len(layer["attack"]), len(self.state["codes"]))
+        self.assertEqual(len(layer["defence"]), len(self.state["codes"]))
+        self.assertEqual(len(layer["last_day"]), len(self.state["codes"]))
+
+        losses = []
+        correct = 0
+        matches = 0
+        for path in sorted((self.data / "matches").glob("[0-9][0-9][0-9][0-9].json")):
+            for match in json.loads(path.read_text(encoding="utf-8"))["matches"]:
+                if match["year"] < 1960 or match["date"] > "2026-07-11":
+                    continue
+                outcome = 0 if match["sa"] > match["sb"] else 1 if match["sa"] == match["sb"] else 2
+                losses.append(-math.log(max(match["p"][outcome], 1e-15)))
+                correct += int(max(range(3), key=lambda index: match["p"][index]) == outcome)
+                matches += 1
+        self.assertEqual(matches, 46_801)
+        self.assertAlmostEqual(sum(losses) / matches, 0.8807100827, places=5)
+        # Top-pick accuracy is discontinuous: a few-millionths optimiser change
+        # can move one near-tied match across the argmax boundary even though
+        # the probability forecast and aggregate log loss are unchanged.
+        self.assertLessEqual(abs(correct - 27_677), 1)
+
+    def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
+        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        for phrase in (
+            "Check how the teams have been scoring",
+            "changes match probabilities only",
+            "Hidden attack and defence layer",
+            "Annual calibration, blend and safety rule",
+            "preceding eight complete calendar years",
+        ):
+            self.assertIn(phrase, javascript)
+        self.assertIn("applyForecastLayer", javascript)
 
     def test_upcoming_fixtures_are_sorted_and_probabilistic(self) -> None:
         fixtures = self.fixtures["fixtures"]

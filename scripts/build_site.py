@@ -16,9 +16,11 @@ from typing import Any
 from model import (
     calibration_scale,
     home_advantage,
+    logistic10,
     run_replay,
     three_way_probabilities,
 )
+from forecast_layer import forecast_from_snapshot
 
 
 def parse_args() -> argparse.Namespace:
@@ -141,10 +143,23 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
                 - 2.0 * covariance[i * count + j]
             ),
         )
-        probabilities = three_way_probabilities(
+        network_probabilities = three_way_probabilities(
             difference,
             variance,
             year,
+            friendly=fixture.get("tournament_code") == "F",
+        )
+        year_value, month_value, day_value = (
+            int(value) for value in str(fixture["date"]).split("-")
+        )
+        forecast_day = year_value * 400 + month_value * 32 + day_value
+        probabilities = forecast_from_snapshot(
+            snapshot=state["forecast_layer"],
+            first=i,
+            second=j,
+            day=forecast_day,
+            expected_score=float(logistic10(difference)),
+            nfelo_probabilities=network_probabilities,
             friendly=fixture.get("tournament_code") == "F",
         )
         first_team = current[first]
