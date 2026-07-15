@@ -126,6 +126,7 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
 def build_historical_rankings(data: Path, output: Any) -> None:
     """Write independently loadable end-of-day ranking events for each year."""
     names = {team["code"]: team["nation"] for team in output.summary["teams"]}
+    preferred_historical_names = {"Soviet Union": "USSR"}
     events_by_year: dict[int, list[dict[str, Any]]] = {}
     for code, page in output.team_pages.items():
         for point in page["history"]:
@@ -133,7 +134,11 @@ def build_historical_rankings(data: Path, output: Any) -> None:
             events_by_year.setdefault(year, []).append(
                 {
                     "id": point["id"], "date": point["date"], "code": code,
-                    "nation": names[code], "rating": point["rating"],
+                    "nation": preferred_historical_names.get(
+                        point.get("historical_name", names[code]),
+                        point.get("historical_name", names[code]),
+                    ),
+                    "rating": point["rating"],
                     "mean": point["mean"], "se": point["se"],
                     "matches": point["matches"], "form": point["form"],
                 }

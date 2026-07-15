@@ -33,6 +33,9 @@
     const parsed = new Date(`${value}T00:00:00Z`);
     return Number.isNaN(parsed.valueOf()) ? value : `${day}/${month}/${year}`;
   };
+  const fixtureDate = (fixture) => fixture.date_precision === "month"
+    ? new Date(`${fixture.date}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).toUpperCase()
+    : validDate(fixture.date);
   const validTimestamp = (value) => {
     const parsed = new Date(value);
     return Number.isNaN(parsed.valueOf())
@@ -142,7 +145,7 @@
           </div>
           <aside class="home-upcoming">
             <div class="compact-heading"><div><p class="eyebrow">Next matches</p><h2>Upcoming</h2></div><a href="#/fixtures">All fixtures →</a></div>
-            ${nextFixtures.length ? `<ul>${nextFixtures.map((fixture) => `<li><time>${validDate(fixture.date)}</time><span>${teamLink(fixture.team1_code, fixture.team1_name)} <i>v</i> ${teamLink(fixture.team2_code, fixture.team2_name)}</span><small>${escapeHTML(fixture.tournament_name)}</small></li>`).join("")}</ul>` : `<p class="muted">No identified fixtures in the current feeds.</p>`}
+            ${nextFixtures.length ? `<ul>${nextFixtures.map((fixture) => `<li><time>${fixtureDate(fixture)}</time><span>${teamLink(fixture.team1_code, fixture.team1_name)} <i>v</i> ${teamLink(fixture.team2_code, fixture.team2_name)}</span><small>${escapeHTML(fixture.tournament_name)}</small></li>`).join("")}</ul>` : `<p class="muted">No identified fixtures in the current feeds.</p>`}
           </aside>
         </section>
 
@@ -448,7 +451,7 @@
         <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Validated fixtures from multiple public schedules, paired with probabilities from the current ratings. W and L are from the perspective of the first-listed team.</p></header>
         <div class="record-note"><strong>${number(fixtures.length)}</strong><div><b>Known future pairings.</b> Placeholder knockout matches remain hidden until both teams are identified. Feed checked ${validTimestamp(payload.checked_at)}.</div></div>
         ${fixtures.length ? `<div class="table-shell fixture-table"><table><thead><tr><th>Date</th><th>Match</th><th class="numeric">Combined rating</th><th>W / D / L</th><th class="hide-mobile">Competition</th><th class="hide-mobile">Location</th></tr></thead><tbody>${fixtures.map((fixture) => `<tr>
-          <td>${validDate(fixture.date)}</td>
+          <td>${fixtureDate(fixture)}</td>
           <td data-label="Match">${teamLink(fixture.team1_code, fixture.team1_name)} <span class="muted">v</span> ${teamLink(fixture.team2_code, fixture.team2_name)}<span class="rating-sub">${rating(fixture.rating1)} + ${rating(fixture.rating2)}</span></td>
           <td class="numeric" data-label="Combined"><span class="rating-main">${rating(fixture.combined_rating)}</span></td>
           <td>${probabilityHTML(fixture.probabilities)}</td>
@@ -685,7 +688,7 @@
         </section>
         <article class="section prose">
           <h2>Data sources</h2>
-          <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future tournament schedules are supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a>. Duplicate events are merged and conflicting scores stop publication.</p>
+          <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
           <p>When new results arrive, the entire history is recalculated in chronological order. This matters because each rating depends on the teams' earlier results, opponents and uncertainty. Model parameters remain fixed during routine daily updates, so historical changes come from source corrections rather than silent changes to the method.</p>
           <h2>What the model does not know</h2>

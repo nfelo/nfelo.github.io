@@ -116,7 +116,8 @@ there is no one-per-pair rule.
 Historical match rows and labels are from [World Football Elo Ratings](https://eloratings.net/).
 Recent results use the CC0 `international_results` dataset, with OpenFootball's
 public-domain World Cup JSON as a second, independently validated source. Future
-tournament schedules are supplemented by TheSportsDB's documented free schedule API.
+fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by
+TheSportsDB's documented schedule API for richer competition-specific details.
 Duplicate fixtures are merged and conflicting scores stop publication. Every pushed
 build refreshes sources first, preventing an older committed snapshot from replacing a
 newer deployment. This project is independent and is not affiliated with eloratings.net,

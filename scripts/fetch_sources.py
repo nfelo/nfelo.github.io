@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
+import sys
 import tempfile
 import time
 import unicodedata
@@ -36,12 +38,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--full-if-sunday", action="store_true")
     parser.add_argument("--allow-large-rewrite", action="store_true")
     parser.add_argument("--rate", type=float, default=2.0, help="Maximum requests/second")
-    parser.add_argument(
-        "--bootstrap-slugs",
-        type=Path,
-        default=Path("config/source_slugs.txt"),
-        help="Exact historical team-page slugs used when no local snapshot exists",
-    )
     return parser.parse_args()
 
 
@@ -231,17 +227,6 @@ def main() -> None:
             if full or local != official:
                 selected.append((slug, team, official))
 
-        # A repository created from the plain-text bootstrap intentionally has
-        # no bundled TSV snapshot. The exact slug inventory restores historical
-        # and inactive pages that are absent from the current World table.
-        if full and not any(pages.glob("*.tsv")) and args.bootstrap_slugs.exists():
-            by_slug = {slug: (slug, team, official) for slug, team, official in selected}
-            for line in args.bootstrap_slugs.read_text(encoding="utf-8").splitlines():
-                slug = line.strip()
-                if slug and not slug.startswith("#"):
-                    by_slug.setdefault(slug, (slug, "", 0))
-            selected = sorted(by_slug.values())
-
         refreshed = []
         for slug, _, _ in selected:
             url = f"{base}/{quote(slug, safe='_-.()')}.tsv"
@@ -291,6 +276,15 @@ def main() -> None:
     )
     print(json.dumps(status, ensure_ascii=False))
 
+    # Refresh the independent recent-results and future-fixtures supplement
+    # after the first-party snapshot has been safely replaced. This keeps the
+    # scheduled workflow comprehensive without requiring a second workflow
+    # definition or a manually maintained list of competitions.
+    subprocess.run(
+        [sys.executable, str(Path(__file__).with_name("open_results.py")), "--source", str(args.source)],
+        check=True,
+    )
+
 
 def math_floor(value: float) -> int:
     # Local helper avoids importing a module solely for one safety threshold.
@@ -298,9 +292,4 @@ def math_floor(value: float) -> int:
 
 
 if __name__ == "__main__":
-    # The first-party TSV host introduced an interactive verification page that
-    # GitHub Actions cannot satisfy. Daily production updates therefore use the
-    # GitHub-hosted CC0 supplement while retaining the validated TSV snapshot.
-    from open_results import main as open_results_main
-
-    open_results_main()
+    main()

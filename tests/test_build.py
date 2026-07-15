@@ -96,6 +96,17 @@ class StaticBuildTests(unittest.TestCase):
             self.assertAlmostEqual(sum(fixture["probabilities"]), 1.0, places=7)
             self.assertIn(fixture["team1_code"], self.state["codes"])
             self.assertIn(fixture["team2_code"], self.state["codes"])
+            self.assertIn(fixture.get("date_precision", "day"), {"day", "month"})
+
+    def test_historical_rankings_use_contemporary_names(self) -> None:
+        history = json.loads((self.data / "rankings-history" / "1990.json").read_text(encoding="utf-8"))
+        names = {row["nation"] for row in history["opening"]} | {
+            row["nation"] for row in history["events"]
+        }
+        self.assertIn("West Germany", names)
+        self.assertIn("USSR", names)
+        self.assertIn("Czechoslovakia", names)
+        self.assertIn("Yugoslavia", names)
 
     def test_secondary_source_merge_is_conflict_safe(self) -> None:
         first = {

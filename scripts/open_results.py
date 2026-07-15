@@ -27,6 +27,7 @@ WORLD_CUP_URL = (
     "master/2026/worldcup.json"
 )
 SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json"
+WFE_FIXTURES_URL = "https://www.eloratings.net/fixtures.tsv"
 SPORTSDB_FIXTURE_COMPETITIONS = (
     {
         "league_id": "4490",
@@ -54,6 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source", type=Path, default=Path("source"))
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--world-cup-url", default=WORLD_CUP_URL)
+    parser.add_argument("--wfe-fixtures-url", default=WFE_FIXTURES_URL)
     parser.add_argument(
         "--sportsdb-key",
         default=os.environ.get("THESPORTSDB_API_KEY", "123"),
@@ -72,12 +74,34 @@ def normalise(value: str) -> str:
     return "".join(character for character in decomposed.casefold() if character.isalnum())
 
 
-def download(url: str, minimum_size: int = 1_000_000) -> str:
+def download(
+    url: str,
+    minimum_size: int = 1_000_000,
+    user_agent: str = "NetworkFootballEloPages/2.0",
+    accept: str = "text/csv,text/plain;q=0.9,*/*;q=0.1",
+) -> str:
+    try:
+        from curl_cffi import requests as curl_requests
+
+        response = curl_requests.get(
+            url,
+            impersonate="chrome124",
+            timeout=60,
+            headers={"User-Agent": user_agent, "Accept": accept},
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Open results request returned HTTP {response.status_code}")
+        text = response.text.lstrip("\ufeff")
+        if len(text) < minimum_size:
+            raise ValueError(f"Open results response is unexpectedly small: {len(text)} bytes")
+        return text
+    except ImportError:
+        pass
     request = Request(
         url,
         headers={
-            "User-Agent": "NetworkFootballEloPages/2.0",
-            "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.1",
+            "User-Agent": user_agent,
+            "Accept": accept,
         },
     )
     with urlopen(request, timeout=60) as response:
@@ -194,12 +218,32 @@ def integer_score(value: object) -> int | None:
     return None
 
 
+def read_team_names(source: Path) -> dict[str, str]:
+    names: dict[str, str] = {}
+    for line in (source / "en.teams.tsv").read_text(encoding="utf-8").splitlines():
+        fields = line.split("\t")
+        if len(fields) >= 2 and fields[0] and not fields[0].endswith("_loc"):
+            names[fields[0]] = fields[1]
+    return names
+
+
+def read_primary_labels(path: Path) -> dict[str, str]:
+    labels: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        fields = line.split("\t")
+        if len(fields) >= 2 and fields[0]:
+            labels[fields[0]] = fields[1]
+    return labels
+
+
 def main() -> None:
     args = parse_args()
     source = args.source
     source.mkdir(parents=True, exist_ok=True)
     successors = read_successors(source / "teams.tsv")
     aliases = team_aliases(source, successors)
+    team_names = read_team_names(source)
+    published_tournaments = read_primary_labels(source / "en.tournaments.tsv")
     cutoff = latest_snapshot_date(source / "elo_pages")
     today = datetime.now(timezone.utc).date()
     horizon = today + timedelta(days=370)
@@ -397,6 +441,57 @@ def main() -> None:
                     merge_record(fixture_map, common)
                     sportsdb_events += 1
 
+    # World Football Elo Ratings publishes a compact, public fixture ledger
+    # covering all confederations and friendlies.  It complements the
+    # competition-specific API above, which cannot discover unscheduled league
+    # IDs or one-off internationals.
+    wfe_text = download(
+        args.wfe_fixtures_url,
+        minimum_size=1_000,
+        user_agent="curl/8.5.0",
+        accept="*/*",
+    )
+    wfe_rows = 0
+    for line_number, line in enumerate(wfe_text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        fields = line.split("\t")
+        if len(fields) < 7:
+            raise ValueError(f"WFE fixture row {line_number} has only {len(fields)} fields")
+        try:
+            year, month, day = map(int, fields[:3])
+            provisional_date = date(year, month, day or 1)
+        except ValueError as exc:
+            raise ValueError(f"Invalid WFE fixture date on row {line_number}") from exc
+        if provisional_date < today.replace(day=1) or provisional_date > horizon:
+            continue
+        raw_home, raw_away, tournament, venue = fields[3:7]
+        home = canonical(raw_home, successors)
+        away = canonical(raw_away, successors)
+        if home not in team_names or away not in team_names:
+            unresolved.update(code for code in (raw_home, raw_away) if code not in team_names)
+            continue
+        code = tournament.strip() or "F"
+        tournament_names.setdefault(code, published_tournaments.get(code, code))
+        home_sign = 1 if venue == raw_home else (-1 if venue == raw_away else 0)
+        fixture = {
+            "date": provisional_date.isoformat(),
+            "date_precision": "month" if day == 0 else "day",
+            "team1_code": home,
+            "team2_code": away,
+            "team1_name": team_names.get(raw_home, team_names[home]),
+            "team2_name": team_names.get(raw_away, team_names[away]),
+            "tournament_code": code,
+            "tournament_name": tournament_names.get(code, code),
+            "city": "",
+            "country": team_names.get(venue, ""),
+            "neutral": home_sign == 0,
+            "home_sign": home_sign,
+        }
+        if record_key(fixture) not in result_map and record_key(fixture) not in fixture_map:
+            merge_record(fixture_map, fixture)
+            wfe_rows += 1
+
     for key in result_map:
         fixture_map.pop(key, None)
     results = list(result_map.values())
@@ -421,7 +516,7 @@ def main() -> None:
         (staging / "upcoming_fixtures.json").write_text(
             json.dumps(
                 {
-                    "sources": [args.url, args.world_cup_url, "TheSportsDB v1 schedule API"],
+                    "sources": [args.url, args.world_cup_url, args.wfe_fixtures_url, "TheSportsDB v1 schedule API"],
                     "checked_at": checked_at,
                     "fixtures": fixtures,
                 },
@@ -469,6 +564,7 @@ def main() -> None:
         "world_cup_results": world_cup_results,
         "sportsdb_fixture_events": sportsdb_events,
         "sportsdb_requests": len(sportsdb_urls),
+        "wfe_fixture_rows": wfe_rows,
         "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
         "base_snapshot": base_snapshot,
     }

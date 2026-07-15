@@ -531,6 +531,9 @@ class NetworkEloReplay:
                         "matches": int(self.games[index]),
                         "form": list(self.stats[index]["last5"]),
                         "opponent": self.name(self.teams[opponent]),
+                        "historical_name": self.name(
+                            match.team1_code if index == i else match.team2_code
+                        ),
                         "score": f"{gf}-{ga}",
                     }
                     self.histories[index].append(point)
