@@ -21,6 +21,10 @@ DEFAULT_URL = (
     "https://raw.githubusercontent.com/martj42/international_results/"
     "master/results.csv"
 )
+WORLD_CUP_URL = (
+    "https://raw.githubusercontent.com/openfootball/worldcup.json/"
+    "master/2026/worldcup.json"
+)
 EXPECTED_COLUMNS = {
     "date",
     "home_team",
@@ -38,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=Path("source"))
     parser.add_argument("--url", default=DEFAULT_URL)
+    parser.add_argument("--world-cup-url", default=WORLD_CUP_URL)
     # Kept for compatibility with the existing scheduled workflow.
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--full-if-sunday", action="store_true")
@@ -51,7 +56,7 @@ def normalise(value: str) -> str:
     return "".join(character for character in decomposed.casefold() if character.isalnum())
 
 
-def download(url: str) -> str:
+def download(url: str, minimum_size: int = 1_000_000) -> str:
     request = Request(
         url,
         headers={
@@ -61,7 +66,7 @@ def download(url: str) -> str:
     )
     with urlopen(request, timeout=60) as response:
         text = response.read().decode("utf-8-sig")
-    if len(text) < 1_000_000:
+    if len(text) < minimum_size:
         raise ValueError(f"Open results response is unexpectedly small: {len(text)} bytes")
     return text
 
@@ -129,6 +134,37 @@ def tournament_code(name: str) -> str:
 
 def valid_score(value: str) -> bool:
     return value.strip().isdigit()
+
+
+def record_key(item: dict[str, object]) -> tuple[str, tuple[str, str]]:
+    return str(item["date"]), tuple(sorted((str(item["team1_code"]), str(item["team2_code"]))))
+
+
+def venue_country(ground: str) -> tuple[str, str | None]:
+    city = ground.casefold()
+    if any(name in city for name in ("mexico city", "guadalajara", "monterrey")):
+        return "Mexico", "MX"
+    if any(name in city for name in ("toronto", "vancouver")):
+        return "Canada", "CA"
+    return "United States", "US"
+
+
+def merge_record(
+    target: dict[tuple[str, tuple[str, str]], dict[str, object]],
+    item: dict[str, object],
+) -> None:
+    key = record_key(item)
+    previous = target.get(key)
+    if previous is not None and "score1" in previous and "score1" in item:
+        old_scores = (previous["score1"], previous["score2"])
+        new_scores = (item["score1"], item["score2"])
+        old_codes = (previous["team1_code"], previous["team2_code"])
+        new_codes = (item["team1_code"], item["team2_code"])
+        if old_codes == tuple(reversed(new_codes)):
+            new_scores = tuple(reversed(new_scores))
+        if old_scores != new_scores:
+            raise ValueError(f"Conflicting scores from result sources for {key}: {old_scores} vs {new_scores}")
+    target[key] = item
 
 
 def main() -> None:
@@ -202,6 +238,86 @@ def main() -> None:
         elif relevant_fixture:
             fixtures.append(common)
 
+    result_map: dict[tuple[str, tuple[str, str]], dict[str, object]] = {}
+    fixture_map: dict[tuple[str, tuple[str, str]], dict[str, object]] = {}
+    for item in results:
+        merge_record(result_map, item)
+    for item in fixtures:
+        merge_record(fixture_map, item)
+
+    world_cup_text = download(args.world_cup_url, minimum_size=10_000)
+    world_cup = json.loads(world_cup_text)
+    world_cup_matches = world_cup.get("matches")
+    if world_cup.get("name") != "World Cup 2026" or not isinstance(world_cup_matches, list):
+        raise ValueError("OpenFootball World Cup schema changed")
+    if len(world_cup_matches) < 100:
+        raise ValueError(f"OpenFootball World Cup feed has only {len(world_cup_matches)} matches")
+
+    world_cup_results = 0
+    for match in world_cup_matches:
+        if not isinstance(match, dict):
+            continue
+        try:
+            match_date = date.fromisoformat(str(match["date"]))
+        except (KeyError, ValueError):
+            continue
+        home_name = str(match.get("team1", "")).strip()
+        away_name = str(match.get("team2", "")).strip()
+        if any(
+            not name
+            or normalise(name) in {"tbd", "tobedetermined"}
+            or (len(name) > 1 and name[0] in {"W", "L"} and name[1:].isdigit())
+            for name in (home_name, away_name)
+        ):
+            continue
+        home = aliases.get(normalise(home_name))
+        away = aliases.get(normalise(away_name))
+        score = match.get("score")
+        full_time = score.get("ft") if isinstance(score, dict) else None
+        has_score = (
+            isinstance(full_time, list)
+            and len(full_time) == 2
+            and all(isinstance(value, int) and not isinstance(value, bool) and value >= 0 for value in full_time)
+        )
+        relevant_result = has_score and match_date > cutoff
+        relevant_fixture = not has_score and today <= match_date <= horizon
+        if not relevant_result and not relevant_fixture:
+            continue
+        if home is None or away is None:
+            unresolved.update(
+                name for name, code in ((home_name, home), (away_name, away)) if name and code is None
+            )
+            continue
+        ground = str(match.get("ground", "")).strip()
+        country, host_code = venue_country(ground)
+        home_sign = 1 if home == host_code else (-1 if away == host_code else 0)
+        common = {
+            "date": match_date.isoformat(),
+            "team1_code": home,
+            "team2_code": away,
+            "team1_name": home_name,
+            "team2_name": away_name,
+            "tournament_code": "WC",
+            "tournament_name": "FIFA World Cup",
+            "city": ground,
+            "country": country,
+            "neutral": home_sign == 0,
+            "home_sign": home_sign,
+        }
+        if relevant_result:
+            merge_record(
+                result_map,
+                {**common, "score1": int(full_time[0]), "score2": int(full_time[1])},
+            )
+            world_cup_results += 1
+        elif record_key(common) not in result_map:
+            merge_record(fixture_map, common)
+
+    for key in result_map:
+        fixture_map.pop(key, None)
+    results = list(result_map.values())
+    fixtures = list(fixture_map.values())
+    tournament_names["WC"] = "FIFA World Cup"
     results.sort(key=lambda item: (item["date"], item["team1_code"], item["team2_code"]))
     fixtures.sort(key=lambda item: (item["date"], item["team1_name"], item["team2_name"]))
     checked_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -221,7 +337,7 @@ def main() -> None:
         (staging / "upcoming_fixtures.json").write_text(
             json.dumps(
                 {
-                    "source": args.url,
+                    "sources": [args.url, args.world_cup_url],
                     "checked_at": checked_at,
                     "fixtures": fixtures,
                 },
@@ -250,20 +366,24 @@ def main() -> None:
     base_snapshot = previous
     while (
         isinstance(base_snapshot, dict)
-        and base_snapshot.get("mode") == "GitHub-hosted open-results supplement"
+        and base_snapshot.get("mode") in {
+            "GitHub-hosted open-results supplement",
+            "multi-source open-results supplement",
+        }
         and isinstance(base_snapshot.get("base_snapshot"), dict)
     ):
         base_snapshot = base_snapshot["base_snapshot"]
     status = {
         "source_checked_at": checked_at,
-        "mode": "GitHub-hosted open-results supplement",
+        "mode": "multi-source open-results supplement",
         "base_snapshot_through": cutoff.isoformat(),
         "supplemental_results": len(results),
         "upcoming_fixtures": len(fixtures),
         "open_feed_rows": len(rows),
         "unresolved_names": sorted(unresolved),
-        "base_url": args.url,
-        "integrity": "CSV schema, row count, dates, scores and team aliases validated",
+        "base_urls": [args.url, args.world_cup_url],
+        "world_cup_results": world_cup_results,
+        "integrity": "Both sources passed schema, size, date, score, alias and conflict checks",
         "base_snapshot": base_snapshot,
     }
     old_status_path.write_text(

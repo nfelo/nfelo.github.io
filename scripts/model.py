@@ -637,7 +637,7 @@ class NetworkEloReplay:
                     (self.source / "supplemental_results.csv").exists()
                     and (self.source / "supplemental_results.csv").stat().st_size > 200
                 ),
-                "source_model": "validated WFE TSV snapshot plus CC0 open-results supplement",
+                "source_model": "validated WFE snapshot plus independently checked public-result feeds",
             },
             "current": current,
             "teams": all_teams,

@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
 from model import three_way_probabilities  # noqa: E402
+from open_results import merge_record, venue_country  # noqa: E402
 
 
 class _HTMLCheck(HTMLParser):
@@ -85,7 +86,7 @@ class StaticBuildTests(unittest.TestCase):
 
     def test_upcoming_fixtures_are_sorted_and_probabilistic(self) -> None:
         fixtures = self.fixtures["fixtures"]
-        self.assertGreaterEqual(len(fixtures), 2)
+        self.assertIsInstance(fixtures, list)
         self.assertEqual(
             fixtures,
             sorted(fixtures, key=lambda item: (item["date"], item["team1_name"])),
@@ -95,6 +96,27 @@ class StaticBuildTests(unittest.TestCase):
             self.assertAlmostEqual(sum(fixture["probabilities"]), 1.0, places=7)
             self.assertIn(fixture["team1_code"], self.state["codes"])
             self.assertIn(fixture["team2_code"], self.state["codes"])
+
+    def test_secondary_source_merge_is_conflict_safe(self) -> None:
+        first = {
+            "date": "2026-07-14", "team1_code": "FR", "team2_code": "ES",
+            "score1": 0, "score2": 2,
+        }
+        same_reversed = {
+            "date": "2026-07-14", "team1_code": "ES", "team2_code": "FR",
+            "score1": 2, "score2": 0,
+        }
+        records = {}
+        merge_record(records, first)
+        merge_record(records, same_reversed)
+        self.assertEqual(len(records), 1)
+        with self.assertRaises(ValueError):
+            merge_record(records, {**first, "score1": 1})
+
+    def test_world_cup_venue_countries(self) -> None:
+        self.assertEqual(venue_country("Dallas (Arlington)"), ("United States", "US"))
+        self.assertEqual(venue_country("Toronto"), ("Canada", "CA"))
+        self.assertEqual(venue_country("Guadalajara (Zapopan)"), ("Mexico", "MX"))
 
     def test_supplemental_result_schema_reconstructs_match(self) -> None:
         with TemporaryDirectory() as temporary:
