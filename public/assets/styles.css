@@ -233,7 +233,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .match-pagination { justify-content: flex-start; margin: 8px 0 16px; }
 .match-pagination > span { flex: 1; text-align: center; }
 
-.record-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.record-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .record-note { display: grid; grid-template-columns: auto 1fr; gap: 14px; margin: 0 0 24px; padding: 16px 18px; color: #344d53; background: rgba(167,216,189,.24); border-radius: 14px; }
 .record-note strong { font-size: 23px; }
 

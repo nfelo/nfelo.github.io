@@ -415,12 +415,18 @@
     </tr>`).join("")}</tbody></table></div>`;
   }
 
+  function upsetTable(matches) {
+    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Upset points</th><th>Points won / lost</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
+      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.points)}</span></td><td>${escapeHTML(match.winner)} <b>+${rating(match.winner_gain)}</b><span class="rating-sub">${escapeHTML(match.loser)} −${rating(match.loser_loss)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
+    </tr>`).join("")}</tbody></table></div>`;
+  }
+
   function renderRecords() {
     setTitle("Records");
     content.innerHTML = `
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
-        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button></div>
+        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
         <div class="pagination"><span id="record-count" class="muted small"></span><button id="record-more" class="button">Show more</button></div>
@@ -428,12 +434,14 @@
     let view = "peaks";
     let shown = 25;
     const update = () => {
-      const source = view === "peaks" ? summary.peaks : summary.top_matches;
+      const source = view === "peaks" ? summary.peaks : view === "matches" ? summary.top_matches : summary.upsets;
       const visible = source.slice(0, shown);
       document.getElementById("record-note").innerHTML = view === "peaks"
         ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
-        : `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`;
-      document.getElementById("record-table").innerHTML = view === "peaks" ? peakTable(visible) : matchRecordTable(visible);
+        : view === "matches"
+          ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
+          : `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`;
+      document.getElementById("record-table").innerHTML = view === "peaks" ? peakTable(visible) : view === "matches" ? matchRecordTable(visible) : upsetTable(visible);
       document.getElementById("record-count").textContent = `Showing ${number(visible.length)} of ${number(source.length)}`;
       document.getElementById("record-more").hidden = shown >= source.length;
     };

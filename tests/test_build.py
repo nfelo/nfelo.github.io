@@ -50,9 +50,12 @@ class StaticBuildTests(unittest.TestCase):
         ratings = [team["rating"] for team in self.summary["current"]]
         peaks = [item["rating"] for item in self.summary["peaks"]]
         matches = [item["combined"] for item in self.summary["top_matches"]]
+        upsets = [item["points"] for item in self.summary["upsets"]]
         self.assertEqual(ratings, sorted(ratings, reverse=True))
         self.assertEqual(peaks, sorted(peaks, reverse=True))
         self.assertEqual(matches, sorted(matches, reverse=True))
+        self.assertEqual(upsets, sorted(upsets, reverse=True))
+        self.assertTrue(all(item["winner_gain"] > 0 and item["loser_loss"] > 0 for item in self.summary["upsets"]))
         self.assertEqual(len({item["code"] for item in self.summary["peaks"]}), len(self.summary["peaks"]))
 
     def test_all_matches_are_chunked_once(self) -> None:

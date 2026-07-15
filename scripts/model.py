@@ -607,6 +607,35 @@ class NetworkEloReplay:
             self.high_matches,
             key=lambda item: (-item["combined"], item["date"], item["team1"]),
         )
+        upsets: list[dict[str, Any]] = []
+        for match in self.match_rows:
+            if match["sa"] == match["sb"] or any(
+                match[key] is None for key in ("pre_a", "pre_b", "post_a", "post_b")
+            ):
+                continue
+            first_won = match["sa"] > match["sb"]
+            winner_gain = (
+                match["post_a"] - match["pre_a"]
+                if first_won else match["post_b"] - match["pre_b"]
+            )
+            loser_loss = (
+                match["pre_b"] - match["post_b"]
+                if first_won else match["pre_a"] - match["post_a"]
+            )
+            points = 0.5 * (winner_gain + loser_loss)
+            if winner_gain <= 0 or loser_loss <= 0:
+                continue
+            upsets.append({
+                "id": match["id"], "date": match["date"],
+                "team1": match["an"], "team2": match["bn"],
+                "code1": match["a"], "code2": match["b"],
+                "score": f'{match["sa"]}-{match["sb"]}',
+                "tournament": match["t"], "points": points,
+                "winner_gain": winner_gain, "loser_loss": loser_loss,
+                "winner": match["an"] if first_won else match["bn"],
+                "loser": match["bn"] if first_won else match["an"],
+            })
+        upsets.sort(key=lambda item: (-item["points"], item["date"], item["id"]))
 
         team_pages: dict[str, dict[str, Any]] = {}
         current_by_code = {item["code"]: item for item in all_teams}
@@ -646,6 +675,7 @@ class NetworkEloReplay:
             "teams": all_teams,
             "peaks": peaks,
             "top_matches": top_matches[:500],
+            "upsets": upsets[:500],
             "parameters": {
                 "knot_years": KNOT_YEARS,
                 "calibration_scale": CALIBRATION_SCALE,
