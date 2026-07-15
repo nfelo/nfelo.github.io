@@ -81,6 +81,14 @@ class StaticBuildTests(unittest.TestCase):
             page = json.loads((self.data / "teams" / f"{code}.json").read_text(encoding="utf-8"))
             self.assertTrue(page["matches"])
             self.assertTrue(all(match["site"] in {"H", "A", "N"} for match in page["matches"]))
+            self.assertTrue(all("opponent_pre" in match and "opponent_post" in match for match in page["matches"]))
+
+    def test_match_views_include_both_teams_ratings(self) -> None:
+        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        for field in ("pre_a", "post_a", "pre_b", "post_b", "opponent_pre", "opponent_post"):
+            self.assertIn(f"match.{field}", javascript)
+        stylesheet = (ROOT / "public" / "assets" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("#content:focus { outline: none; }", stylesheet)
 
     def test_team_matches_use_names_from_the_match_date(self) -> None:
         germany = json.loads((self.data / "teams" / "DE.json").read_text(encoding="utf-8"))

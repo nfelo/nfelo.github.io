@@ -75,6 +75,7 @@ button, select { cursor: pointer; }
 .site-nav a { padding: 10px 13px; color: #cbd8d5; border-radius: 999px; font-size: 14px; font-weight: 650; text-decoration: none; }
 .site-nav a:hover, .site-nav a[aria-current="page"] { color: #0b1f26; background: var(--lime); }
 .site-nav a:focus-visible, .team-link:focus-visible, .button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+#content:focus { outline: none; }
 .menu-button { display: none; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 9px; padding: 8px 11px; }
 
 main { min-height: calc(100vh - 200px); }
@@ -212,6 +213,8 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .team-link:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .rating-main { display: block; font-size: 18px; font-weight: 800; }
 .rating-sub { display: block; margin-top: 3px; color: var(--ink-soft); font-size: 11px; }
+.rating-pair { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rating-pair + .rating-pair { margin-top: 3px; }
 .table-hint { display: none; margin: 0 0 7px; color: var(--ink-soft); font-size: 12px; text-align: right; }
 .score { display: inline-flex; min-width: 52px; justify-content: center; padding: 5px 9px; color: #fff; background: var(--navy); border-radius: 7px; font-weight: 850; letter-spacing: .03em; }
 .venue-code { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #fff; background: var(--navy-2); font-size: 11px; font-weight: 850; }
@@ -381,7 +384,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .match-history-table td[data-label="Forecast"] { grid-column: 1 / -1; }
   .match-history-table .probability { width: 100%; }
   .team-match-table td[data-label="Result"] { align-self: center; }
-  .match-history-table td[data-label="Competition"], .match-history-table td[data-label="Combined rating"], .team-match-table td[data-label="Competition"], .team-match-table td[data-label="Rating after match"] { grid-column: 1 / -1; color: var(--ink-soft); font-size: 12px; }
+  .match-history-table td[data-label="Competition"], .match-history-table td[data-label="Team ratings"], .match-history-table td[data-label="Combined pre-match"], .team-match-table td[data-label="Competition"], .team-match-table td[data-label="Ratings"] { grid-column: 1 / -1; color: var(--ink-soft); font-size: 12px; }
   .formula::before { content: "Swipe to see the full formula →"; display: block; margin-bottom: 8px; color: var(--mint); font-family: Calibri, "Segoe UI", Roboto, Arial, sans-serif; font-size: 11px; font-weight: 700; }
 }
 

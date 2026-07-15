@@ -472,14 +472,15 @@
 
   function matchTable(matches) {
     if (!matches.length) return `<div class="empty">No matches found.</div>`;
-    return `<div class="table-shell match-history-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th class="numeric hide-mobile">Combined rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
+    return `<div class="table-shell match-history-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th>Team ratings before → after</th><th class="numeric">Combined pre-match rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
       <td class="mono" data-label="Date">${validDate(match.date)}</td>
       <td data-label="Match">${teamLink(match.a, match.an)} <span class="muted">v</span> ${teamLink(match.b, match.bn)}</td>
       <td data-label="Venue">${venueHTML(match.home === 0 ? "N" : match.home === 1 ? "H" : "A")}</td>
       <td class="numeric" data-label="Score"><span class="score">${match.sa}–${match.sb}</span></td>
           <td class="hide-mobile" data-label="Competition">${escapeHTML(match.t)}</td>
       <td data-label="Forecast">${probabilityHTML(match.p)}</td>
-          <td class="numeric hide-mobile" data-label="Combined rating">${rating(match.combined)}</td>
+      <td data-label="Team ratings"><span class="rating-pair"><b>${escapeHTML(match.an)}</b> ${rating(match.pre_a)} → ${rating(match.post_a)}</span><span class="rating-pair"><b>${escapeHTML(match.bn)}</b> ${rating(match.pre_b)} → ${rating(match.post_b)}</span></td>
+      <td class="numeric" data-label="Combined pre-match">${rating(match.combined)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -735,7 +736,7 @@
     let shown = 100;
     const update = () => {
       const matches = availableMatches.slice(0, shown);
-      document.getElementById("team-matches").innerHTML = `<div class="table-shell team-match-table"><table><thead><tr><th>Date</th><th>Opponent</th><th>H/A/N</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th class="numeric hide-mobile">Rating after match</th></tr></thead><tbody>${matches.map((match) => `<tr><td data-label="Date">${validDate(match.date)}</td><td data-label="Opponent">${teamLink(match.opponent_code, match.opponent)}</td><td data-label="Venue">${venueHTML(match.site)}</td><td class="numeric" data-label="Score"><span class="score">${match.gf}–${match.ga}</span></td><td data-label="Result">${formHTML([match.result])}</td><td class="hide-mobile" data-label="Competition">${escapeHTML(match.tournament)}</td><td class="numeric hide-mobile" data-label="Rating after match">${rating(match.post)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("team-matches").innerHTML = `<div class="table-shell team-match-table"><table><thead><tr><th>Date</th><th>Opponent</th><th>H/A/N</th><th class="numeric">Score</th><th>Result</th><th class="hide-mobile">Competition</th><th>Ratings before → after</th></tr></thead><tbody>${matches.map((match) => `<tr><td data-label="Date">${validDate(match.date)}</td><td data-label="Opponent">${teamLink(match.opponent_code, match.opponent)}</td><td data-label="Venue">${venueHTML(match.site)}</td><td class="numeric" data-label="Score"><span class="score">${match.gf}–${match.ga}</span></td><td data-label="Result">${formHTML([match.result])}</td><td class="hide-mobile" data-label="Competition">${escapeHTML(match.tournament)}</td><td data-label="Ratings"><span class="rating-pair"><b>${escapeHTML(match.team_name)}</b> ${rating(match.pre)} → ${rating(match.post)}</span><span class="rating-pair"><b>${escapeHTML(match.opponent)}</b> ${rating(match.opponent_pre)} → ${rating(match.opponent_post)}</span></td></tr>`).join("")}</tbody></table></div>`;
       document.getElementById("team-count").textContent = `Showing ${number(matches.length)} of ${number(availableMatches.length)}`;
       document.getElementById("team-more").hidden = shown >= availableMatches.length;
       document.getElementById("team-all").hidden = shown >= availableMatches.length;

@@ -498,9 +498,9 @@ class NetworkEloReplay:
             }
             self.match_rows.append(row)
 
-            for index, opponent, gf, ga, pre, post in (
-                (i, j, match.score1, match.score2, pre_first, post_first),
-                (j, i, match.score2, match.score1, pre_second, post_second),
+            for index, opponent, gf, ga, pre, post, opponent_pre, opponent_post in (
+                (i, j, match.score1, match.score2, pre_first, post_first, pre_second, post_second),
+                (j, i, match.score2, match.score1, pre_second, post_second, pre_first, post_first),
             ):
                 historical_team_code = match.team1_code if index == i else match.team2_code
                 historical_opponent_code = match.team2_code if index == i else match.team1_code
@@ -521,6 +521,8 @@ class NetworkEloReplay:
                     ),
                     "pre": None if pre is None else pre["rating"],
                     "post": None if post is None else post["rating"],
+                    "opponent_pre": None if opponent_pre is None else opponent_pre["rating"],
+                    "opponent_post": None if opponent_post is None else opponent_post["rating"],
                 }
                 self.team_matches[index].append(team_match)
                 if post is not None:
