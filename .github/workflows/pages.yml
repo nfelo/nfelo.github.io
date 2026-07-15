@@ -14,8 +14,10 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: "17 4 * * *"
-    - cron: "17 18 * * *"
+    # After the main Americas, Asia/Oceania and Europe/Africa match windows.
+    - cron: "20 6 * * *"
+    - cron: "20 15 * * *"
+    - cron: "20 23 * * *"
 
 permissions:
   contents: write
