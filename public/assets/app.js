@@ -26,6 +26,10 @@
     useGrouping: false,
   });
   const percent = (value) => `${number(value * 100, 1)}%`;
+  const todayISO = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  };
   const validDate = (value) => {
     const [year, month, day] = String(value).split("-");
     if (month === "00") return year;
@@ -283,12 +287,13 @@
     setTitle("Historical rankings");
     loading("Loading historical rankings…");
     const index = await getJSON("data/rankings-history/index.json");
-    const requested = isoDate(route.query.get("date")) || index.last;
-    const selected = requested < index.first ? index.first : requested > index.last ? index.last : requested;
+    const today = todayISO();
+    const requested = isoDate(route.query.get("date")) || today;
+    const selected = requested < index.first ? index.first : requested > today ? today : requested;
     content.innerHTML = `<div class="page">
       <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
       <div class="toolbar history-toolbar">
-        <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${index.last}" value="${selected}" tabindex="-1" aria-hidden="true"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
+        <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${today}" value="${selected}" tabindex="-1" aria-hidden="true"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
         <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
         <div class="field field-grow"><label for="history-world-cup">World Cup moments</label><select id="history-world-cup"><option value="">Choose a tournament…</option>${index.world_cups.flatMap((cup) => [`<option value="${cup.before}">Before ${cup.year} World Cup</option>`, `<option value="${cup.after}">After ${cup.year} World Cup</option>`]).join("")}</select></div>
       </div>
@@ -316,14 +321,15 @@
       table.innerHTML = historicalRankingsTable(visible, currentDate);
     };
     const loadDate = async (value) => {
-      const chosen = value < index.first ? index.first : value > index.last ? index.last : value;
+      const chosen = value < index.first ? index.first : value > today ? today : value;
       currentDate = chosen;
       dateInput.value = validDate(chosen);
       calendarInput.value = chosen;
       document.getElementById("history-date-error").textContent = "";
       saveHistoryRoute();
       table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
-      const payload = await getJSON(`data/rankings-history/${chosen.slice(0, 4)}.json`);
+      const dataYear = Math.min(Number(chosen.slice(0, 4)), Number(index.last.slice(0, 4)));
+      const payload = await getJSON(`data/rankings-history/${dataYear}.json`);
       const state = new Map(payload.opening.map((team) => [team.code, team]));
       payload.events.forEach((event) => { if (event.date <= chosen) state.set(event.code, event); });
       const year = Number(chosen.slice(0, 4));
@@ -456,7 +462,7 @@
         const byId = new Map(chunks.flatMap((chunk) => chunk.matches).map((match) => [match.id, match]));
         hydrated = visible.map((match) => byId.get(match.id)).filter(Boolean);
       }
-      document.getElementById("match-table").innerHTML = matchTable(hydrated);
+      document.getElementById("match-table").innerHTML = matchTable(hydrated, document.getElementById("match-team").value);
       saveMatchesRoute();
     };
     document.getElementById("match-decade").addEventListener("change", () => { page = 0; load(); });
@@ -470,12 +476,18 @@
     await load();
   }
 
-  function matchTable(matches) {
+  function matchSite(match, perspective = "") {
+    if (match.home === 0) return "N";
+    if (perspective === match.b) return match.home === -1 ? "H" : "A";
+    return match.home === 1 ? "H" : "A";
+  }
+
+  function matchTable(matches, perspective = "") {
     if (!matches.length) return `<div class="empty">No matches found.</div>`;
     return `<div class="table-shell match-history-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Score</th><th class="hide-mobile">Competition</th><th>Pre-match W/D/L</th><th>Team ratings before → after</th><th class="numeric">Combined pre-match rating</th></tr></thead><tbody>${matches.map((match) => `<tr>
       <td class="mono" data-label="Date">${validDate(match.date)}</td>
       <td data-label="Match">${teamLink(match.a, match.an)} <span class="muted">v</span> ${teamLink(match.b, match.bn)}</td>
-      <td data-label="Venue">${venueHTML(match.home === 0 ? "N" : match.home === 1 ? "H" : "A")}</td>
+      <td data-label="Venue">${venueHTML(matchSite(match, perspective))}</td>
       <td class="numeric" data-label="Score"><span class="score">${match.sa}–${match.sb}</span></td>
           <td class="hide-mobile" data-label="Competition">${escapeHTML(match.t)}</td>
       <td data-label="Forecast">${probabilityHTML(match.p)}</td>

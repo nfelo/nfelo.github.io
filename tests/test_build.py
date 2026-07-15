@@ -90,6 +90,13 @@ class StaticBuildTests(unittest.TestCase):
         stylesheet = (ROOT / "public" / "assets" / "styles.css").read_text(encoding="utf-8")
         self.assertIn("#content:focus { outline: none; }", stylesheet)
 
+    def test_history_defaults_to_today_and_match_venue_uses_team_perspective(self) -> None:
+        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        self.assertIn('const requested = isoDate(route.query.get("date")) || today;', javascript)
+        self.assertIn('function matchSite(match, perspective = "")', javascript)
+        self.assertIn('if (perspective === match.b)', javascript)
+        self.assertIn('matchTable(hydrated, document.getElementById("match-team").value)', javascript)
+
     def test_team_matches_use_names_from_the_match_date(self) -> None:
         germany = json.loads((self.data / "teams" / "DE.json").read_text(encoding="utf-8"))
         self.assertIn("West Germany", {match["team_name"] for match in germany["matches"]})
