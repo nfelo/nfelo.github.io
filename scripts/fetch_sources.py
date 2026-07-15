@@ -146,6 +146,15 @@ def parse_name_codes(text: str) -> dict[str, str]:
     return result
 
 
+def parse_code_names(text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for line in text.splitlines():
+        fields = line.split("\t")
+        if len(fields) >= 2 and fields[0] and not fields[0].endswith("_loc"):
+            result[fields[0]] = fields[1]
+    return result
+
+
 def latest_official_rating(path: Path, team: str, successors: dict[str, str]) -> int | None:
     latest: tuple[int, int] | None = None
     if not path.exists():
@@ -198,6 +207,7 @@ def main() -> None:
         successors_path = staging / "teams.tsv"
         successors = read_successors(successors_path)
         name_codes = parse_name_codes(fetched["en.teams.tsv"])
+        code_names = parse_code_names(fetched["en.teams.tsv"])
         existing_stems = {
             normalise_name(path.stem.replace("_", " ")): path.stem
             for path in pages.glob("*.tsv")
@@ -213,16 +223,15 @@ def main() -> None:
         selected: list[tuple[str, str, int]] = []
         unresolved: list[str] = []
         for row in world_rows:
-            country = row[2].strip()
+            source_code = row[2].strip()
             official = int(row[3])
+            country = code_names.get(source_code, "")
+            if not country:
+                unresolved.append(source_code)
+                continue
             normal = normalise_name(country)
             slug = slug_from_country(country, existing_stems)
-            code = name_codes.get(normal)
-            if code is None:
-                unresolved.append(country)
-                selected.append((slug, "", official))
-                continue
-            team = canonical(code, successors)
+            team = canonical(source_code, successors)
             local = latest_official_rating(pages / f"{slug}.tsv", team, successors)
             if full or local != official:
                 selected.append((slug, team, official))
