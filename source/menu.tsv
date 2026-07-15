@@ -1184,9 +1184,9 @@ PLN	3	1994	1994-11-23	1994-11-28	1994_Polynesian_Cup
 C	0				
 UEF	1	UE			UEFA
 CMB	1	MB			CONMEBOL
-CNC	1	NC		2026-07-13	CONCACAF
-CFU	2	CU		2026-07-13	CFU
-UNF	2	UF		2026-07-13	UNCAF
+CNC	1	NC		2026-07-14	CONCACAF
+CFU	2	CU		2026-07-14	CFU
+UNF	2	UF		2026-07-14	UNCAF
 CAF	1	FF			CAF
 CEF	2	EFF			CECAFA
 COF	2	SFA			COSAFA
@@ -1201,7 +1201,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-07-13	Unaffiliated
+UN	1	UFL		2026-07-14	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1210,10 +1210,10 @@ NF	2				Northern_Africa
 SF	2				Southern_Africa
 WF	2				Western_Africa
 AM	1				America
-CB	2			2026-07-13	Caribbean
-CM	2			2026-07-13	Central_America
+CB	2			2026-07-14	Caribbean
+CM	2			2026-07-14	Central_America
 LM	2				Latin_America
-NM	2			2026-07-13	North_America
+NM	2			2026-07-14	North_America
 SM	2				South_America
 AS	1				Asia
 CS	2				Central_Asia
@@ -1229,12 +1229,12 @@ SEE	2				Southeast_Europe
 SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-07-13	Melanesia
-MI	2			2026-07-13	Micronesia
-PO	2			2026-07-13	Polynesia
+ME	2			2026-07-14	Melanesia
+MI	2			2026-07-14	Micronesia
+PO	2			2026-07-14	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-07-13	2026
+YR	2	2026	2025-12-31	2026-07-14	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023

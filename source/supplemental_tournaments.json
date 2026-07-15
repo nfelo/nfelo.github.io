@@ -1,4 +1,13 @@
 {
+  "AC": "Asian Cup",
+  "ENA": "European Nations League A",
+  "ENB": "European Nations League B",
+  "ENC": "European Nations League C",
+  "END": "European Nations League D",
+  "F": "Friendly",
+  "FQ": "African Nations Cup qualifier",
+  "GLF": "Gulf Cup",
   "NL": "UEFA Nations League",
+  "SEA": "Southeast Asian Championship",
   "WC": "FIFA World Cup"
 }

@@ -1,27 +1,42 @@
 {
-  "source_checked_at": "2026-07-15T09:40:37+00:00",
+  "source_checked_at": "2026-07-15T10:17:57+00:00",
   "mode": "multi-source open-results supplement",
-  "base_snapshot_through": "2026-07-11",
-  "supplemental_results": 1,
-  "upcoming_fixtures": 157,
+  "base_snapshot_through": "2026-07-14",
+  "supplemental_results": 0,
+  "upcoming_fixtures": 352,
   "open_feed_rows": 49509,
   "unresolved_names": [],
   "base_urls": [
     "https://raw.githubusercontent.com/martj42/international_results/master/results.csv",
     "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json"
   ],
-  "world_cup_results": 1,
+  "world_cup_results": 0,
   "sportsdb_fixture_events": 156,
   "sportsdb_requests": 6,
+  "wfe_fixture_rows": 195,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-07-14T00:00:00+00:00",
-    "mode": "validated historical results snapshot",
-    "world_teams": 248,
-    "pages_checked": 248,
-    "pages_changed": 0,
-    "changed": [],
+    "source_checked_at": "2026-07-15T10:17:49+00:00",
+    "mode": "rating-change detection",
+    "world_teams": 244,
+    "pages_checked": 12,
+    "pages_changed": 12,
+    "changed": [
+      "Spain",
+      "France",
+      "Croatia",
+      "Peru",
+      "Cameroon",
+      "Costa_Rica",
+      "South_Africa",
+      "Comoros",
+      "Tajikistan",
+      "Saint_Martin",
+      "Dominica",
+      "Anguilla"
+    ],
+    "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
-    "integrity": "52302 unique matches through 2026-07-11"
+    "integrity": "all downloaded rows passed schema and rewrite guards"
   }
 }
