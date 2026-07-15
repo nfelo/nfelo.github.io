@@ -206,11 +206,23 @@ class StaticBuildTests(unittest.TestCase):
         rankings = (public / "rankings" / "index.html").read_text(encoding="utf-8")
         argentina = (public / "team" / "AR" / "index.html").read_text(encoding="utf-8")
         self.assertIn("<title>Rankings · Network Football Elo</title>", rankings)
-        self.assertIn("/network-football-elo/rankings/", rankings)
+        self.assertIn("https://nfelo.github.io/rankings/", rankings)
         self.assertIn("<title>Argentina · Network Football Elo</title>", argentina)
-        self.assertIn("/network-football-elo/team/AR/", argentina)
+        self.assertIn("https://nfelo.github.io/team/AR/", argentina)
         sitemap = (public / "sitemap.xml").read_text(encoding="utf-8")
-        self.assertIn("/network-football-elo/team/AR/", sitemap)
+        self.assertIn("https://nfelo.github.io/team/AR/", sitemap)
+
+    def test_site_is_configured_for_the_organization_root_domain(self) -> None:
+        public = ROOT / "public"
+        html = (public / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<base href="/">', html)
+        self.assertIn('href="https://nfelo.github.io/"', html)
+        self.assertNotIn("benyominnemoff-lab.github.io", html)
+        self.assertNotIn("/network-football-elo/", html)
+        self.assertIn(
+            "Sitemap: https://nfelo.github.io/sitemap.xml",
+            (public / "robots.txt").read_text(encoding="utf-8"),
+        )
 
     def test_progressive_lists_offer_show_all(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")

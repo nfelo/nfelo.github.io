@@ -70,7 +70,7 @@ def version_browser_assets(output: Path) -> None:
 
 def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
     template = (output / "index.html").read_text(encoding="utf-8")
-    root = "https://benyominnemoff-lab.github.io/network-football-elo/"
+    root = "https://nfelo.github.io/"
     routes = {
         "rankings": ("Rankings", "Current international football rankings from the Network Football Elo model."),
         "history": ("Historical rankings", "Reconstruct international football rankings on any historical matchday."),
