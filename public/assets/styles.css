@@ -230,6 +230,8 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .probability .pl { background: #c55f54; }
 .empty { padding: 54px 20px; color: var(--ink-soft); text-align: center; }
 .pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; }
+.match-pagination { justify-content: flex-start; margin: 8px 0 16px; }
+.match-pagination > span { flex: 1; text-align: center; }
 
 .record-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
 .record-note { display: grid; grid-template-columns: auto 1fr; gap: 14px; margin: 0 0 24px; padding: 16px 18px; color: #344d53; background: rgba(167,216,189,.24); border-radius: 14px; }
@@ -342,6 +344,9 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .pagination { flex-wrap: wrap; }
   .pagination > span { order: -1; width: 100%; text-align: center; }
   .pagination > .button { flex: 1 1 120px; }
+  .match-pagination { display: grid; grid-template-columns: 1fr 1fr; }
+  .match-pagination > span { grid-column: 1 / -1; grid-row: 1; width: auto; }
+  .match-pagination > .button { min-width: 0; }
   .site-footer { display: block; padding: 28px 18px; }
   .site-footer p + p { margin-top: 12px; }
   .fixture-table { overflow: visible; margin: 0; border: 0; background: transparent; }

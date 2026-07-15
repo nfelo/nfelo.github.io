@@ -328,8 +328,14 @@
           <div class="field field-grow"><label for="match-search">Competition or opponent</label><input id="match-search" type="search" placeholder="World Cup, England, qualifier…"></div>
         </div>
         <p id="match-count" class="muted small"></p>
+        <div class="pagination match-pagination" aria-label="Match pages">
+          <button id="match-newest" class="button">⇤ Newest</button>
+          <button id="match-prev" class="button">← Newer</button>
+          <span id="match-page" class="muted small" aria-live="polite"></span>
+          <button id="match-next" class="button">Older →</button>
+          <button id="match-oldest" class="button">Oldest ⇥</button>
+        </div>
         <div id="match-table"></div>
-        <div class="pagination"><button id="match-prev" class="button">← Newer</button><span id="match-page" class="muted small"></span><button id="match-next" class="button">Older →</button></div>
       </div>`;
 
     let rows = [];
@@ -369,6 +375,8 @@
       document.getElementById("match-page").textContent = `Page ${page + 1} of ${pages}`;
       document.getElementById("match-prev").disabled = page === 0;
       document.getElementById("match-next").disabled = page >= pages - 1;
+      document.getElementById("match-newest").disabled = page === 0;
+      document.getElementById("match-oldest").disabled = page >= pages - 1;
       document.getElementById("match-table").innerHTML = matchTable(visible);
     };
     document.getElementById("match-decade").addEventListener("change", load);
@@ -377,6 +385,8 @@
     document.getElementById("match-search").addEventListener("input", () => { page = 0; update(); });
     document.getElementById("match-prev").addEventListener("click", () => { page -= 1; update(); scrollTo({ top: 0, behavior: "smooth" }); });
     document.getElementById("match-next").addEventListener("click", () => { page += 1; update(); scrollTo({ top: 0, behavior: "smooth" }); });
+    document.getElementById("match-newest").addEventListener("click", () => { page = 0; update(); });
+    document.getElementById("match-oldest").addEventListener("click", () => { page = Math.max(0, Math.ceil(filtered().length / pageSize) - 1); update(); });
     await load();
   }
 
