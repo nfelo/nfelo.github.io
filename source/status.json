@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-07-15T13:14:40+00:00",
+  "source_checked_at": "2026-07-15T14:02:46+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-07-14",
   "supplemental_results": 0,
@@ -16,7 +16,7 @@
   "wfe_fixture_rows": 195,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-07-15T13:14:38+00:00",
+    "source_checked_at": "2026-07-15T14:02:44+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
     "pages_checked": 0,
