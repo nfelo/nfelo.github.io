@@ -245,6 +245,32 @@ class StaticBuildTests(unittest.TestCase):
             [0, 4],
         )
 
+    def test_ranking_movement_comparison_and_number_one_filters(self) -> None:
+        current = self.summary["current"]
+        self.assertTrue(current)
+        self.assertTrue(all("movement_date_12m" in team for team in current))
+        self.assertTrue(any(team["rating_change_12m"] is not None for team in current))
+        self.assertTrue(any(team["rank_change_12m"] is not None for team in current))
+        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+        stylesheet = (ROOT / "public" / "assets" / "styles.css").read_text(encoding="utf-8")
+        for phrase in (
+            "function movementHTML",
+            "12-month change",
+            "async function renderCompare",
+            "function comparisonChart",
+            'id="number-one-team"',
+            'id="number-one-from"',
+            'id="number-one-to"',
+        ):
+            self.assertIn(phrase, javascript)
+        self.assertIn('href="#/compare">Compare</a>', html)
+        self.assertTrue((ROOT / "public" / "compare" / "index.html").exists())
+        self.assertIn("https://nfelo.github.io/compare/", (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8"))
+        self.assertIn(".comparison-cards", stylesheet)
+        self.assertIn("@media (max-width: 720px)", stylesheet)
+        self.assertIn(".record-filters", stylesheet)
+
     def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         for phrase in (

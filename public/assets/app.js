@@ -85,6 +85,7 @@
       matches: "Search international football results and pre-match forecasts from 1872 onward.",
       fixtures: "Upcoming senior internationals with current ratings and match probabilities.",
       records: "All-time national-team rating peaks, greatest matchups and largest upsets.",
+      compare: "Compare two national teams' ratings, movement, histories and head-to-head results.",
       predict: "Compare two national teams and calculate win, draw and loss probabilities.",
       methodology: "Detailed, reproducible methodology for the Network Football Elo model.",
       faq: "Clear answers about Network Football Elo ratings, forecasts, data and methodology.",
@@ -283,14 +284,33 @@
       </div>`;
   }
 
+  function movementHTML(team) {
+    if (team.rating_change_12m == null) return `<span class="muted">Not ranked</span>`;
+    const rankChange = team.rank_change_12m;
+    const ratingChange = team.rating_change_12m;
+    const direction = rankChange > 0 || (rankChange === 0 && ratingChange > 0)
+      ? "movement-up"
+      : rankChange < 0 || (rankChange === 0 && ratingChange < 0)
+        ? "movement-down"
+        : "movement-flat";
+    const arrow = rankChange > 0 ? "▲" : rankChange < 0 ? "▼" : "•";
+    const rankLabel = rankChange == null
+      ? "No comparable rank"
+      : rankChange === 0
+        ? "No rank change"
+        : `${Math.abs(rankChange)} place${Math.abs(rankChange) === 1 ? "" : "s"} ${rankChange > 0 ? "up" : "down"}`;
+    return `<span class="movement ${direction}" title="Since ${validDate(team.movement_date_12m)}: ${rankLabel}; rating ${ratingChange >= 0 ? "+" : ""}${rating(ratingChange)}"><b>${arrow} ${rankChange == null ? "—" : Math.abs(rankChange)}</b><small>${ratingChange >= 0 ? "+" : ""}${rating(ratingChange)} pts</small></span>`;
+  }
+
   function rankingsTable(items, showRank) {
     if (!items.length) return `<div class="empty">No teams match those filters.</div>`;
-    return `<div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Model strength</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
+    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Model strength</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr>
         <td class="rank-cell numeric">${showRank ? team.display_rank ?? team.rank ?? index + 1 : index + 1}</td>
         <td>${teamLink(team.code, team.nation)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
+        <td class="numeric">${movementHTML(team)}</td>
         <td class="numeric hide-mobile">${rating(team.mean)}</td>
         <td class="numeric hide-mobile">${number(team.matches)}</td>
         <td>${formHTML(team.form || [])}</td>
@@ -306,15 +326,15 @@
         <header class="page-heading"><div><p class="eyebrow">Current international teams</p><h1>Rankings</h1></div><p class="lede">The rating combines estimated playing strength with an allowance for uncertainty. Teams with results against a broad range of opponents can therefore be assessed more confidently. <a href="#/history">Choose a historical date →</a></p></header>
         <div class="toolbar">
           <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Spain, Argentina, Japan…" value="${escapeHTML(route.query.get("q") || "")}"></div>
-          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="mean">Model strength</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
+          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="mean">Model strength</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
           <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current</button><button class="button" data-pool="all" aria-pressed="false">All histories</button></div>
         </div>
-        <div class="record-note"><strong>Rating</strong><div>The published rating is the model's strength estimate adjusted for the range of opponents played and the uncertainty in that estimate. A team must have played at least 30 matches and appeared within the last four years to enter the current table.</div></div>
+        <div class="record-note"><strong>Rating</strong><div>The published rating is the model's strength estimate adjusted for the range of opponents played and the uncertainty in that estimate. A team must have played at least 30 matches and appeared within the last four years to enter the current table. The 12-month column compares the latest rating and rank with the last eligible matchday on or before the same calendar date one year earlier.</div></div>
         <div id="rankings-table"></div>
       </div>`;
     const target = document.getElementById("rankings-table");
     let pool = route.query.get("pool") === "all" ? "all" : "current";
-    const requestedSort = ["rating", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("ranking-sort").value = requestedSort;
     document.querySelectorAll("[data-pool]").forEach((button) => {
       const selected = button.dataset.pool === pool;
@@ -638,6 +658,11 @@
     content.innerHTML = `
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
+        <div id="number-one-filters" class="toolbar record-filters" hidden>
+          <div class="field field-grow"><label for="number-one-team">Filter nation</label><input id="number-one-team" type="search" placeholder="Brazil, Spain, Germany…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+          <div class="field chronology-only"><label for="number-one-from">From</label><input id="number-one-from" type="date" value="${escapeHTML(route.query.get("from") || "")}"></div>
+          <div class="field chronology-only"><label for="number-one-to">To</label><input id="number-one-to" type="date" value="${escapeHTML(route.query.get("to") || "")}"></div>
+        </div>
         <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
@@ -658,7 +683,23 @@
         matches: summary.top_matches,
         upsets: summary.upsets,
       };
-      const source = sources[view];
+      const filterBar = document.getElementById("number-one-filters");
+      const filtering = view === "numberones" || view === "numberonesummary";
+      filterBar.hidden = !filtering;
+      filterBar.querySelectorAll(".chronology-only").forEach((field) => { field.hidden = view !== "numberones"; });
+      const query = document.getElementById("number-one-team").value.trim().toLocaleLowerCase();
+      const from = document.getElementById("number-one-from").value;
+      const to = document.getElementById("number-one-to").value;
+      const source = sources[view].filter((row) => {
+        if (!filtering) return true;
+        if (query && !row.nation.toLocaleLowerCase().includes(query)) return false;
+        if (view === "numberones") {
+          const end = row.to || summary.meta.results_through;
+          if (from && end < from) return false;
+          if (to && row.from > to) return false;
+        }
+        return true;
+      });
       const visible = source.slice(0, shown);
       document.getElementById("record-note").innerHTML = view === "peaks"
         ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
@@ -681,8 +722,18 @@
       document.getElementById("record-count").textContent = `Showing ${number(visible.length)} of ${number(source.length)}`;
       document.getElementById("record-more").hidden = shown >= source.length;
       document.getElementById("record-all").hidden = shown >= source.length;
-      replaceRouteQuery("records", { view: view === "peaks" ? "" : view, shown: shown > 25 ? shown : "" });
+      replaceRouteQuery("records", {
+        view: view === "peaks" ? "" : view,
+        shown: shown > 25 ? shown : "",
+        q: filtering ? document.getElementById("number-one-team").value.trim() : "",
+        from: view === "numberones" ? from : "",
+        to: view === "numberones" ? to : "",
+      });
     };
+    ["number-one-team", "number-one-from", "number-one-to"].forEach((id) => document.getElementById(id).addEventListener("input", () => {
+      shown = 25;
+      update();
+    }));
     document.querySelectorAll("[data-record]").forEach((button) => button.addEventListener("click", () => {
       view = button.dataset.record;
       shown = 25;
@@ -695,7 +746,7 @@
     }));
     document.getElementById("record-more").addEventListener("click", () => { shown += 25; update(); });
     document.getElementById("record-all").addEventListener("click", () => {
-      shown = ({ peaks: summary.peaks, numberones: summary.number_ones || [], numberonesummary: summary.number_one_summary || [], matches: summary.top_matches, upsets: summary.upsets })[view].length;
+      shown = Number.MAX_SAFE_INTEGER;
       update();
     });
     update();
@@ -743,13 +794,110 @@
     update();
   }
 
-  async function renderPredict() {
+  function comparisonChart(first, second) {
+    const histories = [first.history, second.history].filter((history) => history.length > 1);
+    if (!histories.length) return `<div class="empty">A comparison line begins after a team has 30 matches.</div>`;
+    const width = 1000;
+    const height = 340;
+    const pad = { left: 58, right: 18, top: 24, bottom: 36 };
+    const time = (value) => {
+      const [year, month, day] = value.split("-").map(Number);
+      return year + Math.max(0, month - 1) / 12 + Math.max(0, day - 1) / 365;
+    };
+    const all = histories.flat();
+    const xs = all.map((point) => time(point.date));
+    const ys = all.map((point) => point.rating);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.floor((Math.min(...ys) - 20) / 50) * 50;
+    const maxY = Math.ceil((Math.max(...ys) + 20) / 50) * 50;
+    const x = (value) => pad.left + (value - minX) / Math.max(1, maxX - minX) * (width - pad.left - pad.right);
+    const y = (value) => height - pad.bottom - (value - minY) / Math.max(1, maxY - minY) * (height - pad.top - pad.bottom);
+    const points = (history) => history.map((point) => `${x(time(point.date)).toFixed(2)},${y(point.rating).toFixed(2)}`).join(" ");
+    const yTicks = Array.from({ length: 5 }, (_, index) => minY + (maxY - minY) * index / 4);
+    const xTicks = Array.from({ length: 5 }, (_, index) => minX + (maxX - minX) * index / 4);
+    return `<div class="chart-shell comparison-chart">
+      <div class="comparison-legend"><span><i class="comparison-a"></i>${escapeHTML(first.team.nation)}</span><span><i class="comparison-b"></i>${escapeHTML(second.team.nation)}</span></div>
+      <svg class="rating-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Rating histories for ${escapeHTML(first.team.nation)} and ${escapeHTML(second.team.nation)}" preserveAspectRatio="none">
+        ${yTicks.map((tick) => `<line class="grid" x1="${pad.left}" y1="${y(tick)}" x2="${width - pad.right}" y2="${y(tick)}"/><text x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${rating(tick)}</text>`).join("")}
+        ${xTicks.map((tick) => `<text x="${x(tick)}" y="${height - 10}" text-anchor="middle">${Math.round(tick)}</text>`).join("")}
+        ${first.history.length > 1 ? `<polyline class="comparison-line comparison-line-a" points="${points(first.history)}"/>` : ""}
+        ${second.history.length > 1 ? `<polyline class="comparison-line comparison-line-b" points="${points(second.history)}"/>` : ""}
+      </svg>
+    </div>`;
+  }
+
+  async function renderCompare(route) {
+    setTitle("Compare teams");
+    const teams = summary.current;
+    const validCodes = new Set(teams.map((team) => team.code));
+    let codeA = validCodes.has(route.query.get("a")) ? route.query.get("a") : (validCodes.has("ES") ? "ES" : teams[0].code);
+    let codeB = validCodes.has(route.query.get("b")) ? route.query.get("b") : (validCodes.has("AR") ? "AR" : teams[1].code);
+    if (codeA === codeB) codeB = teams.find((team) => team.code !== codeA).code;
+    const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
+    content.innerHTML = `
+      <div class="page comparison-page">
+        <header class="page-heading"><div><p class="eyebrow">Side-by-side team records</p><h1>Compare teams</h1></div><p class="lede">Compare current ratings, twelve-month movement, all-time peaks, rating histories and head-to-head results.</p></header>
+        <div class="comparison-picker">
+          <div class="team-picker"><label for="compare-a">First team</label><select id="compare-a">${options(codeA)}</select></div>
+          <button class="button button-quiet comparison-swap" id="compare-swap" type="button" aria-label="Swap teams">⇄ Swap</button>
+          <div class="team-picker"><label for="compare-b">Second team</label><select id="compare-b">${options(codeB)}</select></div>
+        </div>
+        <div id="comparison-output"></div>
+      </div>`;
+    const output = document.getElementById("comparison-output");
+    const draw = async () => {
+      codeA = document.getElementById("compare-a").value;
+      codeB = document.getElementById("compare-b").value;
+      if (codeA === codeB) {
+        output.innerHTML = `<div class="error-panel"><h2>Choose two different teams</h2></div>`;
+        return;
+      }
+      replaceRouteQuery("compare", { a: codeA, b: codeB });
+      output.innerHTML = `<div class="loading-shell" role="status"><span class="spinner"></span><p>Loading both team histories…</p></div>`;
+      const [first, second] = await Promise.all([
+        getJSON(`data/teams/${encodeURIComponent(codeA)}.json`),
+        getJSON(`data/teams/${encodeURIComponent(codeB)}.json`),
+      ]);
+      const a = first.team;
+      const b = second.team;
+      const meetings = first.matches.filter((match) => match.opponent_code === codeB);
+      const head = meetings.reduce((row, match) => {
+        row[match.result] += 1;
+        row.gf += match.gf;
+        row.ga += match.ga;
+        return row;
+      }, { W: 0, D: 0, L: 0, gf: 0, ga: 0 });
+      output.innerHTML = `
+        <section class="comparison-cards">
+          ${[a, b].map((team) => `<article><p class="eyebrow">${teamLink(team.code, team.nation)}</p><strong>${rating(team.rating)}</strong><dl><div><dt>World rank</dt><dd>${team.rank ? `No. ${number(team.rank)}` : "—"}</dd></div><div><dt>12-month movement</dt><dd>${movementHTML(team)}</dd></div><div><dt>All-time peak</dt><dd>${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</dd></div><div><dt>Overall record</dt><dd>${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</dd></div></dl></article>`).join("")}
+        </section>
+        <div class="comparison-actions"><a class="button button-dark" href="#/predict?a=${encodeURIComponent(codeA)}&b=${encodeURIComponent(codeB)}">Forecast this matchup →</a></div>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">After every eligible match</p><h2>Rating histories</h2></div></div>${comparisonChart(first, second)}</section>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">${number(meetings.length)} recorded meetings</p><h2>Head to head</h2></div><strong>${escapeHTML(a.nation)}: ${head.W} wins · ${head.D} draws · ${head.L} losses · goals ${head.gf}–${head.ga}</strong></div>
+          ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td>${validDate(match.date)}</td><td>${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td>${venueHTML(match.site)}</td><td>${formHTML([match.result])}</td><td>${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No recorded meetings.</div>`}
+        </section>`;
+    };
+    document.getElementById("compare-a").addEventListener("change", draw);
+    document.getElementById("compare-b").addEventListener("change", draw);
+    document.getElementById("compare-swap").addEventListener("click", () => {
+      const first = document.getElementById("compare-a");
+      const second = document.getElementById("compare-b");
+      [first.value, second.value] = [second.value, first.value];
+      draw();
+    });
+    await draw();
+  }
+
+  async function renderPredict(route = { query: new URLSearchParams() }) {
     setTitle("Predict a match");
     loading("Loading the current ratings…");
     const state = await getJSON("data/state.json");
     const teams = summary.current;
-    const defaultA = teams.find((team) => team.code === "ES") || teams[0];
-    const defaultB = teams.find((team) => team.code === "AR") || teams[1];
+    const requestedA = route.query.get("a");
+    const requestedB = route.query.get("b");
+    const defaultA = teams.find((team) => team.code === requestedA) || teams.find((team) => team.code === "ES") || teams[0];
+    const defaultB = teams.find((team) => team.code === requestedB && team.code !== defaultA.code) || teams.find((team) => team.code === "AR" && team.code !== defaultA.code) || teams.find((team) => team.code !== defaultA.code);
     const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
     content.innerHTML = `
       <div class="page">
@@ -1201,7 +1349,8 @@ function renderFAQ() {
         case "matches": await renderMatches(current); break;
         case "fixtures": await renderFixtures(current); break;
         case "records": renderRecords(current); break;
-        case "predict": await renderPredict(); break;
+        case "compare": await renderCompare(current); break;
+        case "predict": await renderPredict(current); break;
         case "team": current.value ? await renderTeam(current.value, current.query) : renderNotFound(); break;
         case "methodology": renderMethodology(); break;
         case "faq": renderFAQ(); break;

@@ -79,6 +79,7 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
         "matches": ("Matches", "Search international football results and pre-match forecasts from 1872 onward."),
         "fixtures": ("Upcoming matches", "Upcoming senior internationals with current ratings and match probabilities."),
         "records": ("Records", "All-time national-team rating peaks, greatest matchups and largest upsets."),
+        "compare": ("Compare teams", "Compare two national teams' ratings, movement, histories and head-to-head results."),
         "predict": ("Predict a match", "Compare two national teams and calculate win, draw and loss probabilities."),
         "methodology": ("Methodology", "Detailed, reproducible methodology for the Network Football Elo model."),
         "faq": ("Frequently asked questions", "Clear answers about Network Football Elo ratings, forecasts, data and methodology."),
@@ -181,6 +182,63 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
         "source": payload.get("source"),
         "fixtures": fixtures,
     }
+
+
+def build_ranking_movements(output: Any) -> None:
+    """Attach calendar-year rating and rank movement to each current team."""
+    results_day = date.fromisoformat(output.summary["meta"]["results_through"])
+    try:
+        comparison_day = results_day.replace(year=results_day.year - 1)
+    except ValueError:
+        comparison_day = results_day.replace(
+            year=results_day.year - 1, month=2, day=28
+        )
+    try:
+        active_cutoff = comparison_day.replace(year=comparison_day.year - 4)
+    except ValueError:
+        active_cutoff = comparison_day.replace(
+            year=comparison_day.year - 4, month=2, day=28
+        )
+
+    past: dict[str, dict[str, Any]] = {}
+    for code, page in output.team_pages.items():
+        points = [
+            point for point in page["history"]
+            if point["date"] <= comparison_day.isoformat()
+        ]
+        if not points:
+            continue
+        point = points[-1]
+        if point["matches"] < 30 or point["date"] < active_cutoff.isoformat():
+            continue
+        past[code] = point
+
+    past_ranks = {
+        code: rank
+        for rank, (code, _) in enumerate(
+            sorted(
+                past.items(),
+                key=lambda item: (-item[1]["rating"], item[0]),
+            ),
+            start=1,
+        )
+    }
+    current_ranks = {
+        team["code"]: team["rank"] for team in output.summary["current"]
+    }
+    for team in output.summary["teams"]:
+        point = past.get(team["code"])
+        team["movement_date_12m"] = comparison_day.isoformat()
+        team["rating_12m"] = None if point is None else point["rating"]
+        team["rating_change_12m"] = (
+            None if point is None else team["rating"] - point["rating"]
+        )
+        team["rank_12m"] = past_ranks.get(team["code"])
+        team["rank_change_12m"] = (
+            past_ranks[team["code"]] - current_ranks[team["code"]]
+            if team["code"] in past_ranks and team["code"] in current_ranks
+            else None
+        )
 
 
 def build_historical_rankings(data: Path, output: Any) -> None:
@@ -367,6 +425,7 @@ def main() -> None:
     output.summary["meta"]["source_update"] = status
 
     build_historical_rankings(data, output)
+    build_ranking_movements(output)
     write_json(data / "summary.json", output.summary)
     write_json(data / "state.json", output.state)
     write_json(data / "fixtures.json", build_fixtures(args.source, output))
