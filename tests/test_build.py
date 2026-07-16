@@ -232,6 +232,18 @@ class StaticBuildTests(unittest.TestCase):
         ))
         self.assertEqual(sum(row["spells"] for row in summaries), len(spells))
         self.assertIn("Leadership is determined after all matches on each date", javascript)
+        brazil_2010 = next(
+            spell for spell in spells
+            if spell["code"] == "BR" and spell["from"] == "2010-11-17"
+        )
+        self.assertEqual(
+            {brazil_2010["match"]["team1_code"], brazil_2010["match"]["team2_code"]},
+            {"ES", "PT"},
+        )
+        self.assertEqual(
+            sorted((brazil_2010["match"]["score1"], brazil_2010["match"]["score2"])),
+            [0, 4],
+        )
 
     def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")

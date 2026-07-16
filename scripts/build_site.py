@@ -233,6 +233,9 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         for row in rows:
             daily_rows.setdefault(row["date"], []).append(row)
         for day, day_rows in daily_rows.items():
+            ratings_before = {
+                code: row["rating"] for code, row in opening.items()
+            }
             for row in day_rows:
                 opening[row["code"]] = {
                     key: value for key, value in row.items() if key != "id"
@@ -249,14 +252,42 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     previous["to"] = (
                         date.fromisoformat(day) - timedelta(days=1)
                     ).isoformat()
-                trigger_matches = matches_by_day_team.get(
+                incoming_matches = matches_by_day_team.get(
                     (day, leader["code"]), []
                 )
-                if not trigger_matches and previous is not None:
-                    trigger_matches = matches_by_day_team.get(
-                        (day, previous["code"]), []
-                    )
-                trigger = max(trigger_matches, key=lambda row: row["id"]) if trigger_matches else None
+                outgoing_matches = (
+                    matches_by_day_team.get((day, previous["code"]), [])
+                    if previous is not None and changed_team
+                    else []
+                )
+                incoming_before = ratings_before.get(leader["code"])
+                incoming_gain = (
+                    float("inf")
+                    if incoming_before is None
+                    else leader["rating"] - incoming_before
+                )
+                outgoing_drop = float("-inf")
+                if previous is not None and previous["code"] in ratings_before:
+                    outgoing_after = opening.get(previous["code"])
+                    if outgoing_after is not None:
+                        outgoing_drop = (
+                            ratings_before[previous["code"]]
+                            - outgoing_after["rating"]
+                        )
+                # Attribute the change to the result that contributed most to
+                # reversing the gap: the incoming team's rise or the outgoing
+                # leader's fall. This avoids crediting an incoming team that
+                # actually lost while the previous No. 1 fell even further.
+                if outgoing_matches and outgoing_drop > incoming_gain:
+                    trigger_matches = outgoing_matches
+                elif incoming_matches:
+                    trigger_matches = incoming_matches
+                else:
+                    trigger_matches = outgoing_matches
+                trigger = (
+                    max(trigger_matches, key=lambda row: row["id"])
+                    if trigger_matches else None
+                )
                 number_ones.append({
                     "code": leader["code"],
                     "nation": leader["nation"],
