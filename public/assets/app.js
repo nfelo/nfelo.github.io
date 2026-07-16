@@ -1020,7 +1020,9 @@ function renderFAQ() {
     const terms = faqSearchTokens(query);
     const filtered = FAQ_ITEMS.filter((item) => {
       const words = faqSearchTokens(`${item.question} ${item.answer}`);
-      return terms.every((term) => words.some((word) => word.includes(term) || term.includes(word)));
+      return terms.every((term) =>
+  words.some((word) => word.includes(term))
+);
     });
     list.innerHTML = filtered.length ? filtered.map((item, index) => `
       <details class="faq-item"${!query && index === 0 ? " open" : ""}>
