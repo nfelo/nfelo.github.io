@@ -603,9 +603,21 @@
     </tr>`).join("")}</tbody></table></div>`;
   }
 
+  function numberOneMatch(spell) {
+    if (!spell.match) return "No single recorded trigger";
+    const match = spell.match;
+    return `${teamLink(match.team1_code, match.team1, spell.from)} <span class="score">${number(match.score1)}–${number(match.score2)}</span> ${teamLink(match.team2_code, match.team2, spell.from)}<span class="rating-sub">${escapeHTML(match.competition)}</span>`;
+  }
+
   function numberOneTable(spells) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th>Nation</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th class="hide-mobile">Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
-      <td>${teamLink(spell.code, spell.nation, spell.from)}</td><td>${validDate(spell.from)}</td><td>${spell.to ? validDate(spell.to) : "<b>Current</b>"}</td><td class="numeric">${number(spell.days)}</td><td class="numeric"><span class="rating-main">${rating(spell.rating)}</span></td><td class="hide-mobile">${spell.displaced ? teamLink(spell.displaced_code, spell.displaced, spell.from) : "—"}</td>
+    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th>Nation</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Change-triggering match</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
+      <td>${teamLink(spell.code, spell.nation, spell.from)}</td><td>${validDate(spell.from)}</td><td>${spell.to ? validDate(spell.to) : "<b>Current</b>"}</td><td class="numeric">${number(spell.days)}</td><td class="numeric"><span class="rating-main">${rating(spell.rating)}</span></td><td>${numberOneMatch(spell)}</td><td>${spell.displaced ? teamLink(spell.displaced_code, spell.displaced, spell.from) : "—"}</td>
+    </tr>`).join("")}</tbody></table></div>`;
+  }
+
+  function numberOneSummaryTable(rows) {
+    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Total days</th><th class="numeric">Spells</th><th>First reached No. 1</th><th>Latest date at No. 1</th></tr></thead><tbody>${rows.map((row, index) => `<tr>
+      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(row.code, row.nation)}</td><td class="numeric"><span class="rating-main">${number(row.days)}</span></td><td class="numeric">${number(row.spells)}</td><td>${validDate(row.first)}</td><td>${row.current ? "<b>Current</b>" : validDate(row.latest)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -626,12 +638,12 @@
     content.innerHTML = `
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
-        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">World number ones</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
+        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
         <div class="pagination"><span id="record-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="record-more" class="button">Show more</button><button id="record-all" class="button button-quiet">Show all</button></div></div>
       </div>`;
-    let view = ["peaks", "numberones", "matches", "upsets"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
+    let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
     let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
     document.querySelectorAll("[data-record]").forEach((button) => {
       const active = button.dataset.record === view;
@@ -642,6 +654,7 @@
       const sources = {
         peaks: summary.peaks,
         numberones: summary.number_ones || [],
+        numberonesummary: summary.number_one_summary || [],
         matches: summary.top_matches,
         upsets: summary.upsets,
       };
@@ -650,15 +663,19 @@
       document.getElementById("record-note").innerHTML = view === "peaks"
         ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
         : view === "numberones"
-          ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined after all matches on each date. A spell changes only when another eligible nation finishes a matchday with the highest rating; historical names are retained.</div>`
-          : view === "matches"
+          ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined after all matches on each date. Historical names are retained, and the relevant match from the change date is shown.</div>`
+          : view === "numberonesummary"
+            ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
+            : view === "matches"
             ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
             : `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`;
       document.getElementById("record-table").innerHTML = view === "peaks"
         ? peakTable(visible)
         : view === "numberones"
           ? numberOneTable(visible)
-          : view === "matches"
+          : view === "numberonesummary"
+            ? numberOneSummaryTable(visible)
+            : view === "matches"
             ? matchRecordTable(visible)
             : upsetTable(visible);
       document.getElementById("record-count").textContent = `Showing ${number(visible.length)} of ${number(source.length)}`;
@@ -678,7 +695,7 @@
     }));
     document.getElementById("record-more").addEventListener("click", () => { shown += 25; update(); });
     document.getElementById("record-all").addEventListener("click", () => {
-      shown = ({ peaks: summary.peaks, numberones: summary.number_ones || [], matches: summary.top_matches, upsets: summary.upsets })[view].length;
+      shown = ({ peaks: summary.peaks, numberones: summary.number_ones || [], numberonesummary: summary.number_one_summary || [], matches: summary.top_matches, upsets: summary.upsets })[view].length;
       update();
     });
     update();

@@ -212,6 +212,11 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         if match["t"] in {"World Cup", "FIFA World Cup"}:
             world_cup_days.setdefault(year, []).append(match["date"])
 
+    matches_by_day_team: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for match in output.matches:
+        matches_by_day_team.setdefault((match["date"], match["a"]), []).append(match)
+        matches_by_day_team.setdefault((match["date"], match["b"]), []).append(match)
+
     first_date, last_date = output.matches[0]["date"], output.matches[-1]["date"]
     opening: dict[str, dict[str, Any]] = {}
     number_ones: list[dict[str, Any]] = []
@@ -244,6 +249,14 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     previous["to"] = (
                         date.fromisoformat(day) - timedelta(days=1)
                     ).isoformat()
+                trigger_matches = matches_by_day_team.get(
+                    (day, leader["code"]), []
+                )
+                if not trigger_matches and previous is not None:
+                    trigger_matches = matches_by_day_team.get(
+                        (day, previous["code"]), []
+                    )
+                trigger = max(trigger_matches, key=lambda row: row["id"]) if trigger_matches else None
                 number_ones.append({
                     "code": leader["code"],
                     "nation": leader["nation"],
@@ -252,6 +265,16 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     "rating": leader["rating"],
                     "displaced_code": previous["code"] if changed_team and previous else None,
                     "displaced": previous["nation"] if changed_team and previous else None,
+                    "match": None if trigger is None else {
+                        "id": trigger["id"],
+                        "team1_code": trigger["a"],
+                        "team2_code": trigger["b"],
+                        "team1": trigger["an"],
+                        "team2": trigger["bn"],
+                        "score1": trigger["sa"],
+                        "score2": trigger["sb"],
+                        "competition": trigger["t"],
+                    },
                 })
 
     for spell in number_ones:
@@ -260,6 +283,26 @@ def build_historical_rankings(data: Path, output: Any) -> None:
             date.fromisoformat(effective_end) - date.fromisoformat(spell["from"])
         ).days + 1
     output.summary["number_ones"] = list(reversed(number_ones))
+    number_one_summary: dict[str, dict[str, Any]] = {}
+    for spell in number_ones:
+        row = number_one_summary.setdefault(spell["code"], {
+            "code": spell["code"],
+            "nation": names[spell["code"]],
+            "first": spell["from"],
+            "latest": spell["to"] or last_date,
+            "current": False,
+            "spells": 0,
+            "days": 0,
+        })
+        row["first"] = min(row["first"], spell["from"])
+        row["latest"] = max(row["latest"], spell["to"] or last_date)
+        row["current"] = row["current"] or spell["to"] is None
+        row["spells"] += 1
+        row["days"] += spell["days"]
+    output.summary["number_one_summary"] = sorted(
+        number_one_summary.values(),
+        key=lambda row: (-row["days"], row["first"], row["nation"]),
+    )
 
     world_cups = []
     for year, days in sorted(world_cup_days.items(), reverse=True):

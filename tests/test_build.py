@@ -212,7 +212,6 @@ class StaticBuildTests(unittest.TestCase):
         self.assertEqual(spells, sorted(spells, key=lambda row: row["from"], reverse=True))
         self.assertIsNone(spells[0]["to"])
         self.assertTrue(all(spell["days"] > 0 for spell in spells))
-        self.assertTrue(all(spell["matches"] if "matches" in spell else True for spell in spells))
         for older, newer in zip(reversed(spells), list(reversed(spells))[1:]):
             self.assertLessEqual(older["from"], newer["from"])
             self.assertTrue(
@@ -221,6 +220,17 @@ class StaticBuildTests(unittest.TestCase):
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         self.assertIn('data-record="numberones"', javascript)
         self.assertIn("function numberOneTable", javascript)
+        self.assertIn("function numberOneSummaryTable", javascript)
+        self.assertIn('data-record="numberonesummary"', javascript)
+        self.assertIn("Change-triggering match", javascript)
+        self.assertIn("Swipe to see every column", javascript)
+        self.assertTrue(all("match" in spell for spell in spells))
+        summaries = self.summary["number_one_summary"]
+        self.assertTrue(summaries)
+        self.assertEqual(summaries, sorted(
+            summaries, key=lambda row: (-row["days"], row["first"], row["nation"])
+        ))
+        self.assertEqual(sum(row["spells"] for row in summaries), len(spells))
         self.assertIn("Leadership is determined after all matches on each date", javascript)
 
     def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
