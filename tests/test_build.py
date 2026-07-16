@@ -185,12 +185,22 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 20)
+        self.assertEqual(javascript.count('question: "'), 25)
         self.assertIn("Search questions", javascript)
         self.assertIn("Expand all", javascript)
         self.assertIn("Collapse all", javascript)
         self.assertIn("https://nfelo.github.io/faq/", sitemap)
         self.assertTrue((ROOT / "public" / "faq" / "index.html").exists())
+
+    def test_faq_search_home_link_github_and_current_team_name(self) -> None:
+        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function faqSearchTokens", javascript)
+        self.assertIn('token.endsWith("ies")', javascript)
+        self.assertIn("terms.every", javascript)
+        self.assertIn('href="#/faq">Questions? Read the FAQ →</a>', javascript)
+        self.assertIn("https://github.com/nfelo/nfelo.github.io", javascript)
+        teams = {team["code"]: team["nation"] for team in self.summary["teams"]}
+        self.assertEqual(teams["AS"], "American Samoa")
 
     def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")

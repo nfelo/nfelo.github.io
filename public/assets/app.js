@@ -270,7 +270,10 @@
           <div>
             <p class="eyebrow">What makes it different</p><h2>Opponents—and their opponents—matter.</h2>
             <p>Beating a strong side counts for more. Shared opponents connect regions and eras, while uncertainty stops isolated teams being overrated.</p>
-            <a href="#/methodology">Read the methodology →</a>
+            <div class="home-help-links">
+              <a href="#/methodology">Read the methodology →</a>
+              <a href="#/faq">Questions? Read the FAQ →</a>
+            </div>
           </div>
           <div class="home-records">
             <div class="compact-heading"><div><p class="eyebrow">Record book</p><h2>Greatest matchups</h2></div><a href="#/records">All records →</a></div>
@@ -949,7 +952,42 @@ const FAQ_ITEMS = [
     question: "How often is the site updated?",
     answer: "The site checks for new results and fixtures three times each day. When new completed matches are found, it validates the source data, replays the complete rating history and rebuilds the site. If an update fails its checks, the existing verified version remains online rather than publishing incomplete or inconsistent data."
   }
+,
+{
+  question: "Why can a team’s rating change by a different amount from its opponent’s?",
+  answer: "NFELO is not a strictly two-team, zero-sum Elo system. A result updates the estimated strengths and uncertainty of both teams within the wider opponent network. Their displayed ratings also include separate uncertainty and opponent-breadth adjustments, so one team’s displayed gain does not always exactly equal the other team’s loss."
+},
+{
+  question: "Why can an inactive team remain highly ranked?",
+  answer: "Ratings measure estimated strength, not recent activity alone. Inactivity gradually increases uncertainty, which lowers the cautious rating shown on the site, but a strong team does not immediately become weak simply because it has not played recently."
+},
+{
+  question: "Can ratings from different eras be compared directly?",
+  answer: "They can be compared within the model’s historical scale, but such comparisons should not be interpreted literally. Football, scoring levels, participation and the international match network have changed substantially. The model adjusts for these changes, but it cannot prove how teams from different eras would perform against one another."
+},
+{
+  question: "Why might a recent result or fixture be missing?",
+  answer: "The site depends on external results and fixture feeds. Updates are published only after the data pass validation checks. A match may therefore appear late if its source has not updated, team names cannot be matched safely or different sources report conflicting information."
+},
+{
+  question: "What should I do if I find incorrect data?",
+  answer: "Check whether the match is also incorrect or missing in the listed source data. If NFELO differs from a reliable published result, report the teams, date, score, competition and venue through the project’s GitHub repository.",
+  link: "https://github.com/nfelo/nfelo.github.io",
+  linkLabel: "Open the NFELO GitHub repository →"
+}
 ];
+
+function faqSearchTokens(value) {
+  return value
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase()
+    .match(/[\p{L}\p{N}]+/gu)?.map((token) => {
+      if (token.length > 4 && token.endsWith("ies")) return `${token.slice(0, -3)}y`;
+      if (token.length > 3 && token.endsWith("s")) return token.slice(0, -1);
+      return token;
+    }) || [];
+}
 
 function renderFAQ() {
   setTitle("Frequently asked questions");
@@ -978,12 +1016,16 @@ function renderFAQ() {
   const search = document.getElementById("faq-search");
 
   const draw = () => {
-    const query = search.value.trim().toLocaleLowerCase();
-    const filtered = FAQ_ITEMS.filter((item) => `${item.question} ${item.answer}`.toLocaleLowerCase().includes(query));
+    const query = search.value.trim();
+    const terms = faqSearchTokens(query);
+    const filtered = FAQ_ITEMS.filter((item) => {
+      const words = faqSearchTokens(`${item.question} ${item.answer}`);
+      return terms.every((term) => words.some((word) => word.includes(term) || term.includes(word)));
+    });
     list.innerHTML = filtered.length ? filtered.map((item, index) => `
       <details class="faq-item"${!query && index === 0 ? " open" : ""}>
         <summary>${escapeHTML(item.question)}</summary>
-        <div class="faq-answer"><p>${escapeHTML(item.answer)}</p></div>
+        <div class="faq-answer"><p>${escapeHTML(item.answer)}</p>${item.link ? `<a class="faq-source-link" href="${escapeHTML(item.link)}" rel="external">${escapeHTML(item.linkLabel)}</a>` : ""}</div>
       </details>`).join("") : `<div class="empty-state"><h2>No matching questions</h2><p>Try a broader term or clear the search.</p></div>`;
     count.textContent = query ? `${filtered.length} of ${FAQ_ITEMS.length} questions shown` : `${FAQ_ITEMS.length} questions`;
   };

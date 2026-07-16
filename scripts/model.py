@@ -194,6 +194,8 @@ class NetworkEloReplay:
             source / "supplemental_results.csv",
         )
         self.team_names = read_dictionary(source / "en.teams.tsv", skip_locations=True)
+        # WFER retains the obsolete label “Eastern Samoa”; use the current team name.
+        self.team_names["AS"] = "American Samoa"
         self.tournament_names = read_dictionary(source / "en.tournaments.tsv")
         supplemental_tournaments = source / "supplemental_tournaments.json"
         if supplemental_tournaments.exists():

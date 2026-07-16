@@ -145,6 +145,8 @@ h3 { font-size: 18px; }
 .home-support > div:first-child { padding: 28px; color: #f8f6ef; background: var(--navy-2); border-radius: 18px; }
 .home-support > div:first-child p:not(.eyebrow) { color: #c4d2cf; line-height: 1.6; }
 .home-support > div:first-child a { color: var(--lime); }
+.home-help-links { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 18px; }
+.home-help-links a { display: inline-flex; align-items: center; min-height: 32px; }
 .home-records li { display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; min-height: 54px; border-top: 1px solid var(--border); }
 .home-records li > span, .home-records small { color: var(--ink-soft); font-size: 12px; }
 .home-records small { display: block; margin-top: 3px; }
@@ -296,6 +298,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .faq-item summary:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
 .faq-answer { padding: 20px 22px 22px; }
 .faq-answer p { margin: 0; }
+.faq-source-link { display: inline-block; margin-top: 12px; color: #315f54; font-weight: 800; text-decoration: none; }
 .faq-more { margin-top: 30px; }
 
 .method-summary { margin: 30px 0; padding: 26px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
@@ -426,6 +429,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .home-upcoming li { grid-template-columns: 78px 1fr; }
   .home-support { gap: 14px; margin-top: 14px; }
   .home-support > div:first-child { padding: 22px 18px; border-radius: 14px; }
+  .home-help-links { display: grid; gap: 6px; }
   .home-records li { grid-template-columns: 20px 1fr auto; gap: 8px; }
   .compact-heading h2 { font-size: 24px; }
   .stat-grid { grid-template-columns: 1fr; }
