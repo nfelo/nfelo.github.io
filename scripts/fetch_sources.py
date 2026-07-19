@@ -94,7 +94,7 @@ def normalise_name(value: str) -> str:
 
 def validate_world(text: str) -> list[list[str]]:
     rows = [line.split("\t") for line in text.splitlines() if line.strip()]
-    if len(rows) < 150:
+    if len(rows) < 200:
         raise ValueError(f"World.tsv unexpectedly has only {len(rows)} rows")
     if any(len(row) != 31 for row in rows):
         bad = next(len(row) for row in rows if len(row) != 31)
@@ -105,6 +105,38 @@ def validate_world(text: str) -> list[list[str]]:
         if not row[2].strip():
             raise ValueError("World.tsv contains a blank country")
     return rows
+
+
+def fetch_world_table(
+    client: PublicTsvClient,
+    url: str,
+    *,
+    attempts: int = 4,
+) -> tuple[str, list[list[str]]]:
+    """Retry incomplete but HTTP-successful World.tsv responses, then fail closed."""
+    last_error: ValueError | None = None
+    for attempt in range(attempts):
+        retry_url = (
+            url
+            if attempt == 0
+            else f"{url}?nfelo_retry={int(time.time())}-{attempt}"
+        )
+        text = client.get(retry_url)
+        try:
+            return text, validate_world(text)
+        except ValueError as error:
+            last_error = error
+            if attempt + 1 < attempts:
+                delay = 2 ** attempt
+                print(
+                    f"World.tsv validation failed ({error}); "
+                    f"retrying in {delay}s",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+    raise ValueError(
+        f"World.tsv remained invalid after {attempts} attempts: {last_error}"
+    ) from last_error
 
 
 def validate_reference(name: str, text: str) -> None:
@@ -196,10 +228,11 @@ def main() -> None:
         staging = Path(temp_name)
         fetched: dict[str, str] = {}
         for filename in REFERENCE_FILES:
-            text = client.get(f"{base}/{quote(filename)}")
+            url = f"{base}/{quote(filename)}"
             if filename == "World.tsv":
-                world_rows = validate_world(text)
+                text, world_rows = fetch_world_table(client, url)
             else:
+                text = client.get(url)
                 validate_reference(filename, text)
             (staging / filename).write_text(text, encoding="utf-8")
             fetched[filename] = text
