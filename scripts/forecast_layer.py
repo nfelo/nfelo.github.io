@@ -70,6 +70,41 @@ def poisson_wdl(lambda1: float, lambda2: float) -> np.ndarray:
     return probabilities / probabilities.sum()
 
 
+def raked_score_matrix(
+    lambda1: float,
+    lambda2: float,
+    final_probabilities: np.ndarray,
+    maximum: int = MAX_POISSON_GOALS,
+) -> np.ndarray:
+    """Return scoreline cells whose W/D/L regions equal the final forecast.
+
+    The independent-Poisson matrix supplies the relative scoreline shape.  Each
+    win/draw/loss region is then rescaled to its final displayed probability.
+    ``maximum=40`` leaves negligible omitted tail mass for deployed lambdas.
+    """
+    first = np.empty(maximum + 1, dtype=np.float64)
+    second = np.empty(maximum + 1, dtype=np.float64)
+    first[0] = math.exp(-lambda1)
+    second[0] = math.exp(-lambda2)
+    for goals in range(1, maximum + 1):
+        first[goals] = first[goals - 1] * lambda1 / goals
+        second[goals] = second[goals - 1] * lambda2 / goals
+    raw = np.outer(first, second)
+    rows, columns = np.indices(raw.shape)
+    masks = (rows > columns, rows == columns, rows < columns)
+    final = np.asarray(final_probabilities, dtype=np.float64)
+    if final.shape != (3,) or np.any(final < 0.0) or not np.isfinite(final).all():
+        raise ValueError("final_probabilities must be a finite three-element vector")
+    final = final / final.sum()
+    result = np.zeros_like(raw)
+    for probability, mask in zip(final, masks):
+        region = float(raw[mask].sum())
+        if region <= 0.0:
+            raise ValueError("Poisson score region has no probability mass")
+        result[mask] = raw[mask] * probability / region
+    return result
+
+
 def calibrated_score_probabilities(
     raw: np.ndarray,
     friendly: np.ndarray | bool,
@@ -94,12 +129,36 @@ def calibrated_score_probabilities(
 def outcome_preserving_pool(
     nfelo: np.ndarray, score: np.ndarray, nfelo_weight: float
 ) -> tuple[np.ndarray, bool]:
-    """Linear pool, reverting completely if it would change NFELO's top pick."""
+    """Move toward the score pool as far as the network's top pick permits.
+
+    The previous release discarded the complete score correction whenever the
+    linear pool crossed an argmax boundary.  The audited boundary gate keeps
+    the same top outcome while retaining the largest safe fraction of that
+    correction.  ``changed`` records whether clipping was required.
+    """
     base = np.asarray(nfelo, dtype=np.float64)
     candidate = nfelo_weight * base + (1.0 - nfelo_weight) * np.asarray(score)
     candidate /= candidate.sum()
-    changed = int(np.argmax(candidate)) != int(np.argmax(base))
-    return (base.copy() if changed else candidate), changed
+    winner = int(np.argmax(base))
+    changed = int(np.argmax(candidate)) != winner
+    if not changed:
+        return candidate, False
+    delta = candidate - base
+    fraction = 1.0
+    for competitor in range(3):
+        if competitor == winner:
+            continue
+        closing = float(delta[competitor] - delta[winner])
+        if closing > 0.0:
+            fraction = min(
+                fraction,
+                float(base[winner] - base[competitor]) / closing,
+            )
+    fraction = max(0.0, min(1.0, fraction * (1.0 - 1e-10)))
+    result = base + fraction * delta
+    result = np.maximum(result, EPSILON)
+    result /= result.sum()
+    return result, True
 
 
 def _log_loss(probabilities: np.ndarray, outcomes: np.ndarray) -> float:
@@ -317,6 +376,73 @@ class ForecastLayer:
         if self.current_year is None or year > self.current_year:
             self._start_year(year)
 
+    def predict_day(
+        self,
+        rows: list[dict[str, Any]],
+    ) -> list[np.ndarray]:
+        """Forecast a complete date from one frozen state, then learn from it."""
+        if not rows:
+            return []
+        year = int(rows[0]["year"])
+        day = int(rows[0]["day"])
+        if any(int(row["year"]) != year or int(row["day"]) != day for row in rows):
+            raise ValueError("A forecast batch must contain exactly one complete date")
+        if year != self.current_year:
+            self._start_year(year)
+        base_goal = self._base_goal(year)
+        pending: list[tuple[dict[str, Any], dict[str, tuple[np.ndarray, float, float]]]] = []
+        results: list[np.ndarray] = []
+        for row in rows:
+            first = int(row["first"])
+            second = int(row["second"])
+            expected_score = float(row["expected_score"])
+            friendly = bool(row["friendly"])
+            predictions = {
+                name: state.predict(first, second, day, expected_score, base_goal)
+                for name, state in self.states.items()
+            }
+            final = np.asarray(row["nfelo_probabilities"], dtype=np.float64)
+            if self.current_release is not None and self.current_calibration is not None:
+                raw = predictions[self.current_release.name][0]
+                score = calibrated_score_probabilities(
+                    raw,
+                    friendly,
+                    self.current_calibration.draw_log_tilt,
+                    self.current_calibration.friendly_temperature,
+                    self.current_calibration.competitive_temperature,
+                )
+                final, changed = outcome_preserving_pool(
+                    final, score, self.current_calibration.nfelo_weight
+                )
+                self.gate_reversions += int(changed)
+            results.append(final)
+            pending.append((row, predictions))
+
+        # No result enters any score state until every forecast is stored.
+        for row, predictions in pending:
+            first = int(row["first"])
+            second = int(row["second"])
+            goals1 = int(row["goals1"])
+            goals2 = int(row["goals2"])
+            friendly = bool(row["friendly"])
+            network = np.asarray(row["nfelo_probabilities"], dtype=np.float64)
+            outcome = 0 if goals1 > goals2 else 1 if goals1 == goals2 else 2
+            for name, state in self.states.items():
+                raw, lambda1, lambda2 = predictions[name]
+                state.observations.append(ForecastObservation(
+                    year=year,
+                    score_probabilities=tuple(float(value) for value in raw),
+                    nfelo_probabilities=tuple(float(value) for value in network),
+                    outcome=outcome,
+                    friendly=friendly,
+                ))
+                state.update(first, second, goals1, goals2, lambda1, lambda2)
+            goals = goals1 + goals2
+            self.goal_window.append((year, goals))
+            self.window_goals += goals
+        self.last_day = day
+        return results
+
     def predict_and_update(
         self,
         *,
@@ -330,42 +456,18 @@ class ForecastLayer:
         nfelo_probabilities: np.ndarray,
         friendly: bool,
     ) -> np.ndarray:
-        if year != self.current_year:
-            self._start_year(year)
-        base_goal = self._base_goal(year)
-        predictions: dict[str, tuple[np.ndarray, float, float]] = {
-            name: state.predict(first, second, day, expected_score, base_goal)
-            for name, state in self.states.items()
-        }
-        outcome = 0 if goals1 > goals2 else 1 if goals1 == goals2 else 2
-        final = np.asarray(nfelo_probabilities, dtype=np.float64)
-        if self.current_release is not None and self.current_calibration is not None:
-            raw = predictions[self.current_release.name][0]
-            score = calibrated_score_probabilities(
-                raw,
-                friendly,
-                self.current_calibration.draw_log_tilt,
-                self.current_calibration.friendly_temperature,
-                self.current_calibration.competitive_temperature,
-            )
-            final, changed = outcome_preserving_pool(
-                final, score, self.current_calibration.nfelo_weight
-            )
-            self.gate_reversions += int(changed)
-        for name, state in self.states.items():
-            raw, lambda1, lambda2 = predictions[name]
-            state.observations.append(ForecastObservation(
-                year=year,
-                score_probabilities=tuple(float(value) for value in raw),
-                nfelo_probabilities=tuple(float(value) for value in nfelo_probabilities),
-                outcome=outcome,
-                friendly=friendly,
-            ))
-            state.update(first, second, goals1, goals2, lambda1, lambda2)
-        self.goal_window.append((year, goals1 + goals2))
-        self.window_goals += goals1 + goals2
-        self.last_day = day
-        return final
+        """Compatibility wrapper for callers forecasting a single match."""
+        return self.predict_day([{
+            "first": first,
+            "second": second,
+            "day": day,
+            "year": year,
+            "goals1": goals1,
+            "goals2": goals2,
+            "expected_score": expected_score,
+            "nfelo_probabilities": nfelo_probabilities,
+            "friendly": friendly,
+        }])[0]
 
     def historical_context(self) -> dict[str, Any]:
         """Compact causal score context for a completed historical matchday."""

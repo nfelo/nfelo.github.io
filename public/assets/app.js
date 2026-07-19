@@ -5,7 +5,6 @@
   const nav = document.getElementById("site-nav");
   const menuButton = document.querySelector(".menu-button");
   const dataCache = new Map();
-  const confidenceZ = 1.6448536269514715;
   let summary;
   let catalog;
 
@@ -197,6 +196,28 @@
     return [win / total, draw / total, loss / total];
   }
 
+  function boundaryPool(base, candidate) {
+    const winner = base.indexOf(Math.max(...base));
+    const candidateWinner = candidate.indexOf(Math.max(...candidate));
+    if (winner === candidateWinner) return candidate;
+    const delta = candidate.map((value, index) => value - base[index]);
+    let fraction = 1;
+    delta.forEach((_, competitor) => {
+      if (competitor === winner) return;
+      const closing = delta[competitor] - delta[winner];
+      if (closing > 0) {
+        fraction = Math.min(
+          fraction,
+          (base[winner] - base[competitor]) / closing,
+        );
+      }
+    });
+    fraction = Math.max(0, Math.min(1, fraction * (1 - 1e-10)));
+    const result = base.map((value, index) => value + fraction * delta[index]);
+    const total = result.reduce((sum, value) => sum + value, 0);
+    return result.map((value) => value / total);
+  }
+
   function applyForecastLayer(base, expected, first, second, friendly, day, layer) {
     if (!layer) return base;
     const decayRate = layer.parameters.annual_decay;
@@ -226,8 +247,7 @@
       layer.calibration.nfelo_weight * value
       + layer.calibration.score_weight * normalised[index]
     ));
-    const top = (values) => values.indexOf(Math.max(...values));
-    return top(pooled) === top(base) ? pooled : base;
+    return boundaryPool(base, pooled);
   }
 
   async function renderHome() {
@@ -252,7 +272,7 @@
             <div><dt>Latest result</dt><dd>${validDate(summary.meta.results_through)}</dd></div>
             <div><dt>Matches</dt><dd>${number(summary.meta.matches)}</dd></div>
             <div><dt>Teams</dt><dd>${number(summary.meta.teams)}</dd></div>
-            <div><dt>Forecast accuracy</dt><dd>${percent(summary.validation.accuracy)}</dd></div>
+            <div><dt>Holdout accuracy</dt><dd>${percent(summary.validation.nested.accuracy)}</dd></div>
           </dl>
         </section>
 
@@ -277,7 +297,7 @@
             </div>
           </div>
           <div class="home-records">
-            <div class="compact-heading"><div><p class="eyebrow">Record book</p><h2>Greatest matchups</h2></div><a href="#/records">All records →</a></div>
+            <div class="compact-heading"><div><p class="eyebrow">Conservative record book</p><h2>Greatest matchups</h2></div><a href="#/records">All records →</a></div>
             <ol>${summary.top_matches.slice(0, 5).map((match, index) => `<li><span>${index + 1}</span><div>${teamLink(match.code1, match.team1)} <i>v</i> ${teamLink(match.code2, match.team2)}<small>${validDate(match.date)}</small></div><strong>${rating(match.combined)}</strong></li>`).join("")}</ol>
           </div>
         </section>
@@ -305,13 +325,13 @@
   function rankingsTable(items, showRank) {
     if (!items.length) return `<div class="empty">No teams match those filters.</div>`;
     return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Model strength</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Strength rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Record score</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time strength peak</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr>
         <td class="rank-cell numeric">${showRank ? team.display_rank ?? team.rank ?? index + 1 : index + 1}</td>
         <td>${teamLink(team.code, team.nation)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
         <td class="numeric">${movementHTML(team)}</td>
-        <td class="numeric hide-mobile">${rating(team.mean)}</td>
+        <td class="numeric hide-mobile">${rating(team.record_rating)}</td>
         <td class="numeric hide-mobile">${number(team.matches)}</td>
         <td>${formHTML(team.form || [])}</td>
         <td class="hide-mobile">${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</td>
@@ -323,18 +343,18 @@
     setTitle("Rankings");
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Current international teams</p><h1>Rankings</h1></div><p class="lede">The rating combines estimated playing strength with an allowance for uncertainty. Teams with results against a broad range of opponents can therefore be assessed more confidently. <a href="#/history">Choose a historical date →</a></p></header>
+        <header class="page-heading"><div><p class="eyebrow">Current international teams</p><h1>Rankings</h1></div><p class="lede">The main rating is the model's best estimate of playing strength. Uncertainty and opponent breadth are shown separately rather than being allowed to distort the strength order. <a href="#/history">Choose a historical date →</a></p></header>
         <div class="toolbar">
           <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Spain, Argentina, Japan…" value="${escapeHTML(route.query.get("q") || "")}"></div>
-          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="mean">Model strength</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
+          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Strength rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="record_rating">Record score</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
           <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current</button><button class="button" data-pool="all" aria-pressed="false">All histories</button></div>
         </div>
-        <div class="record-note"><strong>Rating</strong><div>The published rating is the model's strength estimate adjusted for the range of opponents played and the uncertainty in that estimate. A team must have played at least 30 matches and appeared within the last four years to enter the current table. The 12-month column compares the latest rating and rank with the last eligible matchday on or before the same calendar date one year earlier.</div></div>
+        <div class="record-note"><strong>Strength</strong><div>The ranking uses the latent posterior mean, anchored so the active elite average 2000. A team must have played at least 30 matches and appeared within the last four years to enter the current table. The separate record score is a conservative lower bound with correctly propagated uncertainty and opponent-breadth shrinkage.</div></div>
         <div id="rankings-table"></div>
       </div>`;
     const target = document.getElementById("rankings-table");
     let pool = route.query.get("pool") === "all" ? "all" : "current";
-    const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "record_rating", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("ranking-sort").value = requestedSort;
     document.querySelectorAll("[data-pool]").forEach((button) => {
       const selected = button.dataset.pool === pool;
@@ -375,10 +395,10 @@
   function historicalRankingsTable(items, selectedDate) {
     if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>Teams enter the table after their 30th recorded match.</p></div>`;
     return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Model strength</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Strength rating</th><th class="numeric hide-mobile">Record score</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${team.rank ?? index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
-        <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
+        <td class="numeric hide-mobile">${rating(team.record_rating)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
         <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -390,14 +410,14 @@
     const requested = isoDate(route.query.get("date")) || today;
     const selected = requested < index.first ? index.first : requested > today ? today : requested;
     content.innerHTML = `<div class="page">
-      <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
+      <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after the latest completed matchday on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
       <div class="toolbar history-toolbar">
         <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${today}" value="${selected}" tabindex="-1" aria-hidden="true" aria-label="Ranking date calendar"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
         <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
         <div class="field field-grow"><label for="history-world-cup">World Cup moments</label><select id="history-world-cup"><option value="">Choose a tournament…</option>${index.world_cups.flatMap((cup) => [`<option value="${cup.after}">After ${cup.year} World Cup</option>`, `<option value="${cup.before}">Before ${cup.year} World Cup</option>`]).join("")}</select></div>
       </div>
       <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
-      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="mean">Model strength</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
+      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Strength rating</option><option value="record_rating">Record score</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
       <div id="history-table"></div></div>`;
 
     let teams = [];
@@ -405,7 +425,7 @@
     const dateInput = document.getElementById("history-date");
     const calendarInput = document.getElementById("history-calendar");
     const table = document.getElementById("history-table");
-    const requestedSort = ["rating", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    const requestedSort = ["rating", "record_rating", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("history-sort").value = requestedSort;
     const saveHistoryRoute = () => replaceRouteQuery("history", {
       date: currentDate,
@@ -617,20 +637,20 @@
     </tr>`).join("")}</tbody></table></div>`;
   }
 
-  function peakTable(peaks) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Peak NR</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">strength ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
+  function peakTable(peaks, record = false) {
+    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">${record ? "Record score" : "Strength rating"}</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
+      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(record ? peak.record_rating : peak.rating)}</span><span class="rating-sub">${record ? `adjusted mean ${rating(peak.record_mean)} · uncertainty ${rating(peak.record_se)}` : `posterior uncertainty ${rating(peak.se)}`}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function numberOneMatch(spell) {
-    if (!spell.match) return "No single recorded trigger";
-    const match = spell.match;
-    return `${teamLink(match.team1_code, match.team1, spell.from)} <span class="score">${number(match.score1)}–${number(match.score2)}</span> ${teamLink(match.team2_code, match.team2, spell.from)}<span class="rating-sub">${escapeHTML(match.competition)}</span>`;
+    const matches = spell.matches || (spell.match ? [spell.match] : []);
+    if (!matches.length) return "No recorded result trigger";
+    return matches.map((match) => `<span class="trigger-result">${teamLink(match.team1_code, match.team1, spell.from)} <span class="score">${number(match.score1)}–${number(match.score2)}</span> ${teamLink(match.team2_code, match.team2, spell.from)}<span class="rating-sub">${escapeHTML(match.competition)}</span></span>`).join("");
   }
 
   function numberOneTable(spells) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th>Nation</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Change-triggering match</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th>Nation</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Relevant change-date result(s)</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
       <td>${teamLink(spell.code, spell.nation, spell.from)}</td><td>${validDate(spell.from)}</td><td>${spell.to ? validDate(spell.to) : "<b>Current</b>"}</td><td class="numeric">${number(spell.days)}</td><td class="numeric"><span class="rating-main">${rating(spell.rating)}</span></td><td>${numberOneMatch(spell)}</td><td>${spell.displaced ? teamLink(spell.displaced_code, spell.displaced, spell.from) : "—"}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
@@ -643,7 +663,7 @@
 
   function matchRecordTable(matches) {
     return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined strength ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
+      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">adjusted mean ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -657,18 +677,18 @@
     setTitle("Records");
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Strength peaks use the model's best estimate. Conservative record peaks and top matches also account for uncertainty and opponent breadth, protecting the record book from thin or isolated schedules.</p></header>
         <div id="number-one-filters" class="toolbar record-filters" hidden>
           <div class="field field-grow"><label for="number-one-team">Filter nation</label><input id="number-one-team" type="search" placeholder="Brazil, Spain, Germany…" value="${escapeHTML(route.query.get("q") || "")}"></div>
           <div class="field"><label for="number-one-from">From date</label><div class="date-combo"><input id="number-one-from" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("from") ? validDate(route.query.get("from")) : ""}" aria-describedby="number-one-from-error"><button class="button" type="button" id="number-one-from-button" aria-label="Open from-date calendar">Calendar</button><input id="number-one-from-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("from") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-from-error" class="field-error" role="alert"></span></div>
           <div class="field"><label for="number-one-to">To date</label><div class="date-combo"><input id="number-one-to" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("to") ? validDate(route.query.get("to")) : ""}" aria-describedby="number-one-to-error"><button class="button" type="button" id="number-one-to-button" aria-label="Open to-date calendar">Calendar</button><input id="number-one-to-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("to") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-to-error" class="field-error" role="alert"></span></div>
         </div>
-        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
+        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Strength peaks</button><button class="button" data-record="recordpeaks" aria-pressed="false">Record peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
         <div class="pagination"><span id="record-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="record-more" class="button">Show more</button><button id="record-all" class="button button-quiet">Show all</button></div></div>
       </div>`;
-    let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
+    let view = ["peaks", "recordpeaks", "numberones", "numberonesummary", "matches", "upsets"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
     let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
     document.querySelectorAll("[data-record]").forEach((button) => {
       const active = button.dataset.record === view;
@@ -678,6 +698,7 @@
     const update = () => {
       const sources = {
         peaks: summary.peaks,
+        recordpeaks: summary.record_peaks || [],
         numberones: summary.number_ones || [],
         numberonesummary: summary.number_one_summary || [],
         matches: summary.top_matches,
@@ -720,9 +741,11 @@
       });
       const visible = source.slice(0, shown);
       document.getElementById("record-note").innerHTML = view === "peaks"
-        ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
+        ? `<strong>μ</strong><div><b>One strength maximum per canonical nation.</b> These peaks use the posterior mean and are the same rating used by the rankings.</div>`
+        : view === "recordpeaks"
+          ? `<strong>LCB</strong><div><b>One conservative record maximum per canonical nation.</b> Opponent breadth shrinks the mean and all relevant reference covariance is propagated before the 95% lower bound is applied.</div>`
         : view === "numberones"
-          ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined after all matches on each date. Historical names are retained, and the relevant match from the change date is shown.</div>`
+          ? `<strong>1</strong><div><b>Every spell as NFELO strength number one.</b> Leadership is determined jointly after all results on each date. Historical names and every relevant result from the change date are retained.</div>`
           : view === "numberonesummary"
             ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
             : view === "matches"
@@ -730,6 +753,8 @@
             : `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`;
       document.getElementById("record-table").innerHTML = view === "peaks"
         ? peakTable(visible)
+        : view === "recordpeaks"
+          ? peakTable(visible, true)
         : view === "numberones"
           ? numberOneTable(visible)
           : view === "numberonesummary"
@@ -934,7 +959,7 @@
       }, { W: 0, D: 0, L: 0, gf: 0, ga: 0 });
       output.innerHTML = `
         <section class="comparison-cards">
-          ${[a, b].map((team) => `<article><p class="eyebrow">${teamLink(team.code, team.nation)}</p><strong>${rating(team.rating)}</strong><dl><div><dt>World rank</dt><dd>${team.rank ? `No. ${number(team.rank)}` : "—"}</dd></div><div><dt>12-month movement</dt><dd>${movementHTML(team)}</dd></div><div><dt>All-time peak</dt><dd>${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</dd></div><div><dt>Overall record</dt><dd>${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</dd></div></dl></article>`).join("")}
+          ${[a, b].map((team) => `<article><p class="eyebrow">${teamLink(team.code, team.nation)}</p><strong>${rating(team.rating)}</strong><dl><div><dt>World rank</dt><dd>${team.rank ? `No. ${number(team.rank)}` : "—"}</dd></div><div><dt>12-month movement</dt><dd>${movementHTML(team)}</dd></div><div><dt>All-time strength peak</dt><dd>${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</dd></div><div><dt>Conservative record score</dt><dd>${rating(team.record_rating)}</dd></div><div><dt>Overall match record</dt><dd>${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</dd></div></dl></article>`).join("")}
         </section>
         <div class="comparison-actions"><a class="button button-dark" href="#/predict?a=${encodeURIComponent(codeA)}&b=${encodeURIComponent(codeB)}">Open probabilities, score grid and rating effects →</a></div>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">After every eligible match</p><h2>Rating histories</h2></div></div>${comparisonChart(first, second)}</section>
@@ -1057,7 +1082,7 @@
           <div class="field"><label for="predict-class">Match class</label><select id="predict-class"><option value="competitive">Competitive</option><option value="friendly">Friendly</option></select></div>
         </div>
         <div id="forecast"></div>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Independent Poisson score probabilities</p><h2>Exact-score grid</h2></div></div><div id="score-grid"></div></section>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">Reconciled score probabilities</p><h2>Exact-score grid</h2></div></div><div id="score-grid"></div></section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Projected post-match ratings</p><h2>Effect of each winning margin</h2></div></div><div class="record-note"><strong>±</strong><div>Historical projections use the model state stored at the selected matchday. Because the static history does not retain every pairwise covariance and opponent-breadth counterfactual, historical rating changes are close projections rather than exact replayed updates.</div></div><div id="margin-grid"></div></section>`;
 
       const byCode = new Map(teams.map((team) => [team.code, team]));
@@ -1144,19 +1169,39 @@
           total = powered.reduce((sum, value) => sum + value, 0);
           const calibrated = powered.map((value) => value / total);
           const pooled = base.map((value, index) => layer.calibration.nfelo_weight * value + layer.calibration.score_weight * calibrated[index]);
-          const top = (values) => values.indexOf(Math.max(...values));
-          if (top(pooled) === top(base)) probabilities = pooled;
+          probabilities = boundaryPool(base, pooled);
         }
         const labels = [`${first.nation} win`, "Draw", `${second.nation} win`];
         const maximum = Math.max(...probabilities);
         document.getElementById("forecast").innerHTML = `<section class="forecast" aria-live="polite"><div class="forecast-title"><div><p class="eyebrow">Match forecast · ${validDate(dateValue)}</p><h2>${escapeHTML(first.nation)} v ${escapeHTML(second.nation)}</h2></div><span>${friendly ? "friendly" : "competitive"} · ${home === 0 ? "neutral" : home === 1 ? `${escapeHTML(first.nation)} home` : `${escapeHTML(second.nation)} home`}</span></div><div class="forecast-bars">${probabilities.map((value, index) => `<div class="forecast-outcome ${value === maximum ? "is-top" : ""}"><span>${escapeHTML(labels[index])}</span><strong>${percent(value)}</strong></div>`).join("")}</div><div class="forecast-meta"><span>${escapeHTML(first.nation)} <b>No. ${first.rank} · ${rating(first.rating)}</b></span><span>${escapeHTML(second.nation)} <b>No. ${second.rank} · ${rating(second.rating)}</b></span><span>Expected goals <b>${number(lambdaA, 2)}–${number(lambdaB, 2)}</b></span></div></section>`;
 
-        const massesA = poissonMasses(lambdaA, 5);
-        const massesB = poissonMasses(lambdaB, 5);
-        document.getElementById("score-grid").innerHTML = `<div class="table-hint" aria-hidden="true">Swipe to see every scoreline →</div><div class="table-shell score-grid"><table><thead><tr><th>${escapeHTML(first.nation)} ↓ · ${escapeHTML(second.nation)} →</th>${[0,1,2,3,4,5].map((goal) => `<th class="numeric">${goal}</th>`).join("")}</tr></thead><tbody>${[0,1,2,3,4,5].map((goalsA) => `<tr><th class="numeric">${goalsA}</th>${[0,1,2,3,4,5].map((goalsB) => `<td class="numeric ${goalsA > goalsB ? "score-win" : goalsA < goalsB ? "score-loss" : "score-draw"}">${percent(massesA[goalsA] * massesB[goalsB])}</td>`).join("")}</tr>`).join("")}</tbody></table></div><p class="muted small">The 36 cells show exact scores from 0–0 to 5–5; outcomes involving six or more goals are outside the grid.</p>`;
+        const massesA = poissonMasses(lambdaA, 40);
+        const massesB = poissonMasses(lambdaB, 40);
+        const rawOutcomes = [0, 0, 0];
+        massesA.forEach((massA, goalsA) => {
+          massesB.forEach((massB, goalsB) => {
+            const outcome = goalsA > goalsB ? 0 : goalsA === goalsB ? 1 : 2;
+            rawOutcomes[outcome] += massA * massB;
+          });
+        });
+        const outcomeFactor = probabilities.map((value, index) => value / rawOutcomes[index]);
+        const rakedCell = (goalsA, goalsB) => {
+          const outcome = goalsA > goalsB ? 0 : goalsA === goalsB ? 1 : 2;
+          return massesA[goalsA] * massesB[goalsB] * outcomeFactor[outcome];
+        };
+        const displayedMass = [0,1,2,3,4,5].reduce((outer, goalsA) => (
+          outer + [0,1,2,3,4,5].reduce((inner, goalsB) => inner + rakedCell(goalsA, goalsB), 0)
+        ), 0);
+        document.getElementById("score-grid").innerHTML = `<div class="table-hint" aria-hidden="true">Swipe to see every scoreline →</div><div class="table-shell score-grid"><table><thead><tr><th>${escapeHTML(first.nation)} ↓ · ${escapeHTML(second.nation)} →</th>${[0,1,2,3,4,5].map((goal) => `<th class="numeric">${goal}</th>`).join("")}</tr></thead><tbody>${[0,1,2,3,4,5].map((goalsA) => `<tr><th class="numeric">${goalsA}</th>${[0,1,2,3,4,5].map((goalsB) => `<td class="numeric ${goalsA > goalsB ? "score-win" : goalsA < goalsB ? "score-loss" : "score-draw"}">${percent(rakedCell(goalsA, goalsB))}</td>`).join("")}</tr>`).join("")}</tbody></table></div><p class="muted small">The scoreline probabilities are reconciled to the final W/D/L forecast. The 36 cells show 0–0 through 5–5; the remaining ${percent(Math.max(0, 1 - displayedMass))} covers scorelines involving six or more goals.</p>`;
 
-        const vi = first.se * first.se;
-        const vj = second.se * second.se;
+        let vi = first.se * first.se;
+        let vj = second.se * second.se;
+        if (useCurrent) {
+          const i = currentIndex.get(first.code);
+          const j = currentIndex.get(second.code);
+          vi = cov(i, i);
+          vj = cov(j, j);
+        }
         const environment = useCurrent ? 1.1 : historical.context?.margin_environment ?? 1.1;
         const beta = Math.log(10) * scale / 400;
         const quality = summary.parameters.network.quality_scale;
@@ -1172,10 +1217,8 @@
           const scalar = weight * beta * (result - expected) / denominator;
           const deltaA = directionA * scalar;
           const deltaB = directionB * scalar;
-          const postVarA = Math.max(0, vi - directionA * directionA * curvature / denominator);
-          const postVarB = Math.max(0, vj - directionB * directionB * curvature / denominator);
-          const postA = first.mean + first.reliability * deltaA - confidenceZ * Math.sqrt(postVarA);
-          const postB = second.mean + second.reliability * deltaB - confidenceZ * Math.sqrt(postVarB);
+          const postA = first.rating + deltaA;
+          const postB = second.rating + deltaB;
           rows.push({ margin, postA, postB, changeA: postA - first.rating, changeB: postB - second.rating });
         }
         document.getElementById("margin-grid").innerHTML = `<div class="table-hint" aria-hidden="true">Swipe to see both teams →</div><div class="table-shell margin-grid"><table><thead><tr><th>Result</th><th class="numeric">${escapeHTML(first.nation)} rating</th><th class="numeric">Change</th><th class="numeric">${escapeHTML(second.nation)} rating</th><th class="numeric">Change</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row.margin > 0 ? `${escapeHTML(first.nation)} by ${row.margin}` : row.margin < 0 ? `${escapeHTML(second.nation)} by ${Math.abs(row.margin)}` : "Draw"}</td><td class="numeric"><b>${rating(row.postA)}</b></td><td class="numeric ${row.changeA >= 0 ? "positive" : "negative"}">${row.changeA >= 0 ? "+" : ""}${rating(row.changeA)}</td><td class="numeric"><b>${rating(row.postB)}</b></td><td class="numeric ${row.changeB >= 0 ? "positive" : "negative"}">${row.changeB >= 0 ? "+" : ""}${rating(row.changeB)}</td></tr>`).join("")}</tbody></table></div>`;
@@ -1275,7 +1318,7 @@
           <div class="team-rating"><strong>${rating(cutoff ? latestPoint?.rating : team.rating)}</strong><span>${cutoff && latestPoint ? `after ${validDate(latestPoint.date)} · ` : ""}uncertainty ${rating(cutoff ? latestPoint?.se : team.se)}</span></div>
         </section>
         <div class="team-stats">
-          <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span>${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Peak by date" : "All-time peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
+          <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span>Conservative record score</span><strong>${rating(cutoff ? latestPoint?.record_rating : team.record_rating)}</strong></div><div><span>${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Strength peak by date" : "All-time strength peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
         </div>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, displayName)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${cutoff ? "Matches through selected date" : "Complete match history"}</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="team-more" class="button">Show more</button><button id="team-all" class="button button-quiet">Show all</button></div></div></section>
@@ -1305,11 +1348,11 @@ const FAQ_ITEMS = [
   },
   {
     question: "What does a team’s rating mean?",
-    answer: "A rating represents the model’s estimate of that team’s current strength. The absolute number is mainly a convenient scale; differences between teams matter more. A higher rating normally means a greater expected chance of obtaining a positive result against a lower-rated opponent."
+    answer: "The main rating is the model’s posterior-mean estimate of that team’s strength, anchored so the active elite average 2000. Uncertainty is shown separately and does not alter the ranking order. The record book also uses a separately labelled conservative score that accounts for opponent breadth and uncertainty."
   },
   {
     question: "How are the rankings calculated?",
-    answer: "After every match, the model compares the result with what it expected beforehand. Teams gain rating for performing better than expected and lose rating for performing worse. The size of the change also reflects the score margin, uncertainty around both teams and their connections to the broader opponent network."
+    answer: "Every match on a known date is first forecast from one frozen pre-date state. The model then combines the date’s evidence in one order-invariant network update. Surprising results, score margin, uncertainty and opponent connections determine the changes. Rankings use posterior mean strength after the complete matchday."
   },
   {
     question: "What is the network element?",
@@ -1337,7 +1380,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How are match probabilities calculated?",
-    answer: "The core rating model first estimates the relative strength of the teams, including home advantage and uncertainty. A hidden forecasting layer then uses team-specific attacking, defensive, scoring and draw tendencies to refine the win, draw and loss probabilities. This layer affects forecasts only. It does not change the displayed ratings, historical peaks or ranking order."
+    answer: "The core rating model first estimates relative strength, venue effect and uncertainty. A hidden layer then uses team-specific attack and defence residuals plus the era’s scoring environment to refine W/D/L. Its scoreline distribution is calibrated and blended with the network forecast. This probability layer never changes ratings or ranking order."
   },
   {
     question: "Why keep the forecasting layer separate from the rankings?",
@@ -1345,7 +1388,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Does the forecasting layer ever reverse the rating model’s favourite?",
-    answer: "No. It refines the probability assigned to each outcome while preserving the core network model’s most likely result. Its purpose is to improve probability calibration, not to replace the ranking system with a separate, contradictory model."
+    answer: "No. If the complete blend would cross into a different most-likely outcome, the boundary gate retains only the largest safe fraction of the correction. This is more informative than discarding the whole correction while still preserving every network top pick."
   },
   {
     question: "What does a probability such as 45%–29%–26% mean?",
@@ -1353,7 +1396,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How was the methodology selected?",
-    answer: "Competing approaches were tested on tens of thousands of historical matches using rolling out-of-sample evaluation. For each test period, parameters were fitted using only earlier results and then assessed on matches the fitted model had not seen. The primary measure was three-way logarithmic loss, supported by Brier score, ranked probability score, accuracy and calibration checks."
+    answer: "The primary comparative evidence is a five-block rolling historical holdout: model choices used earlier periods and were scored on later periods. The newer lower figure shown in the methodology is separately labelled as a retrospective replay because its final core constants were fitted through 2026. Log loss is primary, supported by Brier score, ranked probability score and accuracy."
   },
   {
     question: "Is NFELO always more likely to predict the correct result than other systems?",
@@ -1372,17 +1415,29 @@ const FAQ_ITEMS = [
     answer: "Yes. The History page reconstructs the rankings as they stood after the latest completed matchday on or before the selected date. Historical country names, such as West Germany, the Soviet Union and Czechoslovakia, are shown where appropriate for that period."
   },
   {
+    question: "How are several matches on the same date handled?",
+    answer: "Every match with the same complete date is forecast from one frozen start-of-day state. New teams receive the same pre-date debut prior, and all results are then applied jointly. This prevents an unknown kickoff order or source row order from leaking one result into another forecast. Matches with incomplete historical dates retain their source sequence."
+  },
+  {
+    question: "Why does the exact-score grid now agree with W/D/L?",
+    answer: "Raw Poisson scorelines do not include every calibration and blending step used by the final forecast. NFELO now rescales scorelines within the win, draw and loss regions so their full totals exactly equal the displayed final W/D/L probabilities, while preserving relative scoreline probabilities within each region."
+  },
+  {
+    question: "Why are two different log-loss figures shown?",
+    answer: "They measure different experiments. The 0.8842 result is the primary rolling historical holdout in which model choices came from earlier blocks. The lower figure is a retrospective diagnostic calculated from the deployed chronology with final constants. It helps compare components but is not a second out-of-sample claim."
+  },
+  {
     question: "How often is the site updated?",
     answer: "The site checks for new results and fixtures three times each day. When new completed matches are found, it validates the source data, replays the complete rating history and rebuilds the site. If an update fails its checks, the existing verified version remains online rather than publishing incomplete or inconsistent data."
   }
 ,
 {
   question: "Why can a team’s rating change by a different amount from its opponent’s?",
-  answer: "NFELO is not a strictly two-team, zero-sum Elo system. A result updates the estimated strengths and uncertainty of both teams within the wider opponent network. Their displayed ratings also include separate uncertainty and opponent-breadth adjustments, so one team’s displayed gain does not always exactly equal the other team’s loss."
+  answer: "NFELO is not a two-team zero-sum table. A result updates a complete opponent network, and all known-date results are learned jointly. The two participants can therefore move by different amounts. The match table shows the common post-matchday strength state; largest-upset attribution uses that match’s own frozen gradient contribution."
 },
 {
   question: "Why can an inactive team remain highly ranked?",
-  answer: "Ratings measure estimated strength, not recent activity alone. Inactivity gradually increases uncertainty, which lowers the cautious rating shown on the site, but a strong team does not immediately become weak simply because it has not played recently."
+  answer: "Inactivity increases uncertainty but does not automatically change posterior mean strength. To prevent obsolete teams remaining in the current table indefinitely, current rankings require an appearance within the preceding four years. Inactive historical teams remain available in the full histories."
 },
 {
   question: "Can ratings from different eras be compared directly?",
@@ -1469,80 +1524,88 @@ function renderFAQ() {
     setTitle("Methodology");
     const p = summary.parameters;
     const f = p.forecast_layer;
+    const nested = summary.validation.nested;
+    const replay = summary.validation.retrospective;
     content.innerHTML = `
       <article class="page page-narrow prose">
-        <p class="eyebrow">How the ratings are calculated</p><h1>Methodology</h1>
-        <p class="lede">The system is based on Elo, but it also measures uncertainty, connections between opponents and recent scoring patterns. This page begins with the main ideas, then gives the exact calculations needed to reproduce the ratings and forecasts.</p>
+        <p class="eyebrow">Exact model · evidence · limitations</p><h1>Methodology</h1>
+        <p class="lede">NFELO is a dynamic opponent-network rating with a probability-only attack and defence layer. Rankings use the model's best estimate of strength; the record book also provides a separately labelled conservative score. All matches on a known date are forecast from the same prior state.</p>
 
         <div class="method-summary">
           <h2>In plain English</h2>
           <ol>
-            <li><b>Start with the teams before the match.</b> Each team has an estimated strength and a level of uncertainty.</li>
-            <li><b>Calculate the expected result.</b> The strength difference, venue and historical era determine the expected score.</li>
-            <li><b>Check how the teams have been scoring.</b> A separate hidden layer tracks whether each team has recently scored or conceded more than its network strength would suggest.</li>
-            <li><b>Combine the two forecasts.</b> The network supplies most of the final probability and the scoring layer makes a smaller correction. If that correction would change the network's most likely result, it is not used for that match.</li>
-            <li><b>Compare expectation with reality.</b> An unexpected result creates a larger rating adjustment than an expected one.</li>
-            <li><b>Use the winning margin.</b> Larger victories contain more information, but the effect is capped and adjusted for the scoring environment of the era.</li>
-            <li><b>Update the opponent network.</b> Shared opponents connect teams, so the model can compare teams that have never met directly.</li>
-            <li><b>Allow for uncertainty.</b> The public rating is deliberately cautious when a team's evidence is limited or concentrated within a small group.</li>
+            <li><b>Freeze the start of the matchday.</b> Every match with the same complete date is predicted before any result from that date is learned.</li>
+            <li><b>Estimate strength through the opponent network.</b> A result informs both participants and, through shared opponents, the wider connected system.</li>
+            <li><b>Allow for uncertainty.</b> New or inactive teams are less certain; uncertainty falls as relevant evidence accumulates.</li>
+            <li><b>Calculate W/D/L.</b> Strength difference, venue, era and uncertainty produce the network forecast.</li>
+            <li><b>Check how the teams have been scoring.</b> A hidden attack and defence model estimates whether each team has recently scored or conceded more than its network strength suggests.</li>
+            <li><b>Blend without changing the network pick.</b> The score correction is retained up to the exact boundary at which the network's most likely W/D/L result would change.</li>
+            <li><b>Learn jointly after the date.</b> Surprise and winning margin determine the information supplied by each result; all same-date evidence is applied in one order-invariant update.</li>
+            <li><b>Publish strength and record quality separately.</b> The rankings use posterior mean strength. A conservative record score additionally accounts for opponent breadth and correctly propagated uncertainty.</li>
           </ol>
-          <p><b>The important distinction:</b> the scoring layer changes match probabilities only. It does not change any team's rating, ranking, historical peak or the rating points gained from a result.</p>
+          <p><b>The hidden score layer changes match probabilities only.</b> It never changes strength ratings, rankings, peaks or rating movements.</p>
         </div>
 
-        <div class="callout"><b>Why use an opponent network?</b> A match tells us the difference between two teams, not either team's absolute strength. Connections through common opponents provide the wider context needed to compare regions and eras. The model keeps track of how certain those comparisons are.</div>
+        <h2>1. Latent strength and uncertainty</h2>
+        <p>Team strengths form a joint Gaussian approximation <code>r ~ N(μ,Σ)</code>. The full covariance matrix is essential: it records how evidence about one team is connected to every other team. Before a participant's next date, its diagonal variance receives Brownian drift:</p>
+        <div class="formula">Σᵢᵢ ← Σᵢᵢ + ${number(p.network.drift_sd, 10)}² Δt</div>
+        <p>A debutant starts with standard deviation <b>${rating(p.network.prior_sd)}</b> and a mean relative to the active international pool:</p>
+        <div class="formula">μnew = median(active established pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>
+        <p>All teams debuting on the same known date receive the same pre-date pool prior. Incomplete historical dates are kept in their source sequence rather than treating every unknown day as simultaneous.</p>
 
-        <h2>1. Expected result</h2>
-        <p>First, the model calculates the effective rating gap. For team 1 against team 2, <code>h</code> is +1 when team 1 is at home, −1 when team 2 is at home, and 0 at a neutral venue:</p>
-        <div class="formula">δ = a(y)(μ₁ − μ₂) + H(y)h<br>E = 1 / (1 + 10^(−δ/400))</div>
-        <p><code>μ</code> is underlying team strength, <code>a(y)</code> controls how strongly a rating gap predicts results in year <code>y</code>, and <code>H(y)</code> is home advantage. <code>E</code> is the expected fractional score: 1 for a win, 0.5 for a draw and 0 for a loss.</p>
-        <p>Football and international schedules have changed over time, so the model uses the following era values. Values between the listed years are smoothly interpolated.</p>
-        <div class="table-hint" aria-hidden="true">Swipe to see all parameters →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent Elo divisor</th><th class="numeric">Home advantage</th><th class="numeric">Draw chance at equal strength</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === 4 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
+        <h2>2. Expected result and football era</h2>
+        <div class="formula">δ = a(y)(μ₁ − μ₂) + H(y)h<br>E = 1 / [1 + 10^(−δ/400)]</div>
+        <p><code>h</code> is +1 for team one's home advantage, −1 for team two's and 0 at a neutral venue. <code>E</code> is expected fractional score. Era values are smoothly interpolated; gap scale is interpolated in log space, draw rate in a bounded-logit coordinate and home advantage linearly.</p>
+        <div class="table-hint" aria-hidden="true">Swipe to see all parameters →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
 
-        <h2>2. Win, draw and loss probabilities</h2>
-        <p>The network expected score is first divided into win, draw and loss probabilities. The draw probability is highest when teams are evenly matched and falls as the gap grows:</p>
-        <div class="formula">D = pD(y) · 4E(1 − E)<br>W = E − D/2<br>L = 1 − E − D/2</div>
-        <p><code>W</code>, <code>D</code> and <code>L</code> are team 1's win, draw and loss probabilities. The calculation integrates the full uncertainty in the strength difference. Its fitted temperature is <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies and <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches. Call the resulting vector <code>Pnetwork</code>.</p>
+        <h2>3. Network W/D/L forecast</h2>
+        <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
+        <p>This construction preserves <code>W + D/2 = E</code>. NFELO integrates W/D/L over the uncertainty <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature. It then raises the probabilities to power <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies or <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches and renormalises. Competition class changes forecast calibration; historical testing did not support different state-update information ratios.</p>
 
-        <h3>Hidden attack and defence layer</h3>
-        <p>A second, parallel model tracks attack residual <code>Aᵢ</code> and defence residual <code>Dᵢ</code> for each team. These begin at zero and never enter the published rating. The causal goal baseline uses only matches already played in the current and preceding ${number(f.goal_environment_years)} years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
-        <div class="formula">B = [${number(2 * f.goal_prior_matches * f.goal_prior_per_team, 0)} + previous goals] / [${number(2 * f.goal_prior_matches)} + 2(previous matches)]<br>g = ${number(f.parameters.gap_scale, 1)} ln[E/(1−E)]<br>λ₁ = B exp(g/2 + A₁ − D₂)<br>λ₂ = B exp(−g/2 + A₂ − D₁)</div>
-        <p>Independent Poisson goal distributions with means <code>λ₁</code> and <code>λ₂</code> are summed into <code>Pscore(W/D/L)</code>. Expected goals are limited to 0.05–8.00. Before a team's next match, its attack and defence residuals are multiplied by <code>exp(−${number(f.parameters.annual_decay, 1)}t)</code>, where <code>t</code> is elapsed years. This gives a half-life of about 2.31 years.</p>
-        <p>After the forecast—not before it—the scoring state learns from the result:</p>
-        <div class="formula">rᵢ = clip[min(goalsᵢ, ${number(f.parameters.goal_update_cap)}) − λᵢ, −${number(f.parameters.goal_residual_cap)}, +${number(f.parameters.goal_residual_cap)}]<br>Aᵢ′ = Aᵢ + (${number(f.parameters.learning_rate, 2)}/2)rᵢ<br>Dⱼ′ = Dⱼ − (${number(f.parameters.learning_rate, 2)}/2)rᵢ</div>
-        <p>The same mirrored update is made for the opponent's goals. Friendlies and competitive matches update this hidden scoring state equally; testing did not support a separate friendly learning rate.</p>
+        <h2>4. Hidden attack and defence forecast</h2>
+        <p>The probability-only layer tracks attack residual <code>Aᵢ</code> and defence residual <code>Dᵢ</code>. Its goal baseline uses the current and preceding ${number(f.goal_environment_years)} calendar years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
+        <div class="formula">B = [${number(2 * f.goal_prior_matches * f.goal_prior_per_team, 0)} + previous goals] / [${number(2 * f.goal_prior_matches)} + 2(previous matches)]<br>g = ${number(f.parameters.gap_scale, 1)} ln[E/(1−E)]<br>λ₁ = B exp(g/2+A₁−D₂)<br>λ₂ = B exp(−g/2+A₂−D₁)</div>
+        <p>Independent Poisson scores are collapsed to W/D/L. Residuals decay as <code>exp(−${number(f.parameters.annual_decay, 1)}t)</code>. Only after every forecast on the date is stored are clipped goal residuals learned:</p>
+        <div class="formula">rᵢ = clip[min(goalsᵢ,${number(f.parameters.goal_update_cap)})−λᵢ,−${number(f.parameters.goal_residual_cap)},+${number(f.parameters.goal_residual_cap)}]<br>Aᵢ′ = Aᵢ + (${number(f.parameters.learning_rate, 2)}/2)rᵢ<br>Dⱼ′ = Dⱼ − (${number(f.parameters.learning_rate, 2)}/2)rᵢ</div>
 
-        <h3>Annual calibration, blend and safety rule</h3>
-        <p>At the start of each calendar year, the score probabilities and blend weight are refitted using only the preceding ${number(f.calibration_window_years)} complete calendar years. For ${number(f.calibration.year)}, that means ${number(f.calibration.training_matches)} matches from ${number(f.calibration.training_first_year)}–${number(f.calibration.training_last_year)}. The current score calibration uses draw log tilt <b>${number(f.calibration.draw_log_tilt, 4)}</b>, friendly power <b>${number(f.calibration.friendly_temperature, 4)}</b> and competitive power <b>${number(f.calibration.competitive_temperature, 4)}</b>.</p>
-        <div class="formula">Ppool = ${number(f.calibration.nfelo_weight, 4)} Pnetwork + ${number(f.calibration.score_weight, 4)} Pscore<br>Pfinal = Ppool, if argmax(Ppool) = argmax(Pnetwork)<br>Pfinal = Pnetwork, otherwise</div>
-        <p>The complete network vector is therefore restored whenever the blend would change the network's most-likely win/draw/loss call. This guarantees that the probability layer cannot lower the model's recorded top-outcome accuracy. The structural values are frozen; only the scheduled annual calibration is refitted by the published rule.</p>
+        <h3>Annual calibration and boundary gate</h3>
+        <p>At each January boundary, draw tilt, friendly/competitive powers and the linear-pool weight are fitted using only the preceding ${number(f.calibration_window_years)} complete years. The current calibration for ${number(f.calibration.year)} uses ${number(f.calibration.training_matches)} matches from ${number(f.calibration.training_first_year)}–${number(f.calibration.training_last_year)}.</p>
+        <div class="formula">Ppool = ${number(f.calibration.nfelo_weight, 4)}Pnetwork + ${number(f.calibration.score_weight, 4)}Pscore<br>Pfinal = Pnetwork + t(Ppool−Pnetwork)<br>t = largest value in [0,1] that preserves argmax(Pnetwork)</div>
+        <p>The older all-or-nothing gate restored the complete network vector when the pool crossed the boundary. The audited gate retains the maximum safe fraction instead, preserving every top pick while retaining useful probability information.</p>
 
-        <h2>3. Winning margin</h2>
-        <p>A 4–0 result is stronger evidence than a 1–0 result, but four times the margin should not produce four times the rating change. The margin is capped at seven goals and compared with decisive matches in the preceding 20 years. This prevents high-scoring eras from receiving unfairly large adjustments.</p>
-        <div class="formula">C(y) = [20·1.10 + Σ(min(mᵣ,7)−1)] / (20 + N)<br>m* = min[7, 1 + (min(m,7)−1)(1.10/max(0.10,C))^${number(p.goal_margin.environment_power, 10)}]</div>
-        <p>After this adjustment, the information weights are: draw <b>${number(p.goal_margin.draw, 3)}</b>, one-goal win <b>1.000</b>, two-goal win <b>${number(p.goal_margin.two, 3)}</b>, three-goal win <b>${number(p.goal_margin.three, 3)}</b>, and <b>${number(p.goal_margin.tail, 3)}</b> more for each additional effective goal.</p>
+        <h3>Exact-score grid</h3>
+        <p>The displayed score grid is reconciled to the final W/D/L vector. For a scoreline in outcome region <code>o</code>:</p>
+        <div class="formula">P*(i,j) = Praw(i,j) · Pfinal(o) / Praw(o)</div>
+        <p>Relative scoreline probabilities within wins, draws and losses are unchanged, while the full grid now sums to the same three outcome probabilities shown above it. Tail mass is included before the visible 0–5 cells are cut off.</p>
 
-        <h2>4. Updating team strength and uncertainty</h2>
-        <p>The model stores all team strengths in <code>μ</code> and their joint uncertainty in <code>Σ</code>. Before a team plays, its uncertainty increases slightly according to the time since its previous match. A new team begins with standard deviation <b>${rating(p.network.prior_sd)}</b>. For the match, let <code>x=e₁−e₂</code>, <code>v=Σx</code>, <code>V=xᵀΣx</code>, <code>β=a(y)ln(10)/400</code>, and <code>λ=${number(p.network.quality_scale, 6)}G(m)</code>.</p>
-        <div class="formula">d = 1 + λβ²E(1−E)V<br>μ′ = μ + v · λβ(S−E)/d<br>Σ′ = Σ − vvᵀ · λβ²E(1−E)/d</div>
-        <p><code>S</code> is the actual fractional score and <code>G(m)</code> is the margin weight. The mean update is larger when a result is surprising and informative. The uncertainty update reflects how much the match taught us. Every result receives the same network-rating evidence weight; match class affects probability calibration, not the rating update.</p>
+        <h2>5. Goal margin and the joint date update</h2>
+        <p>Goal margin is capped at seven and normalised against decisive scoring in the preceding 20 years. The information weights are draw <b>${number(p.goal_margin.draw, 3)}</b>, one goal <b>1.000</b>, two goals <b>${number(p.goal_margin.two, 3)}</b>, three goals <b>${number(p.goal_margin.three, 3)}</b>, and <b>${number(p.goal_margin.tail, 3)}</b> per further effective goal.</p>
+        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code>, <code>βₖ=a(y)ln(10)/400</code>, <code>λₖ=${number(p.network.quality_scale, 6)}G(mₖ)</code>, frozen curvature <code>cₖ=λₖβₖ²Eₖ(1−Eₖ)</code> and score gradient <code>gₖ=xₖλₖβₖ(Sₖ−Eₖ)</code>. The complete matchday update is:</p>
+        <div class="formula">Σ′ = [Σ⁻¹ + Σₖ cₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
+        <p>This is an assumed-density Gaussian update, not an exact Bayesian posterior for the displayed three-way likelihood. It is invariant to arbitrary within-date row order.</p>
 
-        <h2>5. New teams and successor histories</h2>
-        <p>A new team starts near the median strength of active, established teams rather than at an arbitrary fixed rating. The starting value also adjusts modestly for the size of the active international pool:</p>
-        <div class="formula">μdebut = median(active pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>
-        <p>Historical names that represent the same continuing national side are joined into one successor history. Separate national teams are not merged merely because they share geography or political ancestry.</p>
+        <h2>6. Strength rating and conservative record score</h2>
+        <p>Let <code>B</code> be the mean latent strength of the ten strongest eligible active teams. The main rating is:</p>
+        <div class="formula">Strengthᵢ = 2000 + μᵢ − B</div>
+        <p>This posterior mean supplies current and historical rankings. Its uncertainty is shown separately and includes covariance with the elite reference. It is not subtracted from the strength estimate.</p>
+        <p>For the record book, recent-opponent weights have an eight-year half-life. Their effective distinct count gives <code>ρ=N/(N+4)</code>:</p>
+        <div class="formula">Mᵢ = 2000 + ρᵢ(μᵢ−B)<br>Recordᵢ = Mᵢ − 1.644854·SE(Mᵢ)</div>
+        <p>If the elite set is <code>𝓔</code> of size <code>k</code>, the propagated variance is:</p>
+        <div class="formula">Var(Mᵢ)=ρᵢ²[Σᵢᵢ+k⁻²1ᵀΣ𝓔𝓔1−2k⁻¹Σⱼ∈𝓔Σᵢⱼ]</div>
+        <p>The analogous coefficient-vector variance is used for combined matchup records. Teams require 30 previous matches for the current table and record book; current rankings additionally require an appearance within four years.</p>
 
-        <h2>6. The rating shown on the site</h2>
-        <p>The public ranking is calculated only from the opponent-network strength and uncertainty—not from the hidden scoring layer. It uses a cautious presentation so that teams with a narrow or poorly connected schedule do not appear artificially high. Recent opponents receive more weight, with an eight-year half-life. The effective number of distinct opponents gives breadth reliability <code>ρ=N/(N+4)</code>. <code>B</code> is the average underlying strength of the active top ten.</p>
-        <div class="formula">Mᵢ = 2000 + ρᵢ(μᵢ − B)<br>NRᵢ = Mᵢ − 1.64485362695 √Σᵢᵢ<br>Qᵢⱼ = Mᵢ + Mⱼ − 1.64485362695 √(Σᵢᵢ+Σⱼⱼ+2Σᵢⱼ)</div>
-        <p><code>M</code> is breadth-adjusted strength, <code>NR</code> is the displayed team rating, and <code>Q</code> is the combined rating of a matchup. The subtraction of 1.645 standard errors is a conservative uncertainty allowance. A historical peak or matchup enters the records after both teams have at least 30 earlier matches.</p>
+        <h2>7. What the validation numbers do—and do not—show</h2>
+        <h3>Primary evidence: nested historical holdout</h3>
+        <div class="metric-grid"><div><span>NFELO network log loss</span><strong>${number(nested.log_loss, 4)}</strong></div><div><span>Best scalar Elo</span><strong>${number(nested.best_scalar_elo_log_loss, 4)}</strong></div><div><span>Published WFER</span><strong>${number(nested.published_wfe_log_loss, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(nested.accuracy)}</strong></div></div>
+        <p>The original five-block rolling evaluation contains ${number(nested.matches)} predictions from 1960 onward. Model choices used earlier blocks and were tested on later blocks. Its exact original fitter programs and frozen derived dataset were not retained, so the aggregate report is persuasive comparative evidence but cannot currently be reconstructed bit-for-bit.</p>
 
-        <h2>7. How the model was tested</h2>
-        <p>Testing used rolling historical cut-offs: score-state parameters were chosen using earlier matches, annual calibration used only the preceding eight complete years, and forecasts were evaluated on later matches. This produced ${number(summary.validation.matches)} pre-match predictions from 1960 to 2026. The outcome-preserving layer improved every one of the five chronological test blocks.</p>
-        <div class="metric-grid"><div><span>Log loss</span><strong>${number(summary.validation.log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(summary.validation.brier, 4)}</strong></div><div><span>Ranked probability score</span><strong>${number(summary.validation.rps, 4)}</strong></div><div><span>Most likely outcome correct</span><strong>${percent(summary.validation.accuracy)}</strong></div></div>
-        <p>Lower values are better for the first three measures. Log loss is primary because it rewards accurate probabilities and strongly penalises unjustified certainty. Network-only NFELO scored <b>${number(summary.validation.network_only_log_loss, 4)}</b>; the final layer scored <b>${number(summary.validation.log_loss, 4)}</b>, with a paired year-cluster 95% difference interval of <b>${number(summary.validation.log_loss_difference_low_95, 4)}</b> to <b>${number(summary.validation.log_loss_difference_high_95, 4)}</b>. Both made exactly the same most-likely-result calls by construction. The comparison World Football Elo forecast scored <b>${number(summary.validation.published_wfe_log_loss, 4)}</b>.</p>
+        <h3>Secondary evidence: retrospective replay</h3>
+        <div class="metric-grid"><div><span>Final layer log loss</span><strong>${number(replay.log_loss, 4)}</strong></div><div><span>Network-only log loss</span><strong>${number(replay.network_only_log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(replay.brier, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(replay.accuracy)}</strong></div></div>
+        <p>This ${number(replay.matches)}-match diagnostic replays final constants through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
 
-        <h2>8. Important limitations</h2>
-        <p>The model uses match results, score, date, venue and competition type. It does not know the selected squad, injuries, red cards, travel, rest, tactics, weather or betting-market information. The probability improvement is statistically supported but small; ratings and probabilities remain estimates, not certainties or betting advice.</p>
+        <h2>8. Reproducibility and limitations</h2>
+        <p>The repository records a methodology version, source hash and first-published prospective forecast for every identified future fixture. Historical validation must be labelled as nested holdout, retrospective replay or prospective. Routine data refreshes rebuild history but do not refit the structural constants; annual probability calibration follows its declared prior-years-only rule.</p>
+        <p>NFELO uses results, scores, dates, venue and competition class. It does not know squads, injuries, red cards, tactics, travel, rest, weather or betting markets. Political successor mappings remain a modelling assumption. Ratings and probabilities are estimates, not certainties or betting advice.</p>
       </article>`;
   }
 
@@ -1552,20 +1615,26 @@ function renderFAQ() {
     content.innerHTML = `
       <div class="page page-narrow">
         <p class="eyebrow">Data · updates · limitations</p><h1>About</h1>
-        <p class="lede">Network Football Elo is an independent international football rating and prediction system. It covers senior men's internationals from 1872 to the present.</p>
+        <p class="lede">Network Football Elo is an independent, results-only international football strength and prediction system. It covers senior men's internationals from 1872 to the present and publishes its evidence limits alongside its results.</p>
         <section class="section split">
-          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
+          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Methodology: ${escapeHTML(summary.meta.methodology_version)}<br>Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
           <div class="panel panel-dark"><p class="eyebrow">Automatic updates</p><h2>Checked three times daily.</h2><p class="muted">Results and fixtures are checked after the main Americas, Asia/Oceania and Europe/Africa match windows. Each update is validated and the complete rating history is rebuilt before publication. If new data fails validation, the existing site remains online unchanged.</p></div>
         </section>
         <article class="section prose">
           <h2>Data sources</h2>
           <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
-          <p>When new results arrive, the entire history is recalculated in chronological order. This matters because each rating and hidden scoring state depends on earlier results. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is automatically refitted from the preceding eight complete calendar years under the published rule; this scheduled calculation does not alter ratings or rankings.</p>
+          <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen state, then all of that date's evidence is learned jointly. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings.</p>
+          <h2>Rankings and records answer different questions</h2>
+          <p>The rankings use posterior mean strength: the model's best estimate of present playing ability. The conservative record score is used separately in the record book and accounts for uncertainty and opponent breadth. Neither score is changed by the hidden attack and defence forecast layer.</p>
+          <h2>Validation labels</h2>
+          <p>The primary comparative result is the original nested historical holdout: NFELO network log loss ${number(summary.validation.nested.log_loss, 4)} against ${number(summary.validation.nested.published_wfe_log_loss, 4)} for published WFER. The lower ${number(summary.validation.retrospective.log_loss, 4)} figure is explicitly a retrospective replay with final constants, not another out-of-sample result.</p>
+          <h2>Prospective record</h2>
+          <p>For every identified future fixture and methodology version, the first published probability vector is appended to an immutable repository ledger. Later results can therefore be scored against a forecast that was genuinely recorded beforehand rather than reconstructed with hindsight.</p>
           <h2>What the model does not know</h2>
           <p>It does not use line-ups, player availability, injuries, red cards, travel, rest, tactical matchups, weather or betting markets. Its probabilities describe the historical-information model, not certainty and not a recommendation to wager.</p>
           <h2>Quality checks</h2>
-          <p>Every update checks the source format, row count, dates, scores and team names. The site is published only after the ratings are rebuilt and automated consistency tests pass.</p>
+          <p>Every update checks the source format, row count, dates, scores, team names, probability sums, date-order invariance, covariance validity, strength/record fields and score-grid reconciliation. The site is published only after the complete rebuild and automated test suite pass.</p>
         </article>
       </div>`;
   }
@@ -1626,4 +1695,3 @@ function renderFAQ() {
   window.addEventListener("hashchange", route);
   route();
 })();
-

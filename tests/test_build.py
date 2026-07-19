@@ -16,9 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
-from forecast_layer import outcome_preserving_pool, poisson_wdl  # noqa: E402
+from forecast_layer import (  # noqa: E402
+    outcome_preserving_pool,
+    poisson_wdl,
+    raked_score_matrix,
+)
 from fetch_sources import fetch_world_table  # noqa: E402
-from model import three_way_probabilities  # noqa: E402
+from model import joint_gaussian_update, three_way_probabilities  # noqa: E402
 from open_results import merge_record, venue_country  # noqa: E402
 
 
@@ -72,18 +76,28 @@ class StaticBuildTests(unittest.TestCase):
         self.assertEqual(len(self.state["means"]), count)
         self.assertEqual(len(self.state["covariance"]), count * count)
         self.assertTrue(all(math.isfinite(value) for value in self.state["means"]))
+        covariance = np.asarray(self.state["covariance"], dtype=np.float64).reshape(count, count)
+        self.assertTrue(np.allclose(covariance, covariance.T, atol=1e-8))
+        self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
+        self.assertEqual(meta["methodology_version"], "2026-07-19-audited-date-batch")
 
     def test_rankings_and_records_are_sorted(self) -> None:
         ratings = [team["rating"] for team in self.summary["current"]]
         peaks = [item["rating"] for item in self.summary["peaks"]]
+        record_peaks = [item["record_rating"] for item in self.summary["record_peaks"]]
         matches = [item["combined"] for item in self.summary["top_matches"]]
         upsets = [item["points"] for item in self.summary["upsets"]]
         self.assertEqual(ratings, sorted(ratings, reverse=True))
         self.assertEqual(peaks, sorted(peaks, reverse=True))
+        self.assertEqual(record_peaks, sorted(record_peaks, reverse=True))
         self.assertEqual(matches, sorted(matches, reverse=True))
         self.assertEqual(upsets, sorted(upsets, reverse=True))
         self.assertTrue(all(item["winner_gain"] > 0 and item["loser_loss"] > 0 for item in self.summary["upsets"]))
         self.assertEqual(len({item["code"] for item in self.summary["peaks"]}), len(self.summary["peaks"]))
+        self.assertTrue(all(
+            all(field in team for field in ("rating", "se", "record_rating", "record_mean", "record_se"))
+            for team in self.summary["teams"]
+        ))
 
     def test_all_matches_are_chunked_once(self) -> None:
         index = json.loads((self.data / "matches" / "index.json").read_text(encoding="utf-8"))
@@ -128,8 +142,21 @@ class StaticBuildTests(unittest.TestCase):
 
     def test_public_readme_avoids_internal_setup_language(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
+        normalised_readme = " ".join(readme.split())
         self.assertNotIn("codex", readme)
         self.assertNotIn("bake-off", readme)
+        self.assertIn("nested historical holdout", normalised_readme)
+        self.assertIn("retrospective diagnostic", normalised_readme)
+        self.assertIn("prospective_forecasts.jsonl", readme)
+        validation = (ROOT / "docs" / "model-validation.md").read_text(encoding="utf-8").lower()
+        for phrase in (
+            "nested historical holdout",
+            "retrospective full-history replay",
+            "prospective",
+            "joint order-invariant date update",
+            "strength versus conservative records",
+        ):
+            self.assertIn(phrase, validation)
 
     def test_team_matches_use_names_from_the_match_date(self) -> None:
         germany = json.loads((self.data / "teams" / "DE.json").read_text(encoding="utf-8"))
@@ -159,9 +186,63 @@ class StaticBuildTests(unittest.TestCase):
         self.assertTrue(np.allclose(first, second[::-1], atol=1e-14))
         network = np.asarray((0.41, 0.30, 0.29))
         score = np.asarray((0.10, 0.20, 0.70))
-        final, reverted = outcome_preserving_pool(network, score, 0.55)
-        self.assertTrue(reverted)
-        self.assertTrue(np.array_equal(final, network))
+        candidate = 0.55 * network + 0.45 * score
+        final, clipped = outcome_preserving_pool(network, score, 0.55)
+        self.assertTrue(clipped)
+        self.assertNotEqual(int(np.argmax(candidate)), int(np.argmax(network)))
+        self.assertEqual(int(np.argmax(final)), int(np.argmax(network)))
+        self.assertFalse(np.array_equal(final, network))
+        self.assertAlmostEqual(float(final.sum()), 1.0, places=12)
+
+        swapped, swapped_clipped = outcome_preserving_pool(
+            network[::-1], score[::-1], 0.55
+        )
+        self.assertEqual(swapped_clipped, clipped)
+        self.assertTrue(np.allclose(final, swapped[::-1], atol=1e-12))
+
+    def test_joint_date_update_is_order_invariant(self) -> None:
+        mean = np.asarray((12.0, -4.0, 7.5, -15.5), dtype=np.float64)
+        covariance = np.asarray(
+            (
+                (900.0, 75.0, 20.0, -15.0),
+                (75.0, 800.0, 40.0, 10.0),
+                (20.0, 40.0, 700.0, 55.0),
+                (-15.0, 10.0, 55.0, 850.0),
+            ),
+            dtype=np.float64,
+        )
+        observations = [
+            (0, 1, 0.0007, 0.020),
+            (2, 3, 0.0011, -0.018),
+            (0, 2, 0.0004, 0.009),
+        ]
+        first_mean, first_covariance, contributions = joint_gaussian_update(
+            mean, covariance, observations
+        )
+        second_mean, second_covariance, _ = joint_gaussian_update(
+            mean, covariance, list(reversed(observations))
+        )
+        self.assertTrue(np.allclose(first_mean, second_mean, atol=1e-10))
+        self.assertTrue(np.allclose(first_covariance, second_covariance, atol=1e-10))
+        self.assertTrue(np.allclose(
+            first_mean - mean,
+            np.sum(np.asarray(contributions), axis=0),
+            atol=1e-10,
+        ))
+        self.assertGreaterEqual(float(np.linalg.eigvalsh(first_covariance).min()), -1e-8)
+
+    def test_raked_score_matrix_matches_final_wdl(self) -> None:
+        final = np.asarray((0.47, 0.28, 0.25), dtype=np.float64)
+        matrix = raked_score_matrix(1.73, 1.06, final)
+        rows, columns = np.indices(matrix.shape)
+        actual = np.asarray((
+            matrix[rows > columns].sum(),
+            matrix[rows == columns].sum(),
+            matrix[rows < columns].sum(),
+        ))
+        self.assertTrue(np.allclose(actual, final, atol=1e-12))
+        swapped = raked_score_matrix(1.06, 1.73, final[::-1])
+        self.assertTrue(np.allclose(matrix, swapped.T, atol=1e-12))
 
     def test_deployed_forecast_layer_matches_the_audited_release(self) -> None:
         layer = self.state["forecast_layer"]
@@ -176,10 +257,10 @@ class StaticBuildTests(unittest.TestCase):
         # producing indistinguishable forecasts. Keep this tight enough to
         # detect a real release change without requiring bitwise optimisation.
         self.assertAlmostEqual(
-            calibration["draw_log_tilt"], 0.1502408248, delta=0.00005
+            calibration["draw_log_tilt"], 0.1501971, delta=0.00005
         )
         self.assertAlmostEqual(
-            calibration["nfelo_weight"], 0.5655029347, delta=0.00005
+            calibration["nfelo_weight"], 0.56458821, delta=0.00005
         )
         self.assertEqual(len(layer["attack"]), len(self.state["codes"]))
         self.assertEqual(len(layer["defence"]), len(self.state["codes"]))
@@ -195,11 +276,16 @@ class StaticBuildTests(unittest.TestCase):
                 losses.append(-math.log(max(match["p"][outcome], 1e-15)))
                 matches += 1
         self.assertEqual(matches, 46_801)
-        # Daily results legitimately move this aggregate by a few millionths.
-        # Allow harmless data drift while still detecting a material forecast change.
+        validation = self.summary["validation"]
+        actual_log_loss = sum(losses) / matches
         self.assertAlmostEqual(
-            sum(losses) / matches, 0.8807100827, delta=0.00005
+            actual_log_loss, validation["retrospective"]["log_loss"], places=6
         )
+        self.assertAlmostEqual(actual_log_loss, 0.8807, delta=0.0003)
+        self.assertEqual(validation["primary_evidence"], "nested_historical_holdout")
+        self.assertIn("rolling historical holdout", validation["nested"]["description"].lower())
+        self.assertIn("final constants replayed", validation["retrospective"]["description"].lower())
+        self.assertEqual(validation["retrospective"]["unknown_dates"], "sequential")
 
     def test_faq_page_is_complete_and_discoverable(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
@@ -207,7 +293,7 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 25)
+        self.assertEqual(javascript.count('question: "'), 28)
         self.assertIn("Search questions", javascript)
         self.assertIn("Expand all", javascript)
         self.assertIn("Collapse all", javascript)
@@ -240,7 +326,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("function numberOneTable", javascript)
         self.assertIn("function numberOneSummaryTable", javascript)
         self.assertIn('data-record="numberonesummary"', javascript)
-        self.assertIn("Change-triggering match", javascript)
+        self.assertIn("Relevant change-date result(s)", javascript)
         self.assertIn("Swipe to see every column", javascript)
         self.assertTrue(all("match" in spell for spell in spells))
         summaries = self.summary["number_one_summary"]
@@ -249,7 +335,7 @@ class StaticBuildTests(unittest.TestCase):
             summaries, key=lambda row: (-row["days"], row["first"], row["nation"])
         ))
         self.assertEqual(sum(row["spells"] for row in summaries), len(spells))
-        self.assertIn("Leadership is determined after all matches on each date", javascript)
+        self.assertIn("Leadership is determined jointly after all results on each date", javascript)
         brazil_2010 = next(
             spell for spell in spells
             if spell["code"] == "BR" and spell["from"] == "2010-11-17"
@@ -312,7 +398,8 @@ class StaticBuildTests(unittest.TestCase):
             "Exact-score grid",
             "Effect of each winning margin",
             "for (let margin = -5; margin <= 5; margin += 1)",
-            "poissonMasses(lambdaA, 5)",
+            "poissonMasses(lambdaA, 40)",
+            "rakedCell",
             "teams[0].code",
             "teams.find((team) => team.code !== codeA).code",
         ):
@@ -346,12 +433,28 @@ class StaticBuildTests(unittest.TestCase):
         for phrase in (
             "Check how the teams have been scoring",
             "changes match probabilities only",
-            "Hidden attack and defence layer",
-            "Annual calibration, blend and safety rule",
+            "Hidden attack and defence forecast",
+            "Annual calibration and boundary gate",
             "preceding eight complete calendar years",
+            "joint date update",
+            "nested historical holdout",
+            "retrospective replay",
+            "Conservative record score",
         ):
             self.assertIn(phrase, javascript)
         self.assertIn("applyForecastLayer", javascript)
+
+    def test_same_date_and_publication_safeguards_are_present(self) -> None:
+        model = (ROOT / "scripts" / "model.py").read_text(encoding="utf-8")
+        forecast = (ROOT / "scripts" / "forecast_layer.py").read_text(encoding="utf-8")
+        builder = (ROOT / "scripts" / "build_site.py").read_text(encoding="utf-8")
+        self.assertIn("debut = self.debut_mean(year)", model)
+        self.assertIn("self.initialise_with(index, first_match.day, debut)", model)
+        self.assertIn("joint_gaussian_update(", model)
+        self.assertIn("def predict_day(", forecast)
+        self.assertIn("No result enters any score state until every forecast is stored.", forecast)
+        self.assertIn("def update_prospective_ledger(", builder)
+        self.assertIn('source / "prospective_forecasts.jsonl"', builder)
 
     def test_upcoming_fixtures_are_sorted_and_probabilistic(self) -> None:
         fixtures = self.fixtures["fixtures"]
@@ -495,4 +598,3 @@ class StaticBuildTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
