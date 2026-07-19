@@ -1,86 +1,47 @@
 # Network Football Elo
 
-A static, searchable international-football rating site built from the public
-World Football Elo Ratings TSV ledger and a fixed, historically validated model.
-It includes current rankings, every historical source result, one
-all-time peak per nation, the highest-rated match instances, team histories,
-and a current-state probability calculator.
+[NFELO](https://nfelo.github.io/) is a static, searchable rating and prediction
+site for senior men's international football. It covers results from 1872 to
+the present, current and historical rankings, every source match, one peak per
+nation, top match instances, number-one chronology, team comparison and a
+date-aware probability calculator.
+
+## What the model publishes
+
+NFELO publishes one rating everywhere: current rankings, rankings on historical
+dates, nation peaks, team pages and match records all use the same
+evidence-adjusted network rating. A hidden attack/defence state refines match
+probabilities only; it never changes ratings, ranking order, peaks or points
+gained from results.
 
 The rating state is a full-covariance dynamic Gaussian opponent network. The
-familiar base-10 Elo curve remains the observation link; uncertainty, debut
-priors, era-adjusted home advantage and goal-margin information are replayed
-chronologically. Match probabilities add a parallel attack/defence score state,
-an annually calibrated linear pool and an outcome-preserving safety rule. That
-hidden layer never changes the displayed ratings or rankings.
+base-10 Elo expectation remains the observation link, while the model also
+represents uncertainty shared through common opponents, era-specific home and
+draw conditions, an active-pool debut prior and goal-margin information.
 
-## What is automatic
+Every match with a complete shared date is forecast from one frozen start-of-day
+state. Same-date debutants receive the same pre-date pool prior, and all results
+on that date are learned in a single order-invariant Gaussian update. Historical
+rows without a complete day remain in their source sequence.
 
-The Pages workflow runs daily at 06:20, 15:20 and 23:20 UTC, after the main
-Americas, Asia/Oceania and Europe/Africa match windows. It can also be run manually.
-It:
+## The public rating
 
-1. validates the public ranking and reference TSVs;
-2. refreshes team pages whose published rating changed;
-3. performs a full active-team reconciliation on Sundays;
-4. refuses empty, malformed or implausibly truncated source pages;
-5. replays all history with the frozen model;
-6. runs Python and JavaScript checks;
-7. deploys the new static artifact only after every check passes.
-
-Routine updates never refit rating or score-state structure. At the start of
-each calendar year, forecast calibration and the pool weight are refitted by a
-fixed rule using the preceding eight complete years. A structural re-fit remains
-a separate research release.
-
-## Local build
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements.txt
-python scripts/build_site.py
-python -m unittest discover -s tests -v
-node --check public/assets/app.js
-python -m http.server 8000 --directory public
-```
-
-Open `http://localhost:8000`. The site has no application server and sends no
-visitor data to a project backend.
-
-To check the public source before building:
-
-```bash
-python scripts/fetch_sources.py --source source
-```
-
-Use `--full` for an explicit full reconciliation. The fetcher is rate-limited,
-retries transient failures and stages every response before replacing the last
-good snapshot.
-
-## Repository layout
-
-- `source/` — validated first-party TSV snapshot.
-- `config/` — fixed deployment parameters and tournament metadata.
-- `scripts/ledger.py` — canonicalisation, deduplication and same-day ordering.
-- `scripts/model.py` — frozen network replay and conservative record layer.
-- `scripts/forecast_layer.py` — hidden scoring state, annual calibration and probability gate.
-- `scripts/build_site.py` — static JSON generation and build manifest.
-- `scripts/fetch_sources.py` — guarded public-source updater.
-- `public/` — GitHub Pages application shell; generated data is ignored by Git.
-- `.github/workflows/pages.yml` — scheduled refresh, checks and deployment.
-- `docs/` — held-out model evaluation and selection report.
-
-## Rating conventions
-
-Predictions use the joint posterior mean and covariance directly. The displayed
-network rating is intentionally conservative:
+Recent opponent weights have an eight-year half-life. Their effective distinct
+count gives reliability `rho_i = N_i / (N_i + 4)`. If `B` is the mean latent
+strength of the ten strongest eligible active teams, the published rating is:
 
 ```text
-M_i  = 2000 + breadth_reliability_i × (mu_i - elite_reference)
+M_i  = 2000 + rho_i × (mu_i - B)
 NR_i = M_i - 1.6448536269514715 × sqrt(Sigma_ii)
 ```
 
-The record score for a match is:
+The marginal variance `Sigma_ii` is retained deliberately. Cancelling uncertainty
+shared with a contemporaneous elite reference can make a small, inward-looking
+historical network appear far more certain—and therefore far stronger across
+eras—than the evidence warrants. The latent posterior mean remains available
+inside the forecast calculation but is not published as a competing ranking.
+
+For an eligible match instance:
 
 ```text
 Q_ij = M_i + M_j
@@ -89,24 +50,126 @@ Q_ij = M_i + M_j
 ```
 
 Both participants need 30 prior matches. Every match instance is retained;
-there is no one-per-pair rule.
+repeat pairings are not collapsed.
 
-## Source and status
+## Forecast probabilities
 
-Historical match rows and labels are from [World Football Elo Ratings](https://eloratings.net/).
-Recent results use the CC0 `international_results` dataset, with OpenFootball's
-public-domain World Cup JSON as a second, independently validated source. Future
-fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by
-TheSportsDB's documented schedule API for richer competition-specific details.
-Duplicate fixtures are merged and conflicting scores stop publication. Every pushed
-build refreshes sources first, preventing an older committed snapshot from replacing a
-newer deployment. This project is independent and is not affiliated with eloratings.net,
-FIFA or any confederation.
+The network forecast integrates uncertainty in the strength difference and
+uses separate friendly and competitive probability temperatures. A parallel
+team-specific attack/defence model produces a score-based W/D/L vector. Annual
+draw calibration, probability powers and the pool weight are fitted using only
+the preceding eight complete calendar years.
 
-The model omits line-ups, injuries, red cards, travel, rest, weather, tactics and
-betting markets. Its probabilities are model estimates, not betting advice.
+The score correction is boundary-gated: NFELO moves toward the pooled forecast
+only as far as it can without changing the network model's most likely W/D/L
+outcome. The exact-score table is then raked so its win, draw and loss regions
+sum to the displayed final probabilities; omitted scorelines above 5–5 remain
+in the reported tail mass.
+
+## What the 19 July 2026 audit changed
+
+The audit supported the existing core constants and did not justify a broad
+parameter refit. This release adopts the findings that improve chronology,
+probability consistency and publication quality without replacing the public
+rating:
+
+- complete-date forecasts and score states are frozen at the start of the day;
+- same-date network evidence is learned jointly and is row-order invariant;
+- the probability gate retains the maximum safe score correction instead of
+  reverting the whole vector;
+- exact-score probabilities agree with the displayed W/D/L forecast;
+- first-published future forecasts are appended to a versioned prospective
+  ledger;
+- validation evidence is labelled by design; and
+- tests cover date order, covariance validity, probability symmetry, score-grid
+  reconciliation and historical peak guardrails.
+
+The audit's proposal to publish raw posterior-mean strength as the main ranking
+was not adopted. That signal predicted near-term results well, but it does not
+serve NFELO's cross-era record objective: cancelling common uncertainty made
+pre-First World War British football implausibly dominate the all-time table.
+The established evidence-adjusted rating remains the sole public measure.
+
+## Validation: two different evidence classes
+
+The primary comparative result is the original five-block **nested historical
+holdout** over 46,801 matches from 1960 onward:
+
+| Model | Three-way log loss |
+| --- | ---: |
+| NFELO network | **0.884219** |
+| Best tested scalar Elo | 0.892970 |
+| Published World Football Elo forecast | 0.902619 |
+
+Choices used earlier periods and were scored on later periods. The aggregate
+result is retained, but the original fitter programs and frozen derived dataset
+were not committed, so it cannot currently be reconstructed bit-for-bit.
+
+The site also calculates a **retrospective diagnostic** on every build by
+replaying the final constants through the fixed 1960–11 July 2026 window. It is
+useful for checking date batching, the boundary gate and other mechanics, but
+it is not a second out-of-sample estimate and must not be compared as if it were
+the same experiment as the nested holdout.
+
+From this release onward, first-published fixture probabilities are stored in
+`source/prospective_forecasts.jsonl` by methodology version, source hash,
+model-state hash and results-through date. That ledger supplies genuinely
+prospective evidence as matches are completed.
+
+See [Model validation](docs/model-validation.md) and the
+[19 July 2026 methodology audit](docs/methodology-audit-2026-07-19.md). The
+executable reproduction materials are retained under
+`research/methodology-audit-2026-07-19/`.
+
+## Automatic updates
+
+The Pages workflow checks results and fixtures at 06:20, 15:20 and 23:20 UTC.
+It validates and stages external data, replays the complete history, runs the
+test suite and deploys only a verified static artifact. If input or model checks
+fail, the last good site remains online.
+
+Routine updates do not refit core rating or score-state structure. At each
+January boundary, only the declared forecast calibration is refitted from the
+preceding eight complete years.
+
+## Local build
+
+```bash
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+python scripts/build_site.py --source source --config config --output public
+python -m unittest discover --start-directory tests --verbose
+node --check public/assets/app.js
+python -m http.server 8000 --directory public
+```
+
+## Repository layout
+
+- `source/` — validated results, fixtures and the prospective forecast ledger.
+- `config/` — frozen deployment parameters and tournament metadata.
+- `scripts/ledger.py` — identity mapping, deduplication and source ordering.
+- `scripts/model.py` — date-batched opponent-network replay and public rating.
+- `scripts/forecast_layer.py` — hidden score state, annual calibration and gate.
+- `scripts/build_site.py` — static data, history, records and fixture generation.
+- `scripts/fetch_sources.py` — guarded multi-source updater.
+- `public/` — GitHub Pages application shell; generated data is ignored by Git.
+- `tests/` — model, data, UI and historical regression checks.
+- `docs/` and `research/` — validation, audit and reproduction materials.
+
+## Data and limitations
+
+Historical rows and labels are based on [World Football Elo Ratings](https://eloratings.net/).
+Recent results also use the CC0 `international_results` dataset and OpenFootball's
+public-domain World Cup data. Future fixtures use the World Football Elo schedule
+plus TheSportsDB. Duplicate events are merged; conflicting scores stop publication.
+
+NFELO does not use squads, injuries, red cards, tactics, travel, rest, weather
+or betting markets. Political successor mappings and cross-era comparison remain
+modelling assumptions. Ratings and probabilities are estimates, not certainties
+or betting advice.
 
 ## License
 
-The project code is MIT-licensed. Source data remains attributable to its
-publisher and is not relicensed by this repository.
+Project code is MIT-licensed. Source data remains attributable to its publisher
+and is not relicensed by this repository.

@@ -189,6 +189,78 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
     }
 
 
+def update_prospective_ledger(
+    source: Path,
+    fixture_payload: dict[str, Any],
+    summary: dict[str, Any],
+    state: dict[str, Any],
+    generated_at: str,
+) -> None:
+    """Append the first published forecast for each fixture and model version."""
+    path = source / "prospective_forecasts.jsonl"
+    existing: set[tuple[str, str]] = set()
+    if path.exists():
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+                existing.add((str(row["fixture_key"]), str(row["model_version"])))
+            except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+                raise ValueError(
+                    f"Invalid prospective forecast ledger row {line_number}"
+                ) from error
+    model_version = str(summary["meta"]["methodology_version"])
+    state_sha256 = hashlib.sha256(
+        json.dumps(
+            compact(state),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    additions: list[str] = []
+    for fixture in fixture_payload.get("fixtures", []):
+        fixture_key = "|".join(str(fixture.get(key, "")) for key in (
+            "date", "team1_code", "team2_code", "tournament_code", "home_sign",
+        ))
+        identity = (fixture_key, model_version)
+        if identity in existing:
+            continue
+        existing.add(identity)
+        additions.append(json.dumps({
+            "fixture_key": fixture_key,
+            "model_version": model_version,
+            "published_at": generated_at,
+            "results_through": summary["meta"]["results_through"],
+            "source_sha256": summary["meta"]["source_sha256"],
+            "state_sha256": state_sha256,
+            "date": fixture.get("date"),
+            "team1_code": fixture.get("team1_code"),
+            "team2_code": fixture.get("team2_code"),
+            "team1_name": fixture.get("team1_name"),
+            "team2_name": fixture.get("team2_name"),
+            "tournament_code": fixture.get("tournament_code"),
+            "tournament_name": fixture.get("tournament_name"),
+            "home_sign": fixture.get("home_sign"),
+            "rating1": fixture.get("rating1"),
+            "rating2": fixture.get("rating2"),
+            "probabilities": fixture.get("probabilities"),
+        }, ensure_ascii=False, separators=(",", ":")))
+    if additions:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        needs_separator = (
+            path.exists()
+            and path.stat().st_size > 0
+            and not path.read_bytes().endswith(b"\n")
+        )
+        with path.open("a", encoding="utf-8") as handle:
+            if needs_separator:
+                handle.write("\n")
+            handle.write("\n".join(additions))
+            handle.write("\n")
+
+
 def build_ranking_movements(output: Any) -> None:
     """Attach calendar-year rating and rank movement to each current team."""
     results_day = date.fromisoformat(output.summary["meta"]["results_through"])
@@ -359,10 +431,17 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     trigger_matches = incoming_matches
                 else:
                     trigger_matches = outgoing_matches
-                trigger = (
-                    max(trigger_matches, key=lambda row: row["id"])
-                    if trigger_matches else None
-                )
+                trigger_matches = sorted(trigger_matches, key=lambda row: row["id"])
+                trigger_rows = [{
+                    "id": trigger["id"],
+                    "team1_code": trigger["a"],
+                    "team2_code": trigger["b"],
+                    "team1": trigger["an"],
+                    "team2": trigger["bn"],
+                    "score1": trigger["sa"],
+                    "score2": trigger["sb"],
+                    "competition": trigger["t"],
+                } for trigger in trigger_matches]
                 number_ones.append({
                     "code": leader["code"],
                     "nation": leader["nation"],
@@ -371,16 +450,8 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     "rating": leader["rating"],
                     "displaced_code": previous["code"] if changed_team and previous else None,
                     "displaced": previous["nation"] if changed_team and previous else None,
-                    "match": None if trigger is None else {
-                        "id": trigger["id"],
-                        "team1_code": trigger["a"],
-                        "team2_code": trigger["b"],
-                        "team1": trigger["an"],
-                        "team2": trigger["bn"],
-                        "score1": trigger["sa"],
-                        "score2": trigger["sb"],
-                        "competition": trigger["t"],
-                    },
+                    "matches": trigger_rows,
+                    "match": trigger_rows[0] if len(trigger_rows) == 1 else None,
                 })
 
     for spell in number_ones:
@@ -445,7 +516,15 @@ def main() -> None:
     build_ranking_movements(output)
     write_json(data / "summary.json", output.summary)
     write_json(data / "state.json", output.state)
-    write_json(data / "fixtures.json", build_fixtures(args.source, output))
+    fixtures = build_fixtures(args.source, output)
+    write_json(data / "fixtures.json", fixtures)
+    update_prospective_ledger(
+        args.source,
+        fixtures,
+        output.summary,
+        output.state,
+        generated_at,
+    )
 
     decades: dict[int, list[dict[str, Any]]] = {}
     for match in output.matches:

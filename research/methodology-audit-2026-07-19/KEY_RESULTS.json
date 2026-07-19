@@ -1,0 +1,99 @@
+{
+  "audit": {
+    "date": "2026-07-19",
+    "repository_commit": "b005b42da17269a8908bec5bb6a1102143e13b52",
+    "evaluation_matches": 46801,
+    "evaluation_first_year": 1960,
+    "evaluation_last_date": "2026-07-11",
+    "primary_metric": "three-way logarithmic loss"
+  },
+  "integration_erratum": {
+    "issue": "The audit evaluator grouped incomplete dates by a synthetic numeric day, including one possible cross-year collision.",
+    "release_rule": "Complete dates are jointly updated; incomplete dates remain sequential.",
+    "release_retrospective_log_loss_at_fixed_cutoff": 0.88068317,
+    "note": "The release value is generated from deployed match rows and may move in its final digits if the historical source ledger is corrected."
+  },
+  "original_nested_bakeoff": {
+    "recommended_network_two_temperatures": 0.8842187104883077,
+    "best_scalar_elo": 0.8929697600474259,
+    "g_elo": 0.8951867643842724,
+    "published_world_football_elo": 0.9026185159798847,
+    "note": "Reported by the original 2026-07-14 rolling bake-off; its named fitters and frozen dataset were not committed."
+  },
+  "current_retrospective_replay": {
+    "network_log_loss": 0.8821363219958934,
+    "ungated_score_pool_log_loss": 0.8806666271004614,
+    "deployed_full_reversion_gate_log_loss": 0.8806927596154633,
+    "boundary_gate_log_loss": 0.8806598962094806,
+    "warning": "Final core constants fitted through 2026 are replayed into the past; these are not nested out-of-sample estimates."
+  },
+  "strict_date_diagnostics": {
+    "date_frozen_sequential_update_network_log_loss": 0.8822278098687248,
+    "joint_order_invariant_date_update_network_log_loss": 0.882077027204,
+    "date_frozen_score_full_reversion_log_loss": 0.880797325175773,
+    "date_frozen_score_boundary_gate_log_loss": 0.8807574473512944,
+    "joint_date_score_full_reversion_log_loss": 0.880609188406299,
+    "joint_date_score_boundary_gate_log_loss": 0.8805681065716152,
+    "joint_date_boundary_minus_joint_date_full_reversion_ci95": [-0.00008292244688408998, -0.000000917969472475482],
+    "joint_date_boundary_minus_current_deployed_ci95": [-0.0004366765712305955, 0.0001142520835793063]
+  },
+  "core_ablations_candidate_minus_full": {
+    "diagonal_covariance": {
+      "log_loss_difference": 0.005429675799026848,
+      "ci95": [0.0041077207023709405, 0.006927989123584274]
+    },
+    "no_goal_margin": {
+      "log_loss_difference": 0.0023880286309061307,
+      "ci95": [0.0009274201265246732, 0.0036648008618512537]
+    },
+    "no_successor_merging": {
+      "log_loss_difference": 0.0010777910858971956,
+      "ci95": [0.00046395346772068794, 0.0018330603390702437]
+    },
+    "joint_order_invariant_date_update": {
+      "log_loss_difference": -0.000059332483842435796,
+      "ci95": [-0.00036508910899488546, 0.00022128178616549236]
+    }
+  },
+  "parameter_search": {
+    "deployed_era_baseline_log_loss": 0.8821442883074377,
+    "deployed_era_selected_log_loss": 0.8813219108923575,
+    "selected_minus_baseline_ci95": [-0.002357003710956391, 0.0002646241672891629],
+    "order_invariant_selected_log_loss": 0.8814327615060359,
+    "conclusion": "No statistically reliable new global core constants; fold winners are unstable."
+  },
+  "score_layer_tests": {
+    "best_joint_pool_sequential_log_loss": 0.8805994641557315,
+    "joint_pool_minus_deployed_ci95": [-0.00043020064563005343, 0.00022296651564739594],
+    "best_joint_pool_date_frozen_log_loss": 0.880708204893296,
+    "dixon_coles_minus_uncorrected_log_loss": 0.00004061369824356589,
+    "dixon_coles_difference_ci95": [-0.00004144951209251422, 0.00013834382651507044]
+  },
+  "ranking_proxy": {
+    "eligible_matches": 43076,
+    "latent_mean_log_loss": 0.891291207061717,
+    "public_breadth_lcb_log_loss": 0.897179030907948,
+    "latent_minus_public_difference": -0.005887823846231016,
+    "latent_minus_public_ci95": [-0.0072873463780905295, -0.004661807550735777],
+    "audit_conclusion": "Use latent posterior mean for strength; label a correctly propagated lower bound as a separate conservative record score.",
+    "release_decision": "Do not publish raw latent strength as the cross-era ranking. Retain the single evidence-adjusted public rating because the raw/covariance-cancelled release made the weakly connected pre-WWI British network dominate historical peaks."
+  },
+  "integrated_release": {
+    "mechanics_adopted": [
+      "complete-date frozen forecasts",
+      "same-date debut prior",
+      "joint order-invariant Gaussian date update",
+      "date-frozen score layer",
+      "boundary outcome-preserving pool",
+      "raked exact-score grid",
+      "nested/retrospective/prospective evidence labels",
+      "prospective forecast ledger"
+    ],
+    "public_rating": "single evidence-adjusted rating using opponent breadth and marginal posterior uncertainty",
+    "core_constants": "unchanged",
+    "current_rank_order_changes_vs_reverted_release": 0,
+    "top_20_peak_order_changes_vs_reverted_release": 0,
+    "maximum_peak_rating_change_vs_reverted_release": 3.872073,
+    "pre_wwi_british_teams_in_top_20_peaks": 1
+  }
+}
