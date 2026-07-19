@@ -219,7 +219,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("function faqSearchTokens", javascript)
         self.assertIn('token.endsWith("ies")', javascript)
         self.assertIn("terms.every", javascript)
-        self.assertIn('href="#/faq">Questions? Read the FAQ â†’</a>', javascript)
+        self.assertIn('href="#/faq">Questions? Read the FAQ', javascript)
         self.assertIn("https://github.com/nfelo/nfelo.github.io", javascript)
         teams = {team["code"]: team["nation"] for team in self.summary["teams"]}
         self.assertEqual(teams["AS"], "American Samoa")
@@ -420,9 +420,9 @@ class StaticBuildTests(unittest.TestCase):
         public = ROOT / "public"
         rankings = (public / "rankings" / "index.html").read_text(encoding="utf-8")
         argentina = (public / "team" / "AR" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("<title>Rankings Â· Network Football Elo</title>", rankings)
+        self.assertIn("<title>Rankings &middot; Network Football Elo</title>", rankings)
         self.assertIn("https://nfelo.github.io/rankings/", rankings)
-        self.assertIn("<title>Argentina Â· Network Football Elo</title>", argentina)
+        self.assertIn("<title>Argentina &middot; Network Football Elo</title>", argentina)
         self.assertIn("https://nfelo.github.io/team/AR/", argentina)
         sitemap = (public / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn("https://nfelo.github.io/team/AR/", sitemap)
