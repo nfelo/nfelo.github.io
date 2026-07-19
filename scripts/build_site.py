@@ -96,13 +96,13 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
     for path, title, description in entries:
         canonical = f"{root}{path}/"
         html = template
-        html = re.sub(r"<title>.*?</title>", f"<title>{title} Â· Network Football Elo</title>", html)
+        html = re.sub(r"<title>.*?</title>", f"<title>{title} &middot; Network Football Elo</title>", html)
         html = re.sub(r'(<meta name="description" content=")[^"]*', rf"\g<1>{description}", html)
         html = re.sub(r'(<link rel="canonical" href=")[^"]*', rf"\g<1>{canonical}", html)
-        html = re.sub(r'(<meta property="og:title" content=")[^"]*', rf"\g<1>{title} Â· Network Football Elo", html)
+        html = re.sub(r'(<meta property="og:title" content=")[^"]*', rf"\g<1>{title} &middot; Network Football Elo", html)
         html = re.sub(r'(<meta property="og:description" content=")[^"]*', rf"\g<1>{description}", html)
         html = re.sub(r'(<meta property="og:url" content=")[^"]*', rf"\g<1>{canonical}", html)
-        html = re.sub(r'(<meta name="twitter:title" content=")[^"]*', rf"\g<1>{title} Â· Network Football Elo", html)
+        html = re.sub(r'(<meta name="twitter:title" content=")[^"]*', rf"\g<1>{title} &middot; Network Football Elo", html)
         html = re.sub(r'(<meta name="twitter:description" content=")[^"]*', rf"\g<1>{description}", html)
         target = output / path / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
