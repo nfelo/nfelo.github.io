@@ -1451,6 +1451,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/[[:space:]]\+$//' docs/methodology-audit-2026-07-19.md
           python - <<'PY'
           import json
           from pathlib import Path
