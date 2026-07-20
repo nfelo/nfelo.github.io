@@ -1195,10 +1195,11 @@
         const environment = useCurrent ? 1.1 : historical.context?.margin_environment ?? 1.1;
         const beta = Math.log(10) * scale / 400;
         const quality = summary.parameters.network.quality_scale;
+        const classRatio = friendly ? summary.parameters.network.friendly_information_ratio : 1;
         const rows = [];
         for (let margin = -5; margin <= 5; margin += 1) {
           const result = margin > 0 ? 1 : margin < 0 ? 0 : 0.5;
-          const weight = quality * marginWeight(margin, environment);
+          const weight = quality * marginWeight(margin, environment) * classRatio;
           const information = Math.max(1e-8, expected * (1 - expected));
           const curvature = weight * beta * beta * information;
           const denominator = 1 + curvature * variance;
@@ -1352,11 +1353,11 @@ const FAQ_ITEMS = [
   },
   {
     question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
-    answer: "Not in the traditional Elo sense. Historical testing found that assigning progressively larger rating updates to supposedly more important competitions did not improve out-of-sample forecasting. The released model therefore uses a common underlying information weight. However, friendlies and competitive matches use different forecast calibration because their results exhibit somewhat different predictive patterns."
+    answer: "Not in the traditional Elo sense. The competitive classes share the same underlying information ratio because progressively larger updates for qualifiers and tournaments did not improve the historical evaluation reliably. Friendlies are the supported exception: they supply 0.63901 times the network information of a competitive match. Friendly and competitive forecasts also retain separate probability calibration."
   },
   {
     question: "Does that mean a friendly is treated exactly like a World Cup match?",
-    answer: "No. They share the same underlying update structure, but individual rating changes are still affected by the result, opponent strength, score margin, uncertainty and network position. Competition type is also used when calibrating forecast probabilities. No K-factor hierarchy does not mean every match produces the same-sized update."
+    answer: "No. A friendly supplies exactly 0.63901 times the network information assigned to a competitive match before uncertainty is accounted for. That does not mean its displayed points change will always be exactly 63.901% as large: opponent strength, surprise, score margin, covariance and the joint matchday update all matter. Friendlies also use separate forecast calibration."
   },
   {
     question: "How is home advantage handled?",
@@ -1388,7 +1389,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How was the methodology selected?",
-    answer: "The core was selected using a five-block nested historical holdout: choices used earlier periods and were scored later. A subsequent audit ran thousands of additional fits and replays. It supported the existing constants, date-level mechanics, boundary gate and reconciled score grid, but did not justify a broad refit. Retrospective replays are labelled separately from the original holdout."
+    answer: "The core was selected using a five-block nested historical holdout: choices used earlier periods and were scored later. A subsequent audit ran thousands of additional fits and replays. A dedicated post-audit sensitivity study then replayed all 52312 results while varying only friendly information from zero to extreme values; 0.63901 gave the lowest retrospective log loss across 46806 scored forecasts from 1960 onward. That last comparison is labelled retrospective rather than presented as a new holdout."
   },
   {
     question: "Is NFELO always more likely to predict the correct result than other systems?",
@@ -1532,7 +1533,7 @@ function renderFAQ() {
             <li><b>Calculate W/D/L.</b> Strength difference, venue, era and uncertainty produce the network forecast.</li>
             <li><b>Check how the teams have been scoring.</b> A hidden attack and defence model estimates whether each team has recently scored or conceded more than its network strength suggests.</li>
             <li><b>Blend without changing the network pick.</b> The score correction is retained up to the exact boundary at which the network's most likely W/D/L result would change.</li>
-            <li><b>Learn jointly after the date.</b> Surprise and winning margin determine the information supplied by each result; all same-date evidence is applied in one order-invariant update.</li>
+            <li><b>Learn jointly after the date.</b> Surprise and winning margin determine the information supplied by each result; friendlies contribute 0.63901 times the network information of competitive matches, and all same-date evidence is applied in one order-invariant update.</li>
             <li><b>Publish one cautious rating.</b> Opponent breadth and marginal uncertainty prevent a strong-looking but weakly connected historical cluster from dominating the rankings or record book.</li>
           </ol>
           <p><b>The hidden score layer changes match probabilities only.</b> It never changes strength ratings, rankings, peaks or rating movements.</p>
@@ -1552,7 +1553,7 @@ function renderFAQ() {
 
         <h2>3. Network W/D/L forecast</h2>
         <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
-        <p>This construction preserves <code>W + D/2 = E</code>. NFELO integrates W/D/L over the uncertainty <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature. It then raises the probabilities to power <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies or <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches and renormalises. Competition class changes forecast calibration; historical testing did not support different state-update information ratios.</p>
+        <p>This construction preserves <code>W + D/2 = E</code>. NFELO integrates W/D/L over the uncertainty <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature. It then raises the probabilities to power <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies or <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches and renormalises. Competitive classes share one state-update ratio; friendlies supply <b>${number(p.network.friendly_information_ratio, 5)}</b> times the network information of a competitive result.</p>
 
         <h2>4. Hidden attack and defence forecast</h2>
         <p>The probability-only layer tracks attack residual <code>Aᵢ</code> and defence residual <code>Dᵢ</code>. Its goal baseline uses the current and preceding ${number(f.goal_environment_years)} calendar years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
@@ -1572,9 +1573,9 @@ function renderFAQ() {
 
         <h2>5. Goal margin and the joint date update</h2>
         <p>Goal margin is capped at seven and normalised against decisive scoring in the preceding 20 years. The information weights are draw <b>${number(p.goal_margin.draw, 3)}</b>, one goal <b>1.000</b>, two goals <b>${number(p.goal_margin.two, 3)}</b>, three goals <b>${number(p.goal_margin.three, 3)}</b>, and <b>${number(p.goal_margin.tail, 3)}</b> per further effective goal.</p>
-        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code>, <code>βₖ=a(y)ln(10)/400</code>, <code>λₖ=${number(p.network.quality_scale, 6)}G(mₖ)</code>, frozen curvature <code>cₖ=λₖβₖ²Eₖ(1−Eₖ)</code> and score gradient <code>gₖ=xₖλₖβₖ(Sₖ−Eₖ)</code>. The complete matchday update is:</p>
+        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code>, <code>βₖ=a(y)ln(10)/400</code> and class ratio <code>qₖ=${number(p.network.friendly_information_ratio, 5)}</code> for a friendly or <code>qₖ=1</code> for a competitive match. Then <code>λₖ=${number(p.network.quality_scale, 6)}G(mₖ)qₖ</code>, frozen curvature <code>cₖ=λₖβₖ²Eₖ(1−Eₖ)</code> and score gradient <code>gₖ=xₖλₖβₖ(Sₖ−Eₖ)</code>. The complete matchday update is:</p>
         <div class="formula">Σ′ = [Σ⁻¹ + Σₖ cₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
-        <p>This is an assumed-density Gaussian update, not an exact Bayesian posterior for the displayed three-way likelihood. It is invariant to arbitrary within-date row order.</p>
+        <p>This is an assumed-density Gaussian update, not an exact Bayesian posterior for the displayed three-way likelihood. It is invariant to arbitrary within-date row order. The friendly multiplier reduces both gradient and curvature before the joint update; the resulting displayed point movement is therefore not a simple fixed percentage.</p>
 
         <h2>6. The one public NFELO rating</h2>
         <p>Let <code>B</code> be the mean latent strength of the ten strongest eligible active teams. Recent-opponent weights have an eight-year half-life; their effective distinct count gives breadth reliability <code>ρ=N/(N+4)</code>. The same public rating is used for current rankings, historical rankings, nation peaks and team pages:</p>
@@ -1593,6 +1594,9 @@ function renderFAQ() {
         <h3>Secondary evidence: retrospective replay</h3>
         <div class="metric-grid"><div><span>Final layer log loss</span><strong>${number(replay.log_loss, 4)}</strong></div><div><span>Network-only log loss</span><strong>${number(replay.network_only_log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(replay.brier, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(replay.accuracy)}</strong></div></div>
         <p>This ${number(replay.matches)}-match diagnostic replays final constants through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
+
+        <h3>Friendly-information sensitivity</h3>
+        <p>A separate post-audit study replayed all 52312 source results and scored 46806 forecasts from 1960 through 19 July 2026 while varying only the friendly network-information ratio. The numerical minimum was <b>0.63901</b>: log loss fell from <b>0.880682</b> at equal weight to <b>0.880236</b>. A paired calendar-year bootstrap favoured the lower weight in 99.1% of samples, with a 95% improvement interval of 0.000076–0.000853. Nearby values from roughly 0.62 to 0.72 were practically close, so five decimal places describe the frozen release constant rather than measurement certainty.</p>
 
         <h2>8. Reproducibility and limitations</h2>
         <p>The repository records a methodology version, source hash and first-published prospective forecast for every identified future fixture. Historical validation must be labelled as nested holdout, retrospective replay or prospective. Routine data refreshes rebuild history but do not refit the structural constants; annual probability calibration follows its declared prior-years-only rule.</p>

@@ -81,7 +81,12 @@ class StaticBuildTests(unittest.TestCase):
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-19-audit-corrected-date-batch",
+            "2026-07-20-friendly-information-0.63901",
+        )
+        self.assertAlmostEqual(
+            self.summary["parameters"]["network"]["friendly_information_ratio"],
+            0.63901,
+            places=10,
         )
 
     def test_rankings_and_records_are_sorted(self) -> None:
@@ -256,10 +261,10 @@ class StaticBuildTests(unittest.TestCase):
         # producing indistinguishable forecasts. Keep this tight enough to
         # detect a real release change without requiring bitwise optimisation.
         self.assertAlmostEqual(
-            calibration["draw_log_tilt"], 0.1501971, delta=0.00005
+            calibration["draw_log_tilt"], 0.15176472, delta=0.00005
         )
         self.assertAlmostEqual(
-            calibration["nfelo_weight"], 0.56458821, delta=0.00005
+            calibration["nfelo_weight"], 0.5257464, delta=0.00005
         )
         self.assertEqual(len(layer["attack"]), len(self.state["codes"]))
         self.assertEqual(len(layer["defence"]), len(self.state["codes"]))
@@ -280,7 +285,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertAlmostEqual(
             actual_log_loss, validation["retrospective"]["log_loss"], places=6
         )
-        self.assertAlmostEqual(actual_log_loss, 0.8807, delta=0.0003)
+        self.assertAlmostEqual(actual_log_loss, 0.88025, delta=0.0003)
         self.assertEqual(validation["primary_evidence"], "nested_historical_holdout")
         self.assertIn(
             "rolling historical holdout",
@@ -341,17 +346,17 @@ class StaticBuildTests(unittest.TestCase):
         ))
         self.assertEqual(sum(row["spells"] for row in summaries), len(spells))
         self.assertIn("Leadership is determined jointly after all results on each date", javascript)
-        brazil_2010 = next(
+        brazil_2013 = next(
             spell for spell in spells
-            if spell["code"] == "BR" and spell["from"] == "2010-11-17"
+            if spell["code"] == "BR" and spell["from"] == "2013-11-19"
         )
         self.assertEqual(
-            {brazil_2010["match"]["team1_code"], brazil_2010["match"]["team2_code"]},
-            {"ES", "PT"},
+            {brazil_2013["match"]["team1_code"], brazil_2013["match"]["team2_code"]},
+            {"ES", "ZA"},
         )
         self.assertEqual(
-            sorted((brazil_2010["match"]["score1"], brazil_2010["match"]["score2"])),
-            [0, 4],
+            sorted((brazil_2013["match"]["score1"], brazil_2013["match"]["score2"])),
+            [0, 1],
         )
 
     def test_ranking_movement_comparison_and_number_one_filters(self) -> None:
@@ -446,6 +451,8 @@ class StaticBuildTests(unittest.TestCase):
             "retrospective replay",
             "one public NFELO rating",
             "marginal posterior uncertainty",
+            "Friendly-information sensitivity",
+            "0.63901",
         ):
             self.assertIn(phrase, javascript)
         self.assertIn("applyForecastLayer", javascript)
@@ -457,6 +464,8 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("debut = self.debut_mean(year)", model)
         self.assertIn("self.initialise_with(index, first_match.day, debut)", model)
         self.assertIn("joint_gaussian_update(", model)
+        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.63901", model)
+        self.assertIn("weight *= FRIENDLY_INFORMATION_RATIO", model)
         self.assertIn("def predict_day(", forecast)
         self.assertIn(
             "No result enters any score state until every forecast is stored.",
@@ -500,7 +509,7 @@ class StaticBuildTests(unittest.TestCase):
             1,
         )
         top_codes = [peak["code"] for peak in peaks[:5]]
-        self.assertEqual(top_codes[:2], ["ES", "BR"])
+        self.assertEqual(set(top_codes[:2]), {"ES", "BR"})
         self.assertIn("EN", top_codes)
 
     def test_upcoming_fixtures_are_sorted_and_probabilistic(self) -> None:

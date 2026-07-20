@@ -43,7 +43,7 @@ The 19 July 2026 audit reconstructed the deployed chronology and ran more than
 
 - retain full opponent covariance;
 - retain the goal-margin model and active-pool debut prior;
-- retain the common state-update information ratio across competitions;
+- retain a common state-update information ratio across competitive classes;
 - retain two friendly/competitive probability temperatures;
 - do not replace the frozen core constants with unstable fold winners;
 - forecast complete dates from one frozen pre-date state;
@@ -56,6 +56,21 @@ The 19 July 2026 audit reconstructed the deployed chronology and ran more than
 The audit did not support Dixon–Coles when log loss remained primary, a new
 global core fit, different competitive update ratios, or a retrospective
 replacement of the existing score-state release schedule.
+
+### Post-audit friendly-information sensitivity
+
+The audit grouped all competition classes when deciding whether to refit the
+core broadly. A subsequent one-dimensional study isolated the friendly
+state-update ratio while keeping every other released mechanic fixed. It
+replayed all 52,312 results through 19 July 2026 and scored 46,806 forecasts from
+1960 onward. The retrospective log-loss minimum was 0.63901, at 0.880236 versus
+0.880682 for ratio 1.00. A paired calendar-year bootstrap favoured the reduced
+ratio in 99.1% of samples, with a 95% improvement interval of
+0.000076–0.000853.
+
+The exact fifth decimal is a frozen release value, not a claim of equivalent
+statistical precision: nearby ratios from roughly 0.62 to 0.72 were practically
+close. Competitive classes remain at ratio 1.00.
 
 ### Core ablations
 

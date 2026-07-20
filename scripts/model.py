@@ -52,6 +52,7 @@ ACTIVE_POOL_SLOPE = -84.24860586823341
 PRIOR_SD = 299.99999999999994
 DRIFT_SD = 19.750212594949737
 QUALITY_SCALE = 1.7440260583320362
+FRIENDLY_INFORMATION_RATIO = 0.63901
 FRIENDLY_TEMPERATURE = 0.9697407083655329
 COMPETITIVE_TEMPERATURE = 1.0635626456560392
 
@@ -298,9 +299,9 @@ class NetworkEloReplay:
         return self.tournament_names.get(code, code)
 
     def level(self, tournament: str) -> int:
-        # The state-update information ratio is one at every level. For a new
-        # source code, only the friendly/competitive forecast temperature is
-        # material, and F is the source's friendly code.
+        # Competitive levels share one state-update information ratio.
+        # Friendlies use the separately validated ratio below, and F is the
+        # source's friendly code.
         return self.levels.get(tournament, 0 if tournament == "F" else 1)
 
     def active_indices(self, year: int, years: int) -> list[int]:
@@ -617,6 +618,8 @@ class NetworkEloReplay:
             for item in pending:
                 match = item["match"]
                 weight = QUALITY_SCALE * goal_weight(match.margin, margin_environment)
+                if item["level"] == 0:
+                    weight *= FRIENDLY_INFORMATION_RATIO
                 beta = math.log(10.0) * item["scale"] / 400.0
                 information = max(1e-8, item["expected"] * (1.0 - item["expected"]))
                 curvature = weight * beta * beta * information
@@ -865,7 +868,7 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-19-audit-corrected-date-batch",
+                "methodology_version": "2026-07-20-friendly-information-0.63901",
                 "results_through": last_match.date_text,
                 "matches": len(self.matches),
                 "teams": self.count,
@@ -901,7 +904,10 @@ class NetworkEloReplay:
                     "prior_sd": PRIOR_SD,
                     "drift_sd": DRIFT_SD,
                     "quality_scale": QUALITY_SCALE,
-                    "competition_information_ratios": [1, 1, 1, 1, 1],
+                    "friendly_information_ratio": FRIENDLY_INFORMATION_RATIO,
+                    "competition_information_ratios": [
+                        FRIENDLY_INFORMATION_RATIO, 1, 1, 1, 1
+                    ],
                 },
                 "forecast_temperature": {
                     "friendly": FRIENDLY_TEMPERATURE,

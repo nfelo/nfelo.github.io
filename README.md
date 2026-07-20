@@ -18,6 +18,7 @@ The rating state is a full-covariance dynamic Gaussian opponent network. The
 base-10 Elo expectation remains the observation link, while the model also
 represents uncertainty shared through common opponents, era-specific home and
 draw conditions, an active-pool debut prior and goal-margin information.
+Competitive results use information ratio 1.00; friendlies use 0.63901.
 
 Every match with a complete shared date is forecast from one frozen start-of-day
 state. Same-date debutants receive the same pre-date pool prior, and all results
@@ -66,6 +67,11 @@ outcome. The exact-score table is then raked so its win, draw and loss regions
 sum to the displayed final probabilities; omitted scorelines above 5–5 remain
 in the reported tail mass.
 
+The 0.63901 friendly multiplier applies to the opponent-network update before
+the joint matchday calculation. It scales both gradient and curvature, so a
+friendly's displayed point movement is not mechanically 63.901% of an otherwise
+similar competitive match.
+
 ## What the 19 July 2026 audit changed
 
 The audit supported the existing core constants and did not justify a broad
@@ -89,6 +95,21 @@ was not adopted. That signal predicted near-term results well, but it does not
 serve NFELO's cross-era record objective: cancelling common uncertainty made
 pre-First World War British football implausibly dominate the all-time table.
 The established evidence-adjusted rating remains the sole public measure.
+
+## Friendly-information study
+
+A post-audit sensitivity study replayed all 52,312 results through 19 July 2026
+while varying only the friendly state-update multiplier. Forecast scoring began
+in 1960, giving 46,806 evaluated matches. The lowest retrospective log loss was
+0.880236 at multiplier 0.63901, compared with 0.880682 when friendlies and
+competitive matches both used 1.00. A paired calendar-year bootstrap favoured
+the reduced value in 99.1% of samples; its 95% improvement interval was
+0.000076–0.000853.
+
+This is retrospective sensitivity evidence, not a replacement for the original
+nested holdout. Nearby values around 0.62–0.72 were practically close. The
+release freezes the numerical minimum at 0.63901 while retaining ratio 1.00 for
+every competitive class and continuing prospective evaluation.
 
 ## Validation: two different evidence classes
 
