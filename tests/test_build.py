@@ -642,26 +642,123 @@ class StaticBuildTests(unittest.TestCase):
             self.assertIn(f'id="{prefix}-all"', javascript)
         self.assertEqual(javascript.count(">Show more</button>"), javascript.count(">Show all</button>"))
 
-    def test_historical_rankings_are_chunked_by_year(self) -> None:
-        index = json.loads((self.data / "rankings-history" / "index.json").read_text(encoding="utf-8"))
-        self.assertEqual(index["first"][:4], str(index["years"][0]["year"]))
-        self.assertEqual(index["last"][:4], str(index["years"][-1]["year"]))
-        self.assertGreaterEqual(len(index["world_cups"]), 20)
-        latest = json.loads((self.data / "rankings-history" / index["years"][-1]["file"]).read_text(encoding="utf-8"))
-        self.assertEqual(latest["year"], int(index["last"][:4]))
+    def test_historical_rankings_and_tournaments_are_built(self) -> None:
+        history = json.loads(
+            (self.data / "rankings-history" / "index.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            history["first"][:4],
+            str(history["years"][0]["year"]),
+        )
+        self.assertEqual(
+            history["last"][:4],
+            str(history["years"][-1]["year"]),
+        )
+        self.assertNotIn("world_cups", history)
+        latest = json.loads(
+            (
+                self.data
+                / "rankings-history"
+                / history["years"][-1]["file"]
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(latest["year"], int(history["last"][:4]))
         self.assertTrue(latest["opening"])
-        self.assertEqual(latest["events"], sorted(latest["events"], key=lambda row: (row["date"], row["id"], row["code"])))
-        self.assertTrue(all(row["matches"] >= 30 for row in latest["opening"] + latest["events"]))
+        self.assertEqual(
+            latest["events"],
+            sorted(
+                latest["events"],
+                key=lambda row: (
+                    row["date"],
+                    row["id"],
+                    row["code"],
+                ),
+            ),
+        )
+        self.assertTrue(
+            all(
+                row["matches"] >= 30
+                for row in latest["opening"] + latest["events"]
+            )
+        )
 
-    def test_history_date_mask_and_world_cup_order(self) -> None:
-        javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        catalog = json.loads(
+            (self.data / "tournaments" / "index.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertTrue(catalog["categories"])
+        self.assertTrue(catalog["families"])
+        self.assertTrue(
+            all(family["editions"] for family in catalog["families"])
+        )
+        world_cup = next(
+            family
+            for family in catalog["families"]
+            if family["name"] == "FIFA World Cup"
+        )
+        self.assertGreaterEqual(len(world_cup["editions"]), 20)
+        self.assertTrue(
+            all(edition["teams"] for edition in world_cup["editions"])
+        )
+        copa = next(
+            family
+            for family in catalog["families"]
+            if family["name"] == "Copa América"
+        )
+        copa_1959 = [
+            edition["label"]
+            for edition in copa["editions"]
+            if edition["start"].startswith("1959-")
+        ]
+        self.assertGreaterEqual(len(copa_1959), 2)
+        self.assertTrue(all("1959" in label for label in copa_1959))
+        self.assertTrue(any("March" in label for label in copa_1959))
+        self.assertTrue(any("December" in label for label in copa_1959))
+
+    def test_history_and_tournament_interfaces(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        html = (ROOT / "public" / "index.html").read_text(
+            encoding="utf-8"
+        )
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        sitemap = (ROOT / "public" / "sitemap.xml").read_text(
+            encoding="utf-8"
+        )
+
         self.assertIn("formatHistoryDateInput", javascript)
         self.assertIn('maxlength="10"', javascript)
         self.assertIn("Day must be between 01 and 31.", javascript)
         self.assertIn("Month must be between 01 and 12.", javascript)
-        after = '`<option value="${cup.year}-after">After ${cup.year} World Cup</option>`'
-        before = '`<option value="${cup.year}-before">Before ${cup.year} World Cup</option>`'
-        self.assertLess(javascript.index(after), javascript.index(before))
+        self.assertNotIn('id="history-world-cup"', javascript)
+        self.assertIn(
+            'href="#/tournaments">Tournaments</a>',
+            html,
+        )
+        self.assertIn(
+            'case "tournaments": await renderTournaments(current); break;',
+            javascript,
+        )
+        self.assertIn('id="tournament-family"', javascript)
+        self.assertIn('id="tournament-edition"', javascript)
+        self.assertIn('id="tournament-view"', javascript)
+        self.assertIn("tournament_rank_change", javascript)
+        self.assertIn("tournament_rating_change", javascript)
+        self.assertIn("function tournamentRankingsTable", javascript)
+        self.assertIn("/* Tournament snapshots */", stylesheet)
+        self.assertIn(
+            "https://nfelo.github.io/tournaments/",
+            sitemap,
+        )
+        self.assertTrue(
+            (ROOT / "public" / "tournaments" / "index.html").exists()
+        )
 
     def test_public_metadata_and_discovery_files(self) -> None:
         public = ROOT / "public"

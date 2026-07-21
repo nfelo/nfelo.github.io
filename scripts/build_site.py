@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import shutil
 import re
+import unicodedata
 from typing import Any
 
 from model import (
@@ -76,6 +77,7 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
     routes = {
         "rankings": ("Rankings", "Current international football rankings from the Network Football Elo model."),
         "history": ("Historical rankings", "Reconstruct international football rankings on any historical matchday."),
+        "tournaments": ("Tournament rankings", "Compare participant rankings immediately before and after international tournaments."),
         "matches": ("Matches", "Search international football results and pre-match forecasts from 1872 onward."),
         "fixtures": ("Upcoming matches", "Upcoming senior internationals with current ratings and match probabilities."),
         "records": ("Records", "All-time national-team rating peaks, greatest matchups and largest upsets."),
@@ -318,6 +320,375 @@ def build_ranking_movements(output: Any) -> None:
         )
 
 
+
+TOURNAMENT_CATEGORY_ORDER = {
+    "Global championships": 0,
+    "Continental championships": 1,
+    "Nations leagues": 2,
+    "Regional championships": 3,
+    "Other tournaments": 4,
+}
+
+
+def folded_competition(value: str) -> str:
+    normalised = unicodedata.normalize("NFKD", value)
+    ascii_text = "".join(
+        character for character in normalised
+        if not unicodedata.combining(character)
+    )
+    return re.sub(r"\s+", " ", ascii_text.casefold()).strip()
+
+
+def tournament_identity(
+    competition: str,
+    level: int,
+) -> tuple[str, str] | None:
+    # Return a display category and stable tournament family name.
+    name = re.sub(r"\s+", " ", competition).strip()
+    folded = folded_competition(name)
+
+    if not name or level <= 0:
+        return None
+
+    qualifier = any(token in folded for token in (
+        "qualif",
+        "prelim",
+        "repechage",
+    ))
+    if "friendly" in folded or "warm-up" in folded:
+        return None
+
+    if folded in {"world cup", "fifa world cup"}:
+        return "Global championships", "FIFA World Cup"
+    if "olympic" in folded:
+        return "Global championships", "Olympic Games"
+    if "confederations cup" in folded or "king fahd cup" in folded:
+        return "Global championships", "FIFA Confederations Cup"
+    if "mundialito" in folded or "world champions gold cup" in folded:
+        return "Global championships", "Mundialito"
+    if "mini world cup" in folded:
+        return "Global championships", "Mini World Cup"
+    if "world football cup" in folded:
+        return "Global championships", "World Football Cup"
+    if "intercontinental championship" in folded:
+        return "Global championships", "Intercontinental Championship"
+    if "afro-asian cup" in folded:
+        return "Global championships", "Afro-Asian Cup"
+    if (
+        "finalissima" in folded
+        or "artemio franchi" in folded
+        or "intercontinental cup of nations" in folded
+    ):
+        return "Global championships", "Intercontinental champions match"
+
+    if not qualifier and (
+        "european championship" in folded
+        or folded in {"euro", "uefa euro"}
+    ):
+        return "Continental championships", "UEFA European Championship"
+    if not qualifier and (
+        "copa america" in folded
+        or "south american championship" in folded
+    ):
+        return "Continental championships", "Copa América"
+    if not qualifier and (
+        "africa cup of nations" in folded
+        or "african cup of nations" in folded
+        or folded == "african nations cup"
+    ):
+        return "Continental championships", "Africa Cup of Nations"
+    if "asian challenge cup" in folded:
+        return "Continental championships", "AFC Challenge Cup"
+    if "asian solidarity cup" in folded:
+        return "Continental championships", "AFC Solidarity Cup"
+    if not qualifier and "asian cup" in folded:
+        return "Continental championships", "AFC Asian Cup"
+    if not qualifier and (
+        "gold cup" in folded
+        or folded == "concacaf championship"
+    ):
+        return "Continental championships", "CONCACAF Gold Cup"
+    if not qualifier and (
+        "ofc nations cup" in folded
+        or "oceania nations cup" in folded
+    ):
+        return "Continental championships", "OFC Nations Cup"
+    if "panamerican championship" in folded:
+        return "Continental championships", "Panamerican Championship"
+
+    if "nations league" in folded and not qualifier:
+        if "uefa" in folded or "europe" in folded:
+            family = "UEFA Nations League"
+        elif "concacaf" in folded:
+            family = "CONCACAF Nations League"
+        elif "caf" in folded or "afric" in folded:
+            family = "CAF Nations League"
+        else:
+            family = name
+        return "Nations leagues", family
+
+    if any(token in folded for token in (
+        "asean championship",
+        "tiger cup",
+        "southeast asian championship",
+    )):
+        return "Regional championships", "ASEAN Championship"
+    if "british championship" in folded or "british home" in folded:
+        return "Regional championships", "British Championship"
+    if "baltic cup" in folded:
+        return "Regional championships", "Baltic Cup"
+    if "nordic championship" in folded:
+        return "Regional championships", "Nordic Championship"
+    if "caribbean cup" in folded:
+        return "Regional championships", "Caribbean Cup"
+    if "caribbean championship" in folded:
+        return "Regional championships", "Caribbean Championship"
+    if "central american cup" in folded:
+        return "Regional championships", "Central American Cup"
+    if "uncaf nations cup" in folded:
+        return "Regional championships", "UNCAF Nations Cup"
+    if "east asian championship" in folded:
+        return "Regional championships", "East Asian Championship"
+    if "west asian championship" in folded:
+        return "Regional championships", "West Asian Championship"
+    if "south asian championship" in folded:
+        return "Regional championships", "South Asian Championship"
+
+    regional_tokens = (
+        "arab cup",
+        "arab nations",
+        "gulf cup",
+        "asean",
+        "aff championship",
+        "saff",
+        "eaff",
+        "waff",
+        "cecafa",
+        "cosafa",
+        "unaf",
+        "caribbean cup",
+        "central american",
+        "baltic cup",
+        "british home",
+        "british championship",
+        "nordic championship",
+        "balkan cup",
+        "pan american games",
+        "pan-arab games",
+        "panarab games",
+        "panamerican games",
+        "asian games",
+        "african games",
+        "pacific games",
+        "mediterranean games",
+        "island games",
+        "afro-asian",
+        "merdeka",
+        "king's cup",
+        "kings cup",
+        "pestabola",
+        "south pacific games",
+        "indian ocean",
+        "east asian championship",
+        "west asian championship",
+        "south asian championship",
+        "central asian",
+        "west african",
+        "east and central african",
+        "cemac",
+        "uemoa",
+        "ecowas",
+        "cedeao",
+        "central african",
+        "unifac",
+        "cccf championship",
+        "north american championship",
+        "un caf",
+        "uncaf",
+        "caribbean championship",
+    )
+    if any(token in folded for token in regional_tokens):
+        return "Regional championships", name
+
+    if qualifier or "play-off" in folded or "playoff" in folded:
+        return None
+
+    # The source classifies competitive matches above level zero. Once
+    # qualifiers and friendlies are excluded, retain remaining named events so
+    # historical and less prominent tournaments stay discoverable.
+    return "Other tournaments", name
+
+
+def tournament_family_id(name: str) -> str:
+    folded = folded_competition(name)
+    slug = re.sub(r"[^a-z0-9]+", "-", folded).strip("-")[:48] or "tournament"
+    digest = hashlib.sha1(name.encode("utf-8")).hexdigest()[:8]
+    return f"{slug}-{digest}"
+
+
+def tolerant_tournament_date(value: str) -> date:
+    """Return a sortable date for imperfect historical source dates.
+
+    Some early source rows contain zero months/days or impossible dates
+    such as 31 February. Preserve their year/month ordering while
+    clamping the day to the nearest valid calendar date.
+    """
+    match = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", str(value))
+    if match is None:
+        raise ValueError(f"Unsupported tournament date: {value!r}")
+
+    year, month, day = (int(part) for part in match.groups())
+    month = min(12, max(1, month))
+    day = max(1, day)
+
+    try:
+        return date(year, month, day)
+    except ValueError:
+        next_month = (
+            date(year + 1, 1, 1)
+            if month == 12
+            else date(year, month + 1, 1)
+        )
+        return next_month - timedelta(days=1)
+
+
+def split_tournament_editions(
+    family: str,
+    matches: list[dict[str, Any]],
+) -> list[list[dict[str, Any]]]:
+    ordered = sorted(matches, key=lambda row: (tolerant_tournament_date(row["date"]), row["id"]))
+    if not ordered:
+        return []
+
+    nations_league = "nations league" in folded_competition(family)
+    editions: list[list[dict[str, Any]]] = [[ordered[0]]]
+
+    for match in ordered[1:]:
+        previous = editions[-1][-1]
+        previous_day = tolerant_tournament_date(previous["date"])
+        current_day = tolerant_tournament_date(match["date"])
+        gap = (current_day - previous_day).days
+
+        if nations_league:
+            edition_first = tolerant_tournament_date(editions[-1][0]["date"])
+            edition_span = (previous_day - edition_first).days
+            new_season = (
+                (
+                    previous_day.month <= 7
+                    and current_day.month >= 8
+                    and gap > 45
+                )
+                or (
+                    edition_span > 300
+                    and current_day.year > previous_day.year
+                    and gap > 120
+                )
+                or gap > 600
+            )
+        else:
+            new_season = gap > 120
+
+        if new_season:
+            editions.append([match])
+        else:
+            editions[-1].append(match)
+
+    return editions
+
+
+def tournament_edition_label(
+    first: date,
+    last: date,
+    same_year_editions: int,
+) -> str:
+    if first.year != last.year:
+        if last.year == first.year + 1:
+            return f"{first.year}–{str(last.year)[-2:]}"
+        return f"{first.year}–{last.year}"
+    if same_year_editions > 1:
+        return f"{first.strftime('%B')} {first.year}"
+    return str(first.year)
+
+
+def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
+
+    for match in matches:
+        identity = tournament_identity(
+            str(match.get("t", "")),
+            int(match.get("level", 0)),
+        )
+        if identity is None:
+            continue
+        grouped.setdefault(identity, []).append(match)
+
+    families: list[dict[str, Any]] = []
+    for (category, family), family_matches in grouped.items():
+        clusters = split_tournament_editions(family, family_matches)
+        same_year_counts: Counter[int] = Counter()
+        bounds: list[tuple[date, date, list[dict[str, Any]]]] = []
+
+        for cluster in clusters:
+            first = min(tolerant_tournament_date(row["date"]) for row in cluster)
+            last = max(tolerant_tournament_date(row["date"]) for row in cluster)
+            bounds.append((first, last, cluster))
+            if first.year == last.year:
+                same_year_counts[first.year] += 1
+
+        editions = []
+        family_id = tournament_family_id(family)
+        for first, last, cluster in bounds:
+            participants = sorted({
+                code
+                for row in cluster
+                for code in (row["a"], row["b"])
+            })
+            label = tournament_edition_label(
+                first,
+                last,
+                same_year_counts[first.year],
+            )
+            if len(participants) < 3 and category == "Other tournaments":
+                continue
+            editions.append({
+                "id": f"{family_id}-{first.isoformat()}-{last.isoformat()}",
+                "label": label,
+                "start": first.isoformat(),
+                "end": last.isoformat(),
+                "before": (first - timedelta(days=1)).isoformat(),
+                "after": last.isoformat(),
+                "teams": participants,
+                "matches": len(cluster),
+            })
+
+        editions.sort(key=lambda row: (row["after"], row["start"]), reverse=True)
+        if not editions:
+            continue
+        families.append({
+            "id": family_id,
+            "name": family,
+            "category": category,
+            "editions": editions,
+        })
+
+    families.sort(key=lambda row: (
+        TOURNAMENT_CATEGORY_ORDER.get(row["category"], 99),
+        row["name"].casefold(),
+    ))
+    categories = [
+        category
+        for category, _ in sorted(
+            TOURNAMENT_CATEGORY_ORDER.items(),
+            key=lambda item: item[1],
+        )
+        if any(family["category"] == category for family in families)
+    ]
+    return {
+        "categories": categories,
+        "families": families,
+    }
+
+
 def build_historical_rankings(data: Path, output: Any) -> None:
     """Write independently loadable end-of-day ranking events for each year."""
     names = {team["code"]: team["nation"] for team in output.summary["teams"]}
@@ -343,16 +714,9 @@ def build_historical_rankings(data: Path, output: Any) -> None:
             )
 
     matchdays_by_year: dict[int, set[str]] = {}
-    world_cup_days: dict[int, list[str]] = {}
-    world_cup_teams: dict[int, set[str]] = {}
     for match in output.matches:
         year = int(match["year"])
         matchdays_by_year.setdefault(year, set()).add(match["date"])
-        if match["t"] in {"World Cup", "FIFA World Cup"}:
-            world_cup_days.setdefault(year, []).append(match["date"])
-            world_cup_teams.setdefault(year, set()).update(
-                (match["a"], match["b"])
-            )
 
     matches_by_day_team: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for match in output.matches:
@@ -485,18 +849,15 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         key=lambda row: (-row["days"], row["first"], row["nation"]),
     )
 
-    world_cups = []
-    for year, days in sorted(world_cup_days.items(), reverse=True):
-        first, last = min(days), max(days)
-        world_cups.append({
-            "year": year,
-            "before": (date.fromisoformat(first) - timedelta(days=1)).isoformat(),
-            "after": last,
-            "teams": sorted(world_cup_teams.get(year, set())),
-        })
     write_json(data / "rankings-history" / "index.json", {
-        "first": first_date, "last": last_date, "years": years, "world_cups": world_cups,
+        "first": first_date,
+        "last": last_date,
+        "years": years,
     })
+    write_json(
+        data / "tournaments" / "index.json",
+        build_tournament_catalog(output.matches),
+    )
 
 
 def main() -> None:

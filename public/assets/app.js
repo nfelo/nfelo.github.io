@@ -84,6 +84,7 @@
       home: "International football ratings, historical results, records and match probabilities from 1872 to the present.",
       rankings: "Current international football rankings from the Network Football Elo model.",
       history: "Reconstruct international football rankings on any historical matchday.",
+      tournaments: "Compare participating teams immediately before and after international tournaments.",
       matches: "Search international football results and pre-match forecasts from 1872 onward.",
       fixtures: "Upcoming senior internationals with current ratings and match probabilities.",
       records: "All-time national-team rating peaks, greatest matchups and largest upsets.",
@@ -399,45 +400,37 @@
     update();
   }
 
-  function worldCupMovementHTML(value, kind) {
-    if (value == null || !Number.isFinite(Number(value))) {
-      return `<span class="muted">—</span>`;
-    }
-    const change = Number(value);
-    const direction = change > 0
-      ? "movement-up"
-      : change < 0
-        ? "movement-down"
-        : "movement-flat";
-    const arrow = change > 0 ? "▲" : change < 0 ? "▼" : "•";
-    if (kind === "rank") {
-      const places = Math.abs(change);
-      const label = change === 0
-        ? "No rank change"
-        : `${places} place${places === 1 ? "" : "s"} ${change > 0 ? "up" : "down"}`;
-      return `<span class="movement ${direction}" title="${label} during the World Cup"><b>${arrow} ${places}</b><small>${change === 0 ? "no change" : `${change > 0 ? "up" : "down"} ${places}`}</small></span>`;
-    }
-    const signed = `${change >= 0 ? "+" : ""}${rating(change)}`;
-    return `<span class="movement ${direction}" title="Rating movement during the World Cup: ${signed} points"><b>${arrow} ${signed}</b><small>points</small></span>`;
+  async function loadHistoricalSnapshot(index, value) {
+    const chosen = value < index.first ? index.first : value > index.last ? index.last : value;
+    const dataYear = Math.min(
+      Number(chosen.slice(0, 4)),
+      Number(index.last.slice(0, 4)),
+    );
+    const payload = await getJSON(`data/rankings-history/${dataYear}.json`);
+    const state = new Map(
+      payload.opening.map((team) => [team.code, { ...team }]),
+    );
+    payload.events.forEach((event) => {
+      if (event.date <= chosen) state.set(event.code, { ...event });
+    });
+    const year = Number(chosen.slice(0, 4));
+    const ranked = [...state.values()]
+      .filter((team) => year - Number(team.date.slice(0, 4)) <= 4)
+      .sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation));
+    ranked.forEach((team, position) => {
+      team.rank = position + 1;
+    });
+    return ranked;
   }
 
-  function historicalRankingsTable(items, selectedDate, showWorldCupMovement = false) {
-    if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>No teams match this historical selection.</p></div>`;
-    const movementHeaders = showWorldCupMovement
-      ? `<th class="numeric">Rank movement</th><th class="numeric">Rating movement</th>`
-      : "";
+  function historicalRankingsTable(items, selectedDate) {
+    if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>Teams enter the table after their 30th recorded match.</p></div>`;
     return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th>${movementHeaders}<th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
-      <tbody>${items.map((team, index) => {
-        const movementCells = showWorldCupMovement
-          ? `<td class="numeric">${worldCupMovementHTML(team.world_cup_rank_change, "rank")}</td><td class="numeric">${worldCupMovementHTML(team.world_cup_rating_change, "rating")}</td>`
-          : "";
-        return `<tr><td class="rank-cell numeric">${team.rank ?? index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
-          <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
-          ${movementCells}
-          <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
-          <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`;
-      }).join("")}</tbody></table></div>`;
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+      <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${team.rank ?? index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
+        <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
+        <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
+        <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`).join("")}</tbody></table></div>`;
   }
 
   async function renderHistory(route) {
@@ -446,110 +439,44 @@
     const index = await getJSON("data/rankings-history/index.json");
     const today = todayISO();
     const requested = isoDate(route.query.get("date")) || today;
-    const clampedDate = requested < index.first ? index.first : requested > today ? today : requested;
-    const cupMatch = String(route.query.get("cup") || "").match(/^(\d{4})-(before|after)$/);
-    const requestedCup = cupMatch
-      ? index.world_cups.find((cup) => String(cup.year) === cupMatch[1])
-      : null;
-    const initialWorldCup = requestedCup
-      ? { cup: requestedCup, phase: cupMatch[2] }
-      : null;
-    const selected = initialWorldCup
-      ? initialWorldCup.cup[initialWorldCup.phase]
-      : clampedDate;
-
+    const selected = requested < index.first ? index.first : requested > today ? today : requested;
     content.innerHTML = `<div class="page">
-      <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time.</p></header>
+      <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time. <a href="#/tournaments">Compare tournament snapshots →</a></p></header>
       <div class="toolbar history-toolbar">
         <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${today}" value="${selected}" tabindex="-1" aria-hidden="true" aria-label="Ranking date calendar"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
         <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
-        <div class="field field-grow"><label for="history-world-cup">World Cup moments</label><select id="history-world-cup"><option value="">Choose a tournament…</option>${index.world_cups.flatMap((cup) => [`<option value="${cup.year}-after">After ${cup.year} World Cup</option>`, `<option value="${cup.year}-before">Before ${cup.year} World Cup</option>`]).join("")}</select></div>
       </div>
-      <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br><span id="history-description">At least 30 matches and an appearance in the selected year or preceding four calendar years.</span></div></div>
-      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="mean">Adjusted estimate</option><option value="matches">Matches played</option><option value="name">Name</option><option value="world_cup_rank_change" data-world-cup-sort hidden disabled>World Cup rank movement</option><option value="world_cup_rating_change" data-world-cup-sort hidden disabled>World Cup rating movement</option></select></div></div>
+      <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
+      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="mean">Adjusted estimate</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
       <div id="history-table"></div></div>`;
 
     let teams = [];
     let currentDate = selected;
-    let selectedWorldCup = initialWorldCup;
     const dateInput = document.getElementById("history-date");
     const calendarInput = document.getElementById("history-calendar");
     const table = document.getElementById("history-table");
-    const worldCupSelect = document.getElementById("history-world-cup");
-    const sortSelect = document.getElementById("history-sort");
-    const validSorts = ["rating", "mean", "matches", "name", "world_cup_rank_change", "world_cup_rating_change"];
-    const requestedSort = validSorts.includes(route.query.get("sort"))
-      ? route.query.get("sort")
-      : "rating";
-    sortSelect.value = requestedSort;
-
-    const worldCupKey = (selection) => selection
-      ? `${selection.cup.year}-${selection.phase}`
-      : "";
-
-    const syncWorldCupControls = () => {
-      const showMovement = selectedWorldCup?.phase === "after";
-      worldCupSelect.value = worldCupKey(selectedWorldCup);
-      document.querySelectorAll("[data-world-cup-sort]").forEach((option) => {
-        option.hidden = !showMovement;
-        option.disabled = !showMovement;
-      });
-      if (!showMovement && sortSelect.value.startsWith("world_cup_")) {
-        sortSelect.value = "rating";
-      }
-    };
-
-    syncWorldCupControls();
+    const requestedSort = ["rating", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    document.getElementById("history-sort").value = requestedSort;
 
     const saveHistoryRoute = () => replaceRouteQuery("history", {
       date: currentDate,
-      cup: worldCupKey(selectedWorldCup),
       q: document.getElementById("history-search").value.trim(),
-      sort: sortSelect.value === "rating" ? "" : sortSelect.value,
+      sort: document.getElementById("history-sort").value === "rating" ? "" : document.getElementById("history-sort").value,
     });
-
-    const loadRankingSnapshot = async (value) => {
-      const dataYear = Math.min(
-        Number(value.slice(0, 4)),
-        Number(index.last.slice(0, 4)),
-      );
-      const payload = await getJSON(`data/rankings-history/${dataYear}.json`);
-      const state = new Map(
-        payload.opening.map((team) => [team.code, { ...team }]),
-      );
-      payload.events.forEach((event) => {
-        if (event.date <= value) state.set(event.code, { ...event });
-      });
-      const year = Number(value.slice(0, 4));
-      const ranked = [...state.values()]
-        .filter((team) => year - Number(team.date.slice(0, 4)) <= 4)
-        .sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation));
-      ranked.forEach((team, position) => {
-        team.rank = position + 1;
-      });
-      return ranked;
-    };
 
     const updateTable = () => {
       const query = document.getElementById("history-search").value.trim().toLocaleLowerCase();
-      const sort = sortSelect.value;
+      const sort = document.getElementById("history-sort").value;
       const visible = teams.filter((team) => team.nation.toLocaleLowerCase().includes(query));
       visible.sort((a, b) => sort === "name"
         ? a.nation.localeCompare(b.nation)
-        : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity)
-          || a.nation.localeCompare(b.nation));
-      table.innerHTML = historicalRankingsTable(
-        visible,
-        currentDate,
-        selectedWorldCup?.phase === "after",
-      );
+        : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity) || a.nation.localeCompare(b.nation));
+      table.innerHTML = historicalRankingsTable(visible, currentDate);
     };
 
-    const loadDate = async (value, worldCupSelection = null) => {
+    const loadDate = async (value) => {
       const chosen = value < index.first ? index.first : value > today ? today : value;
-      selectedWorldCup = worldCupSelection;
       currentDate = chosen;
-      syncWorldCupControls();
       dateInput.value = validDate(chosen);
       calendarInput.value = chosen;
       document.getElementById("history-date-error").textContent = "";
@@ -558,46 +485,9 @@
       document.getElementById("history-next").disabled = chosen >= index.last;
       saveHistoryRoute();
       table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
-
-      const ranked = await loadRankingSnapshot(chosen);
-
-      if (selectedWorldCup) {
-        const participantCodes = new Set(selectedWorldCup.cup.teams || []);
-        teams = ranked.filter((team) => participantCodes.has(team.code));
-
-        if (selectedWorldCup.phase === "after") {
-          const beforeRanked = await loadRankingSnapshot(selectedWorldCup.cup.before);
-          const beforeByCode = new Map(
-            beforeRanked.map((team) => [team.code, team]),
-          );
-          teams = teams.map((team) => {
-            const before = beforeByCode.get(team.code);
-            return {
-              ...team,
-              world_cup_rank_change: before ? before.rank - team.rank : null,
-              world_cup_rating_change: before ? team.rating - before.rating : null,
-            };
-          });
-        }
-
-        const phaseLabel = selectedWorldCup.phase === "after"
-          ? "after"
-          : "before";
-        document.getElementById("history-label").textContent =
-          `${selectedWorldCup.cup.year} World Cup teams ${phaseLabel} the tournament`;
-        document.getElementById("history-description").textContent =
-          selectedWorldCup.phase === "after"
-            ? "Only tournament participants are shown. Rank and rating movement compare the global table immediately before and after the World Cup."
-            : "Only tournament participants are shown; rank numbers are their positions in the global table immediately before the World Cup.";
-      } else {
-        teams = ranked;
-        document.getElementById("history-label").textContent =
-          `Eligible teams on ${validDate(chosen)}`;
-        document.getElementById("history-description").textContent =
-          "At least 30 matches and an appearance in the selected year or preceding four calendar years.";
-      }
-
+      teams = await loadHistoricalSnapshot(index, chosen);
       document.getElementById("history-count").textContent = number(teams.length);
+      document.getElementById("history-label").textContent = `Eligible teams on ${validDate(chosen)}`;
       updateTable();
     };
 
@@ -609,11 +499,7 @@
       while (year >= firstYear && year <= lastYear) {
         const payload = await getJSON(`data/rankings-history/${year}.json`);
         const candidates = payload.matchdays.filter((day) => direction < 0 ? day < chosen : day > chosen);
-        if (candidates.length) {
-          return loadDate(
-            direction < 0 ? candidates[candidates.length - 1] : candidates[0],
-          );
-        }
+        if (candidates.length) return loadDate(direction < 0 ? candidates[candidates.length - 1] : candidates[0]);
         year += direction;
         chosen = direction < 0 ? `${year + 1}-01-01` : `${year - 1}-12-31`;
       }
@@ -654,32 +540,184 @@
       if (typeof calendarInput.showPicker === "function") calendarInput.showPicker();
       else calendarInput.click();
     });
-    calendarInput.addEventListener("change", () => {
-      if (calendarInput.value) loadDate(calendarInput.value);
-    });
-    document.getElementById("history-year-start").addEventListener("click", () => {
-      loadDate(`${currentDate.slice(0, 4)}-01-01`);
-    });
+    calendarInput.addEventListener("change", () => { if (calendarInput.value) loadDate(calendarInput.value); });
+    document.getElementById("history-year-start").addEventListener("click", () => loadDate(`${currentDate.slice(0, 4)}-01-01`));
     document.getElementById("history-prev").addEventListener("click", () => adjacentMatchday(-1));
     document.getElementById("history-next").addEventListener("click", () => adjacentMatchday(1));
-    worldCupSelect.addEventListener("change", (event) => {
-      const match = String(event.target.value).match(/^(\d{4})-(before|after)$/);
-      if (!match) {
-        loadDate(currentDate);
-        return;
-      }
-      const cup = index.world_cups.find((item) => String(item.year) === match[1]);
-      if (cup) loadDate(cup[match[2]], { cup, phase: match[2] });
+    document.getElementById("history-search").addEventListener("input", () => { saveHistoryRoute(); updateTable(); });
+    document.getElementById("history-sort").addEventListener("change", () => { saveHistoryRoute(); updateTable(); });
+    await loadDate(selected);
+  }
+
+  function tournamentChangeHTML(value, kind) {
+    if (value == null || !Number.isFinite(Number(value))) {
+      return `<span class="tournament-change movement-flat">—</span>`;
+    }
+    const change = Number(value);
+    const direction = change > 0 ? "movement-up" : change < 0 ? "movement-down" : "movement-flat";
+    const arrow = change > 0 ? "▲" : change < 0 ? "▼" : "•";
+    if (kind === "rank") {
+      const places = Math.abs(change);
+      const label = change === 0
+        ? "No rank movement"
+        : `${places} place${places === 1 ? "" : "s"} ${change > 0 ? "up" : "down"}`;
+      return `<span class="tournament-change ${direction}" title="${label} during this tournament">${arrow} ${places}</span>`;
+    }
+    const signed = `${change >= 0 ? "+" : ""}${rating(change)}`;
+    return `<span class="tournament-change ${direction}" title="Rating movement during this tournament: ${signed} points">${arrow} ${signed}</span>`;
+  }
+
+  function tournamentRankingsTable(items, selectedDate, showMovement) {
+    if (!items.length) return `<div class="empty"><h2>No ranked participants</h2><p>No participating team was eligible for the published ranking at this snapshot.</p></div>`;
+    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell tournament-table"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+      <tbody>${items.map((team, index) => `<tr>
+        <td class="rank-cell numeric"><span class="tournament-cell-main">${team.rank ?? index + 1}</span>${showMovement ? tournamentChangeHTML(team.tournament_rank_change, "rank") : ""}</td>
+        <td>${teamLink(team.code, team.nation, selectedDate)}</td>
+        <td class="numeric"><span class="rating-main">${rating(team.rating)}</span>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
+        <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
+        <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td>
+      </tr>`).join("")}</tbody></table></div>`;
+  }
+
+  async function renderTournaments(route) {
+    setTitle("Tournament rankings");
+    loading("Loading tournament rankings…");
+    const [historyIndex, tournamentIndex] = await Promise.all([
+      getJSON("data/rankings-history/index.json"),
+      getJSON("data/tournaments/index.json"),
+    ]);
+    const families = tournamentIndex.families || [];
+    if (!families.length) {
+      content.innerHTML = `<div class="error-panel"><p class="eyebrow">Tournament archive</p><h2>No tournament editions are available.</h2><p>The build did not identify any completed competitive tournament editions.</p></div>`;
+      return;
+    }
+
+    const requestedFamily = families.find((family) => family.id === route.query.get("tournament"));
+    const defaultFamily = families.find((family) => family.name === "FIFA World Cup") || families[0];
+    let selectedFamily = requestedFamily || defaultFamily;
+    let selectedEdition = selectedFamily.editions.find((edition) => edition.id === route.query.get("edition")) || selectedFamily.editions[0];
+    let selectedView = route.query.get("view") === "before" ? "before" : "after";
+
+    const familyOptions = (tournamentIndex.categories || []).map((category) => {
+      const options = families
+        .filter((family) => family.category === category)
+        .map((family) => `<option value="${escapeHTML(family.id)}">${escapeHTML(family.name)}</option>`)
+        .join("");
+      return options ? `<optgroup label="${escapeHTML(category)}">${options}</optgroup>` : "";
+    }).join("");
+
+    content.innerHTML = `<div class="page tournament-page">
+      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Select a competition, edition and a snapshot immediately before or after the tournament. Only participating teams are shown, while rank positions remain their places in the full global table.</p></header>
+      <div class="toolbar tournament-toolbar">
+        <div class="field field-grow"><label for="tournament-family">Tournament</label><select id="tournament-family">${familyOptions}</select></div>
+        <div class="field"><label for="tournament-edition">Edition</label><select id="tournament-edition"></select></div>
+        <div class="field"><label for="tournament-view">Snapshot</label><select id="tournament-view"><option value="before">Before tournament</option><option value="after">After tournament</option></select></div>
+      </div>
+      <div class="record-note"><strong id="tournament-count">—</strong><div><b id="tournament-label">Ranked participants</b><br><span id="tournament-description">Choose a tournament edition.</span></div></div>
+      <div class="toolbar compact-toolbar">
+        <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" placeholder="Brazil, Thailand, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+        <div class="field"><label for="tournament-sort">Sort</label><select id="tournament-sort"><option value="rating">Rating</option><option value="mean">Adjusted estimate</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
+      </div>
+      <div id="tournament-table"></div>
+    </div>`;
+
+    const familySelect = document.getElementById("tournament-family");
+    const editionSelect = document.getElementById("tournament-edition");
+    const viewSelect = document.getElementById("tournament-view");
+    const sortSelect = document.getElementById("tournament-sort");
+    const table = document.getElementById("tournament-table");
+    const validSorts = ["rating", "mean", "matches", "name"];
+    sortSelect.value = validSorts.includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    familySelect.value = selectedFamily.id;
+    viewSelect.value = selectedView;
+    let teams = [];
+
+    const populateEditions = (preferredId = "") => {
+      editionSelect.innerHTML = selectedFamily.editions
+        .map((edition) => `<option value="${escapeHTML(edition.id)}">${escapeHTML(edition.label)}</option>`)
+        .join("");
+      selectedEdition = selectedFamily.editions.find((edition) => edition.id === preferredId) || selectedFamily.editions[0];
+      editionSelect.value = selectedEdition.id;
+    };
+
+    populateEditions(selectedEdition.id);
+
+    const saveTournamentRoute = () => replaceRouteQuery("tournaments", {
+      tournament: selectedFamily.id,
+      edition: selectedEdition.id,
+      view: selectedView,
+      q: document.getElementById("tournament-search").value.trim(),
+      sort: sortSelect.value === "rating" ? "" : sortSelect.value,
     });
-    document.getElementById("history-search").addEventListener("input", () => {
-      saveHistoryRoute();
+
+    const updateTable = () => {
+      const query = document.getElementById("tournament-search").value.trim().toLocaleLowerCase();
+      const sort = sortSelect.value;
+      const visible = teams.filter((team) => team.nation.toLocaleLowerCase().includes(query));
+      visible.sort((a, b) => sort === "name"
+        ? a.nation.localeCompare(b.nation)
+        : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity) || a.nation.localeCompare(b.nation));
+      table.innerHTML = tournamentRankingsTable(
+        visible,
+        selectedEdition[selectedView],
+        selectedView === "after",
+      );
+    };
+
+    const loadSelection = async () => {
+      saveTournamentRoute();
+      const snapshotDate = selectedEdition[selectedView];
+      table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(selectedFamily.name)} ${escapeHTML(selectedEdition.label)}…</p></div>`;
+      const ranked = await loadHistoricalSnapshot(historyIndex, snapshotDate);
+      const participantCodes = new Set(selectedEdition.teams || []);
+      teams = ranked.filter((team) => participantCodes.has(team.code));
+
+      if (selectedView === "after") {
+        const beforeRanked = await loadHistoricalSnapshot(historyIndex, selectedEdition.before);
+        const beforeByCode = new Map(beforeRanked.map((team) => [team.code, team]));
+        teams = teams.map((team) => {
+          const before = beforeByCode.get(team.code);
+          return {
+            ...team,
+            tournament_rank_change: before ? before.rank - team.rank : null,
+            tournament_rating_change: before ? team.rating - before.rating : null,
+          };
+        });
+      }
+
+      const totalParticipants = (selectedEdition.teams || []).length;
+      document.getElementById("tournament-count").textContent = `${number(teams.length)} / ${number(totalParticipants)}`;
+      document.getElementById("tournament-label").textContent = `${selectedFamily.name} · ${selectedEdition.label}`;
+      document.getElementById("tournament-description").textContent = selectedView === "after"
+        ? `Ranked participants immediately after the tournament ended on ${validDate(selectedEdition.after)}. Movement in the Rank and Rating cells compares the full global table with ${validDate(selectedEdition.before)}.`
+        : `Ranked participants immediately before the tournament began on ${validDate(selectedEdition.start)}. Rank numbers are positions in the full global table.`;
+      setTitle(`${selectedFamily.name} ${selectedEdition.label}`);
+      updateTable();
+    };
+
+    familySelect.addEventListener("change", () => {
+      selectedFamily = families.find((family) => family.id === familySelect.value) || families[0];
+      populateEditions();
+      loadSelection();
+    });
+    editionSelect.addEventListener("change", () => {
+      selectedEdition = selectedFamily.editions.find((edition) => edition.id === editionSelect.value) || selectedFamily.editions[0];
+      loadSelection();
+    });
+    viewSelect.addEventListener("change", () => {
+      selectedView = viewSelect.value === "before" ? "before" : "after";
+      loadSelection();
+    });
+    document.getElementById("tournament-search").addEventListener("input", () => {
+      saveTournamentRoute();
       updateTable();
     });
     sortSelect.addEventListener("change", () => {
-      saveHistoryRoute();
+      saveTournamentRoute();
       updateTable();
     });
-    await loadDate(selected, initialWorldCup);
+    await loadSelection();
   }
 
   async function renderMatches(route) {
@@ -1817,6 +1855,7 @@ function renderFAQ() {
         case "home": await renderHome(); break;
         case "rankings": renderRankings(current); break;
         case "history": await renderHistory(current); break;
+        case "tournaments": await renderTournaments(current); break;
         case "matches": await renderMatches(current); break;
         case "fixtures": await renderFixtures(current); break;
         case "records": renderRecords(current); break;
