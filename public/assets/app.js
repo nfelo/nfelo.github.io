@@ -635,7 +635,7 @@
     ).join("");
 
     content.innerHTML = `<div class="page tournament-page">
-      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Select a competition, edition and a snapshot immediately before or after the tournament. Every participating team is listed, while published rank positions remain their places in the full global table.</p></header>
+      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Choose a tournament and edition to compare every participant immediately before or after the event. Ranks always refer to the full world ranking, not just the teams in that tournament.</p></header>
       <div class="toolbar tournament-toolbar">
         <div class="field field-grow"><label for="tournament-family">Tournament</label><select id="tournament-family">${familyOptions}</select></div>
         <div class="field"><label for="tournament-edition">Edition</label><select id="tournament-edition"></select></div>
@@ -845,8 +845,8 @@
         `${selectedFamily.name} · ${selectedEdition.label}`;
       document.getElementById("tournament-description").textContent =
         selectedView === "after"
-          ? `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately after the tournament. Rank movement compares the full global tables before and after the event. Rating change sums only the published post-minus-pre movements on this edition's matchdays, excluding recalibration and unrelated results.`
-          : `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately before the tournament.`;
+          ? `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating after the tournament. Rank change compares each team's place in the full world ranking. Rating change includes only matches from this edition, excluding recalibration and unrelated results.`
+          : `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating before the tournament.`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
       );
@@ -1045,7 +1045,7 @@
 
   function bestTournamentTable(rows) {
     if (!rows.length) {
-      return `<div class="empty"><h2>No tournament gains</h2><p>No comparable positive tournament rating gains are available.</p></div>`;
+      return `<div class="empty"><h2>No tournament records match those filters.</h2><p>Choose another team or competition.</p></div>`;
     }
 
     return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
@@ -1067,6 +1067,29 @@
 
   function renderRecords(route) {
     setTitle("Records");
+    const bestTournamentRows = (summary.best_tournaments || []).slice(0, 500);
+    const bestTournamentTeams = [
+      ...new Map(
+        bestTournamentRows.map(
+          (row) => [row.code, row.nation],
+        ),
+      ).entries(),
+    ]
+      .map(([code, nation]) => ({ code, nation }))
+      .sort(
+        (a, b) => (
+          a.nation.localeCompare(b.nation)
+          || a.code.localeCompare(b.code)
+        ),
+      );
+    const bestTournamentTeamOptions = bestTournamentTeams
+      .map(
+        (team) => (
+          `<option value="${escapeHTML(team.code)}">`
+          + `${escapeHTML(team.nation)}</option>`
+        ),
+      )
+      .join("");
     content.innerHTML = `
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
@@ -1075,6 +1098,19 @@
           <div class="field"><label for="number-one-from">From date</label><div class="date-combo"><input id="number-one-from" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("from") ? validDate(route.query.get("from")) : ""}" aria-describedby="number-one-from-error"><button class="button" type="button" id="number-one-from-button" aria-label="Open from-date calendar">Calendar</button><input id="number-one-from-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("from") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-from-error" class="field-error" role="alert"></span></div>
           <div class="field"><label for="number-one-to">To date</label><div class="date-combo"><input id="number-one-to" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("to") ? validDate(route.query.get("to")) : ""}" aria-describedby="number-one-to-error"><button class="button" type="button" id="number-one-to-button" aria-label="Open to-date calendar">Calendar</button><input id="number-one-to-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("to") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-to-error" class="field-error" role="alert"></span></div>
         </div>
+        <div id="best-tournament-filters" class="toolbar record-filters best-tournament-filters" hidden>
+          <div class="field">
+            <label for="best-tournament-team">Team</label>
+            <select id="best-tournament-team">
+              <option value="">Any team</option>
+              ${bestTournamentTeamOptions}
+            </select>
+          </div>
+          <div class="field field-grow">
+            <label for="best-tournament-competition">Competition</label>
+            <input id="best-tournament-competition" type="search" placeholder="World Cup, Copa América, Gold Cup…" value="${escapeHTML(route.query.get("competition") || "")}">
+          </div>
+        </div>
         <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button><button class="button" data-record="tournaments" aria-pressed="false">Best tournaments</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
@@ -1082,11 +1118,23 @@
       </div>`;
     let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets", "tournaments"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
     let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
+    const requestedTournamentTeam =
+      route.query.get("team") || "";
+    if (
+      bestTournamentTeams.some(
+        (team) => team.code === requestedTournamentTeam,
+      )
+    ) {
+      document.getElementById(
+        "best-tournament-team",
+      ).value = requestedTournamentTeam;
+    }
     document.querySelectorAll("[data-record]").forEach((button) => {
       const active = button.dataset.record === view;
       button.setAttribute("aria-pressed", String(active));
       button.classList.toggle("button-dark", active);
     });
+
     const update = () => {
       const sources = {
         peaks: summary.peaks,
@@ -1094,77 +1142,201 @@
         numberonesummary: summary.number_one_summary || [],
         matches: summary.top_matches,
         upsets: summary.upsets,
-        tournaments: (summary.best_tournaments || []).slice(0, 500),
+        tournaments: bestTournamentRows,
       };
-      const filterBar = document.getElementById("number-one-filters");
+      const filterBar = document.getElementById(
+        "number-one-filters",
+      );
+      const tournamentFilterBar = document.getElementById(
+        "best-tournament-filters",
+      );
       const filtering = view === "numberones";
+      const tournamentFiltering = view === "tournaments";
       filterBar.hidden = !filtering;
-      const query = document.getElementById("number-one-team").value.trim().toLocaleLowerCase();
-      const fromInput = document.getElementById("number-one-from");
-      const toInput = document.getElementById("number-one-to");
+      tournamentFilterBar.hidden = !tournamentFiltering;
+
+      const query = document
+        .getElementById("number-one-team")
+        .value.trim()
+        .toLocaleLowerCase();
+      const tournamentTeam = document
+        .getElementById("best-tournament-team")
+        .value;
+      const competitionQuery = document
+        .getElementById("best-tournament-competition")
+        .value.trim()
+        .toLocaleLowerCase();
+
+      const fromInput = document.getElementById(
+        "number-one-from",
+      );
+      const toInput = document.getElementById(
+        "number-one-to",
+      );
       const from = inputDate(fromInput.value);
       const to = inputDate(toInput.value);
-      const invalidRange = Boolean(from && to && from > to);
-      const fromRangeMessage = "From date cannot be after To date.";
-      const toRangeMessage = "To date cannot be before From date.";
-      const fromError = document.getElementById("number-one-from-error");
-      const toError = document.getElementById("number-one-to-error");
+      const invalidRange = Boolean(
+        from && to && from > to
+      );
+      const fromRangeMessage =
+        "From date cannot be after To date.";
+      const toRangeMessage =
+        "To date cannot be before From date.";
+      const fromError = document.getElementById(
+        "number-one-from-error",
+      );
+      const toError = document.getElementById(
+        "number-one-to-error",
+      );
+
       if (invalidRange) {
         fromError.textContent = fromRangeMessage;
         toError.textContent = toRangeMessage;
         fromInput.setAttribute("aria-invalid", "true");
         toInput.setAttribute("aria-invalid", "true");
       } else {
-        if (fromError.textContent === fromRangeMessage) fromError.textContent = "";
-        if (toError.textContent === toRangeMessage) toError.textContent = "";
-        if (!fromError.textContent) fromInput.removeAttribute("aria-invalid");
-        if (!toError.textContent) toInput.removeAttribute("aria-invalid");
+        if (
+          fromError.textContent === fromRangeMessage
+        ) {
+          fromError.textContent = "";
+        }
+        if (toError.textContent === toRangeMessage) {
+          toError.textContent = "";
+        }
+        if (!fromError.textContent) {
+          fromInput.removeAttribute("aria-invalid");
+        }
+        if (!toError.textContent) {
+          toInput.removeAttribute("aria-invalid");
+        }
       }
-      document.getElementById("number-one-from-calendar").max = to || summary.meta.results_through;
-      document.getElementById("number-one-to-calendar").min = from || "1872-01-01";
+
+      document.getElementById(
+        "number-one-from-calendar",
+      ).max = to || summary.meta.results_through;
+      document.getElementById(
+        "number-one-to-calendar",
+      ).min = from || "1872-01-01";
+
       const source = sources[view].filter((row) => {
-        if (!filtering) return true;
-        if (invalidRange) return false;
-        if (query && !row.nation.toLocaleLowerCase().includes(query)) return false;
-        const end = row.to || summary.meta.results_through;
-        if (from && end < from) return false;
-        if (to && row.from > to) return false;
+        if (filtering) {
+          if (invalidRange) return false;
+          if (
+            query
+            && !row.nation
+              .toLocaleLowerCase()
+              .includes(query)
+          ) {
+            return false;
+          }
+          const end =
+            row.to || summary.meta.results_through;
+          if (from && end < from) return false;
+          if (to && row.from > to) return false;
+          return true;
+        }
+
+        if (tournamentFiltering) {
+          if (
+            tournamentTeam
+            && row.code !== tournamentTeam
+          ) {
+            return false;
+          }
+          if (
+            competitionQuery
+            && !row.tournament
+              .toLocaleLowerCase()
+              .includes(competitionQuery)
+          ) {
+            return false;
+          }
+        }
+
         return true;
       });
+
       const visible = source.slice(0, shown);
-      document.getElementById("record-note").innerHTML = view === "peaks"
+      document.getElementById(
+        "record-note",
+      ).innerHTML = view === "peaks"
         ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
         : view === "numberones"
           ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. Historical names are retained, and every relevant result from the change date is shown.</div>`
           : view === "numberonesummary"
             ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
             : view === "matches"
-            ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
-            : view === "upsets"
-              ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
-              : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain is the sum of published post-minus-pre rating movements on the edition's own matchdays, excluding annual recalibration and unrelated results. The tournament-only before→after pair therefore matches the gain exactly, and only the top 500 are retained.</div>`;
-      document.getElementById("record-table").innerHTML = view === "peaks"
-      ? peakTable(visible)
-      : view === "numberones"
-        ? numberOneTable(visible)
-        : view === "numberonesummary"
-          ? numberOneSummaryTable(visible)
-          : view === "matches"
-            ? matchRecordTable(visible)
-            : view === "upsets"
-              ? upsetTable(visible)
-              : bestTournamentTable(visible);
-      document.getElementById("record-count").textContent = `Showing ${number(visible.length)} of ${number(source.length)}`;
-      document.getElementById("record-more").hidden = shown >= source.length;
-      document.getElementById("record-all").hidden = shown >= source.length;
+              ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
+              : view === "upsets"
+                ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
+                : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain adds up the published rating movement from the edition's own matchdays, excluding annual recalibration and unrelated results.</div>`;
+
+      document.getElementById(
+        "record-table",
+      ).innerHTML = view === "peaks"
+        ? peakTable(visible)
+        : view === "numberones"
+          ? numberOneTable(visible)
+          : view === "numberonesummary"
+            ? numberOneSummaryTable(visible)
+            : view === "matches"
+              ? matchRecordTable(visible)
+              : view === "upsets"
+                ? upsetTable(visible)
+                : bestTournamentTable(visible);
+
+      document.getElementById(
+        "record-count",
+      ).textContent = (
+        `Showing ${number(visible.length)} `
+        + `of ${number(source.length)}`
+      );
+      document.getElementById(
+        "record-more",
+      ).hidden = shown >= source.length;
+      document.getElementById(
+        "record-all",
+      ).hidden = shown >= source.length;
+
       replaceRouteQuery("records", {
         view: view === "peaks" ? "" : view,
         shown: shown > 25 ? shown : "",
-        q: filtering ? document.getElementById("number-one-team").value.trim() : "",
-        from: view === "numberones" && !invalidRange ? from : "",
-        to: view === "numberones" && !invalidRange ? to : "",
+        q: filtering
+          ? document
+            .getElementById("number-one-team")
+            .value.trim()
+          : "",
+        from: (
+          filtering && !invalidRange ? from : ""
+        ),
+        to: (
+          filtering && !invalidRange ? to : ""
+        ),
+        team: tournamentFiltering
+          ? tournamentTeam
+          : "",
+        competition: tournamentFiltering
+          ? document
+            .getElementById(
+              "best-tournament-competition",
+            )
+            .value.trim()
+          : "",
       });
     };
+    // Best tournament record filter listeners
+    document
+      .getElementById("best-tournament-team")
+        .addEventListener("change", () => {
+          shown = 25;
+          update();
+        });
+    document
+      .getElementById("best-tournament-competition")
+      .addEventListener("input", () => {
+        shown = 25;
+        update();
+      });
     document.getElementById("number-one-team").addEventListener("input", () => {
       shown = 25;
       update();

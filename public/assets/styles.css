@@ -395,6 +395,8 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .comparison-chart .rating-chart { height: 300px; }
   .record-filters { display: grid; grid-template-columns: 1fr 1fr; }
   .record-filters .field-grow { grid-column: 1 / -1; }
+  .best-tournament-filters { grid-template-columns: 1fr; }
+  .best-tournament-filters .field-grow { grid-column: auto; }
   :root { --content: calc(100vw - 24px); }
   .site-header { min-height: 66px; padding: 0 14px; }
   .page { padding-top: 28px; }
