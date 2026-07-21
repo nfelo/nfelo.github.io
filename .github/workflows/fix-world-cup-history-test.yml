@@ -146,6 +146,9 @@ jobs:
           print("World Cup history deployment test hotfix applied.")
           PY
 
+      - name: Build static site data
+        run: python scripts/build_site.py --source source --config config --output public
+
       - name: Validate JavaScript
         run: node --check public/assets/app.js
 
