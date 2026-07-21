@@ -1,0 +1,983 @@
+name: Fix tournament qualifiers and rating changes
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: fix-tournament-qualifiers-and-rating-changes
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    name: Correct tournament editions and records
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Apply tournament corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          BUILD_PATH = Path("scripts/build_site.py")
+          APP_PATH = Path("public/assets/app.js")
+          TEST_PATH = Path("tests/test_build.py")
+
+
+          def replace_once(
+              text: str,
+              old: str,
+              new: str,
+              description: str,
+          ) -> str:
+              count = text.count(old)
+              if count == 0 and new in text:
+                  print(f"{description} is already installed.")
+                  return text
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(old, new, 1)
+
+
+          def replace_between(
+              text: str,
+              start_marker: str,
+              end_marker: str,
+              replacement: str,
+              description: str,
+          ) -> str:
+              start = text.find(start_marker)
+              if start < 0:
+                  raise RuntimeError(
+                      f"Could not find start of {description}"
+                  )
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise RuntimeError(
+                      f"Could not find end of {description}"
+                  )
+              return (
+                  text[:start]
+                  + replacement.rstrip()
+                  + "\n\n"
+                  + text[end:]
+              )
+
+
+          HYBRID_CODE_BLOCK = r'''
+          # These codes describe matches that were simultaneously part of a
+          # genuine standalone tournament and a qualifier for another event.
+          # They remain in the standalone tournament. Other qualifier-labelled
+          # codes are excluded before family assignment.
+          TOURNAMENT_HYBRID_EVENT_CODES = {
+              "CFC",  # CONCACAF Cup and Confederations Cup qualifier
+              "WQC",  # CONCACAF Championship and World Cup qualifier
+              "WQO",  # OFC Nations Cup and World Cup qualifier
+              "WQL",  # Baltic Cup and World Cup qualifier
+              "WQB",  # British Championship and World Cup qualifier
+              "WQD",  # Nordic Championship and World Cup qualifier
+              "ON",   # Nordic Championship and Olympic qualifier
+              "EQB",  # British Championship and Euro qualifier
+              "EQN",  # Nordic Championship and Euro qualifier
+              "SQC",  # AFC Challenge Cup and Asian Cup qualifier
+              "NQC",  # Central American Cup and CONCACAF qualifier
+              "NQU",  # UNCAF Nations Cup and CONCACAF qualifier
+              "FQC",  # Caribbean Cup and CONCACAF qualifier
+              "FQB",  # Caribbean Championship and CONCACAF qualifier
+              "FQP",  # Caribbean Championship playoff and qualifier
+              "WOS",  # South Pacific Games and WC/OFC qualifiers
+              "OQG",  # South Pacific Games and OFC qualifier
+              "OCM",  # Melanesian Cup and OFC qualifier
+              "OCP",  # Polynesian Cup and OFC qualifier
+              "AQC",  # Central African Cup and African Games qualifier
+              "ACG",  # Central African Games and African Games qualifier
+              "AQW",  # West African Cup and African Games qualifier
+          }
+          '''
+
+
+          IDENTITY_ASSIGNMENT_BLOCK = r'''
+              qualifier = any(token in folded for token in (
+                  "qualif",
+                  "prelim",
+                  "repechage",
+              ))
+              if (
+                  qualifier
+                  and source_code not in TOURNAMENT_HYBRID_EVENT_CODES
+              ):
+                  return None
+
+              # Assign an exact family only after qualifier-only rows have been
+              # rejected. This prevents codes such as FCQ, FBQ and NUQ from
+              # extending a CONCACAF Gold Cup edition into its qualifying cycle.
+              exact = TOURNAMENT_CODE_FAMILIES.get(source_code)
+              if exact is not None:
+                  return exact
+          '''
+
+
+          BEST_TOURNAMENT_FUNCTION = r'''
+          def build_best_tournament_records(
+              tournament_catalog: dict[str, Any],
+              team_pages: dict[str, dict[str, Any]],
+          ) -> list[dict[str, Any]]:
+              # Rank positive changes attributed only to an edition's matches.
+              # Snapshot-to-snapshot differences are intentionally not used:
+              # they can contain annual recalibration and unrelated results.
+              records: list[dict[str, Any]] = []
+
+              for family in tournament_catalog["families"]:
+                  for edition in family["editions"]:
+                      participant_names = {
+                          participant["code"]: participant["nation"]
+                          for participant in edition.get("participants", [])
+                      }
+                      attributed = {
+                          row["code"]: row
+                          for row in edition.get("rating_changes", [])
+                      }
+
+                      for code in edition["teams"]:
+                          change_row = attributed.get(code)
+                          if change_row is None:
+                              continue
+
+                          gain = float(change_row["change"])
+                          if gain <= 0:
+                              continue
+
+                          page = team_pages.get(code)
+                          if page is None:
+                              continue
+
+                          history = page.get("history", [])
+                          before = tournament_rating_at_snapshot(
+                              history,
+                              edition["before"],
+                          )
+                          after = tournament_rating_at_snapshot(
+                              history,
+                              edition["after"],
+                          )
+                          if before is None or after is None:
+                              continue
+
+                          records.append({
+                              "code": code,
+                              "nation": (
+                                  participant_names.get(code)
+                                  or after.get("historical_name")
+                                  or after.get("nation")
+                                  or code
+                              ),
+                              "tournament": family["name"],
+                              "tournament_id": family["id"],
+                              "category": family["category"],
+                              "edition": edition["label"],
+                              "edition_id": edition["id"],
+                              "start": edition["start"],
+                              "end": edition["end"],
+                              "before": edition["before"],
+                              "after": edition["after"],
+                              "before_rating": before["rating"],
+                              "after_rating": after["rating"],
+                              "rating_gain": gain,
+                              "tournament_matches": int(
+                                  change_row.get("matches", 0)
+                              ),
+                          })
+
+              records.sort(key=lambda row: (
+                  -row["rating_gain"],
+                  row["after"],
+                  row["tournament"],
+                  row["nation"],
+              ))
+              return records[:500]
+          '''
+
+
+          build = BUILD_PATH.read_text(encoding="utf-8")
+
+          if "TOURNAMENT_HYBRID_EVENT_CODES" not in build:
+              insertion_marker = "\n\ndef folded_competition("
+              insertion = build.find(insertion_marker)
+              if insertion < 0:
+                  raise RuntimeError(
+                      "Could not find tournament helper insertion point"
+                  )
+              build = (
+                  build[:insertion]
+                  + "\n\n"
+                  + HYBRID_CODE_BLOCK.strip()
+                  + build[insertion:]
+              )
+
+          if (
+              "source_code not in TOURNAMENT_HYBRID_EVENT_CODES"
+              not in build
+          ):
+              build = replace_between(
+                  build,
+                  "    # Code-based assignments come first.",
+                  '    if "friendly" in folded or "warm-up" in folded:',
+                  IDENTITY_ASSIGNMENT_BLOCK,
+                  "qualifier-before-family assignment",
+              )
+
+          rating_change_marker = (
+              '"rating_changes": attributed_rating_changes'
+          )
+          if rating_change_marker not in build:
+              participant_start = (
+                  "            participant_codes = "
+                  "sorted(participant_names)\n"
+              )
+              participant_end = (
+                  "            label = tournament_edition_label(\n"
+              )
+              participant_position = build.find(participant_start)
+              label_position = build.find(
+                  participant_end,
+                  participant_position,
+              )
+              if participant_position < 0 or label_position < 0:
+                  raise RuntimeError(
+                      "Could not locate participant-code/label boundary"
+                  )
+          
+              attributed_block = r'''            participant_codes = sorted(participant_names)
+          
+                      attributed_totals: dict[str, float] = {}
+                      attributed_matches: Counter[str] = Counter()
+                      for row in ordered_cluster:
+                          for code, field in (
+                              (row["a"], "impact_a"),
+                              (row["b"], "impact_b"),
+                          ):
+                              value = row.get(field)
+                              if value is None:
+                                  continue
+                              attributed_totals[code] = (
+                                  attributed_totals.get(code, 0.0)
+                                  + float(value)
+                              )
+                              attributed_matches[code] += 1
+          
+                      attributed_rating_changes = sorted(
+                          (
+                              {
+                                  "code": code,
+                                  "change": change,
+                                  "matches": attributed_matches[code],
+                              }
+                              for code, change in attributed_totals.items()
+                          ),
+                          key=lambda row: (
+                              participant_names.get(
+                                  row["code"],
+                                  row["code"],
+                              ).casefold(),
+                              row["code"],
+                          ),
+                      )
+          
+          '''
+          
+              build = (
+                  build[:participant_position]
+                  + attributed_block
+                  + build[label_position:]
+              )
+          
+              participants_marker = (
+                  '                "participants": participants,\n'
+              )
+              matches_marker = (
+                  '                "matches": len(cluster),\n'
+              )
+              participants_position = build.find(
+                  participants_marker,
+                  participant_position,
+              )
+              matches_position = build.find(
+                  matches_marker,
+                  participants_position,
+              )
+              if participants_position < 0 or matches_position < 0:
+                  raise RuntimeError(
+                      "Could not locate tournament-edition metadata boundary"
+                  )
+          
+              rating_metadata = (
+                  participants_marker
+                  + '                "rating_changes": '
+                  'attributed_rating_changes,\n'
+              )
+              build = (
+                  build[:participants_position]
+                  + rating_metadata
+                  + build[
+                      participants_position + len(participants_marker):
+                  ]
+              )
+          build = replace_between(
+              build,
+              "def build_best_tournament_records(",
+              "def build_historical_rankings(",
+              BEST_TOURNAMENT_FUNCTION,
+              "Best tournaments record builder",
+          )
+
+          BUILD_PATH.write_text(
+              build.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          app = APP_PATH.read_text(encoding="utf-8")
+          tournament_start = app.find(
+              "  async function renderTournaments(route) {"
+          )
+          tournament_end = app.find(
+              "  async function renderMatches(route) {",
+              tournament_start,
+          )
+          if tournament_start < 0 or tournament_end < 0:
+              raise RuntimeError(
+                  "Could not locate the Tournaments interface"
+              )
+
+          tournament = app[tournament_start:tournament_end]
+
+          tournament = replace_once(
+              tournament,
+              '''    const requestedSort = route.query.get("sort") || "rating";
+              ''',
+              '''    const requestedSortValue = route.query.get("sort");
+                  const requestedSort = requestedSortValue === "rating_gain"
+                    ? "rating_change"
+                    : requestedSortValue || "rating";
+              ''',
+              "legacy tournament sort migration",
+          )
+
+          tournament = tournament.replace(
+              '<option value="rating_gain">Rating gain</option>',
+              '<option value="rating_change">Rating change</option>',
+          )
+          tournament = tournament.replace(
+              'new Set(["rating", "rating_gain", "name"])',
+              'new Set(["rating", "rating_change", "name"])',
+          )
+          tournament = tournament.replace(
+              'if (sort === "rating_gain") {',
+              'if (sort === "rating_change") {',
+          )
+
+          old_change_block = '''        const beforeByCode = new Map(
+                      beforeRanked.map((team) => [team.code, team]),
+                    );
+                    teams = teams.map((team) => {
+                      const before = beforeByCode.get(team.code);
+                      const comparable = before && team.rating != null;
+                      return {
+                        ...team,
+                        tournament_rank_change: (
+                          comparable && team.rank != null
+                            ? before.rank - team.rank
+                            : null
+                        ),
+                        tournament_rating_change: comparable
+                          ? team.rating - before.rating
+                          : null,
+                      };
+                    });
+          '''
+
+          new_change_block = '''        const beforeByCode = new Map(
+                      beforeRanked.map((team) => [team.code, team]),
+                    );
+                    const attributedChanges = new Map(
+                      (selectedEdition.rating_changes || []).map(
+                        (item) => [item.code, Number(item.change)],
+                      ),
+                    );
+                    teams = teams.map((team) => {
+                      const before = beforeByCode.get(team.code);
+                      const comparable = before && team.rating != null;
+                      return {
+                        ...team,
+                        tournament_rank_change: (
+                          comparable && team.rank != null
+                            ? before.rank - team.rank
+                            : null
+                        ),
+                        tournament_rating_change: (
+                          comparable && attributedChanges.has(team.code)
+                            ? attributedChanges.get(team.code)
+                            : null
+                        ),
+                      };
+                    });
+          '''
+
+          tournament = replace_once(
+              tournament,
+              old_change_block,
+              new_change_block,
+              "match-attributed tournament rating change",
+          )
+
+          tournament = tournament.replace(
+              (
+                  "Rank and rating movement compare the full global tables "
+                  "before and after the event."
+              ),
+              (
+                  "Rank movement compares the full global tables before and "
+                  "after the event. Rating change sums only this edition's "
+                  "match contributions, excluding recalibration and unrelated "
+                  "results."
+              ),
+          )
+
+          if "Rating gain</option>" in tournament:
+              raise RuntimeError(
+                  "Rating gain remains in the tournament sort dropdown"
+              )
+          if 'value="rating_change">Rating change' not in tournament:
+              raise RuntimeError(
+                  "Rating change option was not installed"
+              )
+          if "attributedChanges" not in tournament:
+              raise RuntimeError(
+                  "Tournament page still lacks attributed changes"
+              )
+
+          app = (
+              app[:tournament_start]
+              + tournament
+              + app[tournament_end:]
+          )
+
+          app = app.replace(
+              (
+                  'title="Rating movement during this tournament: '
+                  '${signed} points"'
+              ),
+              (
+                  'title="Rating change attributed to this tournament\\\'s '
+                  'matches: ${signed} points"'
+              ),
+          )
+
+          app = replace_once(
+              app,
+              "        tournaments: summary.best_tournaments || [],\n",
+              (
+                  "        tournaments: "
+                  "(summary.best_tournaments || []).slice(0, 500),\n"
+              ),
+              "500-row Best tournaments UI cap",
+          )
+
+          app = app.replace(
+              (
+                  "Each row compares the same published before-and-after "
+                  "snapshots used on the Tournaments page. Teams without a "
+                  "comparable published rating at both snapshots are excluded."
+              ),
+              (
+                  "Rating gain is the sum of the model contributions from the "
+                  "edition's own matches, excluding annual recalibration and "
+                  "unrelated results. Teams without a comparable published "
+                  "rating at both snapshots are excluded, and only the top "
+                  "500 are retained."
+              ),
+          )
+
+          APP_PATH.write_text(
+              app.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          TOURNAMENT_TEST = r'''
+              def test_tournament_catalog_codes_participants_and_sorting(self) -> None:
+                  catalog = json.loads(
+                      (self.data / "tournaments" / "index.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  owners: dict[str, set[str]] = {}
+                  by_name = {
+                      family["name"]: family
+                      for family in catalog["families"]
+                  }
+                  for family in catalog["families"]:
+                      for code in family.get("source_codes", []):
+                          owners.setdefault(code, set()).add(family["name"])
+                      for edition in family["editions"]:
+                          participants = edition.get("participants", [])
+                          self.assertEqual(
+                              {item["code"] for item in participants},
+                              set(edition["teams"]),
+                          )
+                          self.assertEqual(
+                              len(participants),
+                              len(edition["teams"]),
+                          )
+                          self.assertTrue(
+                              all(item["nation"] for item in participants)
+                          )
+                          rating_changes = edition.get(
+                              "rating_changes",
+                              [],
+                          )
+                          self.assertEqual(
+                              {item["code"] for item in rating_changes},
+                              set(edition["teams"]),
+                          )
+                          self.assertTrue(
+                              all(
+                                  item["matches"] > 0
+                                  for item in rating_changes
+                              )
+                          )
+
+                  self.assertEqual(
+                      set(by_name["Olympic Games"]["source_codes"]),
+                      {"OG"},
+                  )
+                  self.assertNotIn("OQ", owners)
+                  self.assertNotIn("OGC", owners)
+
+                  expected_owners = {
+                      "BGC": "Bangabandhu Gold Cup",
+                      "NGC": "Nehru Gold Cup",
+                      "PRG": "President's Gold Cup",
+                      "CFC": "CONCACAF Cup",
+                      "SQC": "AFC Challenge Cup",
+                      "NQC": "Central American Cup",
+                      "NQU": "UNCAF Nations Cup",
+                      "FQC": "Caribbean Cup",
+                      "FQB": "Caribbean Championship",
+                  }
+                  for code, family_name in expected_owners.items():
+                      if code in owners:
+                          self.assertEqual(owners[code], {family_name})
+
+                  excluded_qualifier_codes = {
+                      "OQ", "GCQ", "CHQ", "CHT", "TGQ", "AEQ",
+                      "SEQ", "SET", "CLQ", "NLQ", "UNQ", "UNT",
+                      "EAQ", "EAT", "ARQ", "AQT",
+                      "FCQ", "FBQ", "NUQ",
+                  }
+                  self.assertFalse(
+                      excluded_qualifier_codes & owners.keys()
+                  )
+
+                  gold_cup = by_name["CONCACAF Gold Cup"]
+                  gold_codes = set(gold_cup["source_codes"])
+                  self.assertFalse(
+                      gold_codes
+                      & {"BGC", "NGC", "PRG", "FCQ", "FBQ", "NUQ"}
+                  )
+                  self.assertNotIn(
+                      "2006–07",
+                      {
+                          edition["label"]
+                          for edition in gold_cup["editions"]
+                      },
+                  )
+
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  self.assertIn(
+                      '<option value="rating">Rating</option>'
+                      '<option value="rating_change">Rating change</option>'
+                      '<option value="name">Name</option>',
+                      javascript,
+                  )
+                  self.assertNotIn(
+                      '<option value="rating_gain">Rating gain</option>',
+                      javascript,
+                  )
+                  self.assertIn("attributedChanges", javascript)
+                  self.assertIn(
+                      "excluding recalibration and unrelated results",
+                      javascript,
+                  )
+                  self.assertIn("editionParticipants", javascript)
+                  self.assertIn(
+                      "including teams without a published rating",
+                      javascript,
+                  )
+          '''
+
+
+          BEST_TEST = r'''
+              def test_best_tournament_records_and_rating_sort_options(self) -> None:
+                  records = self.summary.get("best_tournaments", [])
+                  self.assertTrue(records)
+                  self.assertLessEqual(len(records), 500)
+                  self.assertEqual(
+                      records,
+                      sorted(
+                          records,
+                          key=lambda row: (
+                              -row["rating_gain"],
+                              row["after"],
+                              row["tournament"],
+                              row["nation"],
+                          ),
+                      )[:500],
+                  )
+                  self.assertTrue(
+                      all(row["rating_gain"] > 0 for row in records)
+                  )
+
+                  catalog = json.loads(
+                      (self.data / "tournaments" / "index.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  attributed = {
+                      (
+                          family["id"],
+                          edition["id"],
+                          change["code"],
+                      ): change["change"]
+                      for family in catalog["families"]
+                      for edition in family["editions"]
+                      for change in edition.get("rating_changes", [])
+                  }
+                  self.assertTrue(
+                      all(
+                          abs(
+                              row["rating_gain"]
+                              - attributed[
+                                  (
+                                      row["tournament_id"],
+                                      row["edition_id"],
+                                      row["code"],
+                                  )
+                              ]
+                          ) < 1e-7
+                          for row in records
+                      )
+                  )
+                  self.assertTrue(
+                      all(
+                          row["tournament_id"]
+                          and row["edition_id"]
+                          and row["code"]
+                          and row["tournament_matches"] > 0
+                          for row in records
+                      )
+                  )
+
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  self.assertIn(
+                      'data-record="tournaments"',
+                      javascript,
+                  )
+                  self.assertIn(
+                      "function bestTournamentTable",
+                      javascript,
+                  )
+                  self.assertIn(
+                      "(summary.best_tournaments || []).slice(0, 500)",
+                      javascript,
+                  )
+                  self.assertIn(
+                      "edition's own matches",
+                      javascript,
+                  )
+                  self.assertNotIn(
+                      '<option value="mean">Adjusted estimate</option>',
+                      javascript,
+                  )
+
+                  builder = (
+                      ROOT / "scripts" / "build_site.py"
+                  ).read_text(encoding="utf-8")
+                  self.assertIn("return records[:500]", builder)
+                  self.assertIn(
+                      '"rating_changes": attributed_rating_changes',
+                      builder,
+                  )
+          '''
+
+
+          tests = TEST_PATH.read_text(encoding="utf-8")
+          tests = replace_between(
+              tests,
+              "    def test_tournament_catalog_codes_participants_and_sorting",
+              "    def test_best_tournament_records_and_rating_sort_options",
+              TOURNAMENT_TEST,
+              "tournament catalog regression test",
+          )
+          tests = replace_between(
+              tests,
+              "    def test_best_tournament_records_and_rating_sort_options",
+              "    def test_public_metadata_and_discovery_files",
+              BEST_TEST,
+              "Best tournaments regression test",
+          )
+
+          TEST_PATH.write_text(
+              tests.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          final_build = BUILD_PATH.read_text(encoding="utf-8")
+          final_app = APP_PATH.read_text(encoding="utf-8")
+          required = [
+              "TOURNAMENT_HYBRID_EVENT_CODES",
+              "source_code not in TOURNAMENT_HYBRID_EVENT_CODES",
+              '"rating_changes": attributed_rating_changes',
+              "return records[:500]",
+              'value="rating_change">Rating change',
+              "attributedChanges",
+              "(summary.best_tournaments || []).slice(0, 500)",
+          ]
+          combined = final_build + "\n" + final_app
+          missing = [marker for marker in required if marker not in combined]
+          if missing:
+              raise RuntimeError(
+                  "Patch validation failed; missing: "
+                  + ", ".join(missing)
+              )
+
+          print(
+              "Tournament qualifiers, attributed rating changes, "
+              "and 500-record cap installed."
+          )
+          PY
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_site.py tests/test_build.py
+          node --check public/assets/app.js
+
+      - name: Build static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Audit tournament catalog and records
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+
+          catalog = json.loads(
+              Path("public/data/tournaments/index.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          summary = json.loads(
+              Path("public/data/summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+
+          families = {
+              family["name"]: family
+              for family in catalog["families"]
+          }
+          owners = {}
+          attributed = {}
+
+          for family in catalog["families"]:
+              for code in family.get("source_codes", []):
+                  owners.setdefault(code, set()).add(family["name"])
+
+              for edition in family["editions"]:
+                  changes = edition.get("rating_changes", [])
+                  assert {
+                      item["code"] for item in changes
+                  } == set(edition["teams"]), (
+                      family["name"],
+                      edition["label"],
+                      "rating-change participant mismatch",
+                  )
+                  for item in changes:
+                      assert item["matches"] > 0
+                      attributed[
+                          (
+                              family["id"],
+                              edition["id"],
+                              item["code"],
+                          )
+                      ] = item["change"]
+
+          excluded = {
+              "OQ", "GCQ", "CHQ", "CHT", "TGQ", "AEQ",
+              "SEQ", "SET", "CLQ", "NLQ", "UNQ", "UNT",
+              "EAQ", "EAT", "ARQ", "AQT",
+              "FCQ", "FBQ", "NUQ",
+          }
+          assert not excluded & owners.keys(), (
+              "Qualifier-only codes remain in catalog",
+              sorted(excluded & owners.keys()),
+          )
+
+          gold_cup = families["CONCACAF Gold Cup"]
+          assert not (
+              set(gold_cup["source_codes"])
+              & {"FCQ", "FBQ", "NUQ"}
+          )
+          assert "2006–07" not in {
+              edition["label"]
+              for edition in gold_cup["editions"]
+          }
+
+          records = summary.get("best_tournaments", [])
+          assert 0 < len(records) <= 500
+          assert records == sorted(
+              records,
+              key=lambda row: (
+                  -row["rating_gain"],
+                  row["after"],
+                  row["tournament"],
+                  row["nation"],
+              ),
+          )[:500]
+          for row in records:
+              key = (
+                  row["tournament_id"],
+                  row["edition_id"],
+                  row["code"],
+              )
+              assert key in attributed
+              assert abs(row["rating_gain"] - attributed[key]) < 1e-7
+              assert row["rating_gain"] > 0
+              assert row["tournament_matches"] > 0
+
+          javascript = Path(
+              "public/assets/app.js"
+          ).read_text(encoding="utf-8")
+          assert (
+              '<option value="rating_change">Rating change</option>'
+              in javascript
+          )
+          assert (
+              '<option value="rating_gain">Rating gain</option>'
+              not in javascript
+          )
+          assert "attributedChanges" in javascript
+
+          print(
+              f"Audited {sum(len(f['editions']) for f in catalog['families'])} "
+              f"editions and {len(records)} Best tournaments records."
+          )
+          PY
+
+      - name: Run full test suite
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+
+      - name: Preserve source changes and discard validation output
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp public/assets/app.js /tmp/nfelo-tournament-fix-app.js
+
+          git restore --worktree -- public
+          git clean -fd -- public/data public/tournaments
+
+          cp /tmp/nfelo-tournament-fix-app.js public/assets/app.js
+
+      - name: Check final patch
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+      - name: Commit and push corrections
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Tournament corrections are already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+          git commit -m "Fix tournament qualifiers and rating changes"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy corrected site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
