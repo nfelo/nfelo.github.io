@@ -874,39 +874,86 @@ def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
             )
             participant_codes = sorted(participant_names)
 
-            attributed_totals: dict[str, float] = {}
-            attributed_matches: Counter[str] = Counter()
-            for row in ordered_cluster:
-                for code, field in (
-                    (row["a"], "impact_a"),
-                    (row["b"], "impact_b"),
-                ):
-                    value = row.get(field)
-                    if value is None:
-                        continue
-                    attributed_totals[code] = (
-                        attributed_totals.get(code, 0.0)
-                        + float(value)
-                    )
-                    attributed_matches[code] += 1
 
-            attributed_rating_changes = sorted(
-                (
-                    {
-                        "code": code,
-                        "change": change,
-                        "matches": attributed_matches[code],
-                    }
-                    for code, change in attributed_totals.items()
-                ),
-                key=lambda row: (
-                    participant_names.get(
-                        row["code"],
-                        row["code"],
-                    ).casefold(),
-                    row["code"],
-                ),
-            )
+            # Sum published post-minus-pre movement from this edition's
+            # own matchdays. Historical source dates can be imprecise
+            # (for example YYYY-MM-00), so distinct transitions may share
+            # the same displayed date. Deduplicate only identical
+            # team/date/pre/post transitions, which represent one joint
+            # matchday update repeated across multiple match rows.
+            published_rating_transitions: dict[
+                tuple[str, str, float, float],
+                int,
+            ] = {}
+            attributed_matches: Counter[str] = Counter()
+
+            for row in ordered_cluster:
+                for code, pre_field, post_field in (
+                    (row["a"], "pre_a", "post_a"),
+                    (row["b"], "pre_b", "post_b"),
+                ):
+                    attributed_matches[code] += 1
+                    pre = row.get(pre_field)
+                    post = row.get(post_field)
+                    if pre is None or post is None:
+                        continue
+
+                    transition = (
+                        code,
+                        str(row["date"]),
+                        float(pre),
+                        float(post),
+                    )
+                    match_id = int(row["id"])
+                    previous_id = published_rating_transitions.get(
+                        transition
+                    )
+                    if (
+                        previous_id is None
+                        or match_id < previous_id
+                    ):
+                        published_rating_transitions[
+                            transition
+                        ] = match_id
+
+            attributed_rating_changes = []
+            for code in participant_codes:
+                transitions = sorted(
+                    (
+                        tolerant_tournament_date(day),
+                        match_id,
+                        pre,
+                        post,
+                    )
+                    for (
+                        team_code,
+                        day,
+                        pre,
+                        post,
+                    ), match_id
+                    in published_rating_transitions.items()
+                    if team_code == code
+                )
+
+                if transitions:
+                    start_rating = transitions[0][2]
+                    change = sum(
+                        post - pre
+                        for _, _, pre, post in transitions
+                    )
+                    end_rating = start_rating + change
+                else:
+                    start_rating = None
+                    end_rating = None
+                    change = None
+
+                attributed_rating_changes.append({
+                    "code": code,
+                    "change": change,
+                    "start_rating": start_rating,
+                    "end_rating": end_rating,
+                    "matches": attributed_matches[code],
+                })
 
             label = tournament_edition_label(
                 first,
@@ -1017,13 +1064,14 @@ def tournament_rating_at_snapshot(
 
 
 
+
 def build_best_tournament_records(
     tournament_catalog: dict[str, Any],
-    team_pages: dict[str, dict[str, Any]],
+    _team_pages: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    # Rank positive changes attributed only to an edition's matches.
-    # Snapshot-to-snapshot differences are intentionally not used:
-    # they can contain annual recalibration and unrelated results.
+    # Rank positive rating changes from tournament matchdays only.
+    # Each stored pair is internally consistent:
+    # end_rating - start_rating == rating_gain.
     records: list[dict[str, Any]] = []
 
     for family in tournament_catalog["families"]:
@@ -1032,42 +1080,27 @@ def build_best_tournament_records(
                 participant["code"]: participant["nation"]
                 for participant in edition.get("participants", [])
             }
-            attributed = {
-                row["code"]: row
-                for row in edition.get("rating_changes", [])
-            }
 
-            for code in edition["teams"]:
-                change_row = attributed.get(code)
-                if change_row is None:
+            for change_row in edition.get(
+                "rating_changes",
+                [],
+            ):
+                code = change_row["code"]
+                start_rating = change_row.get("start_rating")
+                end_rating = change_row.get("end_rating")
+                if start_rating is None or end_rating is None:
                     continue
 
-                gain = float(change_row["change"])
+                before_rating = float(start_rating)
+                after_rating = float(end_rating)
+                gain = after_rating - before_rating
                 if gain <= 0:
-                    continue
-
-                page = team_pages.get(code)
-                if page is None:
-                    continue
-
-                history = page.get("history", [])
-                before = tournament_rating_at_snapshot(
-                    history,
-                    edition["before"],
-                )
-                after = tournament_rating_at_snapshot(
-                    history,
-                    edition["after"],
-                )
-                if before is None or after is None:
                     continue
 
                 records.append({
                     "code": code,
                     "nation": (
                         participant_names.get(code)
-                        or after.get("historical_name")
-                        or after.get("nation")
                         or code
                     ),
                     "tournament": family["name"],
@@ -1079,8 +1112,8 @@ def build_best_tournament_records(
                     "end": edition["end"],
                     "before": edition["before"],
                     "after": edition["after"],
-                    "before_rating": before["rating"],
-                    "after_rating": after["rating"],
+                    "before_rating": before_rating,
+                    "after_rating": after_rating,
                     "rating_gain": gain,
                     "tournament_matches": int(
                         change_row.get("matches", 0)

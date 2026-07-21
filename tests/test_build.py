@@ -762,6 +762,7 @@ class StaticBuildTests(unittest.TestCase):
 
 
 
+
     def test_tournament_catalog_codes_participants_and_sorting(self) -> None:
         catalog = json.loads(
             (self.data / "tournaments" / "index.json").read_text(
@@ -789,6 +790,7 @@ class StaticBuildTests(unittest.TestCase):
                 self.assertTrue(
                     all(item["nation"] for item in participants)
                 )
+
                 rating_changes = edition.get(
                     "rating_changes",
                     [],
@@ -803,6 +805,19 @@ class StaticBuildTests(unittest.TestCase):
                         for item in rating_changes
                     )
                 )
+                for item in rating_changes:
+                    if item["change"] is None:
+                        self.assertIsNone(item["start_rating"])
+                        self.assertIsNone(item["end_rating"])
+                    else:
+                        self.assertIsNotNone(item["start_rating"])
+                        self.assertIsNotNone(item["end_rating"])
+                        self.assertAlmostEqual(
+                            item["end_rating"]
+                            - item["start_rating"],
+                            item["change"],
+                            places=7,
+                        )
 
         self.assertEqual(
             set(by_name["Olympic Games"]["source_codes"]),
@@ -894,6 +909,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertTrue(
             all(row["rating_gain"] > 0 for row in records)
         )
+        self.assertTrue(
+            all(
+                abs(
+                    row["after_rating"]
+                    - row["before_rating"]
+                    - row["rating_gain"]
+                ) < 1e-7
+                for row in records
+            )
+        )
 
         catalog = json.loads(
             (self.data / "tournaments" / "index.json").read_text(
@@ -905,11 +930,12 @@ class StaticBuildTests(unittest.TestCase):
                 family["id"],
                 edition["id"],
                 change["code"],
-            ): change["change"]
+            ): change
             for family in catalog["families"]
             for edition in family["editions"]
             for change in edition.get("rating_changes", [])
         }
+
         self.assertTrue(
             all(
                 abs(
@@ -920,7 +946,32 @@ class StaticBuildTests(unittest.TestCase):
                             row["edition_id"],
                             row["code"],
                         )
-                    ]
+                    ]["change"]
+                ) < 1e-7
+                for row in records
+            )
+        )
+        self.assertTrue(
+            all(
+                abs(
+                    row["before_rating"]
+                    - attributed[
+                        (
+                            row["tournament_id"],
+                            row["edition_id"],
+                            row["code"],
+                        )
+                    ]["start_rating"]
+                ) < 1e-7
+                and abs(
+                    row["after_rating"]
+                    - attributed[
+                        (
+                            row["tournament_id"],
+                            row["edition_id"],
+                            row["code"],
+                        )
+                    ]["end_rating"]
                 ) < 1e-7
                 for row in records
             )
@@ -951,7 +1002,11 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
         self.assertIn(
-            "edition's own matches",
+            "edition's own matchdays",
+            javascript,
+        )
+        self.assertIn(
+            "Tournament rating before → after",
             javascript,
         )
         self.assertNotIn(
@@ -965,6 +1020,18 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("return records[:500]", builder)
         self.assertIn(
             '"rating_changes": attributed_rating_changes',
+            builder,
+        )
+        self.assertIn(
+            "published_rating_transitions",
+            builder,
+        )
+        self.assertIn(
+            '"start_rating": start_rating',
+            builder,
+        )
+        self.assertIn(
+            '"end_rating": end_rating',
             builder,
         )
 

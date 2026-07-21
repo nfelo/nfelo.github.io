@@ -800,11 +800,23 @@
         const beforeByCode = new Map(
           beforeRanked.map((team) => [team.code, team]),
         );
-        const attributedChanges = new Map(
-          (selectedEdition.rating_changes || []).map(
-            (item) => [item.code, Number(item.change)],
-          ),
-        );
+
+                const attributedChanges = new Map(
+                  (selectedEdition.rating_changes || [])
+                    .filter(
+                      (item) => (
+                        item.change != null
+                        && Number.isFinite(Number(item.change))
+                      ),
+                    )
+                    .map(
+                      (item) => [
+                        item.code,
+                        Number(item.change),
+                      ],
+                    ),
+                );
+
         teams = teams.map((team) => {
           const before = beforeByCode.get(team.code);
           const comparable = before && team.rating != null;
@@ -833,7 +845,7 @@
         `${selectedFamily.name} · ${selectedEdition.label}`;
       document.getElementById("tournament-description").textContent =
         selectedView === "after"
-          ? `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately after the tournament. Rank movement compares the full global tables before and after the event. Rating change sums only this edition's match contributions, excluding recalibration and unrelated results.`
+          ? `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately after the tournament. Rank movement compares the full global tables before and after the event. Rating change sums only the published post-minus-pre movements on this edition's matchdays, excluding recalibration and unrelated results.`
           : `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately before the tournament.`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
@@ -1037,7 +1049,7 @@
     }
 
     return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Nation</th><th>Tournament</th><th class="hide-mobile">Edition</th><th class="numeric">Rating gain</th><th class="numeric">Rating before → after</th><th class="hide-mobile">Tournament ended</th></tr></thead>
+      <thead><tr><th class="numeric">Rank</th><th>Nation</th><th>Tournament</th><th class="hide-mobile">Edition</th><th class="numeric">Rating gain</th><th class="numeric">Tournament rating before → after</th><th class="hide-mobile">Tournament ended</th></tr></thead>
       <tbody>${rows.map((row, index) => {
         const tournamentURL = `#/tournaments?tournament=${encodeURIComponent(row.tournament_id)}&edition=${encodeURIComponent(row.edition_id)}&view=after`;
         return `<tr>
@@ -1130,7 +1142,7 @@
             ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
             : view === "upsets"
               ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
-              : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain is the sum of the model contributions from the edition's own matches, excluding annual recalibration and unrelated results. Teams without a comparable published rating at both snapshots are excluded, and only the top 500 are retained.</div>`;
+              : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain is the sum of published post-minus-pre rating movements on the edition's own matchdays, excluding annual recalibration and unrelated results. The tournament-only before→after pair therefore matches the gain exactly, and only the top 500 are retained.</div>`;
       document.getElementById("record-table").innerHTML = view === "peaks"
       ? peakTable(visible)
       : view === "numberones"
