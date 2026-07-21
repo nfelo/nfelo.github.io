@@ -845,6 +845,68 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
 
+
+    def test_best_tournament_records_and_rating_sort_options(self) -> None:
+        records = self.summary.get("best_tournaments", [])
+        self.assertTrue(records)
+        self.assertEqual(
+            records,
+            sorted(
+                records,
+                key=lambda row: (
+                    -row["rating_gain"],
+                    row["after"],
+                    row["tournament"],
+                    row["nation"],
+                ),
+            ),
+        )
+        self.assertTrue(
+            all(row["rating_gain"] > 0 for row in records)
+        )
+        self.assertTrue(
+            all(
+                abs(
+                    row["after_rating"]
+                    - row["before_rating"]
+                    - row["rating_gain"]
+                ) < 1e-7
+                for row in records
+            )
+        )
+        self.assertTrue(
+            all(
+                row["tournament_id"]
+                and row["edition_id"]
+                and row["code"]
+                for row in records
+            )
+        )
+
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'data-record="tournaments"',
+            javascript,
+        )
+        self.assertIn(
+            "function bestTournamentTable",
+            javascript,
+        )
+        self.assertIn(
+            "summary.best_tournaments",
+            javascript,
+        )
+        self.assertNotIn(
+            '<option value="mean">Adjusted estimate</option>',
+            javascript,
+        )
+        self.assertNotIn(
+            '["rating", "mean", "matches", "name"]',
+            javascript,
+        )
+
     def test_public_metadata_and_discovery_files(self) -> None:
         public = ROOT / "public"
         html = (public / "index.html").read_text(encoding="utf-8")

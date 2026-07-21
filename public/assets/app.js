@@ -354,7 +354,7 @@
         <header class="page-heading"><div><p class="eyebrow">Current international teams</p><h1>Rankings</h1></div><p class="lede">The rating combines estimated playing strength with an allowance for uncertainty. Teams with results against a broad range of opponents can therefore be assessed more confidently. <a href="#/history">Choose a historical date →</a></p></header>
         <div class="toolbar">
           <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Spain, Argentina, Japan…" value="${escapeHTML(route.query.get("q") || "")}"></div>
-          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="mean">Adjusted estimate</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
+          <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
           <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current</button><button class="button" data-pool="all" aria-pressed="false">All histories</button></div>
         </div>
         <div class="record-note"><strong>Rating</strong><div>The published rating is the model's strength estimate adjusted for the range of opponents played and the uncertainty in that estimate. A team must have played at least 30 matches and appeared within the last four years to enter the current table. The 12-month column compares the latest rating and rank with the last eligible matchday on or before the same calendar date one year earlier.</div></div>
@@ -362,7 +362,7 @@
       </div>`;
     const target = document.getElementById("rankings-table");
     let pool = route.query.get("pool") === "all" ? "all" : "current";
-    const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("ranking-sort").value = requestedSort;
     document.querySelectorAll("[data-pool]").forEach((button) => {
       const selected = button.dataset.pool === pool;
@@ -447,7 +447,7 @@
         <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
       </div>
       <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
-      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="mean">Adjusted estimate</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
+      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
       <div id="history-table"></div></div>`;
 
     let teams = [];
@@ -455,7 +455,7 @@
     const dateInput = document.getElementById("history-date");
     const calendarInput = document.getElementById("history-calendar");
     const table = document.getElementById("history-table");
-    const requestedSort = ["rating", "mean", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
+    const requestedSort = ["rating", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("history-sort").value = requestedSort;
 
     const saveHistoryRoute = () => replaceRouteQuery("history", {
@@ -1020,6 +1020,29 @@
     </tr>`).join("")}</tbody></table></div>`;
   }
 
+
+  function bestTournamentTable(rows) {
+    if (!rows.length) {
+      return `<div class="empty"><h2>No tournament gains</h2><p>No comparable positive tournament rating gains are available.</p></div>`;
+    }
+
+    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Nation</th><th>Tournament</th><th class="hide-mobile">Edition</th><th class="numeric">Rating gain</th><th class="numeric">Rating before → after</th><th class="hide-mobile">Tournament ended</th></tr></thead>
+      <tbody>${rows.map((row, index) => {
+        const tournamentURL = `#/tournaments?tournament=${encodeURIComponent(row.tournament_id)}&edition=${encodeURIComponent(row.edition_id)}&view=after`;
+        return `<tr>
+          <td class="rank-cell numeric">${index + 1}</td>
+          <td>${teamLink(row.code, row.nation, row.after)}</td>
+          <td><a class="team-link" href="${tournamentURL}">${escapeHTML(row.tournament)}</a></td>
+          <td class="hide-mobile">${escapeHTML(row.edition)}</td>
+          <td class="numeric"><span class="rating-main movement-up">+${rating(row.rating_gain)}</span></td>
+          <td class="numeric"><span class="rating-pair">${rating(row.before_rating)} → ${rating(row.after_rating)}</span></td>
+          <td class="hide-mobile">${validDate(row.after)}</td>
+        </tr>`;
+      }).join("")}</tbody>
+    </table></div>`;
+  }
+
   function renderRecords(route) {
     setTitle("Records");
     content.innerHTML = `
@@ -1030,12 +1053,12 @@
           <div class="field"><label for="number-one-from">From date</label><div class="date-combo"><input id="number-one-from" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("from") ? validDate(route.query.get("from")) : ""}" aria-describedby="number-one-from-error"><button class="button" type="button" id="number-one-from-button" aria-label="Open from-date calendar">Calendar</button><input id="number-one-from-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("from") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-from-error" class="field-error" role="alert"></span></div>
           <div class="field"><label for="number-one-to">To date</label><div class="date-combo"><input id="number-one-to" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("to") ? validDate(route.query.get("to")) : ""}" aria-describedby="number-one-to-error"><button class="button" type="button" id="number-one-to-button" aria-label="Open to-date calendar">Calendar</button><input id="number-one-to-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("to") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-to-error" class="field-error" role="alert"></span></div>
         </div>
-        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button></div>
+        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button><button class="button" data-record="tournaments" aria-pressed="false">Best tournaments</button></div>
         <div id="record-note" class="record-note"></div>
         <div id="record-table"></div>
         <div class="pagination"><span id="record-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="record-more" class="button">Show more</button><button id="record-all" class="button button-quiet">Show all</button></div></div>
       </div>`;
-    let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
+    let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets", "tournaments"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
     let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
     document.querySelectorAll("[data-record]").forEach((button) => {
       const active = button.dataset.record === view;
@@ -1049,6 +1072,7 @@
         numberonesummary: summary.number_one_summary || [],
         matches: summary.top_matches,
         upsets: summary.upsets,
+        tournaments: summary.best_tournaments || [],
       };
       const filterBar = document.getElementById("number-one-filters");
       const filtering = view === "numberones";
@@ -1094,16 +1118,20 @@
             ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
             : view === "matches"
             ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
-            : `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`;
+            : view === "upsets"
+              ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
+              : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Each row compares the same published before-and-after snapshots used on the Tournaments page. Teams without a comparable published rating at both snapshots are excluded.</div>`;
       document.getElementById("record-table").innerHTML = view === "peaks"
-        ? peakTable(visible)
-        : view === "numberones"
-          ? numberOneTable(visible)
-          : view === "numberonesummary"
-            ? numberOneSummaryTable(visible)
-            : view === "matches"
+      ? peakTable(visible)
+      : view === "numberones"
+        ? numberOneTable(visible)
+        : view === "numberonesummary"
+          ? numberOneSummaryTable(visible)
+          : view === "matches"
             ? matchRecordTable(visible)
-            : upsetTable(visible);
+            : view === "upsets"
+              ? upsetTable(visible)
+              : bestTournamentTable(visible);
       document.getElementById("record-count").textContent = `Showing ${number(visible.length)} of ${number(source.length)}`;
       document.getElementById("record-more").hidden = shown >= source.length;
       document.getElementById("record-all").hidden = shown >= source.length;

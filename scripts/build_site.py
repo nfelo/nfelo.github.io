@@ -924,6 +924,94 @@ def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
         "families": families,
     }
 
+
+def tournament_rating_at_snapshot(
+    history: list[dict[str, Any]],
+    snapshot: str,
+) -> dict[str, Any] | None:
+    # Return the published rating used by tournament snapshot pages.
+    point = None
+    for candidate in history:
+        if candidate["date"] > snapshot:
+            break
+        point = candidate
+
+    if point is None or point["matches"] < 30:
+        return None
+
+    snapshot_year = int(snapshot[:4])
+    last_match_year = int(point["date"][:4])
+    if snapshot_year - last_match_year > 4:
+        return None
+
+    return point
+
+
+def build_best_tournament_records(
+    tournament_catalog: dict[str, Any],
+    team_pages: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    # Rank positive rating gains across complete tournament editions.
+    records: list[dict[str, Any]] = []
+
+    for family in tournament_catalog["families"]:
+        for edition in family["editions"]:
+            participant_names = {
+                participant["code"]: participant["nation"]
+                for participant in edition.get("participants", [])
+            }
+
+            for code in edition["teams"]:
+                page = team_pages.get(code)
+                if page is None:
+                    continue
+
+                history = page.get("history", [])
+                before = tournament_rating_at_snapshot(
+                    history,
+                    edition["before"],
+                )
+                after = tournament_rating_at_snapshot(
+                    history,
+                    edition["after"],
+                )
+                if before is None or after is None:
+                    continue
+
+                gain = after["rating"] - before["rating"]
+                if gain <= 0:
+                    continue
+
+                records.append({
+                    "code": code,
+                    "nation": (
+                        participant_names.get(code)
+                        or after.get("historical_name")
+                        or after.get("nation")
+                        or code
+                    ),
+                    "tournament": family["name"],
+                    "tournament_id": family["id"],
+                    "category": family["category"],
+                    "edition": edition["label"],
+                    "edition_id": edition["id"],
+                    "start": edition["start"],
+                    "end": edition["end"],
+                    "before": edition["before"],
+                    "after": edition["after"],
+                    "before_rating": before["rating"],
+                    "after_rating": after["rating"],
+                    "rating_gain": gain,
+                })
+
+    records.sort(key=lambda row: (
+        -row["rating_gain"],
+        row["after"],
+        row["tournament"],
+        row["nation"],
+    ))
+    return records
+
 def build_historical_rankings(data: Path, output: Any) -> None:
     """Write independently loadable end-of-day ranking events for each year."""
     names = {team["code"]: team["nation"] for team in output.summary["teams"]}
@@ -1084,6 +1172,12 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         key=lambda row: (-row["days"], row["first"], row["nation"]),
     )
 
+    tournament_catalog = build_tournament_catalog(output.matches)
+    output.summary["best_tournaments"] = build_best_tournament_records(
+        tournament_catalog,
+        output.team_pages,
+    )
+
     write_json(data / "rankings-history" / "index.json", {
         "first": first_date,
         "last": last_date,
@@ -1091,7 +1185,7 @@ def build_historical_rankings(data: Path, output: Any) -> None:
     })
     write_json(
         data / "tournaments" / "index.json",
-        build_tournament_catalog(output.matches),
+        tournament_catalog,
     )
 
 
