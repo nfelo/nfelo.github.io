@@ -1,0 +1,755 @@
+name: Improve tournament records filters and copy (release)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: improve-tournament-records-filters-copy
+  cancel-in-progress: false
+
+jobs:
+  install:
+    name: Add tournament record filters
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Patch records filters and tournament copy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          APP_PATH = Path("public/assets/app.js")
+          STYLE_PATH = Path("public/assets/styles.css")
+
+
+          def replace_once_or_present(
+              text: str,
+              old: str,
+              new: str,
+              description: str,
+          ) -> str:
+              if new in text and old not in text:
+                  print(f"{description} is already installed.")
+                  return text
+
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(old, new, 1)
+
+
+          def replace_between(
+              text: str,
+              start_marker: str,
+              end_marker: str,
+              replacement: str,
+              description: str,
+          ) -> str:
+              start = text.find(start_marker)
+              if start < 0:
+                  raise RuntimeError(
+                      f"Could not find start of {description}"
+                  )
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise RuntimeError(
+                      f"Could not find end of {description}"
+                  )
+              return (
+                  text[:start]
+                  + replacement.rstrip()
+                  + "\n"
+                  + text[end:]
+              )
+
+
+          app = APP_PATH.read_text(encoding="utf-8")
+
+          records_start = app.find(
+              "  function renderRecords(route) {"
+          )
+          records_end = app.find(
+              "  async function renderFixtures(route) {",
+              records_start,
+          )
+          if records_start < 0 or records_end < 0:
+              raise RuntimeError(
+                  "Could not locate the Records page function"
+              )
+
+          records = app[records_start:records_end]
+
+          if "const bestTournamentRows =" not in records:
+              records = replace_once_or_present(
+                  records,
+                  '''    setTitle("Records");
+          ''',
+                  '''    setTitle("Records");
+              const bestTournamentRows = (summary.best_tournaments || []).slice(0, 500);
+              const bestTournamentTeams = [
+                ...new Map(
+                  bestTournamentRows.map(
+                    (row) => [row.code, row.nation],
+                  ),
+                ).entries(),
+              ]
+                .map(([code, nation]) => ({ code, nation }))
+                .sort(
+                  (a, b) => (
+                    a.nation.localeCompare(b.nation)
+                    || a.code.localeCompare(b.code)
+                  ),
+                );
+              const bestTournamentTeamOptions = bestTournamentTeams
+                .map(
+                  (team) => (
+                    `<option value="${escapeHTML(team.code)}">`
+                    + `${escapeHTML(team.nation)}</option>`
+                  ),
+                )
+                .join("");
+          ''',
+                  "Best tournaments filter data",
+              )
+
+          if 'id="best-tournament-filters"' not in records:
+              records = replace_once_or_present(
+                  records,
+                  '''        </div>
+                  <div class="record-tabs">''',
+                  '''        </div>
+                  <div id="best-tournament-filters" class="toolbar record-filters best-tournament-filters" hidden>
+                    <div class="field">
+                      <label for="best-tournament-team">Team</label>
+                      <select id="best-tournament-team">
+                        <option value="">Any team</option>
+                        ${bestTournamentTeamOptions}
+                      </select>
+                    </div>
+                    <div class="field field-grow">
+                      <label for="best-tournament-competition">Competition</label>
+                      <input id="best-tournament-competition" type="search" placeholder="World Cup, Copa América, Gold Cup…" value="${escapeHTML(route.query.get("competition") || "")}">
+                    </div>
+                  </div>
+                  <div class="record-tabs">''',
+                  "Best tournaments filter toolbar",
+              )
+
+          if "requestedTournamentTeam" not in records:
+              records = replace_once_or_present(
+                  records,
+                  '''    let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
+          ''',
+                  '''    let shown = Math.max(25, Number(route.query.get("shown") || 25)) || 25;
+              const requestedTournamentTeam =
+                route.query.get("team") || "";
+              if (
+                bestTournamentTeams.some(
+                  (team) => team.code === requestedTournamentTeam,
+                )
+              ) {
+                document.getElementById(
+                  "best-tournament-team",
+                ).value = requestedTournamentTeam;
+              }
+          ''',
+                  "Best tournaments initial team filter",
+              )
+
+          if (
+              'const tournamentFiltering = view === "tournaments";'
+              not in records
+          ):
+              records_update = r'''
+              const update = () => {
+                const sources = {
+                  peaks: summary.peaks,
+                  numberones: summary.number_ones || [],
+                  numberonesummary: summary.number_one_summary || [],
+                  matches: summary.top_matches,
+                  upsets: summary.upsets,
+                  tournaments: bestTournamentRows,
+                };
+                const filterBar = document.getElementById(
+                  "number-one-filters",
+                );
+                const tournamentFilterBar = document.getElementById(
+                  "best-tournament-filters",
+                );
+                const filtering = view === "numberones";
+                const tournamentFiltering = view === "tournaments";
+                filterBar.hidden = !filtering;
+                tournamentFilterBar.hidden = !tournamentFiltering;
+
+                const query = document
+                  .getElementById("number-one-team")
+                  .value.trim()
+                  .toLocaleLowerCase();
+                const tournamentTeam = document
+                  .getElementById("best-tournament-team")
+                  .value;
+                const competitionQuery = document
+                  .getElementById("best-tournament-competition")
+                  .value.trim()
+                  .toLocaleLowerCase();
+
+                const fromInput = document.getElementById(
+                  "number-one-from",
+                );
+                const toInput = document.getElementById(
+                  "number-one-to",
+                );
+                const from = inputDate(fromInput.value);
+                const to = inputDate(toInput.value);
+                const invalidRange = Boolean(
+                  from && to && from > to
+                );
+                const fromRangeMessage =
+                  "From date cannot be after To date.";
+                const toRangeMessage =
+                  "To date cannot be before From date.";
+                const fromError = document.getElementById(
+                  "number-one-from-error",
+                );
+                const toError = document.getElementById(
+                  "number-one-to-error",
+                );
+
+                if (invalidRange) {
+                  fromError.textContent = fromRangeMessage;
+                  toError.textContent = toRangeMessage;
+                  fromInput.setAttribute("aria-invalid", "true");
+                  toInput.setAttribute("aria-invalid", "true");
+                } else {
+                  if (
+                    fromError.textContent === fromRangeMessage
+                  ) {
+                    fromError.textContent = "";
+                  }
+                  if (toError.textContent === toRangeMessage) {
+                    toError.textContent = "";
+                  }
+                  if (!fromError.textContent) {
+                    fromInput.removeAttribute("aria-invalid");
+                  }
+                  if (!toError.textContent) {
+                    toInput.removeAttribute("aria-invalid");
+                  }
+                }
+
+                document.getElementById(
+                  "number-one-from-calendar",
+                ).max = to || summary.meta.results_through;
+                document.getElementById(
+                  "number-one-to-calendar",
+                ).min = from || "1872-01-01";
+
+                const source = sources[view].filter((row) => {
+                  if (filtering) {
+                    if (invalidRange) return false;
+                    if (
+                      query
+                      && !row.nation
+                        .toLocaleLowerCase()
+                        .includes(query)
+                    ) {
+                      return false;
+                    }
+                    const end =
+                      row.to || summary.meta.results_through;
+                    if (from && end < from) return false;
+                    if (to && row.from > to) return false;
+                    return true;
+                  }
+
+                  if (tournamentFiltering) {
+                    if (
+                      tournamentTeam
+                      && row.code !== tournamentTeam
+                    ) {
+                      return false;
+                    }
+                    if (
+                      competitionQuery
+                      && !row.tournament
+                        .toLocaleLowerCase()
+                        .includes(competitionQuery)
+                    ) {
+                      return false;
+                    }
+                  }
+
+                  return true;
+                });
+
+                const visible = source.slice(0, shown);
+                document.getElementById(
+                  "record-note",
+                ).innerHTML = view === "peaks"
+                  ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
+                  : view === "numberones"
+                    ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. Historical names are retained, and every relevant result from the change date is shown.</div>`
+                    : view === "numberonesummary"
+                      ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
+                      : view === "matches"
+                        ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
+                        : view === "upsets"
+                          ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
+                          : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain adds up the published rating movement from the edition's own matchdays, excluding annual recalibration and unrelated results.</div>`;
+
+                document.getElementById(
+                  "record-table",
+                ).innerHTML = view === "peaks"
+                  ? peakTable(visible)
+                  : view === "numberones"
+                    ? numberOneTable(visible)
+                    : view === "numberonesummary"
+                      ? numberOneSummaryTable(visible)
+                      : view === "matches"
+                        ? matchRecordTable(visible)
+                        : view === "upsets"
+                          ? upsetTable(visible)
+                          : bestTournamentTable(visible);
+
+                document.getElementById(
+                  "record-count",
+                ).textContent = (
+                  `Showing ${number(visible.length)} `
+                  + `of ${number(source.length)}`
+                );
+                document.getElementById(
+                  "record-more",
+                ).hidden = shown >= source.length;
+                document.getElementById(
+                  "record-all",
+                ).hidden = shown >= source.length;
+
+                replaceRouteQuery("records", {
+                  view: view === "peaks" ? "" : view,
+                  shown: shown > 25 ? shown : "",
+                  q: filtering
+                    ? document
+                      .getElementById("number-one-team")
+                      .value.trim()
+                    : "",
+                  from: (
+                    filtering && !invalidRange ? from : ""
+                  ),
+                  to: (
+                    filtering && !invalidRange ? to : ""
+                  ),
+                  team: tournamentFiltering
+                    ? tournamentTeam
+                    : "",
+                  competition: tournamentFiltering
+                    ? document
+                      .getElementById(
+                        "best-tournament-competition",
+                      )
+                      .value.trim()
+                    : "",
+                });
+              };
+          '''
+              records = replace_between(
+                  records,
+                  "    const update = () => {\n",
+                  (
+                      '    document.getElementById('
+                      '"number-one-team").addEventListener'
+                  ),
+                  records_update,
+                  "Records update function",
+              )
+
+          if (
+              "// Best tournament record filter listeners"
+              not in records
+          ):
+              records = replace_once_or_present(
+                  records,
+                  '''    document.getElementById("number-one-team").addEventListener("input", () => {
+          ''',
+                  '''    // Best tournament record filter listeners
+              document
+                .getElementById("best-tournament-team")
+                  .addEventListener("change", () => {
+                    shown = 25;
+                    update();
+                  });
+              document
+                .getElementById("best-tournament-competition")
+                .addEventListener("input", () => {
+                  shown = 25;
+                  update();
+                });
+              document.getElementById("number-one-team").addEventListener("input", () => {
+          ''',
+                  "Best tournaments filter listeners",
+              )
+
+          app = app[:records_start] + records + app[records_end:]
+
+          app = replace_once_or_present(
+              app,
+              (
+                  '<div class="empty"><h2>No tournament gains</h2>'
+                  '<p>No comparable positive tournament rating gains '
+                  'are available.</p></div>'
+              ),
+              (
+                  '<div class="empty"><h2>No tournament records '
+                  'match those filters.</h2><p>Choose another team '
+                  'or competition.</p></div>'
+              ),
+              "Best tournaments empty state",
+          )
+
+          app = replace_once_or_present(
+              app,
+              (
+                  "Select a competition, edition and a snapshot "
+                  "immediately before or after the tournament. Every "
+                  "participating team is listed, while published rank "
+                  "positions remain their places in the full global table."
+              ),
+              (
+                  "Choose a tournament and edition to compare every "
+                  "participant immediately before or after the event. "
+                  "Ranks always refer to the full world ranking, not just "
+                  "the teams in that tournament."
+              ),
+              "Tournaments page introduction",
+          )
+
+          app = replace_once_or_present(
+              app,
+              (
+                  "All ${number(teams.length)} participants are shown, "
+                  "including teams without a published rating. "
+                  "${number(rankedCount)} had a published rating "
+                  "immediately after the tournament. Rank movement "
+                  "compares the full global tables before and after the "
+                  "event. Rating change sums only the published "
+                  "post-minus-pre movements on this edition's matchdays, "
+                  "excluding recalibration and unrelated results."
+              ),
+              (
+                  "All ${number(teams.length)} participants are shown, "
+                  "including teams without a published rating. "
+                  "${number(rankedCount)} had a published rating after "
+                  "the tournament. Rank change compares each team's "
+                  "place in the full world ranking. Rating change "
+                  "includes only matches from this edition, excluding "
+                  "recalibration and unrelated results."
+              ),
+              "Tournaments after-snapshot description",
+          )
+
+          app = replace_once_or_present(
+              app,
+              (
+                  "All ${number(teams.length)} participants are shown, "
+                  "including teams without a published rating. "
+                  "${number(rankedCount)} had a published rating "
+                  "immediately before the tournament."
+              ),
+              (
+                  "All ${number(teams.length)} participants are shown, "
+                  "including teams without a published rating. "
+                  "${number(rankedCount)} had a published rating before "
+                  "the tournament."
+              ),
+              "Tournaments before-snapshot description",
+          )
+
+          if (
+              "The tournament-only before→after pair therefore "
+              "matches the gain exactly"
+              in app
+          ):
+              raise RuntimeError(
+                  "Superfluous Best tournaments sentence remains"
+              )
+
+          APP_PATH.write_text(
+              app.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          styles = STYLE_PATH.read_text(encoding="utf-8")
+          mobile_marker = (
+              "  .record-filters .field-grow { "
+              "grid-column: 1 / -1; }\n"
+          )
+          mobile_rules = (
+              mobile_marker
+              + "  .best-tournament-filters { "
+              "grid-template-columns: 1fr; }\n"
+              + "  .best-tournament-filters .field-grow { "
+              "grid-column: auto; }\n"
+          )
+
+          if (
+              ".best-tournament-filters { "
+              "grid-template-columns: 1fr; }"
+              not in styles
+          ):
+              styles = replace_once_or_present(
+                  styles,
+                  mobile_marker,
+                  mobile_rules,
+                  "Best tournaments mobile filter layout",
+              )
+
+          STYLE_PATH.write_text(
+              styles.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+
+
+          final_app = APP_PATH.read_text(encoding="utf-8")
+          final_styles = STYLE_PATH.read_text(encoding="utf-8")
+          required_app = [
+              'id="best-tournament-filters"',
+              'id="best-tournament-team"',
+              'id="best-tournament-competition"',
+              'const tournamentFiltering = view === "tournaments";',
+              "// Best tournament record filter listeners",
+              "Rating gain adds up the published rating movement",
+              "Ranks always refer to the full world ranking",
+              "Rank change compares each team's place",
+              "excluding recalibration and unrelated results.",
+          ]
+          missing = [
+              marker
+              for marker in required_app
+              if marker not in final_app
+          ]
+          if missing:
+              raise RuntimeError(
+                  "App patch validation failed; missing: "
+                  + ", ".join(missing)
+              )
+
+          if (
+              ".best-tournament-filters { "
+              "grid-template-columns: 1fr; }"
+              not in final_styles
+          ):
+              raise RuntimeError(
+                  "Mobile filter layout was not installed"
+              )
+
+          print(
+              "Best tournaments filters and tournament copy installed."
+          )
+          PY
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_site.py tests/test_build.py
+          node --check public/assets/app.js
+
+      - name: Build static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Test generated interface
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          javascript = Path(
+              "public/assets/app.js"
+          ).read_text(encoding="utf-8")
+          stylesheet = Path(
+              "public/assets/styles.css"
+          ).read_text(encoding="utf-8")
+
+          required = [
+              'id="best-tournament-filters"',
+              'id="best-tournament-team"',
+              'id="best-tournament-competition"',
+              'const tournamentFiltering = view === "tournaments";',
+              "// Best tournament record filter listeners",
+              "row.code !== tournamentTeam",
+              "row.tournament",
+              "team: tournamentFiltering",
+              "competition: tournamentFiltering",
+              'getElementById("best-tournament-team")',
+              'getElementById("best-tournament-competition")',
+              '.addEventListener("change", () => {',
+              '.addEventListener("input", () => {',
+              '<option value="">Any team</option>',
+              '<label for="best-tournament-competition">Competition</label>',
+              "Rating gain adds up the published rating movement",
+              "Ranks always refer to the full world ranking",
+              "Rank change compares each team's place",
+              "excluding recalibration and unrelated results.",
+          ]
+          missing = [
+              marker for marker in required
+              if marker not in javascript
+          ]
+          assert not missing, missing
+          assert (
+              "The tournament-only before→after pair therefore "
+              "matches the gain exactly"
+              not in javascript
+          )
+          assert (
+              '<label for="best-tournament-competition">'
+              'Competition or opponent</label>'
+              not in javascript
+          )
+          assert (
+              ".best-tournament-filters { "
+              "grid-template-columns: 1fr; }"
+              in stylesheet
+          )
+          assert (
+              ".best-tournament-filters .field-grow { "
+              "grid-column: auto; }"
+              in stylesheet
+          )
+          assert (
+              "const tournamentFiltering = view === "
+              '"tournaments";'
+              in javascript
+          )
+          assert "row.code !== tournamentTeam" in javascript
+          assert (
+              ".includes(competitionQuery)"
+              in javascript
+          )
+          assert (
+              "team: tournamentFiltering"
+              in javascript
+          )
+          assert (
+              "competition: tournamentFiltering"
+              in javascript
+          )
+          assert (
+              'id="best-tournament-filters"'
+              in javascript
+          )
+          assert (
+              'id="best-tournament-team"'
+              in javascript
+          )
+          assert (
+              'id="best-tournament-competition"'
+              in javascript
+          )
+          assert (
+              "The tournament-only before→after pair therefore "
+              "matches the gain exactly"
+              not in javascript
+          )
+
+          print(
+              "Audited Best tournaments filters, responsive layout, "
+              "and tournament copy."
+          )
+          PY
+
+      - name: Preserve source assets and discard generated output
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp public/assets/app.js /tmp/nfelo-record-filters-app.js
+          cp public/assets/styles.css /tmp/nfelo-record-filters-styles.css
+
+          git restore --worktree -- public
+          git clean -fd -- public/data public/tournaments
+
+          cp /tmp/nfelo-record-filters-app.js public/assets/app.js
+          cp /tmp/nfelo-record-filters-styles.css public/assets/styles.css
+
+      - name: Check final patch
+        run: |
+          set -euo pipefail
+          node --check public/assets/app.js
+          git diff --check
+          git diff -- \
+            public/assets/app.js \
+            public/assets/styles.css
+
+      - name: Commit and push changes
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- \
+            public/assets/app.js \
+            public/assets/styles.css
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Tournament record filters are already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            public/assets/app.js \
+            public/assets/styles.css
+
+          git commit -m "Improve tournament record filters and copy"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy updated site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
