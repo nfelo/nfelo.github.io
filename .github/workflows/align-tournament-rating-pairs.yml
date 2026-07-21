@@ -1,0 +1,722 @@
+name: Align tournament rating pairs
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: align-tournament-rating-pairs
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    name: Align tournament changes and rating pairs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Apply rating-pair correction
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          BUILD_PATH = Path("scripts/build_site.py")
+          APP_PATH = Path("public/assets/app.js")
+          TEST_PATH = Path("tests/test_build.py")
+
+
+          def replace_between(
+              text: str,
+              start_marker: str,
+              end_marker: str,
+              replacement: str,
+              description: str,
+          ) -> str:
+              start = text.find(start_marker)
+              if start < 0:
+                  raise RuntimeError(
+                      f"Could not find start of {description}"
+                  )
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise RuntimeError(
+                      f"Could not find end of {description}"
+                  )
+              return (
+                  text[:start]
+                  + replacement.rstrip()
+                  + "\n\n"
+                  + text[end:]
+              )
+
+
+          def replace_once(
+              text: str,
+              old: str,
+              new: str,
+              description: str,
+          ) -> str:
+              count = text.count(old)
+              if count == 0 and new in text:
+                  print(f"{description} is already installed.")
+                  return text
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(old, new, 1)
+
+
+          RATING_CHANGE_BLOCK = r'''
+                      # Sum the published post-minus-pre rating movement from
+                      # this edition's own matchdays. This excludes annual
+                      # recalibration and unrelated matches between tournament
+                      # dates. A team/date key prevents a same-day joint update
+                      # from being counted twice.
+                      published_rating_day_changes: dict[
+                          tuple[str, str],
+                          tuple[float, float],
+                      ] = {}
+                      attributed_matches: Counter[str] = Counter()
+
+                      for row in ordered_cluster:
+                          for code, pre_field, post_field in (
+                              (row["a"], "pre_a", "post_a"),
+                              (row["b"], "pre_b", "post_b"),
+                          ):
+                              attributed_matches[code] += 1
+                              pre = row.get(pre_field)
+                              post = row.get(post_field)
+                              if pre is None or post is None:
+                                  continue
+
+                              key = (code, str(row["date"]))
+                              pair = (float(pre), float(post))
+                              previous = published_rating_day_changes.get(key)
+                              if previous is not None:
+                                  if (
+                                      abs(previous[0] - pair[0]) > 1e-7
+                                      or abs(previous[1] - pair[1]) > 1e-7
+                                  ):
+                                      raise RuntimeError(
+                                          "Inconsistent same-day tournament "
+                                          f"ratings for {code} on {row['date']}"
+                                      )
+                                  continue
+                              published_rating_day_changes[key] = pair
+
+                      attributed_rating_changes = []
+                      for code in participant_codes:
+                          matchdays = sorted(
+                              (
+                                  day,
+                                  ratings,
+                              )
+                              for (team_code, day), ratings
+                              in published_rating_day_changes.items()
+                              if team_code == code
+                          )
+
+                          if matchdays:
+                              start_rating = matchdays[0][1][0]
+                              change = sum(
+                                  post - pre
+                                  for _, (pre, post) in matchdays
+                              )
+                              end_rating = start_rating + change
+                          else:
+                              start_rating = None
+                              end_rating = None
+                              change = None
+
+                          attributed_rating_changes.append({
+                              "code": code,
+                              "change": change,
+                              "start_rating": start_rating,
+                              "end_rating": end_rating,
+                              "matches": attributed_matches[code],
+                          })
+          '''
+
+
+          BEST_RECORDS_FUNCTION = r'''
+          def build_best_tournament_records(
+              tournament_catalog: dict[str, Any],
+              _team_pages: dict[str, dict[str, Any]],
+          ) -> list[dict[str, Any]]:
+              # Rank positive rating changes from tournament matchdays only.
+              # Each stored pair is internally consistent:
+              # end_rating - start_rating == rating_gain.
+              records: list[dict[str, Any]] = []
+
+              for family in tournament_catalog["families"]:
+                  for edition in family["editions"]:
+                      participant_names = {
+                          participant["code"]: participant["nation"]
+                          for participant in edition.get("participants", [])
+                      }
+
+                      for change_row in edition.get(
+                          "rating_changes",
+                          [],
+                      ):
+                          code = change_row["code"]
+                          start_rating = change_row.get("start_rating")
+                          end_rating = change_row.get("end_rating")
+                          if start_rating is None or end_rating is None:
+                              continue
+
+                          before_rating = float(start_rating)
+                          after_rating = float(end_rating)
+                          gain = after_rating - before_rating
+                          if gain <= 0:
+                              continue
+
+                          records.append({
+                              "code": code,
+                              "nation": (
+                                  participant_names.get(code)
+                                  or code
+                              ),
+                              "tournament": family["name"],
+                              "tournament_id": family["id"],
+                              "category": family["category"],
+                              "edition": edition["label"],
+                              "edition_id": edition["id"],
+                              "start": edition["start"],
+                              "end": edition["end"],
+                              "before": edition["before"],
+                              "after": edition["after"],
+                              "before_rating": before_rating,
+                              "after_rating": after_rating,
+                              "rating_gain": gain,
+                              "tournament_matches": int(
+                                  change_row.get("matches", 0)
+                              ),
+                          })
+
+              records.sort(key=lambda row: (
+                  -row["rating_gain"],
+                  row["after"],
+                  row["tournament"],
+                  row["nation"],
+              ))
+              return records[:500]
+          '''
+
+
+          build = BUILD_PATH.read_text(encoding="utf-8")
+
+          if "published_rating_day_changes" not in build:
+              build = replace_between(
+                  build,
+                  "            attributed_totals: dict[str, float] = {}",
+                  "            label = tournament_edition_label(",
+                  RATING_CHANGE_BLOCK,
+                  "tournament rating-change aggregation",
+              )
+
+          build = replace_between(
+              build,
+              "def build_best_tournament_records(",
+              "def build_historical_rankings(",
+              BEST_RECORDS_FUNCTION,
+              "Best tournaments record builder",
+          )
+
+          BUILD_PATH.write_text(
+              build.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          app = APP_PATH.read_text(encoding="utf-8")
+
+          if ".filter((item) => item.change != null)" not in app:
+              app = replace_between(
+                  app,
+                  "        const attributedChanges = new Map(",
+                  "        teams = teams.map((team) => {",
+                  r'''
+                          const attributedChanges = new Map(
+                            (selectedEdition.rating_changes || [])
+                              .filter(
+                                (item) => (
+                                  item.change != null
+                                  && Number.isFinite(Number(item.change))
+                                ),
+                              )
+                              .map(
+                                (item) => [
+                                  item.code,
+                                  Number(item.change),
+                                ],
+                              ),
+                          );
+                  ''',
+                  "Tournaments attributed-change map",
+              )
+
+          app = replace_once(
+              app,
+              "Rating before → after",
+              "Tournament rating before → after",
+              "Best tournaments rating-pair heading",
+          )
+
+          old_note = (
+              "Rating gain is the sum of the model contributions from the "
+              "edition's own matches, excluding annual recalibration and "
+              "unrelated results. Teams without a comparable published "
+              "rating at both snapshots are excluded, and only the top "
+              "500 are retained."
+          )
+          new_note = (
+              "Rating gain is the sum of published post-minus-pre rating "
+              "movements on the edition's own matchdays, excluding annual "
+              "recalibration and unrelated results. The tournament-only "
+              "before→after pair therefore matches the gain exactly, and "
+              "only the top 500 are retained."
+          )
+          app = replace_once(
+              app,
+              old_note,
+              new_note,
+              "Best tournaments explanation",
+          )
+
+          old_tournament_note = (
+              "Rating change sums only this edition's match "
+              "contributions, excluding recalibration and unrelated "
+              "results."
+          )
+          new_tournament_note = (
+              "Rating change sums only the published post-minus-pre "
+              "movements on this edition's matchdays, excluding "
+              "recalibration and unrelated results."
+          )
+          app = replace_once(
+              app,
+              old_tournament_note,
+              new_tournament_note,
+              "Tournaments rating-change explanation",
+          )
+
+          APP_PATH.write_text(
+              app.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          tests = TEST_PATH.read_text(encoding="utf-8")
+
+          old_catalog_assertion = '''                self.assertTrue(
+                              all(
+                                  item["matches"] > 0
+                                  for item in rating_changes
+                              )
+                          )
+          '''
+          new_catalog_assertion = '''                self.assertTrue(
+                              all(
+                                  item["matches"] > 0
+                                  for item in rating_changes
+                              )
+                          )
+                          for item in rating_changes:
+                              if item["change"] is None:
+                                  self.assertIsNone(item["start_rating"])
+                                  self.assertIsNone(item["end_rating"])
+                              else:
+                                  self.assertIsNotNone(item["start_rating"])
+                                  self.assertIsNotNone(item["end_rating"])
+                                  self.assertAlmostEqual(
+                                      item["end_rating"]
+                                      - item["start_rating"],
+                                      item["change"],
+                                      places=7,
+                                  )
+          '''
+          tests = replace_once(
+              tests,
+              old_catalog_assertion,
+              new_catalog_assertion,
+              "tournament rating-pair catalog test",
+          )
+
+          positive_marker = '''        self.assertTrue(
+                      all(row["rating_gain"] > 0 for row in records)
+                  )
+
+          '''
+          positive_replacement = '''        self.assertTrue(
+                      all(row["rating_gain"] > 0 for row in records)
+                  )
+                  self.assertTrue(
+                      all(
+                          abs(
+                              row["after_rating"]
+                              - row["before_rating"]
+                              - row["rating_gain"]
+                          ) < 1e-7
+                          for row in records
+                      )
+                  )
+
+          '''
+          tests = replace_once(
+              tests,
+              positive_marker,
+              positive_replacement,
+              "Best tournaments rating-pair equality test",
+          )
+
+          tests = replace_once(
+              tests,
+              '''            ): change["change"]
+                          for family in catalog["families"]
+          ''',
+              '''            ): change
+                          for family in catalog["families"]
+          ''',
+              "attributed tournament test payload",
+          )
+
+          tests = replace_once(
+              tests,
+              '''                    row["rating_gain"]
+                          - attributed[
+                              (
+                                  row["tournament_id"],
+                                  row["edition_id"],
+                                  row["code"],
+                              )
+                          ]
+          ''',
+              '''                    row["rating_gain"]
+                          - attributed[
+                              (
+                                  row["tournament_id"],
+                                  row["edition_id"],
+                                  row["code"],
+                              )
+                          ]["change"]
+          ''',
+              "attributed tournament gain assertion",
+          )
+
+          tests = replace_once(
+              tests,
+              '''        self.assertTrue(
+                      all(
+                          row["tournament_id"]
+          ''',
+              '''        self.assertTrue(
+                      all(
+                          abs(
+                              row["before_rating"]
+                              - attributed[
+                                  (
+                                      row["tournament_id"],
+                                      row["edition_id"],
+                                      row["code"],
+                                  )
+                              ]["start_rating"]
+                          ) < 1e-7
+                          and abs(
+                              row["after_rating"]
+                              - attributed[
+                                  (
+                                      row["tournament_id"],
+                                      row["edition_id"],
+                                      row["code"],
+                                  )
+                              ]["end_rating"]
+                          ) < 1e-7
+                          for row in records
+                      )
+                  )
+                  self.assertTrue(
+                      all(
+                          row["tournament_id"]
+          ''',
+              "Best tournaments stored-pair assertion",
+          )
+
+          tests = replace_once(
+              tests,
+              '''        self.assertIn(
+                      "edition's own matches",
+                      javascript,
+                  )
+          ''',
+              '''        self.assertIn(
+                      "edition's own matchdays",
+                      javascript,
+                  )
+                  self.assertIn(
+                      "Tournament rating before → after",
+                      javascript,
+                  )
+          ''',
+              "Best tournaments interface wording test",
+          )
+
+          tests = replace_once(
+              tests,
+              '''        self.assertIn(
+                      '"rating_changes": attributed_rating_changes',
+                      builder,
+                  )
+          ''',
+              '''        self.assertIn(
+                      '"rating_changes": attributed_rating_changes',
+                      builder,
+                  )
+                  self.assertIn(
+                      "published_rating_day_changes",
+                      builder,
+                  )
+                  self.assertIn(
+                      '"start_rating": start_rating',
+                      builder,
+                  )
+                  self.assertIn(
+                      '"end_rating": end_rating',
+                      builder,
+                  )
+          ''',
+              "rating-pair builder markers test",
+          )
+
+          TEST_PATH.write_text(
+              tests.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          final_build = BUILD_PATH.read_text(encoding="utf-8")
+          final_app = APP_PATH.read_text(encoding="utf-8")
+          required = [
+              "published_rating_day_changes",
+              '"start_rating": start_rating',
+              '"end_rating": end_rating',
+              "after_rating - before_rating",
+              "Tournament rating before → after",
+              ".filter((item) => item.change != null)",
+              "post-minus-pre rating movements",
+          ]
+          combined = final_build + "\n" + final_app
+          missing = [
+              marker for marker in required
+              if marker not in combined
+          ]
+          if missing:
+              raise RuntimeError(
+                  "Patch validation failed; missing: "
+                  + ", ".join(missing)
+              )
+
+          print(
+              "Tournament rating pairs now use the same "
+              "matchday-only change calculation."
+          )
+          PY
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_site.py tests/test_build.py
+          node --check public/assets/app.js
+
+      - name: Build static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Audit tournament rating pairs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+
+          catalog = json.loads(
+              Path("public/data/tournaments/index.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          summary = json.loads(
+              Path("public/data/summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+
+          catalog_changes = {}
+          comparable_changes = 0
+          for family in catalog["families"]:
+              for edition in family["editions"]:
+                  changes = edition.get("rating_changes", [])
+                  assert {
+                      item["code"] for item in changes
+                  } == set(edition["teams"])
+
+                  for item in changes:
+                      assert item["matches"] > 0
+                      key = (
+                          family["id"],
+                          edition["id"],
+                          item["code"],
+                      )
+                      catalog_changes[key] = item
+
+                      if item["change"] is None:
+                          assert item["start_rating"] is None
+                          assert item["end_rating"] is None
+                          continue
+
+                      comparable_changes += 1
+                      assert item["start_rating"] is not None
+                      assert item["end_rating"] is not None
+                      assert abs(
+                          item["end_rating"]
+                          - item["start_rating"]
+                          - item["change"]
+                      ) < 1e-7
+
+          records = summary.get("best_tournaments", [])
+          assert 0 < len(records) <= 500
+          for row in records:
+              assert abs(
+                  row["after_rating"]
+                  - row["before_rating"]
+                  - row["rating_gain"]
+              ) < 1e-7
+
+              change = catalog_changes[
+                  (
+                      row["tournament_id"],
+                      row["edition_id"],
+                      row["code"],
+                  )
+              ]
+              assert abs(
+                  row["rating_gain"] - change["change"]
+              ) < 1e-7
+              assert abs(
+                  row["before_rating"] - change["start_rating"]
+              ) < 1e-7
+              assert abs(
+                  row["after_rating"] - change["end_rating"]
+              ) < 1e-7
+
+          javascript = Path(
+              "public/assets/app.js"
+          ).read_text(encoding="utf-8")
+          assert "Tournament rating before → after" in javascript
+          assert (
+              ".filter((item) => item.change != null)"
+              in javascript
+          )
+
+          print(
+              f"Audited {comparable_changes} comparable tournament "
+              f"changes and {len(records)} Best tournaments records."
+          )
+          PY
+
+      - name: Run full test suite
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+
+      - name: Preserve source changes and discard validation output
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp public/assets/app.js /tmp/nfelo-rating-pairs-app.js
+
+          git restore --worktree -- public
+          git clean -fd -- public/data public/tournaments
+
+          cp /tmp/nfelo-rating-pairs-app.js public/assets/app.js
+
+      - name: Check final patch
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+      - name: Commit and push correction
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Tournament rating pairs are already aligned."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+          git commit -m "Align tournament rating pairs"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy corrected site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
