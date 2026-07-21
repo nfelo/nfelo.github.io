@@ -1211,12 +1211,8 @@
         }
       }
 
-      document.getElementById(
-        "number-one-from-calendar",
-      ).max = to || summary.meta.results_through;
-      document.getElementById(
-        "number-one-to-calendar",
-      ).min = from || "1872-01-01";
+      document.getElementById("number-one-from-calendar").max = to || summary.meta.results_through;
+      document.getElementById("number-one-to-calendar").min = from || "1872-01-01";
 
       const source = sources[view].filter((row) => {
         if (filtering) {
