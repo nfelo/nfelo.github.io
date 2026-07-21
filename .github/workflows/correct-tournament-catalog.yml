@@ -1,0 +1,1230 @@
+name: Correct tournament catalog and participants
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: correct-tournament-catalog
+  cancel-in-progress: false
+
+jobs:
+  correct:
+    name: Fix tournament classification and tables
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Apply tournament corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          BUILD_PATH = Path("scripts/build_site.py")
+          APP_PATH = Path("public/assets/app.js")
+          TEST_PATH = Path("tests/test_build.py")
+
+
+          def replace_between(
+              text: str,
+              start_marker: str,
+              end_marker: str,
+              replacement: str,
+              description: str,
+          ) -> str:
+              start = text.find(start_marker)
+              if start < 0:
+                  raise RuntimeError(f"Could not find start of {description}")
+
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise RuntimeError(f"Could not find end of {description}")
+
+              return (
+                  text[:start]
+                  + replacement.rstrip()
+                  + "\n\n"
+                  + text[end:]
+              )
+
+
+          TOURNAMENT_IDENTITY_BLOCK = r'''
+          TOURNAMENT_CATEGORY_ORDER = {
+              "Global championships": 0,
+              "Continental championships": 1,
+              "Nations leagues": 2,
+              "Regional championships": 3,
+              "Other tournaments": 4,
+          }
+
+
+          # Use source tournament codes for every known merged family. Display
+          # names are not unique: several unrelated competitions contain names
+          # such as "Gold Cup", and many qualifying events also mention the
+          # tournament whose finals they lead to.
+          TOURNAMENT_CODE_FAMILIES: dict[str, tuple[str, str]] = {
+              # Global championships and intercontinental events.
+              "WC": ("Global championships", "FIFA World Cup"),
+              "OG": ("Global championships", "Olympic Games"),
+              "CC": ("Global championships", "FIFA Confederations Cup"),
+              "IC": ("Global championships", "Intercontinental Championship"),
+              "AAC": ("Global championships", "Afro-Asian Cup"),
+              "AFT": ("Global championships", "Intercontinental champions match"),
+              "WFC": ("Global championships", "World Football Cup"),
+              "MWC": ("Global championships", "Mini World Cup"),
+              "MND": ("Global championships", "Mundialito"),
+              "CFC": ("Regional championships", "CONCACAF Cup"),
+
+              # Continental championships.
+              "EC": ("Continental championships", "UEFA European Championship"),
+              "CA": ("Continental championships", "Copa América"),
+              "SA": ("Continental championships", "Copa América"),
+              "SA1": ("Continental championships", "Copa América"),
+              "SA2": ("Continental championships", "Copa América"),
+              "AC": ("Continental championships", "AFC Asian Cup"),
+              "AR": ("Continental championships", "Africa Cup of Nations"),
+              "CCH": ("Continental championships", "CONCACAF Gold Cup"),
+              "CGC": ("Continental championships", "CONCACAF Gold Cup"),
+              "WQC": ("Continental championships", "CONCACAF Gold Cup"),
+              "FCQ": ("Continental championships", "CONCACAF Gold Cup"),
+              "FBQ": ("Continental championships", "CONCACAF Gold Cup"),
+              "NUQ": ("Continental championships", "CONCACAF Gold Cup"),
+              "OC": ("Continental championships", "OFC Nations Cup"),
+              "OCT": ("Continental championships", "OFC Nations Cup"),
+              "WQO": ("Continental championships", "OFC Nations Cup"),
+              "PAC": ("Continental championships", "Panamerican Championship"),
+              "ACH": ("Continental championships", "AFC Challenge Cup"),
+              "SQC": ("Continental championships", "AFC Challenge Cup"),
+              "ASC": ("Continental championships", "AFC Solidarity Cup"),
+
+              # Nations Leagues.
+              "NL": ("Nations leagues", "UEFA Nations League"),
+              "ENL": ("Nations leagues", "UEFA Nations League"),
+              "ENA": ("Nations leagues", "UEFA Nations League"),
+              "ENB": ("Nations leagues", "UEFA Nations League"),
+              "ENC": ("Nations leagues", "UEFA Nations League"),
+              "END": ("Nations leagues", "UEFA Nations League"),
+              "EAB": ("Nations leagues", "UEFA Nations League"),
+              "ABT": ("Nations leagues", "UEFA Nations League"),
+              "EBC": ("Nations leagues", "UEFA Nations League"),
+              "BCT": ("Nations leagues", "UEFA Nations League"),
+              "ECD": ("Nations leagues", "UEFA Nations League"),
+              "CDT": ("Nations leagues", "UEFA Nations League"),
+              "CNL": ("Nations leagues", "CONCACAF Nations League"),
+              "CLA": ("Nations leagues", "CONCACAF Nations League"),
+              "CLB": ("Nations leagues", "CONCACAF Nations League"),
+              "CLC": ("Nations leagues", "CONCACAF Nations League"),
+
+              # Regional championships and games.
+              "TGR": ("Regional championships", "ASEAN Championship"),
+              "ASE": ("Regional championships", "ASEAN Championship"),
+              "SEA": ("Regional championships", "ASEAN Championship"),
+              "ARC": ("Regional championships", "Arab Cup"),
+              "GLF": ("Regional championships", "Gulf Cup"),
+              "BC": ("Regional championships", "British Championship"),
+              "WQB": ("Regional championships", "British Championship"),
+              "EQB": ("Regional championships", "British Championship"),
+              "WQL": ("Regional championships", "Baltic Cup"),
+              "WQD": ("Regional championships", "Nordic Championship"),
+              "ON": ("Regional championships", "Nordic Championship"),
+              "EQN": ("Regional championships", "Nordic Championship"),
+              "CCC": ("Regional championships", "Central American Cup"),
+              "NQC": ("Regional championships", "Central American Cup"),
+              "UNC": ("Regional championships", "UNCAF Nations Cup"),
+              "NQU": ("Regional championships", "UNCAF Nations Cup"),
+              "CRC": ("Regional championships", "Caribbean Championship"),
+              "CRP": ("Regional championships", "Caribbean Championship"),
+              "CUC": ("Regional championships", "Caribbean Championship"),
+              "FQB": ("Regional championships", "Caribbean Championship"),
+              "FQP": ("Regional championships", "Caribbean Championship"),
+              "CBC": ("Regional championships", "Caribbean Cup"),
+              "CIB": ("Regional championships", "Caribbean Cup"),
+              "FQC": ("Regional championships", "Caribbean Cup"),
+              "EAH": ("Regional championships", "East Asian Championship"),
+              "WAH": ("Regional championships", "West Asian Championship"),
+              "SFF": ("Regional championships", "South Asian Championship"),
+              "CEC": ("Regional championships", "CECAFA Cup"),
+              "ECA": ("Regional championships", "CECAFA Cup"),
+              "CSF": ("Regional championships", "COSAFA Cup"),
+              "NGC": ("Regional championships", "Nehru Gold Cup"),
+              "BGC": ("Regional championships", "Bangabandhu Gold Cup"),
+              "PRG": ("Regional championships", "President's Gold Cup"),
+              "PAR": ("Regional championships", "Pan-Arab Games"),
+              "PGC": ("Regional championships", "Pan-Arab Games and Arab Cup"),
+              "ASG": ("Regional championships", "Asian Games"),
+              "AFG": ("Regional championships", "African Games"),
+              "PAG": ("Regional championships", "Panamerican Games"),
+              "PG": ("Regional championships", "Pacific Games"),
+              "SPG": ("Regional championships", "South Pacific Games"),
+              "WOS": ("Regional championships", "South Pacific Games"),
+              "OQG": ("Regional championships", "South Pacific Games"),
+              "PMG": ("Regional championships", "Pacific Mini-Games"),
+              "SPM": ("Regional championships", "South Pacific Mini-Games"),
+              "IG": ("Regional championships", "Island Games"),
+              "MNG": ("Regional championships", "Micronesian Games"),
+              "MNC": ("Regional championships", "Micronesian Cup"),
+              "MLN": ("Regional championships", "Melanesian Cup"),
+              "OCM": ("Regional championships", "Melanesian Cup"),
+              "PLN": ("Regional championships", "Polynesian Cup"),
+              "OCP": ("Regional championships", "Polynesian Cup"),
+              "CNU": ("Regional championships", "Central Asian Cup"),
+              "CAU": ("Regional championships", "Central Asian Cup"),
+              "WFU": ("Regional championships", "West African Nations Cup"),
+              "UEM": ("Regional championships", "UEMOA Tournament"),
+              "CMC": ("Regional championships", "CEMAC Cup"),
+              "UDC": ("Regional championships", "CEMAC Cup"),
+              "ZVT": ("Regional championships", "Zone V Tournament"),
+              "SAG": ("Regional championships", "South Asian Games"),
+              "SEG": ("Regional championships", "Southeast Asian Games"),
+              "SEP": ("Regional championships", "Southeast Asian Peninsula Games"),
+              "ACC": ("Regional championships", "Amilcar Cabral Cup"),
+              "AWA": (
+                  "Regional championships",
+                  "West African Cup and Amilcar Cabral Cup",
+              ),
+              "AQC": ("Regional championships", "Central African Cup"),
+              "CAR": ("Regional championships", "Central African Cup"),
+              "ACG": ("Regional championships", "Central African Games"),
+              "CFG": ("Regional championships", "Central African Games"),
+              "AQW": ("Regional championships", "West African Cup"),
+              "WAN": ("Regional championships", "West African Cup"),
+              "WAC": ("Regional championships", "West African Cup"),
+              "ECW": ("Regional championships", "ECOWAS Tournament"),
+              "COC": ("Regional championships", "CEDEAO Cup"),
+              "UDE": ("Regional championships", "UDEAC Cup"),
+              "UFC": ("Regional championships", "UNIFAC Cup"),
+              "FEG": ("Regional championships", "Far Eastern Games"),
+              "EAG": ("Regional championships", "East Asian Games"),
+              "EAM": ("Regional championships", "East Asian Games"),
+              "DGC": ("Regional championships", "European International Cup"),
+              "BLK": ("Regional championships", "Balkan Cup"),
+              "BCE": (
+                  "Regional championships",
+                  "Balkan and Central European Championship",
+              ),
+              "BKG": (
+                  "Regional championships",
+                  "Balkan and Central European Championship",
+              ),
+          }
+
+
+          def folded_competition(value: str) -> str:
+              normalised = unicodedata.normalize("NFKD", value)
+              ascii_text = "".join(
+                  character for character in normalised
+                  if not unicodedata.combining(character)
+              )
+              return re.sub(r"\s+", " ", ascii_text.casefold()).strip()
+
+
+          def tournament_identity(
+              tournament_code: str,
+              competition: str,
+              level: int,
+          ) -> tuple[str, str] | None:
+              # Return a category and family without merging unrelated events.
+              source_code = str(tournament_code or "").strip().upper()
+              name = re.sub(r"\s+", " ", str(competition or "")).strip()
+              folded = folded_competition(name)
+
+              if not name or level <= 0:
+                  return None
+
+              # Code-based assignments come first. Some events simultaneously
+              # served as qualifiers for another competition but were themselves
+              # real tournament matches.
+              exact = TOURNAMENT_CODE_FAMILIES.get(source_code)
+              if exact is not None:
+                  return exact
+
+              qualifier = any(token in folded for token in (
+                  "qualif",
+                  "prelim",
+                  "repechage",
+              ))
+              if qualifier:
+                  return None
+
+              if "friendly" in folded or "warm-up" in folded:
+                  return None
+
+              # Only the OG source code is the Olympic Games finals.
+              if "olympic" in folded:
+                  return None
+
+              # Conservative name fallbacks for supplemental or future codes.
+              if folded in {"world cup", "fifa world cup"}:
+                  return "Global championships", "FIFA World Cup"
+              if "confederations cup" in folded or "king fahd cup" in folded:
+                  return "Global championships", "FIFA Confederations Cup"
+              if "mundialito" in folded or "world champions gold cup" in folded:
+                  return "Global championships", "Mundialito"
+              if "mini world cup" in folded:
+                  return "Global championships", "Mini World Cup"
+              if "world football cup" in folded:
+                  return "Global championships", "World Football Cup"
+              if "intercontinental championship" in folded:
+                  return "Global championships", "Intercontinental Championship"
+              if "afro-asian cup" in folded:
+                  return "Global championships", "Afro-Asian Cup"
+              if (
+                  "finalissima" in folded
+                  or "artemio franchi" in folded
+                  or "intercontinental cup of nations" in folded
+              ):
+                  return (
+                      "Global championships",
+                      "Intercontinental champions match",
+                  )
+
+              if (
+                  "european championship" in folded
+                  or folded in {"euro", "uefa euro"}
+              ):
+                  return (
+                      "Continental championships",
+                      "UEFA European Championship",
+                  )
+              if (
+                  "copa america" in folded
+                  or "south american championship" in folded
+              ):
+                  return "Continental championships", "Copa América"
+              if (
+                  "africa cup of nations" in folded
+                  or "african cup of nations" in folded
+                  or folded == "african nations cup"
+              ):
+                  return (
+                      "Continental championships",
+                      "Africa Cup of Nations",
+                  )
+              if "asian challenge cup" in folded:
+                  return "Continental championships", "AFC Challenge Cup"
+              if "asian solidarity cup" in folded:
+                  return "Continental championships", "AFC Solidarity Cup"
+              if "asian cup" in folded:
+                  return "Continental championships", "AFC Asian Cup"
+              if (
+                  "concacaf gold cup" in folded
+                  or folded == "concacaf championship"
+              ):
+                  return (
+                      "Continental championships",
+                      "CONCACAF Gold Cup",
+                  )
+              if (
+                  "ofc nations cup" in folded
+                  or "oceania nations cup" in folded
+              ):
+                  return "Continental championships", "OFC Nations Cup"
+              if "panamerican championship" in folded:
+                  return (
+                      "Continental championships",
+                      "Panamerican Championship",
+                  )
+
+              if "nations league" in folded:
+                  if "uefa" in folded or "europe" in folded:
+                      family = "UEFA Nations League"
+                  elif "concacaf" in folded:
+                      family = "CONCACAF Nations League"
+                  elif "caf" in folded or "afric" in folded:
+                      family = "CAF Nations League"
+                  else:
+                      family = name
+                  return "Nations leagues", family
+
+              regional_tokens = (
+                  "arab cup",
+                  "arab nations",
+                  "gulf cup",
+                  "asean",
+                  "tiger cup",
+                  "aff championship",
+                  "saff",
+                  "eaff",
+                  "waff",
+                  "cecafa",
+                  "cosafa",
+                  "unaf",
+                  "caribbean",
+                  "central american",
+                  "baltic cup",
+                  "british home",
+                  "british championship",
+                  "nordic championship",
+                  "balkan",
+                  "pan american games",
+                  "pan-arab games",
+                  "panarab games",
+                  "panamerican games",
+                  "asian games",
+                  "african games",
+                  "pacific games",
+                  "mediterranean games",
+                  "island games",
+                  "afro-asian",
+                  "merdeka",
+                  "king's cup",
+                  "kings cup",
+                  "pestabola",
+                  "south pacific",
+                  "indian ocean",
+                  "east asian",
+                  "west asian",
+                  "south asian",
+                  "central asian",
+                  "west african",
+                  "east and central african",
+                  "cemac",
+                  "uemoa",
+                  "ecowas",
+                  "cedeao",
+                  "central african",
+                  "unifac",
+                  "cccf championship",
+                  "north american championship",
+                  "uncaf",
+                  "gold cup",
+              )
+              if any(token in folded for token in regional_tokens):
+                  # Keep the canonical source name. Never turn a generic
+                  # "Gold Cup" into the CONCACAF Gold Cup.
+                  return "Regional championships", name
+
+              return "Other tournaments", name
+          '''
+
+
+          BUILD_CATALOG_BLOCK = r'''
+          def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
+              grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
+
+              for match in matches:
+                  identity = tournament_identity(
+                      str(match.get("tc", "")),
+                      str(match.get("t", "")),
+                      int(match.get("level", 0)),
+                  )
+                  if identity is None:
+                      continue
+                  grouped.setdefault(identity, []).append(match)
+
+              families: list[dict[str, Any]] = []
+              for (category, family), family_matches in grouped.items():
+                  clusters = split_tournament_editions(family, family_matches)
+                  same_year_counts: Counter[int] = Counter()
+                  bounds: list[
+                      tuple[date, date, list[dict[str, Any]]]
+                  ] = []
+
+                  for cluster in clusters:
+                      first = min(
+                          tolerant_tournament_date(row["date"])
+                          for row in cluster
+                      )
+                      last = max(
+                          tolerant_tournament_date(row["date"])
+                          for row in cluster
+                      )
+                      bounds.append((first, last, cluster))
+                      if first.year == last.year:
+                          same_year_counts[first.year] += 1
+
+                  editions = []
+                  family_id = tournament_family_id(family)
+                  for first, last, cluster in bounds:
+                      ordered_cluster = sorted(
+                          cluster,
+                          key=lambda row: (
+                              tolerant_tournament_date(row["date"]),
+                              row["id"],
+                          ),
+                      )
+                      participant_names: dict[str, str] = {}
+                      for row in ordered_cluster:
+                          for code, historical_name, canonical_name in (
+                              (
+                                  row["a"],
+                                  row.get("an"),
+                                  row.get("ac"),
+                              ),
+                              (
+                                  row["b"],
+                                  row.get("bn"),
+                                  row.get("bc"),
+                              ),
+                          ):
+                              if code not in participant_names:
+                                  participant_names[code] = str(
+                                      historical_name
+                                      or canonical_name
+                                      or code
+                                  )
+
+                      participants = sorted(
+                          (
+                              {
+                                  "code": code,
+                                  "nation": nation,
+                              }
+                              for code, nation in participant_names.items()
+                          ),
+                          key=lambda row: (
+                              row["nation"].casefold(),
+                              row["code"],
+                          ),
+                      )
+                      participant_codes = sorted(participant_names)
+                      label = tournament_edition_label(
+                          first,
+                          last,
+                          same_year_counts[first.year],
+                      )
+                      if (
+                          len(participant_codes) < 3
+                          and category == "Other tournaments"
+                      ):
+                          continue
+
+                      editions.append({
+                          "id": (
+                              f"{family_id}-"
+                              f"{first.isoformat()}-"
+                              f"{last.isoformat()}"
+                          ),
+                          "label": label,
+                          "start": first.isoformat(),
+                          "end": last.isoformat(),
+                          "before": (
+                              first - timedelta(days=1)
+                          ).isoformat(),
+                          "after": last.isoformat(),
+                          "teams": participant_codes,
+                          "participants": participants,
+                          "matches": len(cluster),
+                          "source_codes": sorted({
+                              str(row.get("tc", "")).strip().upper()
+                              for row in cluster
+                              if str(row.get("tc", "")).strip()
+                          }),
+                          "source_competitions": sorted({
+                              str(row.get("t", "")).strip()
+                              for row in cluster
+                              if str(row.get("t", "")).strip()
+                          }),
+                      })
+
+                  editions.sort(
+                      key=lambda row: (
+                          row["after"],
+                          row["start"],
+                      ),
+                      reverse=True,
+                  )
+                  if not editions:
+                      continue
+
+                  families.append({
+                      "id": family_id,
+                      "name": family,
+                      "category": category,
+                      "source_codes": sorted({
+                          str(row.get("tc", "")).strip().upper()
+                          for row in family_matches
+                          if str(row.get("tc", "")).strip()
+                      }),
+                      "editions": editions,
+                  })
+
+              families.sort(key=lambda row: (
+                  TOURNAMENT_CATEGORY_ORDER.get(
+                      row["category"],
+                      99,
+                  ),
+                  row["name"].casefold(),
+              ))
+              categories = [
+                  category
+                  for category, _ in sorted(
+                      TOURNAMENT_CATEGORY_ORDER.items(),
+                      key=lambda item: item[1],
+                  )
+                  if any(
+                      family["category"] == category
+                      for family in families
+                  )
+              ]
+              return {
+                  "categories": categories,
+                  "families": families,
+              }
+          '''
+
+
+          APP_TOURNAMENT_BLOCK = r'''
+            function tournamentChangeHTML(value, kind) {
+              if (value == null || !Number.isFinite(Number(value))) {
+                return `<span class="tournament-change movement-flat" title="No comparable published ${kind}">—</span>`;
+              }
+              const change = Number(value);
+              const direction = change > 0
+                ? "movement-up"
+                : change < 0
+                  ? "movement-down"
+                  : "movement-flat";
+              const arrow = change > 0 ? "▲" : change < 0 ? "▼" : "•";
+              if (kind === "rank") {
+                const places = Math.abs(change);
+                const label = change === 0
+                  ? "No rank movement"
+                  : `${places} place${places === 1 ? "" : "s"} ${change > 0 ? "up" : "down"}`;
+                return `<span class="tournament-change ${direction}" title="${label} during this tournament">${arrow} ${places}</span>`;
+              }
+              const signed = `${change >= 0 ? "+" : ""}${rating(change)}`;
+              return `<span class="tournament-change ${direction}" title="Rating movement during this tournament: ${signed} points">${arrow} ${signed}</span>`;
+            }
+
+            function tournamentRankingsTable(items, selectedDate, showMovement) {
+              if (!items.length) {
+                return `<div class="empty"><h2>No participants</h2><p>No participating teams were recorded for this edition.</p></div>`;
+              }
+              return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell tournament-table"><table>
+                <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+                <tbody>${items.map((team) => {
+                  const rankValue = team.rank == null ? "—" : team.rank;
+                  const ratingNote = team.rating == null
+                    ? "Not rated"
+                    : `uncertainty ${rating(team.se)}`;
+                  return `<tr>
+                    <td class="rank-cell numeric"><span class="tournament-cell-main">${rankValue}</span>${showMovement ? tournamentChangeHTML(team.tournament_rank_change, "rank") : ""}</td>
+                    <td>${teamLink(team.code, team.nation, selectedDate)}</td>
+                    <td class="numeric"><span class="rating-main">${rating(team.rating)}</span>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<span class="rating-sub">${ratingNote}</span></td>
+                    <td class="numeric hide-mobile">${rating(team.mean)}</td>
+                    <td class="numeric hide-mobile">${team.matches == null ? "—" : number(team.matches)}</td>
+                    <td>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</td>
+                    <td class="hide-mobile">${team.date ? validDate(team.date) : "—"}</td>
+                  </tr>`;
+                }).join("")}</tbody></table></div>`;
+            }
+
+            async function renderTournaments(route) {
+              setTitle("Tournament rankings");
+              loading("Loading tournament rankings…");
+              const [historyIndex, tournamentIndex] = await Promise.all([
+                getJSON("data/rankings-history/index.json"),
+                getJSON("data/tournaments/index.json"),
+              ]);
+              const families = tournamentIndex.families || [];
+              if (!families.length) {
+                content.innerHTML = `<div class="error-panel"><p class="eyebrow">Tournament archive</p><h2>No tournament editions are available.</h2><p>The build did not identify any completed competitive tournament editions.</p></div>`;
+                return;
+              }
+
+              const requestedFamily = families.find(
+                (family) => family.id === route.query.get("tournament"),
+              );
+              const defaultFamily = families.find(
+                (family) => family.name === "FIFA World Cup",
+              ) || families[0];
+              let selectedFamily = requestedFamily || defaultFamily;
+              let selectedEdition = selectedFamily.editions.find(
+                (edition) => edition.id === route.query.get("edition"),
+              ) || selectedFamily.editions[0];
+              let selectedView = route.query.get("view") === "before"
+                ? "before"
+                : "after";
+
+              const familyOptions = (tournamentIndex.categories || []).map(
+                (category) => {
+                  const options = families
+                    .filter((family) => family.category === category)
+                    .map((family) => `<option value="${escapeHTML(family.id)}">${escapeHTML(family.name)}</option>`)
+                    .join("");
+                  return options
+                    ? `<optgroup label="${escapeHTML(category)}">${options}</optgroup>`
+                    : "";
+                },
+              ).join("");
+
+              content.innerHTML = `<div class="page tournament-page">
+                <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Select a competition, edition and a snapshot immediately before or after the tournament. Every participating team is listed, while published rank positions remain their places in the full global table.</p></header>
+                <div class="toolbar tournament-toolbar">
+                  <div class="field field-grow"><label for="tournament-family">Tournament</label><select id="tournament-family">${familyOptions}</select></div>
+                  <div class="field"><label for="tournament-edition">Edition</label><select id="tournament-edition"></select></div>
+                  <div class="field"><label for="tournament-view">Snapshot</label><select id="tournament-view"><option value="before">Before tournament</option><option value="after">After tournament</option></select></div>
+                </div>
+                <div class="record-note"><strong id="tournament-count">—</strong><div><b id="tournament-label">Participants</b><br><span id="tournament-description">Choose a tournament edition.</span></div></div>
+                <div class="toolbar compact-toolbar">
+                  <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" placeholder="Brazil, Thailand, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+                  <div class="field"><label for="tournament-sort">Sort</label><select id="tournament-sort"></select></div>
+                </div>
+                <div id="tournament-table"></div>
+              </div>`;
+
+              const familySelect = document.getElementById("tournament-family");
+              const editionSelect = document.getElementById("tournament-edition");
+              const viewSelect = document.getElementById("tournament-view");
+              const sortSelect = document.getElementById("tournament-sort");
+              const table = document.getElementById("tournament-table");
+              const summaryNames = new Map(
+                summary.teams.map((team) => [team.code, team.nation]),
+              );
+              const requestedSort = route.query.get("sort") || "rating";
+              familySelect.value = selectedFamily.id;
+              viewSelect.value = selectedView;
+              let teams = [];
+
+              const populateEditions = (preferredId = "") => {
+                editionSelect.innerHTML = selectedFamily.editions
+                  .map((edition) => `<option value="${escapeHTML(edition.id)}">${escapeHTML(edition.label)}</option>`)
+                  .join("");
+                selectedEdition = selectedFamily.editions.find(
+                  (edition) => edition.id === preferredId,
+                ) || selectedFamily.editions[0];
+                editionSelect.value = selectedEdition.id;
+              };
+
+              const syncSortOptions = (preferred = sortSelect.value || requestedSort) => {
+                sortSelect.innerHTML = selectedView === "after"
+                  ? `<option value="rating">Rating</option><option value="rating_gain">Rating gain</option><option value="name">Name</option>`
+                  : `<option value="rating">Rating</option><option value="name">Name</option>`;
+                const allowed = selectedView === "after"
+                  ? new Set(["rating", "rating_gain", "name"])
+                  : new Set(["rating", "name"]);
+                sortSelect.value = allowed.has(preferred)
+                  ? preferred
+                  : "rating";
+              };
+
+              populateEditions(selectedEdition.id);
+              syncSortOptions();
+
+              const saveTournamentRoute = () => replaceRouteQuery(
+                "tournaments",
+                {
+                  tournament: selectedFamily.id,
+                  edition: selectedEdition.id,
+                  view: selectedView,
+                  q: document.getElementById("tournament-search").value.trim(),
+                  sort: sortSelect.value === "rating"
+                    ? ""
+                    : sortSelect.value,
+                },
+              );
+
+              const descendingValue = (team, key) => {
+                if (team[key] == null || team[key] === "") return -Infinity;
+                const value = Number(team[key]);
+                return Number.isFinite(value) ? value : -Infinity;
+              };
+
+              const updateTable = () => {
+                const query = document
+                  .getElementById("tournament-search")
+                  .value.trim()
+                  .toLocaleLowerCase();
+                const sort = sortSelect.value;
+                const visible = teams.filter(
+                  (team) => team.nation.toLocaleLowerCase().includes(query),
+                );
+                visible.sort((a, b) => {
+                  if (sort === "name") {
+                    return a.nation.localeCompare(b.nation);
+                  }
+                  if (sort === "rating_gain") {
+                    return (
+                      descendingValue(b, "tournament_rating_change")
+                      - descendingValue(a, "tournament_rating_change")
+                      || a.nation.localeCompare(b.nation)
+                    );
+                  }
+                  return (
+                    descendingValue(b, "rating")
+                    - descendingValue(a, "rating")
+                    || a.nation.localeCompare(b.nation)
+                  );
+                });
+                table.innerHTML = tournamentRankingsTable(
+                  visible,
+                  selectedEdition[selectedView],
+                  selectedView === "after",
+                );
+              };
+
+              const editionParticipants = () => {
+                if (Array.isArray(selectedEdition.participants)) {
+                  return selectedEdition.participants;
+                }
+                return (selectedEdition.teams || []).map((code) => ({
+                  code,
+                  nation: summaryNames.get(code) || code,
+                }));
+              };
+
+              const loadSelection = async () => {
+                syncSortOptions();
+                saveTournamentRoute();
+                const snapshotDate = selectedEdition[selectedView];
+                table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(selectedFamily.name)} ${escapeHTML(selectedEdition.label)}…</p></div>`;
+
+                const ranked = await loadHistoricalSnapshot(
+                  historyIndex,
+                  snapshotDate,
+                );
+                const rankedByCode = new Map(
+                  ranked.map((team) => [team.code, team]),
+                );
+                const participants = editionParticipants();
+                teams = participants.map((participant) => {
+                  const rankedTeam = rankedByCode.get(participant.code);
+                  if (rankedTeam) {
+                    return {
+                      ...rankedTeam,
+                      nation: rankedTeam.nation
+                        || participant.nation
+                        || summaryNames.get(participant.code)
+                        || participant.code,
+                    };
+                  }
+                  return {
+                    code: participant.code,
+                    nation: participant.nation
+                      || summaryNames.get(participant.code)
+                      || participant.code,
+                    rank: null,
+                    rating: null,
+                    mean: null,
+                    se: null,
+                    matches: null,
+                    form: [],
+                    date: null,
+                  };
+                });
+
+                if (selectedView === "after") {
+                  const beforeRanked = await loadHistoricalSnapshot(
+                    historyIndex,
+                    selectedEdition.before,
+                  );
+                  const beforeByCode = new Map(
+                    beforeRanked.map((team) => [team.code, team]),
+                  );
+                  teams = teams.map((team) => {
+                    const before = beforeByCode.get(team.code);
+                    const comparable = before && team.rating != null;
+                    return {
+                      ...team,
+                      tournament_rank_change: (
+                        comparable && team.rank != null
+                          ? before.rank - team.rank
+                          : null
+                      ),
+                      tournament_rating_change: comparable
+                        ? team.rating - before.rating
+                        : null,
+                    };
+                  });
+                }
+
+                const rankedCount = teams.filter(
+                  (team) => team.rating != null,
+                ).length;
+                document.getElementById("tournament-count").textContent =
+                  number(teams.length);
+                document.getElementById("tournament-label").textContent =
+                  `${selectedFamily.name} · ${selectedEdition.label}`;
+                document.getElementById("tournament-description").textContent =
+                  selectedView === "after"
+                    ? `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately after the tournament. Rank and rating movement compare the full global tables before and after the event.`
+                    : `All ${number(teams.length)} participants are shown, including teams without a published rating. ${number(rankedCount)} had a published rating immediately before the tournament.`;
+                setTitle(
+                  `${selectedFamily.name} ${selectedEdition.label}`,
+                );
+                updateTable();
+              };
+
+              familySelect.addEventListener("change", () => {
+                selectedFamily = families.find(
+                  (family) => family.id === familySelect.value,
+                ) || families[0];
+                populateEditions();
+                loadSelection();
+              });
+              editionSelect.addEventListener("change", () => {
+                selectedEdition = selectedFamily.editions.find(
+                  (edition) => edition.id === editionSelect.value,
+                ) || selectedFamily.editions[0];
+                loadSelection();
+              });
+              viewSelect.addEventListener("change", () => {
+                selectedView = viewSelect.value === "before"
+                  ? "before"
+                  : "after";
+                syncSortOptions();
+                loadSelection();
+              });
+              document
+                .getElementById("tournament-search")
+                .addEventListener("input", () => {
+                  saveTournamentRoute();
+                  updateTable();
+                });
+              sortSelect.addEventListener("change", () => {
+                saveTournamentRoute();
+                updateTable();
+              });
+              await loadSelection();
+            }
+          '''
+
+
+          TEST_METHOD = r'''
+              def test_tournament_catalog_codes_participants_and_sorting(self) -> None:
+                  catalog = json.loads(
+                      (self.data / "tournaments" / "index.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  owners: dict[str, set[str]] = {}
+                  by_name = {
+                      family["name"]: family
+                      for family in catalog["families"]
+                  }
+                  for family in catalog["families"]:
+                      for code in family.get("source_codes", []):
+                          owners.setdefault(code, set()).add(family["name"])
+                      for edition in family["editions"]:
+                          participants = edition.get("participants", [])
+                          self.assertEqual(
+                              {item["code"] for item in participants},
+                              set(edition["teams"]),
+                          )
+                          self.assertEqual(
+                              len(participants),
+                              len(edition["teams"]),
+                          )
+                          self.assertTrue(
+                              all(item["nation"] for item in participants)
+                          )
+
+                  self.assertEqual(
+                      set(by_name["Olympic Games"]["source_codes"]),
+                      {"OG"},
+                  )
+                  self.assertNotIn("OQ", owners)
+                  self.assertNotIn("OGC", owners)
+
+                  expected_owners = {
+                      "BGC": "Bangabandhu Gold Cup",
+                      "NGC": "Nehru Gold Cup",
+                      "PRG": "President's Gold Cup",
+                      "CFC": "CONCACAF Cup",
+                      "SQC": "AFC Challenge Cup",
+                      "NQC": "Central American Cup",
+                      "NQU": "UNCAF Nations Cup",
+                      "FQC": "Caribbean Cup",
+                      "FQB": "Caribbean Championship",
+                  }
+                  for code, family_name in expected_owners.items():
+                      if code in owners:
+                          self.assertEqual(owners[code], {family_name})
+
+                  gold_codes = set(
+                      by_name["CONCACAF Gold Cup"]["source_codes"]
+                  )
+                  self.assertFalse(
+                      gold_codes & {"BGC", "NGC", "PRG"}
+                  )
+
+                  pure_qualifier_codes = {
+                      "OQ", "GCQ", "CHQ", "CHT", "TGQ", "AEQ",
+                      "SEQ", "SET", "CLQ", "NLQ", "UNQ", "UNT",
+                      "EAQ", "EAT", "ARQ", "AQT",
+                  }
+                  self.assertFalse(pure_qualifier_codes & owners.keys())
+
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  self.assertIn(
+                      '<option value="rating">Rating</option>'
+                      '<option value="rating_gain">Rating gain</option>'
+                      '<option value="name">Name</option>',
+                      javascript,
+                  )
+                  self.assertIn(
+                      '<option value="rating">Rating</option>'
+                      '<option value="name">Name</option>',
+                      javascript,
+                  )
+                  self.assertIn("editionParticipants", javascript)
+                  self.assertIn(
+                      "including teams without a published rating",
+                      javascript,
+                  )
+          '''
+
+
+          build = BUILD_PATH.read_text(encoding="utf-8")
+          build = replace_between(
+              build,
+              "TOURNAMENT_CATEGORY_ORDER = {",
+              "def tournament_family_id(",
+              TOURNAMENT_IDENTITY_BLOCK,
+              "tournament identity block",
+          )
+          build = replace_between(
+              build,
+              "def build_tournament_catalog(",
+              "def build_historical_rankings(",
+              BUILD_CATALOG_BLOCK,
+              "tournament catalog builder",
+          )
+          BUILD_PATH.write_text(build.rstrip() + "\n", encoding="utf-8")
+
+
+          app = APP_PATH.read_text(encoding="utf-8")
+          app = replace_between(
+              app,
+              "  function tournamentChangeHTML(",
+              "  async function renderMatches(route) {",
+              APP_TOURNAMENT_BLOCK,
+              "tournament interface",
+          )
+          APP_PATH.write_text(app.rstrip() + "\n", encoding="utf-8")
+
+
+          tests = TEST_PATH.read_text(encoding="utf-8")
+          test_name = (
+              "def test_tournament_catalog_codes_participants_and_sorting"
+          )
+          if test_name not in tests:
+              marker = "    def test_public_metadata_and_discovery_files"
+              position = tests.find(marker)
+              if position < 0:
+                  raise RuntimeError(
+                      "Could not find test insertion point"
+                  )
+              tests = (
+                  tests[:position]
+                  + TEST_METHOD.rstrip()
+                  + "\n\n"
+                  + tests[position:]
+              )
+          TEST_PATH.write_text(tests.rstrip() + "\n", encoding="utf-8")
+
+
+          final_build = BUILD_PATH.read_text(encoding="utf-8")
+          final_app = APP_PATH.read_text(encoding="utf-8")
+          required_build = [
+              "TOURNAMENT_CODE_FAMILIES",
+              'str(match.get("tc", ""))',
+              '"participants": participants',
+              '"source_codes": sorted({',
+          ]
+          required_app = [
+              "function tournamentRankingsTable",
+              "editionParticipants",
+              'value="rating_gain">Rating gain',
+              "including teams without a published rating",
+          ]
+          missing = [
+              marker
+              for marker in required_build
+              if marker not in final_build
+          ]
+          missing.extend(
+              marker
+              for marker in required_app
+              if marker not in final_app
+          )
+          if missing:
+              raise RuntimeError(
+                  "Patch validation failed; missing: "
+                  + ", ".join(missing)
+              )
+
+          print("Tournament classification and participant patch applied.")
+          PY
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile scripts/build_site.py tests/test_build.py
+          node --check public/assets/app.js
+
+      - name: Build static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Audit generated tournament catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+
+          catalog = json.loads(
+              Path("public/data/tournaments/index.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          families = catalog["families"]
+          by_name = {family["name"]: family for family in families}
+          owners = {}
+
+          for family in families:
+              for code in family.get("source_codes", []):
+                  owners.setdefault(code, set()).add(family["name"])
+              for edition in family["editions"]:
+                  participants = edition.get("participants", [])
+                  codes = [participant["code"] for participant in participants]
+                  assert participants, (
+                      family["name"],
+                      edition["label"],
+                      "has no participants",
+                  )
+                  assert len(codes) == len(set(codes))
+                  assert set(codes) == set(edition["teams"])
+                  assert all(participant["nation"] for participant in participants)
+
+          assert set(by_name["Olympic Games"]["source_codes"]) == {"OG"}
+          assert "OQ" not in owners
+          assert "OGC" not in owners
+
+          expected = {
+              "BGC": "Bangabandhu Gold Cup",
+              "NGC": "Nehru Gold Cup",
+              "PRG": "President's Gold Cup",
+              "CFC": "CONCACAF Cup",
+              "SQC": "AFC Challenge Cup",
+              "NQC": "Central American Cup",
+              "NQU": "UNCAF Nations Cup",
+              "FQC": "Caribbean Cup",
+              "FQB": "Caribbean Championship",
+          }
+          for code, expected_family in expected.items():
+              if code in owners:
+                  assert owners[code] == {expected_family}, (
+                      code,
+                      owners[code],
+                      expected_family,
+                  )
+
+          gold_codes = set(
+              by_name["CONCACAF Gold Cup"]["source_codes"]
+          )
+          assert not gold_codes & {"BGC", "NGC", "PRG"}
+
+          pure_qualifiers = {
+              "OQ", "GCQ", "CHQ", "CHT", "TGQ", "AEQ",
+              "SEQ", "SET", "CLQ", "NLQ", "UNQ", "UNT",
+              "EAQ", "EAT", "ARQ", "AQT",
+          }
+          assert not pure_qualifiers & owners.keys()
+
+          print(
+              f"Audited {len(families)} tournament families and "
+              f"{sum(len(family['editions']) for family in families)} editions."
+          )
+          PY
+
+      - name: Run full test suite
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+
+      - name: Preserve source changes and discard validation output
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp public/assets/app.js /tmp/nfelo-tournament-app.js
+
+          git restore --worktree -- public
+          git clean -fd -- public/data public/tournaments
+
+          cp /tmp/nfelo-tournament-app.js public/assets/app.js
+
+      - name: Check final patch
+        run: |
+          set -euo pipefail
+          git diff --check
+          git diff -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+      - name: Commit and push corrections
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Tournament corrections are already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py
+
+          git commit -m "Correct tournament catalog and participant tables"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy corrected site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
