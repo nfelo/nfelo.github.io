@@ -964,6 +964,34 @@ jobs:
               '"Swipe horizontally to see all columns"',
           )
 
+          tests = tests.replace(
+              '        self.assertIn("USSR", names)\n',
+              (
+                  '        self.assertIn("Soviet Union", names)\n'
+                  '        self.assertNotIn("USSR", names)\n'
+              ),
+          )
+
+          old_tournament_sort_assertion = r'''        self.assertIn(
+              '<option value="rating">Rating</option>'
+              '<option value="rating_change">Rating change</option>'
+              '<option value="name">Name</option>',
+              javascript,
+          )
+          '''
+          new_tournament_sort_assertion = r'''        self.assertIn(
+              '<option value="rating">Rating</option>'
+              '<option value="rating_change">Rating change</option>'
+              '<option value="rank_change">Rank change</option>'
+              '<option value="name">Name</option>',
+              javascript,
+          )
+          '''
+          tests = tests.replace(
+              old_tournament_sort_assertion,
+              new_tournament_sort_assertion,
+          )
+
           test_name = (
               "def test_alias_search_dynamic_suggestions_and_rank_sort"
           )
@@ -1068,6 +1096,21 @@ jobs:
               raise RuntimeError(
                   "Build patch incomplete; missing: "
                   + ", ".join(missing_build)
+              )
+
+          required_test_contracts = (
+              'self.assertIn("Soviet Union", names)',
+              'self.assertNotIn("USSR", names)',
+              '<option value="rank_change">Rank change</option>',
+          )
+          missing_test_contracts = [
+              marker for marker in required_test_contracts
+              if marker not in tests
+          ]
+          if missing_test_contracts:
+              raise RuntimeError(
+                  "Test migration incomplete; missing: "
+                  + ", ".join(missing_test_contracts)
               )
 
           APP_PATH.write_text(
