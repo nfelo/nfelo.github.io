@@ -1,0 +1,214 @@
+name: Refresh ratings and deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      refresh_source:
+        description: Check eloratings.net before rebuilding
+        type: boolean
+        default: true
+      full_refresh:
+        description: Reconcile every active team page
+        type: boolean
+        default: false
+  schedule:
+    # After the main Americas, Asia/Oceania and Europe/Africa match windows.
+    - cron: "20 6 * * *"
+    - cron: "20 15 * * *"
+    - cron: "20 23 * * *"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: network-football-elo-pages
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
+
+jobs:
+  initial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    outputs:
+      succeeded: ${{ steps.initial_outcome.outputs.succeeded }}
+      retryable: ${{ steps.initial_outcome.outputs.retryable }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Daily source check
+        id: scheduled_source
+        if: github.event_name == 'schedule'
+        run: |
+          if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+            python scripts/fetch_sources.py --source source --full-if-sunday
+          else
+            python scripts/fetch_sources.py --source source --full
+          fi
+
+      - name: Bootstrap source on first push
+        id: bootstrap_source
+        if: github.event_name == 'push'
+        run: |
+          if ! compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+            python scripts/fetch_sources.py --source source --full
+          fi
+
+      - name: Manual source check
+        id: manual_source
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_source
+        env:
+          FULL_REFRESH: ${{ inputs.full_refresh }}
+        run: |
+          if [ "$FULL_REFRESH" = "true" ]; then
+            python scripts/fetch_sources.py --source source --full
+          else
+            python scripts/fetch_sources.py --source source
+          fi
+
+      - name: Replay model and build static data
+        run: python scripts/build_site.py --source source --config config --output public
+
+      - name: Verify model, files and browser code
+        run: |
+          python -m unittest discover --start-directory tests --verbose
+          node --check public/assets/app.js
+
+      - name: Save validated source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- source
+          if git diff --cached --quiet; then
+            echo "No source change to commit."
+          else
+            git commit -m "chore(data): refresh ratings sources [skip ci]"
+            git push || echo "::warning::Branch protection prevented the validated source commit."
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload initial Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-initial
+          path: public
+
+      - name: Record initial result
+        id: initial_outcome
+        if: always()
+        env:
+          SUCCEEDED: ${{ job.status == 'success' }}
+          RETRYABLE: ${{ steps.scheduled_source.outcome == 'failure' || steps.bootstrap_source.outcome == 'failure' || steps.manual_source.outcome == 'failure' }}
+        run: |
+          echo "succeeded=$SUCCEEDED" >> "$GITHUB_OUTPUT"
+          echo "retryable=$RETRYABLE" >> "$GITHUB_OUTPUT"
+
+  retry_once:
+    needs: initial
+    if: ${{ always() && needs.initial.outputs.succeeded != 'true' && needs.initial.outputs.retryable == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - name: Wait one hour before the only retry
+        run: sleep 3600
+
+      - name: Check out repository again
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Retry scheduled source check
+        if: github.event_name == 'schedule'
+        run: |
+          if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+            python scripts/fetch_sources.py --source source --full-if-sunday
+          else
+            python scripts/fetch_sources.py --source source --full
+          fi
+
+      - name: Retry bootstrap source check
+        if: github.event_name == 'push'
+        run: |
+          if ! compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+            python scripts/fetch_sources.py --source source --full
+          fi
+
+      - name: Retry manual source check
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_source
+        env:
+          FULL_REFRESH: ${{ inputs.full_refresh }}
+        run: |
+          if [ "$FULL_REFRESH" = "true" ]; then
+            python scripts/fetch_sources.py --source source --full
+          else
+            python scripts/fetch_sources.py --source source
+          fi
+
+      - name: Replay model and build static data
+        run: python scripts/build_site.py --source source --config config --output public
+
+      - name: Verify model, files and browser code
+        run: |
+          python -m unittest discover --start-directory tests --verbose
+          node --check public/assets/app.js
+
+      - name: Save validated source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- source
+          if git diff --cached --quiet; then
+            echo "No source change to commit."
+          else
+            git commit -m "chore(data): refresh ratings sources [skip ci]"
+            git push || echo "::warning::Branch protection prevented the validated source commit."
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload retry Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-retry
+          path: public
+
+  deploy:
+    needs: [initial, retry_once]
+    if: ${{ always() && (needs.initial.outputs.succeeded == 'true' || needs.retry_once.result == 'success') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.initial.outputs.succeeded == 'true' && 'github-pages-initial' || 'github-pages-retry' }}
