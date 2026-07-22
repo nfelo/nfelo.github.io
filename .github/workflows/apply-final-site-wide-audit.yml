@@ -763,9 +763,9 @@ jobs:
 
           # History, Tournaments and historical Predict intentionally use
           # the same four-calendar-year eligibility rule as Current Rankings.
-          # The permanent audit compares semantic data by team code rather
-          # than assuming historical and canonical names produce identical
-          # ordering when ratings are tied.
+          # Historical ratings retain each matchday's reference context, so
+          # the audit compares History to team-page history and Current
+          # Rankings to each team page's current payload.
 
           # Generated route metadata.
           build = build.replace(
@@ -907,10 +907,11 @@ jobs:
               assert current_codes <= set(by_code)
 
               history_cache: dict[str, dict[str, Any]] = {}
+              latest_date = summary["meta"]["results_through"]
               latest = historical_snapshot(
                   public,
                   history_index,
-                  summary["meta"]["results_through"],
+                  latest_date,
                   history_cache,
               )
               latest_by_code = {
@@ -920,6 +921,13 @@ jobs:
                   team["code"]: team
                   for team in summary["current"]
               }
+
+              # Current Rankings and the latest History view use the same
+              # eligibility rule, so membership must agree. Their displayed
+              # rating values are intentionally not compared: History stores
+              # each matchday's contemporary reference context, while Current
+              # Rankings recomputes the final state in the current reference
+              # context.
               assert set(latest_by_code) == set(current_by_code), {
                   "history_only": sorted(
                       set(latest_by_code) - set(current_by_code)
@@ -928,43 +936,84 @@ jobs:
                       set(current_by_code) - set(latest_by_code)
                   ),
               }
-              for code, current in current_by_code.items():
-                  historical = latest_by_code[code]
-                  assert close(
-                      historical["rating"],
-                      current["rating"],
-                  ), (code, "rating")
-                  assert close(
-                      historical.get("mean"),
-                      current.get("mean"),
-                  ), (code, "mean")
-                  assert close(
-                      historical.get("se"),
-                      current.get("se"),
-                  ), (code, "se")
 
-              # Historical pages display the name valid on the selected
-              # date. Canonical current names can change only the order of
-              # teams whose published ratings are equal.
-              latest_order = [team["code"] for team in latest]
-              current_order = [
+              expected_current = sorted(
+                  summary["current"],
+                  key=lambda team: (
+                      -float(team["rating"]),
+                      team["nation"],
+                  ),
+              )
+              assert [
                   team["code"] for team in summary["current"]
-              ]
-              for position, (history_code, current_code) in enumerate(
-                  zip(latest_order, current_order, strict=True),
-                  start=1,
-              ):
-                  if history_code == current_code:
-                      continue
-                  history_rating = latest_by_code[history_code]["rating"]
-                  current_rating = current_by_code[current_code]["rating"]
-                  assert close(history_rating, current_rating), {
-                      "position": position,
-                      "history_code": history_code,
-                      "current_code": current_code,
-                      "history_rating": history_rating,
-                      "current_rating": current_rating,
-                  }
+              ] == [
+                  team["code"] for team in expected_current
+              ], "Current Rankings are not sorted by rating and name."
+              assert [
+                  team["rank"] for team in summary["current"]
+              ] == list(
+                  range(1, len(summary["current"]) + 1)
+              ), "Current Rankings have inconsistent rank numbers."
+
+              assert [
+                  team["rank"] for team in latest
+              ] == list(
+                  range(1, len(latest) + 1)
+              ), "Latest History has inconsistent rank numbers."
+              assert [
+                  team["code"] for team in latest
+              ] == [
+                  team["code"]
+                  for team in sorted(
+                      latest,
+                      key=lambda team: (
+                          -float(team["rating"]),
+                          team["nation"],
+                      ),
+                  )
+              ], "Latest History is not sorted by rating and historical name."
+
+              # Every latest History row must be the same stored matchday
+              # point exposed on that team's dynamic page.
+              latest_team_pages: dict[str, dict[str, Any]] = {}
+              for code, historical in latest_by_code.items():
+                  page_path = (
+                      public / "data" / "teams" / f"{code}.json"
+                  )
+                  assert page_path.exists(), page_path
+                  page = load_json(page_path)
+                  latest_team_pages[code] = page
+                  points = [
+                      point
+                      for point in page.get("history", [])
+                      if point["date"] <= latest_date
+                  ]
+                  assert points, (
+                      code,
+                      "missing team history through latest date",
+                  )
+                  point = points[-1]
+                  for key in (
+                      "date",
+                      "rating",
+                      "mean",
+                      "se",
+                      "latent",
+                      "reliability",
+                      "matches",
+                      "form",
+                  ):
+                      if key in ("rating", "mean", "se", "latent", "reliability"):
+                          assert close(
+                              historical.get(key),
+                              point.get(key),
+                          ), (code, "history", key)
+                      else:
+                          assert historical.get(key) == point.get(key), (
+                              code,
+                              "history",
+                              key,
+                          )
 
               for code, summary_team in by_code.items():
                   page_path = public / "data" / "teams" / f"{code}.json"
@@ -1026,14 +1075,39 @@ jobs:
                   ]
                   assert row["tournament"] == edition["family_name"]
                   assert row["edition"] == edition["label"]
-                  assert row["after"] == edition["after"]
+                  for key in ("start", "end", "before", "after"):
+                      assert row[key] == edition[key], (
+                          row["code"],
+                          row["tournament"],
+                          row["edition"],
+                          key,
+                      )
+                  change_by_code = {
+                      item["code"]: item
+                      for item in edition.get("rating_changes", [])
+                  }
+                  change = change_by_code[row["code"]]
+                  assert close(
+                      row["before_rating"],
+                      change["start_rating"],
+                  )
+                  assert close(
+                      row["after_rating"],
+                      change["end_rating"],
+                  )
+                  assert close(
+                      row["rating_gain"],
+                      change["change"],
+                  )
+                  assert int(row["tournament_matches"]) == int(
+                      change["matches"]
+                  )
                   assert close(
                       float(row["after_rating"])
                       - float(row["before_rating"]),
                       row["rating_gain"],
                   )
 
-              latest_date = summary["meta"]["results_through"]
               for row in summary.get("peaks", []):
                   assert row["code"] in by_code
                   assert row["date"] <= latest_date
