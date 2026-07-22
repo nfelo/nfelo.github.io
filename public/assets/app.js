@@ -12,6 +12,77 @@
   const confidenceZ = 1.6448536269514715;
   let summary;
   let catalog;
+  let teamAliasSearch = new Map();
+
+
+  const publicTeamName = (value) => (
+    String(value ?? "") === "USSR"
+      ? "Soviet Union"
+      : String(value ?? "")
+  );
+  const foldSearch = (value) => (
+    publicTeamName(value)
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase()
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+  const shuffledExamples = (values, limit = 3) => {
+    const names = [
+      ...new Set(
+        values
+          .map(publicTeamName)
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    ];
+    for (
+      let index = names.length - 1;
+      index > 0;
+      index -= 1
+    ) {
+      const swapIndex = Math.floor(
+        Math.random() * (index + 1),
+      );
+      [names[index], names[swapIndex]] = [
+        names[swapIndex],
+        names[index],
+      ];
+    }
+    const examples = names.slice(
+      0,
+      Math.min(limit, names.length),
+    );
+    return examples.length
+      ? (
+        examples.join(", ")
+        + (examples.length < names.length ? "…" : "")
+      )
+      : "";
+  };
+  const initialiseTeamAliasSearch = () => {
+    teamAliasSearch = new Map(
+      summary.teams.map((team) => [
+        team.code,
+        foldSearch(
+          [
+            team.nation,
+            ...(team.aliases || []),
+            team.code,
+          ].join(" "),
+        ),
+      ]),
+    );
+  };
+  const teamSearchText = (code, ...names) => (
+    foldSearch(
+      [
+        teamAliasSearch.get(code) || "",
+        ...names.map(publicTeamName),
+      ].join(" "),
+    )
+  );
 
   const escapeHTML = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -88,7 +159,7 @@
         });
   };
   const teamURL = (code, date = "") => `#/team/${encodeURIComponent(code)}${date ? `?date=${encodeURIComponent(date)}` : ""}`;
-  const teamLink = (code, name, date = "") => `<a class="team-link" href="${teamURL(code, date)}">${escapeHTML(name)}</a>`;
+  const teamLink = (code, name, date = "") => `<a class="team-link" href="${teamURL(code, date)}">${escapeHTML(publicTeamName(name))}</a>`;
   const cleanRouteURL = (section, value = "", query = new URLSearchParams()) => {
     const path = [section === "home" ? "" : section, value].filter(Boolean).map(encodeURIComponent).join("/");
     const suffix = query.toString();
@@ -415,7 +486,7 @@
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Current international teams</p><h1>Rankings</h1></div><p class="lede">The rating combines estimated playing strength with an allowance for uncertainty. Teams with results against a broad range of opponents can therefore be assessed more confidently. <a href="#/history">Choose a historical date →</a></p></header>
         <div class="toolbar">
-          <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Spain, Argentina, Japan…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+          <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Search current teams…" value="${escapeHTML(route.query.get("q") || "")}"></div>
           <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
           <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current teams</button><button class="button" data-pool="all" aria-pressed="false">All teams, including historical</button></div>
         </div>
@@ -423,6 +494,12 @@
         <div id="rankings-table"></div>
       </div>`;
     const target = document.getElementById("rankings-table");
+    document.getElementById("ranking-search").placeholder = (
+      shuffledExamples(
+        summary.current.map((team) => team.nation),
+      )
+      || "Search current teams…"
+    );
     let pool = route.query.get("pool") === "all" ? "all" : "current";
     const requestedSort = ["rating", "rating_change_12m", "rank_change_12m", "matches", "name"].includes(route.query.get("sort")) ? route.query.get("sort") : "rating";
     document.getElementById("ranking-sort").value = requestedSort;
@@ -437,11 +514,11 @@
       pool: pool === "current" ? "" : pool,
     });
     const update = () => {
-      const query = document.getElementById("ranking-search").value.trim().toLocaleLowerCase();
+      const query = foldSearch(document.getElementById("ranking-search").value);
       const sort = document.getElementById("ranking-sort").value;
       const source = pool === "current" ? summary.current : summary.teams;
       const ratingRanks = new Map([...source].sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation)).map((team, index) => [team.code, index + 1]));
-      const filtered = source.filter((team) => team.nation.toLocaleLowerCase().includes(query));
+      const filtered = source.filter((team) => teamSearchText(team.code, team.nation).includes(query));
       filtered.sort((a, b) => sort === "name"
         ? a.nation.localeCompare(b.nation)
         : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity) || a.nation.localeCompare(b.nation));
@@ -509,7 +586,7 @@
         <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
       </div>
       <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
-      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Brazil, Hungary, Morocco…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
+      <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Search teams on this date…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
       <div id="history-table"></div></div>`;
 
     let teams = [];
@@ -527,9 +604,9 @@
     });
 
     const updateTable = () => {
-      const query = document.getElementById("history-search").value.trim().toLocaleLowerCase();
+      const query = foldSearch(document.getElementById("history-search").value);
       const sort = document.getElementById("history-sort").value;
-      const visible = teams.filter((team) => team.nation.toLocaleLowerCase().includes(query));
+      const visible = teams.filter((team) => teamSearchText(team.code, team.nation).includes(query));
       visible.sort((a, b) => sort === "name"
         ? a.nation.localeCompare(b.nation)
         : (b[sort] ?? -Infinity) - (a[sort] ?? -Infinity) || a.nation.localeCompare(b.nation));
@@ -548,6 +625,12 @@
       saveHistoryRoute();
       table.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
       teams = await loadHistoricalSnapshot(index, chosen);
+      document.getElementById("history-search").placeholder = (
+        shuffledExamples(
+          teams.map((team) => team.nation),
+        )
+        || "Search teams on this date…"
+      );
       document.getElementById("history-count").textContent = number(teams.length);
       document.getElementById("history-label").textContent = `Eligible teams on ${validDate(chosen)}`;
       updateTable();
@@ -739,10 +822,10 @@
 
     const syncSortOptions = (preferred = sortSelect.value || requestedSort) => {
       sortSelect.innerHTML = selectedView === "after"
-        ? `<option value="rating">Rating</option><option value="rating_change">Rating change</option><option value="name">Name</option>`
+        ? `<option value="rating">Rating</option><option value="rating_change">Rating change</option><option value="rank_change">Rank change</option><option value="name">Name</option>`
         : `<option value="rating">Rating</option><option value="name">Name</option>`;
       const allowed = selectedView === "after"
-        ? new Set(["rating", "rating_change", "name"])
+        ? new Set(["rating", "rating_change", "rank_change", "name"])
         : new Set(["rating", "name"]);
       sortSelect.value = allowed.has(preferred)
         ? preferred
@@ -791,6 +874,13 @@
             || a.nation.localeCompare(b.nation)
           );
         }
+        if (sort === "rank_change") {
+          return (
+            descendingValue(b, "tournament_rank_change")
+            - descendingValue(a, "tournament_rank_change")
+            || a.nation.localeCompare(b.nation)
+          );
+        }
         return (
           descendingValue(b, "rating")
           - descendingValue(a, "rating")
@@ -820,8 +910,8 @@
               participants
                 .map(
                   (participant) => (
-                    participant.nation
-                    || summaryNames.get(participant.code)
+                    publicTeamName(participant.nation)
+                    || publicTeamName(summaryNames.get(participant.code))
                     || participant.code
                   ),
                 )
@@ -919,15 +1009,12 @@
           );
           teams = teams.map((team) => ({
             ...team,
-            search_names: [
+            search_names: teamSearchText(
+              team.code,
               team.nation,
               historicalParticipantNames.get(team.code),
               summaryNames.get(team.code),
-              team.code,
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .toLocaleLowerCase(),
+            ),
           }));
 
                 if (selectedView === "after") {
@@ -1042,9 +1129,9 @@
         ${ratingForecastExplanation()}
         <div class="toolbar">
           <div class="field"><label for="match-decade">Era</label><select id="match-decade"><option value="all">All ${number(summary.meta.matches)} matches</option>${index.decades.slice().reverse().map((item) => `<option value="${item.decade}">${item.decade}s · ${number(item.count)}</option>`).join("")}</select></div>
-          <div class="field"><label for="match-team">Team</label><select id="match-team"><option value="">Any team</option>${summary.teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === requestedTeam ? "selected" : ""}>${escapeHTML(team.nation)}</option>`).join("")}</select></div>
+          <div class="field"><label for="match-team">Team</label><select id="match-team"><option value="">Any team</option></select></div>
           <div class="field"><label for="match-class">Class</label><select id="match-class"><option value="">All classes</option><option value="friendly">Friendly</option><option value="competitive">Competitive</option></select></div>
-          <div class="field field-grow"><label for="match-search">Competition or opponent</label><input id="match-search" type="search" placeholder="World Cup, England, qualifier…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+          <div class="field field-grow"><label for="match-search">Competition or opponent</label><input id="match-search" type="search" placeholder="Competition, team or match class…" value="${escapeHTML(route.query.get("q") || "")}"></div>
         </div>
         <p id="match-count" class="muted small"></p>
         <div class="pagination match-pagination" aria-label="Match pages">
@@ -1064,6 +1151,208 @@
     const initialDecade = route.query.get("era") === "all" || validDecades.has(route.query.get("era")) ? route.query.get("era") : String(latest);
     document.getElementById("match-decade").value = initialDecade;
     if (route.query.get("class") === "friendly" || route.query.get("class") === "competitive") document.getElementById("match-class").value = route.query.get("class");
+    const currentNames = new Map(
+      summary.teams.map(
+        (team) => [team.code, publicTeamName(team.nation)],
+      ),
+    );
+    const majorTeamCodes = new Set([
+      "AR", "BE", "BR", "DE", "EN", "ES", "FR",
+      "HR", "IT", "MX", "NL", "PT", "RU", "UY",
+    ]);
+    const majorCompetitionTokens = [
+      "world cup",
+      "european championship",
+      "euro ",
+      "copa america",
+      "copa américa",
+      "africa cup",
+      "asian cup",
+      "gold cup",
+      "nations cup",
+      "confederations cup",
+      "olympic",
+    ];
+
+    const populateMatchTeamOptions = (
+      matches,
+      preferredCode,
+      selectedEra,
+    ) => {
+      const namesByCode = new Map();
+      const addName = (code, name, matchDate) => {
+        const displayName = publicTeamName(name).trim();
+        if (!code || !displayName) return;
+        if (!namesByCode.has(code)) {
+          namesByCode.set(code, []);
+        }
+        namesByCode.get(code).push({
+          name: displayName,
+          date: matchDate,
+        });
+      };
+      matches.forEach((match) => {
+        addName(match.a, match.an, match.date);
+        addName(match.b, match.bn, match.date);
+      });
+
+      const options = [...namesByCode.entries()]
+        .map(([code, occurrences]) => {
+          const latestByName = new Map();
+          occurrences.forEach(({ name, date }) => {
+            const previous = latestByName.get(name) || "";
+            if (date > previous) {
+              latestByName.set(name, date);
+            }
+          });
+          const historicalNames = [
+            ...latestByName.entries(),
+          ]
+            .sort(
+              (first, second) => (
+                second[1].localeCompare(first[1])
+                || first[0].localeCompare(second[0])
+              ),
+            )
+            .map(([name]) => name);
+          const currentName = currentNames.get(code);
+          const primary = selectedEra === "all"
+            ? (
+              currentName
+              || historicalNames[0]
+              || code
+            )
+            : (
+              historicalNames[0]
+              || currentName
+              || code
+            );
+          const aliases = historicalNames.filter(
+            (name) => name !== primary,
+          );
+          const label = aliases.length
+            ? `${primary} (incl. ${aliases.join(", ")})`
+            : primary;
+          return { code, label };
+        })
+        .sort(
+          (first, second) => (
+            first.label.localeCompare(second.label)
+            || first.code.localeCompare(second.code)
+          ),
+        );
+
+      const select = document.getElementById("match-team");
+      select.innerHTML = (
+        '<option value="">Any team</option>'
+        + options.map(
+          (team) => (
+            `<option value="${escapeHTML(team.code)}">`
+            + `${escapeHTML(team.label)}</option>`
+          ),
+        ).join("")
+      );
+      select.value = options.some(
+        (team) => team.code === preferredCode,
+      )
+        ? preferredCode
+        : "";
+    };
+
+    const updateMatchSearchPlaceholder = (matches) => {
+      const competitions = [
+        ...new Set(
+          matches
+            .map((match) => match.t)
+            .filter(Boolean),
+        ),
+      ];
+      const majorCompetitions = competitions.filter(
+        (competition) => {
+          const folded = foldSearch(competition);
+          return majorCompetitionTokens.some(
+            (token) => folded.includes(token),
+          );
+        },
+      );
+
+      const teamCounts = new Map();
+      const latestTeamNames = new Map();
+      const rememberTeam = (
+        code,
+        name,
+        matchDate,
+      ) => {
+        teamCounts.set(
+          code,
+          (teamCounts.get(code) || 0) + 1,
+        );
+        const previous = latestTeamNames.get(code);
+        if (!previous || matchDate > previous.date) {
+          latestTeamNames.set(code, {
+            date: matchDate,
+            name: publicTeamName(name),
+          });
+        }
+      };
+      matches.forEach((match) => {
+        rememberTeam(
+          match.a,
+          match.an,
+          match.date,
+        );
+        rememberTeam(
+          match.b,
+          match.bn,
+          match.date,
+        );
+      });
+      const presentMajorTeams = [
+        ...teamCounts.keys(),
+      ].filter((code) => majorTeamCodes.has(code));
+      const fallbackTeam = [
+        ...teamCounts.entries(),
+      ].sort(
+        (first, second) => (
+          second[1] - first[1]
+          || first[0].localeCompare(second[0])
+        ),
+      )[0]?.[0];
+      const teamCode = presentMajorTeams.length
+        ? presentMajorTeams[
+          Math.floor(
+            Math.random() * presentMajorTeams.length
+          )
+        ]
+        : fallbackTeam;
+      const teamName = teamCode
+        ? (
+          latestTeamNames.get(teamCode)?.name
+          || currentNames.get(teamCode)
+        )
+        : "";
+      const competition = majorCompetitions.length
+        ? majorCompetitions[
+          Math.floor(
+            Math.random() * majorCompetitions.length
+          )
+        ]
+        : "";
+      const classExample = Math.random() < 0.5
+        ? "qualifier"
+        : "friendly";
+      const examples = [
+        competition,
+        teamName,
+        classExample,
+      ].filter(Boolean);
+      document.getElementById(
+        "match-search",
+      ).placeholder = examples.length
+        ? `${examples.join(", ")}…`
+        : "Competition, team or match class…";
+    };
+
     const saveMatchesRoute = () => replaceRouteQuery("matches", {
       era: document.getElementById("match-decade").value === String(latest) ? "" : document.getElementById("match-decade").value,
       team: document.getElementById("match-team").value,
@@ -1073,24 +1362,54 @@
     });
     const load = async () => {
       const decade = document.getElementById("match-decade").value;
+      const preferredTeam = (
+        document.getElementById("match-team").value
+        || requestedTeam
+      );
       loadingTable();
       if (decade === "all") {
         rows = (await getJSON("data/matches/search.json")).matches.slice().reverse();
       } else {
         rows = (await getJSON(`data/matches/${decade}.json`)).matches.slice().reverse();
       }
+      populateMatchTeamOptions(
+        rows,
+        preferredTeam,
+        decade,
+      );
+      updateMatchSearchPlaceholder(rows);
       await update();
     };
     const loadingTable = () => { document.getElementById("match-table").innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading matches…</p></div>`; };
     const filtered = () => {
       const team = document.getElementById("match-team").value;
       const cls = document.getElementById("match-class").value;
-      const query = document.getElementById("match-search").value.trim().toLocaleLowerCase();
+      const query = foldSearch(document.getElementById("match-search").value);
       return rows.filter((match) => {
         if (team && match.a !== team && match.b !== team) return false;
         if (cls === "friendly" && match.level !== 0) return false;
         if (cls === "competitive" && match.level === 0) return false;
-        if (query && !`${match.an} ${match.bn} ${match.ac} ${match.bc} ${match.t}`.toLocaleLowerCase().includes(query)) return false;
+        const matchSearch = foldSearch(
+        [
+          teamSearchText(
+            match.a,
+            match.an,
+            match.ac,
+          ),
+          teamSearchText(
+            match.b,
+            match.bn,
+            match.bc,
+          ),
+          match.t,
+          Number(match.level) === 0
+            ? "friendly"
+            : "competitive",
+        ].join(" "),
+      );
+      if (query && !matchSearch.includes(query)) {
+        return false;
+      }
         return true;
       });
     };
@@ -1159,7 +1478,7 @@
         + `versus ${match.bn}`
       ),
     })}</td>
-      <td data-label="Team ratings"><span class="rating-pair"><b>${escapeHTML(match.an)}</b> ${rating(match.pre_a)} → ${rating(match.post_a)}</span><span class="rating-pair"><b>${escapeHTML(match.bn)}</b> ${rating(match.pre_b)} → ${rating(match.post_b)}</span></td>
+      <td data-label="Team ratings"><span class="rating-pair"><b>${escapeHTML(publicTeamName(match.an))}</b> ${rating(match.pre_a)} → ${rating(match.post_a)}</span><span class="rating-pair"><b>${escapeHTML(publicTeamName(match.bn))}</b> ${rating(match.pre_b)} → ${rating(match.post_b)}</span></td>
       <td class="numeric" data-label="Combined pre-match">${rating(match.combined)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
@@ -1228,7 +1547,7 @@
     const bestTournamentRows = (summary.best_tournaments || []).slice(0, 500);
         const bestTournamentCurrentNames = new Map(
           summary.teams.map(
-            (team) => [team.code, team.nation],
+            (team) => [team.code, publicTeamName(team.nation)],
           ),
         );
         const bestTournamentAliases = new Map();
@@ -1246,7 +1565,9 @@
           if (!bestTournamentAliases.has(row.code)) {
             bestTournamentAliases.set(row.code, new Set());
           }
-          bestTournamentAliases.get(row.code).add(row.nation);
+          bestTournamentAliases.get(row.code).add(
+          publicTeamName(row.nation),
+        );
         });
 
         const bestTournamentTeams = [
@@ -1356,10 +1677,9 @@
       filterBar.hidden = !filtering;
       tournamentFilterBar.hidden = !tournamentFiltering;
 
-      const query = document
-        .getElementById("number-one-team")
-        .value.trim()
-        .toLocaleLowerCase();
+      const query = foldSearch(
+        document.getElementById("number-one-team").value,
+      );
       const tournamentTeam = document
         .getElementById("best-tournament-team")
         .value;
@@ -1420,9 +1740,10 @@
           if (invalidRange) return false;
           if (
             query
-            && !row.nation
-              .toLocaleLowerCase()
-              .includes(query)
+            && !teamSearchText(
+              row.code,
+              row.nation,
+            ).includes(query)
           ) {
             return false;
           }
@@ -1646,11 +1967,21 @@
     const requestedCompetition = route.query.get("competition") || "";
     if (competitions.includes(requestedCompetition)) document.getElementById("fixture-competition").value = requestedCompetition;
     const update = () => {
-      const query = document.getElementById("fixture-search").value.trim().toLocaleLowerCase();
+      const query = foldSearch(document.getElementById("fixture-search").value);
       const competition = document.getElementById("fixture-competition").value;
       const filtered = fixtures.filter((fixture) => {
         if (competition && fixture.tournament_name !== competition) return false;
-        return !query || `${fixture.team1_name} ${fixture.team2_name} ${fixture.tournament_name}`.toLocaleLowerCase().includes(query);
+        return !query || foldSearch([
+          teamSearchText(
+            fixture.team1_code,
+            fixture.team1_name,
+          ),
+          teamSearchText(
+            fixture.team2_code,
+            fixture.team2_name,
+          ),
+          fixture.tournament_name,
+        ].join(" ")).includes(query);
       });
       const visible = filtered.slice(0, shown);
       document.getElementById("fixture-count").textContent = `${number(filtered.length)} matching fixtures`;
@@ -2525,6 +2856,7 @@ function renderFAQ() {
     setActiveNav(current.section);
     try {
       if (!summary) [summary, catalog] = await Promise.all([getJSON("data/summary.json"), getJSON("data/catalog.json")]);
+      if (!teamAliasSearch.size) initialiseTeamAliasSearch();
       switch (current.section) {
         case "home": await renderHome(); break;
         case "rankings": renderRankings(current); break;

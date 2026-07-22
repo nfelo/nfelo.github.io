@@ -562,7 +562,8 @@ class StaticBuildTests(unittest.TestCase):
             row["nation"] for row in history["events"]
         }
         self.assertIn("West Germany", names)
-        self.assertIn("USSR", names)
+        self.assertIn("Soviet Union", names)
+        self.assertNotIn("USSR", names)
         self.assertIn("Czechoslovakia", names)
         self.assertIn("Yugoslavia", names)
 
@@ -876,6 +877,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn(
             '<option value="rating">Rating</option>'
             '<option value="rating_change">Rating change</option>'
+            '<option value="rank_change">Rank change</option>'
             '<option value="name">Name</option>',
             javascript,
         )
@@ -1204,6 +1206,57 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn(
             ".probability-link:focus-visible",
             stylesheet,
+        )
+
+    def test_alias_search_dynamic_suggestions_and_rank_sort(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        builder = (
+            ROOT / "scripts" / "build_site.py"
+        ).read_text(encoding="utf-8")
+
+        for phrase in (
+            "MANUAL_TEAM_ALIAS_GROUPS",
+            '"USSR": "Soviet Union"',
+            "attach_team_aliases(output, args.source)",
+        ):
+            self.assertIn(phrase, builder)
+
+        for phrase in (
+            "const foldSearch",
+            "const shuffledExamples",
+            "const initialiseTeamAliasSearch",
+            "teamSearchText(team.code, team.nation)",
+            'value="rank_change">Rank change',
+            'if (sort === "rank_change")',
+            "const populateMatchTeamOptions",
+            "const updateMatchSearchPlaceholder",
+            "publicTeamName(match.an)",
+            "fixture.team1_code",
+        ):
+            self.assertIn(phrase, javascript)
+
+        self.assertIn(
+            "aliases",
+            self.summary["teams"][0],
+        )
+        aliases = {
+            alias
+            for team in self.summary["teams"]
+            for alias in team.get("aliases", [])
+        }
+        self.assertIn("USSR", aliases)
+        self.assertIn("Soviet Union", aliases)
+        self.assertIn("Swaziland", aliases)
+        self.assertNotIn(
+            '"nation":"USSR"',
+            (
+                ROOT
+                / "public"
+                / "data"
+                / "summary.json"
+            ).read_text(encoding="utf-8"),
         )
 
     def test_public_metadata_and_discovery_files(self) -> None:

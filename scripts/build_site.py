@@ -41,6 +41,188 @@ def compact(value: Any) -> Any:
         return [compact(item) for item in value]
     return value
 
+PUBLIC_TEAM_NAME_REPLACEMENTS = {
+    "USSR": "Soviet Union",
+}
+
+MANUAL_TEAM_ALIAS_GROUPS: tuple[tuple[str, ...], ...] = (
+    (
+        "Russia",
+        "Soviet Union",
+        "USSR",
+        "Russian Empire",
+    ),
+    (
+        "Germany",
+        "West Germany",
+        "East Germany",
+        "German Empire",
+    ),
+    ("Eswatini", "Swaziland"),
+    (
+        "Czechia",
+        "Czech Republic",
+        "Czechoslovakia",
+    ),
+    (
+        "Serbia",
+        "Yugoslavia",
+        "Serbia and Montenegro",
+    ),
+    (
+        "North Macedonia",
+        "Macedonia",
+        "FYR Macedonia",
+    ),
+    ("Myanmar", "Burma"),
+    ("Cabo Verde", "Cape Verde"),
+    ("Timor-Leste", "East Timor"),
+    ("Türkiye", "Turkey"),
+    (
+        "DR Congo",
+        "Zaire",
+        "Congo DR",
+        "Democratic Republic of the Congo",
+    ),
+    (
+        "Ivory Coast",
+        "Côte d'Ivoire",
+        "Cote d'Ivoire",
+    ),
+    (
+        "United States",
+        "USA",
+        "United States of America",
+    ),
+    (
+        "South Korea",
+        "Korea Republic",
+        "Republic of Korea",
+    ),
+    (
+        "North Korea",
+        "Korea DPR",
+        "DPR Korea",
+    ),
+    ("Chinese Taipei", "Taiwan"),
+    ("Hong Kong", "Hong Kong, China"),
+    ("Macau", "Macao"),
+    ("Palestine", "Palestinian Territories"),
+)
+
+
+def public_team_name(value: Any) -> Any:
+    if isinstance(value, str):
+        return PUBLIC_TEAM_NAME_REPLACEMENTS.get(value, value)
+    return value
+
+
+def normalise_public_team_names(value: Any) -> Any:
+    if isinstance(value, dict):
+        for key, item in list(value.items()):
+            value[key] = normalise_public_team_names(item)
+        return value
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            value[index] = normalise_public_team_names(item)
+        return value
+    if isinstance(value, tuple):
+        return tuple(
+            normalise_public_team_names(item)
+            for item in value
+        )
+    return public_team_name(value)
+
+
+def attach_team_aliases(
+    output: Any,
+    source: Path,
+) -> None:
+    aliases: dict[str, set[str]] = {}
+    for match in output.matches:
+        for code_key, name_key in (
+            ("a", "an"),
+            ("b", "bn"),
+        ):
+            code = str(match.get(code_key, ""))
+            name = str(
+                public_team_name(match.get(name_key, ""))
+            ).strip()
+            if code and name:
+                aliases.setdefault(code, set()).add(name)
+
+    source_names = source / "en.teams.tsv"
+    if source_names.exists():
+        for line in source_names.read_text(
+            encoding="utf-8",
+        ).splitlines():
+            fields = [
+                field.strip()
+                for field in line.split("\t")
+                if field.strip()
+            ]
+            if len(fields) < 2:
+                continue
+            code, *names = fields
+            if code.endswith("_loc"):
+                continue
+            aliases.setdefault(code, set()).update(
+                public_team_name(name)
+                for name in names
+            )
+
+    current_names = {
+        team["code"]: public_team_name(team["nation"])
+        for team in output.summary["teams"]
+    }
+    for code, name in current_names.items():
+        aliases.setdefault(code, set()).add(str(name))
+
+    folded_by_code = {
+        code: {
+            str(value).casefold()
+            for value in values
+        }
+        for code, values in aliases.items()
+    }
+    for group in MANUAL_TEAM_ALIAS_GROUPS:
+        folded_group = {
+            value.casefold() for value in group
+        }
+        matching_codes = [
+            code
+            for code, values in folded_by_code.items()
+            if values & folded_group
+        ]
+        for code in matching_codes:
+            aliases[code].update(group)
+
+    alias_rows = {
+        code: sorted(
+            {
+                str(alias).strip()
+                for alias in values
+                if str(alias).strip()
+            },
+            key=lambda alias: alias.casefold(),
+        )
+        for code, values in aliases.items()
+    }
+
+    for collection_name in ("teams", "current"):
+        for team in output.summary.get(
+            collection_name,
+            [],
+        ):
+            code = team["code"]
+            team["nation"] = public_team_name(
+                team["nation"]
+            )
+            team["aliases"] = alias_rows.get(
+                code,
+                [team["nation"]],
+            )
+
 
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1131,7 +1313,7 @@ def build_best_tournament_records(
 def build_historical_rankings(data: Path, output: Any) -> None:
     """Write independently loadable end-of-day ranking events for each year."""
     names = {team["code"]: team["nation"] for team in output.summary["teams"]}
-    preferred_historical_names = {"Soviet Union": "USSR"}
+    preferred_historical_names = {"USSR": "Soviet Union"}
     events_by_year: dict[int, list[dict[str, Any]]] = {}
     for code, page in output.team_pages.items():
         for point in page["history"]:
@@ -1308,6 +1490,10 @@ def build_historical_rankings(data: Path, output: Any) -> None:
 def main() -> None:
     args = parse_args()
     output = run_replay(args.source, args.config)
+    normalise_public_team_names(output.summary)
+    normalise_public_team_names(output.team_pages)
+    normalise_public_team_names(output.matches)
+    attach_team_aliases(output, args.source)
     data = args.output / "data"
     if data.exists():
         shutil.rmtree(data)
