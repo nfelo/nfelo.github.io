@@ -59,40 +59,54 @@ jobs:
 
           # Migrate exact regression contracts that predate the requested
           # public name, Rank change option and unified Records filters.
-          tests = tests.replace(
-              '        self.assertIn("USSR", names)\n',
+          tests = re.sub(
               (
-                  '        self.assertIn("Soviet Union", names)\n'
-                  '        self.assertNotIn("USSR", names)\n'
+                  r'(?m)^(?P<indent>\s*)self\.assertIn\('
+                  r'(?P<quote>["\'])USSR(?P=quote),\s*names\)\s*$'
               ),
+              (
+                  r'\g<indent>self.assertIn("Soviet Union", names)'
+                  "\n"
+                  r'\g<indent>self.assertNotIn("USSR", names)'
+              ),
+              tests,
           )
 
-          old_tournament_sort_test = (
-              "        self.assertIn(\n"
-              "            '<option value=\"rating\">Rating</option>'\n"
-              "            '<option value=\"rating_change\">"
+          old_sort_join = (
+              '<option value="rating_change">'
               "Rating change</option>'\n"
-              "            '<option value=\"name\">Name</option>',\n"
-              "            javascript,\n"
-              "        )\n"
+              "            '<option value=\"name\">Name</option>"
           )
-          new_tournament_sort_test = (
-              "        self.assertIn(\n"
-              "            '<option value=\"rating\">Rating</option>'\n"
-              "            '<option value=\"rating_change\">"
+          new_sort_join = (
+              '<option value="rating_change">'
               "Rating change</option>'\n"
               "            '<option value=\"rank_change\">"
               "Rank change</option>'\n"
-              "            '<option value=\"name\">Name</option>',\n"
-              "            javascript,\n"
-              "        )\n"
+              "            '<option value=\"name\">Name</option>"
           )
-          if old_tournament_sort_test in tests:
+          if (
+              'value="rank_change">Rank change' not in tests
+              and old_sort_join in tests
+          ):
               tests = tests.replace(
-                  old_tournament_sort_test,
-                  new_tournament_sort_test,
+                  old_sort_join,
+                  new_sort_join,
                   1,
               )
+
+          tests = tests.replace(
+              (
+                  'historical_opponents.intersection('
+                  '{"USSR", "Czechoslovakia", "Yugoslavia"}'
+                  ')'
+              ),
+              (
+                  'historical_opponents.intersection('
+                  '{"Soviet Union", "Czechoslovakia", '
+                  '"Yugoslavia"}'
+                  ')'
+              ),
+          )
 
           old_number_one_filter_assertions = (
               (
@@ -1300,11 +1314,25 @@ jobs:
                       "CONCACAF Gold Cup",
                       "OFC Nations Cup",
                   ]
+                  precedence_start = javascript.index(
+                      "const MAJOR_TOURNAMENT_PRECEDENCE = ["
+                  )
+                  precedence_end = javascript.index(
+                      "];",
+                      precedence_start,
+                  )
+                  precedence_block = javascript[
+                      precedence_start:precedence_end
+                  ]
                   positions = [
-                      javascript.index(f'"{name}"')
+                      precedence_block.index(f'"{name}"')
                       for name in precedence
                   ]
                   self.assertEqual(positions, sorted(positions))
+                  self.assertEqual(
+                      precedence_block.count('"'),
+                      len(precedence) * 2,
+                  )
                   self.assertIn(
                       "newestTime - candidate.time <= thirtyDays",
                       javascript,
@@ -1397,9 +1425,35 @@ jobs:
           ''').strip() + "\n\n"
 
           test_name = (
-              "def test_record_filters_labels_and_major_tournament_default"
+              "test_record_filters_labels_and_major_tournament_default"
           )
-          if test_name not in tests:
+          installed_test_pattern = re.compile(
+              (
+                  r"^    def "
+                  + re.escape(test_name)
+                  + r"\(self\) -> None:\n"
+                  + r".*?(?=^    def |\Z)"
+              ),
+              flags=re.MULTILINE | re.DOTALL,
+          )
+          installed_matches = list(
+              installed_test_pattern.finditer(tests)
+          )
+          replacement_test = textwrap.indent(
+              test_method,
+              "    ",
+          )
+          if len(installed_matches) > 1:
+              raise RuntimeError(
+                  "Multiple Records regression tests were found."
+              )
+          if installed_matches:
+              tests = installed_test_pattern.sub(
+                  replacement_test,
+                  tests,
+                  count=1,
+              )
+          else:
               marker = (
                   "    def test_public_metadata_and_discovery_files"
                   "(self) -> None:\n"
@@ -1410,7 +1464,7 @@ jobs:
                   )
               tests = tests.replace(
                   marker,
-                  textwrap.indent(test_method, "    ") + marker,
+                  replacement_test + marker,
                   1,
               )
 
@@ -1560,6 +1614,42 @@ jobs:
       - name: Run complete validation
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          javascript = Path(
+              "public/assets/app.js"
+          ).read_text(encoding="utf-8")
+          match = re.search(
+              (
+                  r"const MAJOR_TOURNAMENT_PRECEDENCE = "
+                  r"\[(.*?)\];"
+              ),
+              javascript,
+              flags=re.DOTALL,
+          )
+          if match is None:
+              raise RuntimeError(
+                  "Major tournament precedence array is missing."
+              )
+          actual = re.findall(r'"([^"]+)"', match.group(1))
+          expected = [
+              "FIFA World Cup",
+              "UEFA European Championship",
+              "Copa América",
+              "Africa Cup of Nations",
+              "AFC Asian Cup",
+              "CONCACAF Gold Cup",
+              "OFC Nations Cup",
+          ]
+          if actual != expected:
+              raise RuntimeError(
+                  "Unexpected major tournament precedence: "
+                  + repr(actual)
+              )
+          print("Major tournament precedence:", actual)
+          PY
           python -m unittest \
             tests.test_build.StaticBuildTests.test_record_filters_labels_and_major_tournament_default \
             --verbose
