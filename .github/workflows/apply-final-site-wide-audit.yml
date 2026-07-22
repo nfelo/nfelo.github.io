@@ -1252,6 +1252,19 @@ jobs:
               "Estimate before uncertainty",
           )
 
+          tests = tests.replace(
+              '"Swipe to see every column"',
+              '"Swipe horizontally to see all columns"',
+          )
+          tests = tests.replace(
+              '"Swipe to see more"',
+              '"Swipe horizontally to see all columns"',
+          )
+          tests = tests.replace(
+              '"Swipe to see all parameters"',
+              '"Swipe horizontally to see all columns"',
+          )
+
           if "def test_final_ui_and_consistency_contract" not in tests:
               insertion_marker = (
                   "    def test_public_metadata_and_discovery_files"
