@@ -1,0 +1,1387 @@
+name: Apply final site-wide UI and consistency audit
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: final-site-wide-ui-consistency-audit
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Apply audited corrections
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Patch site source and permanent consistency checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+
+          APP_PATH = Path("public/assets/app.js")
+          STYLE_PATH = Path("public/assets/styles.css")
+          INDEX_PATH = Path("public/index.html")
+          BUILD_PATH = Path("scripts/build_site.py")
+          README_PATH = Path("README.md")
+          TEST_PATH = Path("tests/test_build.py")
+          PAGES_PATH = Path(".github/workflows/pages.yml")
+          AUDIT_PATH = Path("scripts/audit_site_consistency.py")
+
+          app = APP_PATH.read_text(encoding="utf-8")
+          styles = STYLE_PATH.read_text(encoding="utf-8")
+          index = INDEX_PATH.read_text(encoding="utf-8")
+          build = BUILD_PATH.read_text(encoding="utf-8")
+          readme = README_PATH.read_text(encoding="utf-8")
+          tests = TEST_PATH.read_text(encoding="utf-8")
+          pages = PAGES_PATH.read_text(encoding="utf-8")
+
+
+          def insert_before_once(
+              text: str,
+              marker: str,
+              addition: str,
+              unique_marker: str,
+              description: str,
+          ) -> str:
+              if unique_marker in text:
+                  return text
+              count = text.count(marker)
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(marker, addition + marker, 1)
+
+
+          # Shared metadata and terminology.
+          app = app.replace(
+              'records: "Nation peaks, number-one records, top matches, '
+              'largest upsets and tournament rating gains.",',
+              'records: "Team peaks, number-one records, highest-rated '
+              'matches, largest upsets and tournament rating gains.",',
+          )
+          app = app.replace(
+              'faq: "Clear answers about Network Football Elo ratings, '
+              'forecasts, data and methodology.",',
+              'faq: "Clear answers about Network Football Elo ratings, '
+              'forecasts, tournaments, records, data and methodology.",',
+          )
+          app = app.replace("Greatest matchups", "Highest-rated matches")
+          app = app.replace("Nation peaks", "Team peaks")
+          app = app.replace("No. 1 summary", "No. 1 totals")
+          app = app.replace("Top matches", "Highest-rated matches")
+          app = app.replace("Peak NR", "Peak rating")
+          app = app.replace("Adjusted estimate", "Estimate before uncertainty")
+          app = app.replace("adjusted estimate", "estimate before uncertainty")
+          app = app.replace(
+              "One maximum per canonical nation.",
+              "One maximum per canonical team lineage.",
+          )
+          app = app.replace(
+              "Number-one records by canonical nation.",
+              "Number-one totals by canonical team lineage.",
+          )
+          app = app.replace("<th>Nation</th>", "<th>Team</th>")
+          app = app.replace(
+              '<label for="number-one-team">Filter nation</label>',
+              '<label for="number-one-team">Filter team</label>',
+          )
+
+          for old_hint in (
+              "Swipe to see every column →",
+              "Swipe to see more →",
+              "Swipe to see all parameters →",
+          ):
+              app = app.replace(
+                  old_hint,
+                  "Swipe horizontally to see all columns →",
+              )
+
+          # Home-page exploration links without another large panel.
+          if 'class="home-explore"' not in app:
+              home_close_pattern = re.compile(
+                  r'(?P<close>\n[ \t]*</div>`;\n[ \t]*}\n\n'
+                  r'[ \t]*function movementHTML)'
+              )
+              home_nav = '''
+                <nav class="home-explore" aria-labelledby="home-explore-title">
+                  <div class="compact-heading">
+                    <div>
+                      <p class="eyebrow">More ways to explore</p>
+                      <h2 id="home-explore-title">Explore</h2>
+                    </div>
+                  </div>
+                  <div class="home-explore-links">
+                    <a href="#/history"><b>Historical rankings</b><span>Choose any completed matchday.</span></a>
+                    <a href="#/tournaments"><b>Tournaments</b><span>Compare every participant before or after an edition.</span></a>
+                    <a href="#/records"><b>Records</b><span>Peaks, No. 1 totals, matches, upsets and tournament gains.</span></a>
+                    <a href="#/compare"><b>Compare teams</b><span>Ratings, histories and head-to-head results.</span></a>
+                  </div>
+                </nav>
+              '''
+              app, home_count = home_close_pattern.subn(
+                  "\n" + home_nav.rstrip() + r"\g<close>",
+                  app,
+                  count=1,
+              )
+              if home_count != 1:
+                  raise RuntimeError(
+                      "Could not locate the end of the home page."
+                  )
+
+          # Rankings wording and current/historical pool clarity.
+          app = app.replace(
+              '>Current</button><button class="button" '
+              'data-pool="all" aria-pressed="false">All histories</button>',
+              '>Current teams</button><button class="button" '
+              'data-pool="all" aria-pressed="false">'
+              'All teams, including historical</button>',
+          )
+          old_rating_note = (
+              "The published rating is the model's strength estimate "
+              "adjusted for the range of opponents played and the "
+              "uncertainty in that estimate. A team must have played at "
+              "least 30 matches and appeared within the last four years "
+              "to enter the current table. The 12-month column compares "
+              "the latest rating and rank with the last eligible matchday "
+              "on or before the same calendar date one year earlier."
+          )
+          new_rating_note = (
+              "<b>One cautious rating is used throughout the site.</b> "
+              "Current teams need at least 30 matches and an appearance "
+              "within four years. The 12-month column compares the latest "
+              "eligible matchday with the equivalent point one year earlier."
+          )
+          app = app.replace(old_rating_note, new_rating_note)
+
+          # Records: place tabs before conditional filters.
+          records_filters = app.find('        <div id="number-one-filters"')
+          records_tabs = app.find('        <div class="record-tabs"')
+          records_note = app.find('        <div id="record-note"')
+          if min(records_filters, records_tabs, records_note) < 0:
+              raise RuntimeError("Could not locate the Records controls.")
+          if records_filters < records_tabs:
+              filter_block = app[records_filters:records_tabs].rstrip()
+              tab_block = app[records_tabs:records_note].rstrip()
+              app = (
+                  app[:records_filters]
+                  + tab_block
+                  + "\n"
+                  + filter_block
+                  + "\n"
+                  + app[records_note:]
+              )
+
+          app = app.replace(
+              '<div class="record-tabs">',
+              '<div class="record-tabs" role="tablist" '
+              'aria-label="Record type">',
+              1,
+          )
+          record_tabs_start = app.find(
+              '<div class="record-tabs" role="tablist"'
+          )
+          record_tabs_end = app.find('</div>', record_tabs_start)
+          if record_tabs_start < 0 or record_tabs_end < 0:
+              raise RuntimeError("Could not locate the Records tab list.")
+          record_tabs_html = app[record_tabs_start:record_tabs_end]
+          record_tabs_html = re.sub(
+              r'<button class="([^"]*)" data-record="([^"]+)"',
+              r'<button class="\1" role="tab" '
+              r'aria-controls="record-table" data-record="\2"',
+              record_tabs_html,
+          )
+          record_tabs_html = record_tabs_html.replace(
+              'aria-pressed="true"',
+              'aria-pressed="true" aria-selected="true" tabindex="0"',
+          )
+          record_tabs_html = record_tabs_html.replace(
+              'aria-pressed="false"',
+              'aria-pressed="false" aria-selected="false" tabindex="-1"',
+          )
+          app = (
+              app[:record_tabs_start]
+              + record_tabs_html
+              + app[record_tabs_end:]
+          )
+          app = app.replace(
+              '<div id="record-table"></div>',
+              '<div id="record-table" role="tabpanel" '
+              'tabindex="0" aria-live="polite"></div>',
+              1,
+          )
+
+          app = app.replace(
+              'button.setAttribute("aria-pressed", String(active));\n'
+              '      button.classList.toggle("button-dark", active);',
+              'button.setAttribute("aria-pressed", String(active));\n'
+              '      button.setAttribute("aria-selected", String(active));\n'
+              '      button.tabIndex = active ? 0 : -1;\n'
+              '      button.classList.toggle("button-dark", active);',
+          )
+          app = app.replace(
+              'peer.setAttribute("aria-pressed", String(active));\n'
+              '        peer.classList.toggle("button-dark", active);',
+              'peer.setAttribute("aria-pressed", String(active));\n'
+              '        peer.setAttribute("aria-selected", String(active));\n'
+              '        peer.tabIndex = active ? 0 : -1;\n'
+              '        peer.classList.toggle("button-dark", active);',
+          )
+
+          app = app.replace("<strong>1×</strong>", "<strong>Peak</strong>")
+          app = app.replace("<strong>1</strong>", "<strong>No. 1</strong>")
+          app = app.replace("<strong>Σ</strong>", "<strong>Total</strong>")
+          app = app.replace("<strong>Q</strong>", "<strong>Score</strong>")
+          app = app.replace("<strong>±</strong>", "<strong>Change</strong>")
+          app = app.replace("<strong>▲</strong>", "<strong>Gain</strong>")
+
+          keyboard_marker = "// Records tab keyboard navigation"
+          if keyboard_marker not in app:
+              keyboard_anchor = '''    document.getElementById("record-more").addEventListener'''
+              keyboard_code = '''    // Records tab keyboard navigation
+                const recordTabs = [
+                  ...document.querySelectorAll("[data-record]"),
+                ];
+                recordTabs.forEach((button, index) => {
+                  button.addEventListener("keydown", (event) => {
+                    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+                      return;
+                    }
+                    event.preventDefault();
+                    const nextIndex = event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? recordTabs.length - 1
+                        : (
+                          index
+                          + (event.key === "ArrowRight" ? 1 : -1)
+                          + recordTabs.length
+                        ) % recordTabs.length;
+                    recordTabs[nextIndex].focus();
+                    recordTabs[nextIndex].click();
+                  });
+                });
+          '''
+              app = insert_before_once(
+                  app,
+                  keyboard_anchor,
+                  keyboard_code,
+                  keyboard_marker,
+                  "Records pagination listener",
+              )
+
+          # Tournament search, accessible suggestions and concise dates.
+          tournament_search_old = (
+              '<input id="tournament-search" type="search" '
+              'placeholder="Search tournament teams…" '
+              'value="${escapeHTML(route.query.get("q") || "")}">'
+          )
+          tournament_search_new = (
+              '<input id="tournament-search" type="search" '
+              'list="tournament-team-suggestions" '
+              'placeholder="Search tournament teams…" '
+              'value="${escapeHTML(route.query.get("q") || "")}">'
+              '<datalist id="tournament-team-suggestions"></datalist>'
+          )
+          if tournament_search_new not in app:
+              if tournament_search_old not in app:
+                  raise RuntimeError(
+                      "Could not locate the Tournament team search input."
+                  )
+              app = app.replace(
+                  tournament_search_old,
+                  tournament_search_new,
+                  1,
+              )
+
+          datalist_assignment = (
+              '"tournament-team-suggestions",'
+              "\n"
+              "        ).innerHTML = names"
+          )
+          if datalist_assignment not in app:
+              placeholder_pattern = re.compile(
+                  r'(?P<indent>^[ \t]*)'
+                  r'document\.getElementById\(\s*'
+                  r'"tournament-search"\s*,?\s*'
+                  r'\)\.placeholder\s*=\s*examples\.length',
+                  flags=re.MULTILINE,
+              )
+
+              def add_datalist(
+                  match: re.Match[str],
+              ) -> str:
+                  indent = match.group("indent")
+                  return (
+                      f'{indent}document.getElementById(\n'
+                      f'{indent}  "tournament-team-suggestions",\n'
+                      f'{indent}).innerHTML = names\n'
+                      f'{indent}  .map(\n'
+                      f'{indent}    (name) => (\n'
+                      f'{indent}      `<option value="${{escapeHTML(name)}}"></option>`\n'
+                      f'{indent}    ),\n'
+                      f'{indent}  )\n'
+                      f'{indent}  .join("");\n\n'
+                      + match.group(0)
+                  )
+
+              app, datalist_count = placeholder_pattern.subn(
+                  add_datalist,
+                  app,
+                  count=1,
+              )
+              if datalist_count != 1:
+                  raise RuntimeError(
+                      "Could not locate Tournament placeholder assignment."
+                  )
+
+          if "search_names:" not in app:
+              before_after_pattern = re.compile(
+                  r'(?P<indent>^[ \t]*)'
+                  r'if \(selectedView === "after"\) \{',
+                  flags=re.MULTILINE,
+              )
+              search_names_code = '''const historicalParticipantNames = new Map(
+                participants.map(
+                  (participant) => [
+                    participant.code,
+                    participant.nation || "",
+                  ],
+                ),
+              );
+              teams = teams.map((team) => ({
+                ...team,
+                search_names: [
+                  team.nation,
+                  historicalParticipantNames.get(team.code),
+                  summaryNames.get(team.code),
+                  team.code,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+                  .toLocaleLowerCase(),
+              }));
+
+              '''
+
+              def add_search_names(
+                  match: re.Match[str],
+              ) -> str:
+                  indent = match.group("indent")
+                  block = "\n".join(
+                      indent + line if line else ""
+                      for line in search_names_code.splitlines()
+                  )
+                  return block + match.group(0)
+
+              app, search_names_count = before_after_pattern.subn(
+                  add_search_names,
+                  app,
+                  count=1,
+              )
+              if search_names_count != 1:
+                  raise RuntimeError(
+                      "Could not locate the Tournament after-view block."
+                  )
+
+          app = app.replace(
+              '(team) => team.nation.toLocaleLowerCase().includes(query),',
+              '(team) => team.search_names.includes(query),',
+              1,
+          )
+
+          app = app.replace(
+              'The tournament ended on ${validDate(selectedEdition.end)}. '
+              'Rank change compares each team\'s place in the full world '
+              'ranking. Rating change includes only matches from this '
+              'edition, excluding recalibration and unrelated results.'
+              '${coverageNote}',
+              'Final snapshot: ${validDate(selectedEdition.after)}. '
+              'Rank change compares each team\'s place in the full world '
+              'ranking. Rating change includes only matches from this '
+              'edition, excluding recalibration and unrelated results.'
+              '${coverageNote}',
+          )
+          app = app.replace(
+              'The tournament ended on ${validDate(selectedEdition.end)}. '
+              'This snapshot shows each participant immediately before '
+              'the tournament.${coverageNote}',
+              'Pre-tournament snapshot: '
+              '${validDate(selectedEdition.before)}. The tournament ended '
+              'on ${validDate(selectedEdition.end)}.${coverageNote}',
+          )
+
+          app = re.sub(
+              r'<div class="loading-shell"(?! role=)',
+              '<div class="loading-shell" role="status"',
+              app,
+          )
+          app = app.replace(
+              '<span class="spinner"></span>',
+              '<span class="spinner" aria-hidden="true"></span>',
+          )
+
+          # Compare, Predict, Team and error-page onward journeys.
+          app = app.replace(
+              '<p class="eyebrow">Side-by-side team records</p>'
+              '<h1>Compare teams</h1></div><p class="lede">'
+              'Compare current ratings, twelve-month movement, all-time '
+              'peaks, rating histories and head-to-head results.</p>',
+              '<p class="eyebrow">Current-team comparison</p>'
+              '<h1>Compare teams</h1></div><p class="lede">'
+              'Compare currently eligible teams by rating, twelve-month '
+              'movement, all-time peak, rating history and head-to-head '
+              'results.</p>',
+          )
+
+          if "const preferredA = currentA" not in app:
+              load_date_pattern = re.compile(
+                  r'(?P<indent>^[ \t]*)'
+                  r'const loadDate = async '
+                  r'\(dateValue, preserveRequestedTeams = false\) => \{\n'
+                  r'(?P<body_indent>[ \t]*)'
+                  r'selectedDate = dateValue;',
+                  flags=re.MULTILINE,
+              )
+
+              def add_preserved_teams(
+                  match: re.Match[str],
+              ) -> str:
+                  indent = match.group("indent")
+                  body = match.group("body_indent")
+                  return (
+                      f"{indent}const loadDate = async "
+                      "(dateValue, preserveRequestedTeams = false) => {\n"
+                      f'{body}const currentA = '
+                      'document.getElementById("predict-a")?.value;\n'
+                      f'{body}const currentB = '
+                      'document.getElementById("predict-b")?.value;\n'
+                      f"{body}const preferredA = currentA || (\n"
+                      f"{body}  preserveRequestedTeams ? initialA : null\n"
+                      f"{body});\n"
+                      f"{body}const preferredB = currentB || (\n"
+                      f"{body}  preserveRequestedTeams ? initialB : null\n"
+                      f"{body});\n"
+                      f"{body}selectedDate = dateValue;"
+                  )
+
+              app, preserve_count = load_date_pattern.subn(
+                  add_preserved_teams,
+                  app,
+                  count=1,
+              )
+              if preserve_count != 1:
+                  raise RuntimeError(
+                      "Could not locate the prediction date loader."
+                  )
+
+              app = re.sub(
+                  r'const codeA = preserveRequestedTeams && '
+                  r'codes\.has\(initialA\) \? initialA : teams\[0\]\.code;',
+                  'const codeA = codes.has(preferredA) '
+                  '? preferredA : teams[0].code;',
+                  app,
+                  count=1,
+              )
+              app = re.sub(
+                  r'const codeB = preserveRequestedTeams && '
+                  r'codes\.has\(initialB\) && initialB !== codeA \? '
+                  r'initialB : teams\.find\(\(team\) => '
+                  r'team\.code !== codeA\)\.code;',
+                  'const codeB = codes.has(preferredB) '
+                  '&& preferredB !== codeA ? preferredB '
+                  ': teams.find((team) => team.code !== codeA).code;',
+                  app,
+                  count=1,
+              )
+
+          app = app.replace(
+              '<span>${cutoff ? "Latest match" : "Opponent breadth"}</span>',
+              '<span title="Effective variety of recent opponents; '
+              'higher values mean broader evidence.">'
+              '${cutoff ? "Latest match" : "Opponent breadth"}</span>',
+          )
+
+          if 'class="context-actions team-context-actions"' not in app:
+              team_section_marker = (
+                  '<section class="section"><div class="section-heading">'
+                  '<div><p class="eyebrow">Rating after each match</p>'
+              )
+              team_actions = (
+                  '<nav class="context-actions team-context-actions" '
+                  'aria-label="Team tools">'
+                  '<a class="button button-quiet" '
+                  'href="#/compare?a=${encodeURIComponent(team.code)}">'
+                  'Compare this team</a>'
+                  '<a class="button button-quiet" '
+                  'href="#/predict?a=${encodeURIComponent(team.code)}">'
+                  'Predict a matchup</a>'
+                  '<a class="button button-quiet" href="#/rankings">'
+                  'Current rankings</a>'
+                  '</nav>'
+              )
+              if app.count(team_section_marker) != 1:
+                  raise RuntimeError(
+                      "Could not locate the team rating-history section."
+                  )
+              app = app.replace(
+                  team_section_marker,
+                  team_actions + team_section_marker,
+                  1,
+              )
+
+          app = app.replace(
+              '<p>Return to the current rankings or explore the match '
+              'history.</p><a class="button button-dark" href="#/">'
+              'Go home</a>',
+              '<p>Return to a main section below.</p>'
+              '<div class="context-actions">'
+              '<a class="button button-dark" href="#/rankings">Rankings</a>'
+              '<a class="button button-quiet" href="#/matches">Matches</a>'
+              '<a class="button button-quiet" href="#/">Home</a>'
+              '</div>',
+          )
+
+          # Methodology, FAQ and About consistency.
+          app = app.replace(
+              'The same public rating is used for current rankings, '
+              'historical rankings, nation peaks and team pages:',
+              'The same public rating is used for current rankings, '
+              'historical rankings, tournament snapshots, team peaks, '
+              'record tables and team pages:',
+          )
+          app = app.replace(
+              'Straightforward answers about the ratings, forecasts, '
+              'historical data and the methodology behind NFELO.',
+              'Straightforward answers about ratings, forecasts, '
+              'historical data, tournaments, records and methodology.',
+          )
+
+          faq_accuracy_pattern = re.compile(
+              r'(question: "Is NFELO always more likely to predict the '
+              r'correct result than other systems\?",\s*)'
+              r'answer: ".*?"',
+              flags=re.DOTALL,
+          )
+          dynamic_accuracy = r'''\1answer: `No. In the ${number(summary.validation.nested.matches)}-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, compared with ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for the published World Football Elo forecast, ${precisePercent(summary.validation.nested.g_elo_accuracy)} for the tested G-Elo comparison and ${precisePercent(summary.validation.nested.best_scalar_elo_accuracy)} for the best tested scalar Elo. The differences in top-choice accuracy are small. The current attack/defence layer preserves the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities.`'''
+          app, faq_accuracy_count = faq_accuracy_pattern.subn(
+              dynamic_accuracy,
+              app,
+              count=1,
+          )
+          if faq_accuracy_count != 1 and (
+              "summary.validation.nested.matches" not in app
+          ):
+              raise RuntimeError(
+                  "Could not make the validation FAQ data-driven."
+              )
+
+          app = app.replace(
+              'Historical results and team labels are based on '
+              '<a href="https://eloratings.net/" rel="external">'
+              'World Football Elo Ratings</a>.',
+              'Historical results and team labels are based on '
+              '<a href="https://eloratings.net/" rel="external">'
+              'World Football Elo Ratings</a>. The '
+              '<a href="https://github.com/nfelo/nfelo.github.io" '
+              'rel="external">source code and build history are available '
+              'on GitHub</a>.',
+          )
+
+          # Footer and root shell.
+          index = index.replace('>Method</a>', '>Methodology</a>')
+          if 'class="footer-links"' not in index:
+              footer_anchor = '''      <p>Not affiliated with eloratings.net or FIFA. Ratings are estimates, not betting advice.</p>'''
+              footer_links = '''      <nav class="footer-links" aria-label="Footer navigation">
+                    <a href="#/rankings">Rankings</a>
+                    <a href="#/history">History</a>
+                    <a href="#/tournaments">Tournaments</a>
+                    <a href="#/records">Records</a>
+                    <a href="#/methodology">Methodology</a>
+                    <a href="#/faq">FAQ</a>
+                    <a href="#/about">About</a>
+                    <a href="https://github.com/nfelo/nfelo.github.io" rel="external">GitHub</a>
+                  </nav>
+          '''
+              if footer_anchor not in index:
+                  raise RuntimeError("Could not locate the site footer.")
+              index = index.replace(
+                  footer_anchor,
+                  footer_links + footer_anchor,
+                  1,
+              )
+
+          # Responsive additions: preserve all table data on mobile.
+          style_marker = "/* Final site-wide audit corrections */"
+          if style_marker not in styles:
+              styles = styles.rstrip() + r'''
+
+          /* Final site-wide audit corrections */
+          .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+          }
+
+          .table-shell {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            scrollbar-gutter: stable;
+          }
+
+          .home-explore {
+            margin-top: 22px;
+            padding: 22px 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+          }
+          .home-explore .compact-heading { margin-bottom: 12px; }
+          .home-explore-links {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+          }
+          .home-explore-links a {
+            display: grid;
+            gap: 4px;
+            min-width: 0;
+            padding: 13px 14px;
+            text-decoration: none;
+            background: rgba(167,216,189,.12);
+            border-radius: 12px;
+          }
+          .home-explore-links a:hover { background: rgba(167,216,189,.24); }
+          .home-explore-links b { font-size: 14px; }
+          .home-explore-links span {
+            color: var(--ink-soft);
+            font-size: 12px;
+            line-height: 1.35;
+          }
+
+          .context-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+          }
+          .team-context-actions { justify-content: flex-end; }
+
+          .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: start;
+            gap: 8px 16px;
+            max-width: 360px;
+          }
+          .footer-links a {
+            min-height: 28px;
+            font-weight: 750;
+            text-decoration: none;
+          }
+
+          .record-tabs[role="tablist"] {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+          }
+          .record-tabs[role="tablist"] .button { flex: 0 0 auto; }
+
+          @media (max-width: 1180px) {
+            .menu-button { display: block; }
+            .site-nav {
+              position: absolute;
+              top: 66px;
+              left: 10px;
+              right: 10px;
+              display: none;
+              flex-direction: column;
+              align-items: stretch;
+              max-height: calc(100vh - 78px);
+              overflow-y: auto;
+              padding: 10px;
+              background: var(--navy);
+              border: 1px solid rgba(255,255,255,.15);
+              border-radius: 14px;
+              box-shadow: var(--shadow);
+            }
+            .site-nav.is-open { display: flex; }
+            .site-nav a { text-align: center; }
+          }
+
+          @media (max-width: 900px) {
+            .home-explore-links { grid-template-columns: 1fr 1fr; }
+          }
+
+          @media (max-width: 720px) {
+            .home-explore { padding: 18px 15px; border-radius: 14px; }
+            .home-explore-links { grid-template-columns: 1fr; }
+            .context-actions { display: grid; grid-template-columns: 1fr; }
+            .context-actions .button { width: 100%; }
+            .team-context-actions { justify-content: stretch; }
+            .record-tabs {
+              margin-left: -12px;
+              margin-right: -12px;
+              padding-inline: 12px;
+            }
+            .site-footer .footer-links { margin: 16px 0; }
+          }
+          ''' + "\n"
+
+          # Generated route metadata.
+          build = build.replace(
+              '"records": ("Records", "All-time national-team rating '
+              'peaks, greatest matchups and largest upsets."),',
+              '"records": ("Records", "Team peaks, number-one records, '
+              'highest-rated matches, largest upsets and tournament '
+              'rating gains."),',
+          )
+
+          # README terminology.
+          readme = readme.replace("nation peaks", "team peaks")
+          readme = readme.replace(
+              "top match instances",
+              "highest-rated matches",
+          )
+          readme = readme.replace(
+              "Current rankings, rankings on historical\n"
+              "dates, team peaks, team pages and match records",
+              "Current rankings, rankings on historical\n"
+              "dates, tournament snapshots, team peaks, team pages and "
+              "record tables",
+          )
+
+          # Permanent post-build consistency audit.
+          audit_script = r'''#!/usr/bin/env python3
+          from __future__ import annotations
+
+          import argparse
+          import json
+          import math
+          from pathlib import Path
+          import re
+          from typing import Any
+
+
+          EXPECTED_ROUTES = (
+              "rankings",
+              "history",
+              "tournaments",
+              "matches",
+              "fixtures",
+              "records",
+              "compare",
+              "predict",
+              "methodology",
+              "faq",
+              "about",
+          )
+
+
+          def load_json(path: Path) -> Any:
+              return json.loads(path.read_text(encoding="utf-8"))
+
+
+          def close(first: Any, second: Any, tolerance: float = 1e-6) -> bool:
+              if first is None or second is None:
+                  return first is second
+              return math.isclose(
+                  float(first),
+                  float(second),
+                  rel_tol=0.0,
+                  abs_tol=tolerance,
+              )
+
+
+          def historical_snapshot(
+              public: Path,
+              index: dict[str, Any],
+              value: str,
+              cache: dict[str, dict[str, Any]],
+          ) -> list[dict[str, Any]]:
+              chosen = max(index["first"], min(index["last"], value))
+              data_year = str(
+                  min(int(chosen[:4]), int(index["last"][:4]))
+              )
+              if data_year not in cache:
+                  cache[data_year] = load_json(
+                      public
+                      / "data"
+                      / "rankings-history"
+                      / f"{data_year}.json"
+                  )
+              payload = cache[data_year]
+              state = {
+                  team["code"]: dict(team)
+                  for team in payload["opening"]
+              }
+              for event in payload.get("events", []):
+                  if event["date"] <= chosen:
+                      state[event["code"]] = dict(event)
+              year = int(chosen[:4])
+              ranked = [
+                  team
+                  for team in state.values()
+                  if year - int(team["date"][:4]) <= 4
+              ]
+              ranked.sort(
+                  key=lambda team: (
+                      -float(team["rating"]),
+                      team["nation"],
+                  )
+              )
+              for position, team in enumerate(ranked, start=1):
+                  team["rank"] = position
+              return ranked
+
+
+          def main() -> None:
+              parser = argparse.ArgumentParser()
+              parser.add_argument(
+                  "--public",
+                  type=Path,
+                  default=Path("public"),
+              )
+              args = parser.parse_args()
+              public = args.public
+
+              summary = load_json(public / "data" / "summary.json")
+              catalog = load_json(public / "data" / "catalog.json")
+              tournament_index = load_json(
+                  public / "data" / "tournaments" / "index.json"
+              )
+              history_index = load_json(
+                  public
+                  / "data"
+                  / "rankings-history"
+                  / "index.json"
+              )
+              fixtures = load_json(public / "data" / "fixtures.json")
+
+              all_teams = summary["teams"]
+              team_codes = [team["code"] for team in all_teams]
+              assert len(team_codes) == len(set(team_codes))
+              by_code = {team["code"]: team for team in all_teams}
+              current_codes = {
+                  team["code"] for team in summary["current"]
+              }
+              assert current_codes <= set(by_code)
+
+              history_cache: dict[str, dict[str, Any]] = {}
+              latest = historical_snapshot(
+                  public,
+                  history_index,
+                  summary["meta"]["results_through"],
+                  history_cache,
+              )
+              assert [team["code"] for team in latest] == [
+                  team["code"] for team in summary["current"]
+              ]
+              for historical, current in zip(
+                  latest,
+                  summary["current"],
+                  strict=True,
+              ):
+                  assert historical["rank"] == current["rank"]
+                  assert close(historical["rating"], current["rating"])
+                  assert historical["nation"] == current["nation"]
+
+              for code, summary_team in by_code.items():
+                  page_path = public / "data" / "teams" / f"{code}.json"
+                  assert page_path.exists(), page_path
+                  page_team = load_json(page_path)["team"]
+                  assert page_team["code"] == code
+                  assert page_team["nation"] == summary_team["nation"]
+                  for key in ("rating", "mean", "se", "rank", "matches"):
+                      if key in page_team and key in summary_team:
+                          assert close(
+                              page_team[key],
+                              summary_team[key],
+                          ), (code, key)
+
+              editions: dict[tuple[str, str], dict[str, Any]] = {}
+              for family in tournament_index["families"]:
+                  for edition in family["editions"]:
+                      key = (family["id"], edition["id"])
+                      assert key not in editions
+                      editions[key] = {
+                          **edition,
+                          "family_name": family["name"],
+                      }
+                      participant_codes = edition["teams"]
+                      assert len(participant_codes) == len(
+                          set(participant_codes)
+                      )
+                      assert set(participant_codes) <= set(by_code)
+                      participants = edition.get("participants", [])
+                      assert {
+                          participant["code"] for participant in participants
+                      } == set(participant_codes)
+                      changes = edition.get("rating_changes", [])
+                      assert {
+                          item["code"] for item in changes
+                      } == set(participant_codes)
+                      for item in changes:
+                          if item["change"] is None:
+                              assert item["start_rating"] is None
+                              assert item["end_rating"] is None
+                          else:
+                              assert close(
+                                  float(item["end_rating"])
+                                  - float(item["start_rating"]),
+                                  item["change"],
+                              )
+
+              best = summary.get("best_tournaments", [])
+              assert len(best) <= 500
+              assert all(
+                  float(first["rating_gain"])
+                  >= float(second["rating_gain"])
+                  for first, second in zip(best, best[1:])
+              )
+              for row in best:
+                  assert row["code"] in by_code
+                  edition = editions[
+                      (row["tournament_id"], row["edition_id"])
+                  ]
+                  assert row["tournament"] == edition["family_name"]
+                  assert row["edition"] == edition["label"]
+                  assert row["after"] == edition["after"]
+                  assert close(
+                      float(row["after_rating"])
+                      - float(row["before_rating"]),
+                      row["rating_gain"],
+                  )
+
+              latest_date = summary["meta"]["results_through"]
+              for row in summary.get("peaks", []):
+                  assert row["code"] in by_code
+                  assert row["date"] <= latest_date
+              for collection, code_keys in (
+                  ("top_matches", ("code1", "code2")),
+                  ("upsets", ("code1", "code2")),
+              ):
+                  for row in summary.get(collection, []):
+                      assert all(row[key] in by_code for key in code_keys)
+                      assert row["date"] <= latest_date
+
+              for fixture in fixtures.get("fixtures", []):
+                  first = by_code[fixture["team1_code"]]
+                  second = by_code[fixture["team2_code"]]
+                  assert fixture["team1_name"] == first["nation"]
+                  assert fixture["team2_name"] == second["nation"]
+                  assert close(fixture["rating1"], first["rating"])
+                  assert close(fixture["rating2"], second["rating"])
+                  assert close(
+                      fixture["combined_rating"],
+                      float(first["rating"]) + float(second["rating"]),
+                  )
+
+              catalog_codes = {
+                  item["code"] for item in catalog.get("teams", [])
+              }
+              if catalog_codes:
+                  assert catalog_codes <= set(by_code)
+
+              root_html = (
+                  public / "index.html"
+              ).read_text(encoding="utf-8")
+              root_nav = re.search(
+                  r'<nav id="site-nav".*?</nav>',
+                  root_html,
+                  flags=re.DOTALL,
+              )
+              assert root_nav
+              nav_html = root_nav.group(0)
+              root_assets = tuple(
+                  re.findall(
+                      r'(?:href|src)="(assets/(?:styles\.css|app\.js)'
+                      r'(?:\?v=[^"]+)?)"',
+                      root_html,
+                  )
+              )
+              assert len(root_assets) == 2
+              sitemap = (
+                  public / "sitemap.xml"
+              ).read_text(encoding="utf-8")
+
+              for route in EXPECTED_ROUTES:
+                  route_path = public / route / "index.html"
+                  assert route_path.exists(), route_path
+                  html = route_path.read_text(encoding="utf-8")
+                  route_nav = re.search(
+                      r'<nav id="site-nav".*?</nav>',
+                      html,
+                      flags=re.DOTALL,
+                  )
+                  assert route_nav
+                  assert route_nav.group(0) == nav_html
+                  route_assets = tuple(
+                      re.findall(
+                          r'(?:href|src)="(assets/(?:styles\.css|app\.js)'
+                          r'(?:\?v=[^"]+)?)"',
+                          html,
+                      )
+                  )
+                  assert route_assets == root_assets
+                  canonical = f"https://nfelo.github.io/{route}/"
+                  assert (
+                      f'<link rel="canonical" href="{canonical}">'
+                      in html
+                  )
+                  assert f"<loc>{canonical}</loc>" in sitemap
+
+              javascript = (
+                  public / "assets" / "app.js"
+              ).read_text(encoding="utf-8")
+              stylesheet = (
+                  public / "assets" / "styles.css"
+              ).read_text(encoding="utf-8")
+              for marker in (
+                  "summary.current",
+                  "summary.best_tournaments",
+                  "loadHistoricalSnapshot",
+                  'getJSON("data/tournaments/index.json")',
+                  'getJSON("data/fixtures.json")',
+                  'getJSON(`data/teams/${encodeURIComponent(code)}.json`)',
+              ):
+                  assert marker in javascript
+              assert not re.search(
+                  r'\.hide-mobile\s*\{[^}]*display\s*:\s*none',
+                  stylesheet,
+                  flags=re.DOTALL,
+              )
+
+              print(
+                  "Site consistency audit passed: Rankings, History, "
+                  "Tournaments, Records, Fixtures, team pages, clean "
+                  "routes and mobile data all use the same build."
+              )
+
+
+          if __name__ == "__main__":
+              main()
+          '''
+          AUDIT_PATH.write_text(
+              audit_script.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+          # Run the consistency audit on every future Pages build.
+          audit_command = (
+              "          python scripts/audit_site_consistency.py "
+              "--public public\n"
+          )
+          verify_marker = "          node --check public/assets/app.js\n"
+          if pages.count(
+              "python scripts/audit_site_consistency.py --public public"
+          ) < 2:
+              occurrences = pages.count(verify_marker)
+              if occurrences != 2:
+                  raise RuntimeError(
+                      "Expected two Pages verification blocks; found "
+                      f"{occurrences}."
+                  )
+              pages = pages.replace(
+                  verify_marker,
+                  verify_marker + audit_command,
+              )
+
+          # Update renamed assertions and add one high-level contract.
+          tests = tests.replace("Nation peaks", "Team peaks")
+          tests = tests.replace("No. 1 summary", "No. 1 totals")
+          tests = tests.replace("Top matches", "Highest-rated matches")
+          tests = tests.replace("Peak NR", "Peak rating")
+          tests = tests.replace(
+              "Adjusted estimate",
+              "Estimate before uncertainty",
+          )
+
+          if "def test_final_ui_and_consistency_contract" not in tests:
+              insertion_marker = (
+                  "    def test_public_metadata_and_discovery_files"
+                  "(self) -> None:\n"
+              )
+              audit_test = r'''    def test_final_ui_and_consistency_contract(self) -> None:
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  stylesheet = (
+                      ROOT / "public" / "assets" / "styles.css"
+                  ).read_text(encoding="utf-8")
+                  html = (
+                      ROOT / "public" / "index.html"
+                  ).read_text(encoding="utf-8")
+                  pages = (
+                      ROOT / ".github" / "workflows" / "pages.yml"
+                  ).read_text(encoding="utf-8")
+
+                  for marker in (
+                      'class="home-explore"',
+                      'role="tablist"',
+                      'role="tabpanel"',
+                      'aria-selected="true"',
+                      "No. 1 totals",
+                      "Highest-rated matches",
+                      'list="tournament-team-suggestions"',
+                      "search_names:",
+                      "Final snapshot:",
+                      "Pre-tournament snapshot:",
+                      "Current-team comparison",
+                      "const preferredA = currentA",
+                      'class="context-actions team-context-actions"',
+                      "summary.validation.nested.matches",
+                  ):
+                      self.assertIn(marker, javascript)
+
+                  self.assertNotIn(
+                      "The tournament ended on "
+                      "${validDate(selectedEdition.end)}. Rank change",
+                      javascript,
+                  )
+                  self.assertIn(
+                      "/* Final site-wide audit corrections */",
+                      stylesheet,
+                  )
+                  self.assertIn(
+                      "@media (max-width: 1180px)",
+                      stylesheet,
+                  )
+                  self.assertNotRegex(
+                      stylesheet,
+                      r"\.hide-mobile\s*\{[^}]*"
+                      r"display\s*:\s*none",
+                  )
+                  self.assertIn('class="footer-links"', html)
+                  self.assertGreaterEqual(
+                      pages.count(
+                          "python scripts/audit_site_consistency.py "
+                          "--public public"
+                      ),
+                      2,
+                  )
+                  self.assertTrue(
+                      (
+                          ROOT
+                          / "scripts"
+                          / "audit_site_consistency.py"
+                      ).exists()
+                  )
+
+          '''
+              if tests.count(insertion_marker) != 1:
+                  raise RuntimeError(
+                      "Could not locate the test insertion point."
+                  )
+              tests = tests.replace(
+                  insertion_marker,
+                  audit_test + insertion_marker,
+                  1,
+              )
+
+          required_app = (
+              'class="home-explore"',
+              'role="tablist"',
+              'role="tabpanel"',
+              'aria-selected="true"',
+              "No. 1 totals",
+              "Highest-rated matches",
+              'list="tournament-team-suggestions"',
+              "search_names:",
+              "Final snapshot:",
+              "Pre-tournament snapshot:",
+              "Current-team comparison",
+              "const preferredA = currentA",
+              'class="context-actions team-context-actions"',
+              "summary.validation.nested.matches",
+          )
+          missing_app = [
+              marker for marker in required_app if marker not in app
+          ]
+          if missing_app:
+              raise RuntimeError(
+                  "App patch incomplete; missing: "
+                  + ", ".join(missing_app)
+              )
+
+          if (
+              "The tournament ended on "
+              "${validDate(selectedEdition.end)}. Rank change"
+              in app
+          ):
+              raise RuntimeError(
+                  "The redundant after-tournament wording remains."
+              )
+
+          APP_PATH.write_text(app.rstrip() + "\n", encoding="utf-8")
+          STYLE_PATH.write_text(styles.rstrip() + "\n", encoding="utf-8")
+          INDEX_PATH.write_text(index.rstrip() + "\n", encoding="utf-8")
+          BUILD_PATH.write_text(build.rstrip() + "\n", encoding="utf-8")
+          README_PATH.write_text(readme.rstrip() + "\n", encoding="utf-8")
+          TEST_PATH.write_text(tests.rstrip() + "\n", encoding="utf-8")
+          PAGES_PATH.write_text(pages.rstrip() + "\n", encoding="utf-8")
+
+          print(
+              "Applied the final UI audit and installed the permanent "
+              "cross-page build consistency gate."
+          )
+          PY
+
+      - name: Save patched public source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nfelo-final-audit
+          cp public/index.html /tmp/nfelo-final-audit/index.html
+          cp public/assets/app.js /tmp/nfelo-final-audit/app.js
+          cp public/assets/styles.css /tmp/nfelo-final-audit/styles.css
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            scripts/build_site.py \
+            scripts/audit_site_consistency.py \
+            tests/test_build.py
+          node --check public/assets/app.js
+
+      - name: Build complete static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Audit every generated page family
+        run: |
+          set -euo pipefail
+          python scripts/audit_site_consistency.py --public public
+
+      - name: Run complete verification
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+
+      - name: Preserve source files and discard generated output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git restore --worktree -- public source
+          git clean -fd -- public
+          cp /tmp/nfelo-final-audit/index.html public/index.html
+          cp /tmp/nfelo-final-audit/app.js public/assets/app.js
+          cp /tmp/nfelo-final-audit/styles.css public/assets/styles.css
+
+      - name: Check final patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m py_compile \
+            scripts/build_site.py \
+            scripts/audit_site_consistency.py \
+            tests/test_build.py
+          node --check public/assets/app.js
+          git diff --check
+
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          expected="$(
+            printf '%s\n' \
+              .github/workflows/pages.yml \
+              README.md \
+              public/assets/app.js \
+              public/assets/styles.css \
+              public/index.html \
+              scripts/audit_site_consistency.py \
+              scripts/build_site.py \
+              tests/test_build.py \
+            | sort
+          )"
+          if [ "$changed" != "$expected" ]; then
+            echo "Unexpected changed files:"
+            printf '%s\n' "$changed"
+            exit 1
+          fi
+
+          grep -F 'role="tablist"' public/assets/app.js
+          grep -F 'Final snapshot:' public/assets/app.js
+          grep -F 'class="footer-links"' public/index.html
+          grep -F \
+            'python scripts/audit_site_consistency.py --public public' \
+            .github/workflows/pages.yml
+
+      - name: Commit and push
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet && \
+             [ -z "$(git ls-files --others --exclude-standard)" ]
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The audited corrections are already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            .github/workflows/pages.yml \
+            README.md \
+            public/assets/app.js \
+            public/assets/styles.css \
+            public/index.html \
+            scripts/audit_site_consistency.py \
+            scripts/build_site.py \
+            tests/test_build.py
+
+          git commit -m "Apply final site-wide UI and consistency audit"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm automatic Pages deployment
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          echo "The push to main automatically runs pages.yml."
+          echo "That workflow rebuilds and consistency-checks every page."
+          echo "No duplicate manual Pages dispatch is sent."
