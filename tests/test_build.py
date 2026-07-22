@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 import json
 import math
 from pathlib import Path
+import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import unittest
@@ -341,7 +342,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("function numberOneSummaryTable", javascript)
         self.assertIn('data-record="numberonesummary"', javascript)
         self.assertIn("Relevant change-date result(s)", javascript)
-        self.assertIn("Swipe to see every column", javascript)
+        self.assertIn("Swipe horizontally to see all columns", javascript)
         self.assertTrue(all("match" in spell for spell in spells))
         summaries = self.summary["number_one_summary"]
         self.assertTrue(summaries)
@@ -1014,7 +1015,7 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
         self.assertNotIn(
-            '<option value="mean">Adjusted estimate</option>',
+            '<option value="mean">Estimate before uncertainty</option>',
             javascript,
         )
 
@@ -1074,6 +1075,70 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn(
             "Tournament snapshots use the same published rating",
             readme,
+        )
+
+    def test_final_ui_and_consistency_contract(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        html = (
+            ROOT / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            'class="home-explore"',
+            'role="tablist"',
+            'role="tabpanel"',
+            'aria-selected="true"',
+            "No. 1 totals",
+            "Highest-rated matches",
+            'list="tournament-team-suggestions"',
+            "search_names:",
+            "Final snapshot:",
+            "Pre-tournament snapshot:",
+            "Current-team comparison",
+            "const preferredA = currentA",
+            'class="context-actions team-context-actions"',
+            "summary.validation.nested.matches",
+        ):
+            self.assertIn(marker, javascript)
+
+        self.assertNotIn(
+            "The tournament ended on "
+            "${validDate(selectedEdition.end)}. Rank change",
+            javascript,
+        )
+        self.assertIn(
+            "/* Final site-wide audit corrections */",
+            stylesheet,
+        )
+        self.assertIn(
+            "@media (max-width: 1180px)",
+            stylesheet,
+        )
+        self.assertNotRegex(
+            stylesheet,
+            r"\.hide-mobile\s*\{[^}]*"
+            r"display\s*:\s*none",
+        )
+        self.assertIn('class="footer-links"', html)
+        audit = (
+            ROOT
+            / "scripts"
+            / "audit_site_consistency.py"
+        )
+        self.assertTrue(audit.exists())
+        subprocess.run(
+            [
+                sys.executable,
+                str(audit),
+                "--public",
+                str(ROOT / "public"),
+            ],
+            cwd=ROOT,
+            check=True,
         )
 
     def test_public_metadata_and_discovery_files(self) -> None:

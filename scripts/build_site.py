@@ -80,7 +80,7 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
         "tournaments": ("Tournament rankings", "Compare participant rankings immediately before and after international tournaments."),
         "matches": ("Matches", "Search international football results and pre-match forecasts from 1872 onward."),
         "fixtures": ("Upcoming matches", "Upcoming senior internationals with current ratings and match probabilities."),
-        "records": ("Records", "All-time national-team rating peaks, greatest matchups and largest upsets."),
+        "records": ("Records", "Team peaks, number-one records, highest-rated matches, largest upsets and tournament rating gains."),
         "compare": ("Compare teams", "Compare two national teams' ratings, movement, histories and head-to-head results."),
         "predict": ("Predict a match", "Compare two national teams and calculate win, draw and loss probabilities."),
         "methodology": ("Methodology", "Detailed, reproducible methodology for the Network Football Elo model."),

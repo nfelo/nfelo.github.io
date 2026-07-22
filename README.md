@@ -3,14 +3,14 @@
 [NFELO](https://nfelo.github.io/) is a static, searchable rating and prediction
 site for senior men's international football. It covers results from 1872 to
 the present, current and historical rankings, tournament snapshots, every
-source match, nation peaks, number-one chronology and totals, top match
+source match, team peaks, number-one chronology and totals, top match
 instances, largest upsets, Best tournaments, team comparison and a date-aware
 probability calculator.
 
 ## What the model publishes
 
 NFELO publishes one rating everywhere: current rankings, rankings on historical
-dates, nation peaks, team pages and match records all use the same
+dates, team peaks, team pages and match records all use the same
 evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.

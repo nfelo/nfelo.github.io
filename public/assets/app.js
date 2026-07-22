@@ -87,11 +87,11 @@
       tournaments: "Compare participating teams immediately before and after international tournaments.",
       matches: "Search international football results and pre-match forecasts from 1872 onward.",
       fixtures: "Upcoming senior internationals with current ratings and match probabilities.",
-      records: "Nation peaks, number-one records, top matches, largest upsets and tournament rating gains.",
+      records: "Team peaks, number-one records, highest-rated matches, largest upsets and tournament rating gains.",
       compare: "Compare two national teams' ratings, movement, histories and head-to-head results.",
       predict: "Predict historical or current matchups with W/D/L, exact-score and rating-impact tables.",
       methodology: "Detailed, reproducible methodology for the Network Football Elo model.",
-      faq: "Clear answers about Network Football Elo ratings, forecasts, data and methodology.",
+      faq: "Clear answers about Network Football Elo ratings, forecasts, tournaments, records, data and methodology.",
       about: "Data sources, update schedule and limitations of Network Football Elo.",
       team: `${document.querySelector("h1")?.textContent || "National team"} ratings, results and historical record.`,
     };
@@ -305,10 +305,25 @@
             </div>
           </div>
           <div class="home-records">
-            <div class="compact-heading"><div><p class="eyebrow">Record book</p><h2>Greatest matchups</h2></div><a href="#/records">All records →</a></div>
+            <div class="compact-heading"><div><p class="eyebrow">Record book</p><h2>Highest-rated matches</h2></div><a href="#/records">All records →</a></div>
             <ol>${summary.top_matches.slice(0, 5).map((match, index) => `<li><span>${index + 1}</span><div>${teamLink(match.code1, match.team1)} <i>v</i> ${teamLink(match.code2, match.team2)}<small>${validDate(match.date)}</small></div><strong>${rating(match.combined)}</strong></li>`).join("")}</ol>
           </div>
         </section>
+
+      <nav class="home-explore" aria-labelledby="home-explore-title">
+        <div class="compact-heading">
+          <div>
+            <p class="eyebrow">More ways to explore</p>
+            <h2 id="home-explore-title">Explore</h2>
+          </div>
+        </div>
+        <div class="home-explore-links">
+          <a href="#/history"><b>Historical rankings</b><span>Choose any completed matchday.</span></a>
+          <a href="#/tournaments"><b>Tournaments</b><span>Compare every participant before or after an edition.</span></a>
+          <a href="#/records"><b>Records</b><span>Peaks, No. 1 totals, matches, upsets and tournament gains.</span></a>
+          <a href="#/compare"><b>Compare teams</b><span>Ratings, histories and head-to-head results.</span></a>
+        </div>
+      </nav>
       </div>`;
   }
 
@@ -332,8 +347,8 @@
 
   function rankingsTable(items, showRank) {
     if (!items.length) return `<div class="empty">No teams match those filters.</div>`;
-    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr>
         <td class="rank-cell numeric">${showRank ? team.display_rank ?? team.rank ?? index + 1 : index + 1}</td>
         <td>${teamLink(team.code, team.nation)}</td>
@@ -355,9 +370,9 @@
         <div class="toolbar">
           <div class="field field-grow"><label for="ranking-search">Find a team</label><input id="ranking-search" type="search" placeholder="Spain, Argentina, Japan…" value="${escapeHTML(route.query.get("q") || "")}"></div>
           <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="rating_change_12m">12-month rating change</option><option value="rank_change_12m">12-month rank change</option><option value="matches">Matches played</option><option value="name">Name</option></select></div>
-          <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current</button><button class="button" data-pool="all" aria-pressed="false">All histories</button></div>
+          <div class="toggle-group" role="group" aria-label="Ranking pool"><button class="button" data-pool="current" aria-pressed="false">Current teams</button><button class="button" data-pool="all" aria-pressed="false">All teams, including historical</button></div>
         </div>
-        <div class="record-note"><strong>Rating</strong><div>The published rating is the model's strength estimate adjusted for the range of opponents played and the uncertainty in that estimate. A team must have played at least 30 matches and appeared within the last four years to enter the current table. The 12-month column compares the latest rating and rank with the last eligible matchday on or before the same calendar date one year earlier.</div></div>
+        <div class="record-note"><strong>Rating</strong><div><b>One cautious rating is used throughout the site.</b> Current teams need at least 30 matches and an appearance within four years. The 12-month column compares the latest eligible matchday with the equivalent point one year earlier.</div></div>
         <div id="rankings-table"></div>
       </div>`;
     const target = document.getElementById("rankings-table");
@@ -425,8 +440,8 @@
 
   function historicalRankingsTable(items, selectedDate) {
     if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>Teams enter the table after their 30th recorded match.</p></div>`;
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${team.rank ?? index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
         <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
@@ -484,7 +499,7 @@
       document.getElementById("history-prev").disabled = chosen <= index.first;
       document.getElementById("history-next").disabled = chosen >= index.last;
       saveHistoryRoute();
-      table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
+      table.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ${escapeHTML(validDate(chosen))}…</p></div>`;
       teams = await loadHistoricalSnapshot(index, chosen);
       document.getElementById("history-count").textContent = number(teams.length);
       document.getElementById("history-label").textContent = `Eligible teams on ${validDate(chosen)}`;
@@ -576,8 +591,8 @@
     if (!items.length) {
       return `<div class="empty"><h2>No participants</h2><p>No participating teams were recorded for this edition.</p></div>`;
     }
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell tournament-table"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Adjusted estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell tournament-table"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team) => {
         const rankValue = team.rank == null ? "—" : team.rank;
         const ratingNote = team.rating == null
@@ -643,7 +658,7 @@
       </div>
       <div class="record-note"><strong id="tournament-count">—</strong><div><b id="tournament-label">Participants</b><br><span id="tournament-description">Choose a tournament edition.</span></div></div>
       <div class="toolbar compact-toolbar">
-        <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" placeholder="Search tournament teams…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+        <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" list="tournament-team-suggestions" placeholder="Search tournament teams…" value="${escapeHTML(route.query.get("q") || "")}"><datalist id="tournament-team-suggestions"></datalist></div>
         <div class="field"><label for="tournament-sort">Sort</label><select id="tournament-sort"></select></div>
       </div>
       <div id="tournament-table"></div>
@@ -716,7 +731,7 @@
         .toLocaleLowerCase();
       const sort = sortSelect.value;
       const visible = teams.filter(
-        (team) => team.nation.toLocaleLowerCase().includes(query),
+        (team) => team.search_names.includes(query),
       );
       visible.sort((a, b) => {
         if (sort === "name") {
@@ -790,6 +805,16 @@
             : "";
 
           document.getElementById(
+            "tournament-team-suggestions",
+          ).innerHTML = names
+            .map(
+              (name) => (
+                `<option value="${escapeHTML(name)}"></option>`
+              ),
+            )
+            .join("");
+
+          document.getElementById(
             "tournament-search",
           ).placeholder = examples.length
             ? `${examples.join(", ")}${suffix}`
@@ -800,7 +825,7 @@
       syncSortOptions();
       saveTournamentRoute();
       const snapshotDate = selectedEdition[selectedView];
-      table.innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading ${escapeHTML(selectedFamily.name)} ${escapeHTML(selectedEdition.label)}…</p></div>`;
+      table.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ${escapeHTML(selectedFamily.name)} ${escapeHTML(selectedEdition.label)}…</p></div>`;
 
       const ranked = await loadHistoricalSnapshot(
         historyIndex,
@@ -837,7 +862,28 @@
         };
       });
 
-      if (selectedView === "after") {
+      const historicalParticipantNames = new Map(
+            participants.map(
+              (participant) => [
+                participant.code,
+                participant.nation || "",
+              ],
+            ),
+          );
+          teams = teams.map((team) => ({
+            ...team,
+            search_names: [
+              team.nation,
+              historicalParticipantNames.get(team.code),
+              summaryNames.get(team.code),
+              team.code,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLocaleLowerCase(),
+          }));
+
+                if (selectedView === "after") {
         const beforeRanked = await loadHistoricalSnapshot(
           historyIndex,
           selectedEdition.before,
@@ -896,8 +942,8 @@
             `${selectedFamily.name} · ${selectedEdition.label}`;
           document.getElementById("tournament-description").textContent =
             selectedView === "after"
-              ? `The tournament ended on ${validDate(selectedEdition.end)}. Rank change compares each team's place in the full world ranking. Rating change includes only matches from this edition, excluding recalibration and unrelated results.${coverageNote}`
-              : `The tournament ended on ${validDate(selectedEdition.end)}. This snapshot shows each participant immediately before the tournament.${coverageNote}`;
+              ? `Final snapshot: ${validDate(selectedEdition.after)}. Rank change compares each team's place in the full world ranking. Rating change includes only matches from this edition, excluding recalibration and unrelated results.${coverageNote}`
+              : `Pre-tournament snapshot: ${validDate(selectedEdition.before)}. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
       );
@@ -988,7 +1034,7 @@
       }
       await update();
     };
-    const loadingTable = () => { document.getElementById("match-table").innerHTML = `<div class="loading-shell"><span class="spinner"></span><p>Loading matches…</p></div>`; };
+    const loadingTable = () => { document.getElementById("match-table").innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading matches…</p></div>`; };
     const filtered = () => {
       const team = document.getElementById("match-team").value;
       const cls = document.getElementById("match-class").value;
@@ -1058,8 +1104,8 @@
   }
 
   function peakTable(peaks) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Peak NR</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">adjusted estimate ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Peak rating</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
+      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">estimate before uncertainty ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -1070,25 +1116,25 @@
   }
 
   function numberOneTable(spells) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th>Nation</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Relevant change-date result(s)</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th>Team</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Relevant change-date result(s)</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
       <td>${teamLink(spell.code, spell.nation, spell.from)}</td><td>${validDate(spell.from)}</td><td>${spell.to ? validDate(spell.to) : "<b>Current</b>"}</td><td class="numeric">${number(spell.days)}</td><td class="numeric"><span class="rating-main">${rating(spell.rating)}</span></td><td>${numberOneMatch(spell)}</td><td>${spell.displaced ? teamLink(spell.displaced_code, spell.displaced, spell.from) : "—"}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function numberOneSummaryTable(rows) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Total days</th><th class="numeric">Spells</th><th>First reached No. 1</th><th>Latest date at No. 1</th></tr></thead><tbody>${rows.map((row, index) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Total days</th><th class="numeric">Spells</th><th>First reached No. 1</th><th>Latest date at No. 1</th></tr></thead><tbody>${rows.map((row, index) => `<tr>
       <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(row.code, row.nation)}</td><td class="numeric"><span class="rating-main">${number(row.days)}</span></td><td class="numeric">${number(row.spells)}</td><td>${validDate(row.first)}</td><td>${row.current ? "<b>Current</b>" : validDate(row.latest)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function matchRecordTable(matches) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined adjusted estimate ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
+      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined estimate before uncertainty ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
   function upsetTable(matches) {
-    return `<div class="table-hint" aria-hidden="true">Swipe to see more →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Upset points</th><th>Points won / lost</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Upset points</th><th>Points won / lost</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
       <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.points)}</span></td><td>${escapeHTML(match.winner)} <b>+${rating(match.winner_gain)}</b><span class="rating-sub">${escapeHTML(match.loser)} −${rating(match.loser_loss)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
@@ -1099,8 +1145,8 @@
       return `<div class="empty"><h2>No tournament records match those filters.</h2><p>Choose another team or competition.</p></div>`;
     }
 
-    return `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Nation</th><th>Tournament</th><th class="hide-mobile">Edition</th><th class="numeric">Rating gain</th><th class="numeric">Tournament rating before → after</th><th class="hide-mobile">Tournament ended</th></tr></thead>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th>Tournament</th><th class="hide-mobile">Edition</th><th class="numeric">Rating gain</th><th class="numeric">Tournament rating before → after</th><th class="hide-mobile">Tournament ended</th></tr></thead>
       <tbody>${rows.map((row, index) => {
         const tournamentURL = `#/tournaments?tournament=${encodeURIComponent(row.tournament_id)}&edition=${encodeURIComponent(row.edition_id)}&view=after`;
         return `<tr>
@@ -1185,8 +1231,9 @@
     content.innerHTML = `
       <div class="page">
         <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Explore nation peaks, No. 1 chronology and totals, top matchups, largest upsets and the biggest tournament rating gains.</p></header>
+        <div class="record-tabs" role="tablist" aria-label="Record type"><button class="button button-dark" role="tab" aria-controls="record-table" data-record="peaks" aria-pressed="true" aria-selected="true" tabindex="0">Team peaks</button><button class="button" role="tab" aria-controls="record-table" data-record="numberones" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 chronology</button><button class="button" role="tab" aria-controls="record-table" data-record="numberonesummary" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 totals</button><button class="button" role="tab" aria-controls="record-table" data-record="matches" aria-pressed="false" aria-selected="false" tabindex="-1">Highest-rated matches</button><button class="button" role="tab" aria-controls="record-table" data-record="upsets" aria-pressed="false" aria-selected="false" tabindex="-1">Largest upsets</button><button class="button" role="tab" aria-controls="record-table" data-record="tournaments" aria-pressed="false" aria-selected="false" tabindex="-1">Best tournaments</button></div>
         <div id="number-one-filters" class="toolbar record-filters" hidden>
-          <div class="field field-grow"><label for="number-one-team">Filter nation</label><input id="number-one-team" type="search" placeholder="Brazil, Spain, Germany…" value="${escapeHTML(route.query.get("q") || "")}"></div>
+          <div class="field field-grow"><label for="number-one-team">Filter team</label><input id="number-one-team" type="search" placeholder="Brazil, Spain, Germany…" value="${escapeHTML(route.query.get("q") || "")}"></div>
           <div class="field"><label for="number-one-from">From date</label><div class="date-combo"><input id="number-one-from" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("from") ? validDate(route.query.get("from")) : ""}" aria-describedby="number-one-from-error"><button class="button" type="button" id="number-one-from-button" aria-label="Open from-date calendar">Calendar</button><input id="number-one-from-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("from") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-from-error" class="field-error" role="alert"></span></div>
           <div class="field"><label for="number-one-to">To date</label><div class="date-combo"><input id="number-one-to" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("to") ? validDate(route.query.get("to")) : ""}" aria-describedby="number-one-to-error"><button class="button" type="button" id="number-one-to-button" aria-label="Open to-date calendar">Calendar</button><input id="number-one-to-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("to") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-to-error" class="field-error" role="alert"></span></div>
         </div>
@@ -1203,9 +1250,8 @@
             <input id="best-tournament-competition" type="search" placeholder="World Cup, Copa América, Gold Cup…" value="${escapeHTML(route.query.get("competition") || "")}">
           </div>
         </div>
-        <div class="record-tabs"><button class="button button-dark" data-record="peaks" aria-pressed="true">Nation peaks</button><button class="button" data-record="numberones" aria-pressed="false">No. 1 chronology</button><button class="button" data-record="numberonesummary" aria-pressed="false">No. 1 summary</button><button class="button" data-record="matches" aria-pressed="false">Top matches</button><button class="button" data-record="upsets" aria-pressed="false">Largest upsets</button><button class="button" data-record="tournaments" aria-pressed="false">Best tournaments</button></div>
         <div id="record-note" class="record-note"></div>
-        <div id="record-table"></div>
+        <div id="record-table" role="tabpanel" tabindex="0" aria-live="polite"></div>
         <div class="pagination"><span id="record-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="record-more" class="button">Show more</button><button id="record-all" class="button button-quiet">Show all</button></div></div>
       </div>`;
     let view = ["peaks", "numberones", "numberonesummary", "matches", "upsets", "tournaments"].includes(route.query.get("view")) ? route.query.get("view") : "peaks";
@@ -1224,6 +1270,8 @@
     document.querySelectorAll("[data-record]").forEach((button) => {
       const active = button.dataset.record === view;
       button.setAttribute("aria-pressed", String(active));
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
       button.classList.toggle("button-dark", active);
     });
 
@@ -1348,16 +1396,16 @@
       document.getElementById(
         "record-note",
       ).innerHTML = view === "peaks"
-        ? `<strong>1×</strong><div><b>One maximum per canonical nation.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
+        ? `<strong>Peak</strong><div><b>One maximum per canonical team lineage.</b> Successor histories are joined; a strict improvement is required to replace the earlier peak.</div>`
         : view === "numberones"
-          ? `<strong>1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. Historical names are retained, and every relevant result from the change date is shown.</div>`
+          ? `<strong>No. 1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. Historical names are retained, and every relevant result from the change date is shown.</div>`
           : view === "numberonesummary"
-            ? `<strong>Σ</strong><div><b>Number-one records by canonical nation.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
+            ? `<strong>Total</strong><div><b>Number-one totals by canonical team lineage.</b> Successor histories are joined. Total days include every completed spell and the current spell through the latest results date.</div>`
             : view === "matches"
-              ? `<strong>Q</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
+              ? `<strong>Score</strong><div><b>Every eligible match instance is ranked.</b> Q is the two breadth-adjusted means minus 1.645 times their joint standard error; repeat pairings are not deduplicated.</div>`
               : view === "upsets"
-                ? `<strong>±</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
-                : `<strong>▲</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain adds up the published rating movement from the edition's own matchdays, excluding annual recalibration and unrelated results.</div>`;
+                ? `<strong>Change</strong><div><b>Decisive results ranked by rating movement.</b> Upset points are the average of the winner's rating gain and the loser's rating loss. The two values can differ because this network-adjusted model is not strictly zero-sum.</div>`
+                : `<strong>Gain</strong><div><b>Largest positive rating gains over one tournament edition.</b> Rating gain adds up the published rating movement from the edition's own matchdays, excluding annual recalibration and unrelated results.</div>`;
 
       document.getElementById(
         "record-table",
@@ -1475,10 +1523,35 @@
       document.querySelectorAll("[data-record]").forEach((peer) => {
         const active = peer === button;
         peer.setAttribute("aria-pressed", String(active));
+        peer.setAttribute("aria-selected", String(active));
+        peer.tabIndex = active ? 0 : -1;
         peer.classList.toggle("button-dark", active);
       });
       update();
     }));
+    // Records tab keyboard navigation
+      const recordTabs = [
+        ...document.querySelectorAll("[data-record]"),
+      ];
+      recordTabs.forEach((button, index) => {
+        button.addEventListener("keydown", (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+            return;
+          }
+          event.preventDefault();
+          const nextIndex = event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? recordTabs.length - 1
+              : (
+                index
+                + (event.key === "ArrowRight" ? 1 : -1)
+                + recordTabs.length
+              ) % recordTabs.length;
+          recordTabs[nextIndex].focus();
+          recordTabs[nextIndex].click();
+        });
+      });
     document.getElementById("record-more").addEventListener("click", () => { shown += 25; update(); });
     document.getElementById("record-all").addEventListener("click", () => {
       shown = Number.MAX_SAFE_INTEGER;
@@ -1578,7 +1651,7 @@
     const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
     content.innerHTML = `
       <div class="page comparison-page">
-        <header class="page-heading"><div><p class="eyebrow">Side-by-side team records</p><h1>Compare teams</h1></div><p class="lede">Compare current ratings, twelve-month movement, all-time peaks, rating histories and head-to-head results.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Current-team comparison</p><h1>Compare teams</h1></div><p class="lede">Compare currently eligible teams by rating, twelve-month movement, all-time peak, rating history and head-to-head results.</p></header>
         <div class="comparison-picker">
           <div class="team-picker"><label for="compare-a">First team</label><select id="compare-a">${options(codeA)}</select></div>
           <button class="button button-quiet comparison-swap" id="compare-swap" type="button" aria-label="Swap teams">⇄ Swap</button>
@@ -1595,7 +1668,7 @@
         return;
       }
       replaceRouteQuery("compare", { a: codeA, b: codeB });
-      output.innerHTML = `<div class="loading-shell" role="status"><span class="spinner"></span><p>Loading both team histories…</p></div>`;
+      output.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading both team histories…</p></div>`;
       const [first, second] = await Promise.all([
         getJSON(`data/teams/${encodeURIComponent(codeA)}.json`),
         getJSON(`data/teams/${encodeURIComponent(codeB)}.json`),
@@ -1616,7 +1689,7 @@
         <div class="comparison-actions"><a class="button button-dark" href="#/predict?a=${encodeURIComponent(codeA)}&b=${encodeURIComponent(codeB)}">Open probabilities, score grid and rating effects →</a></div>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">After every eligible match</p><h2>Rating histories</h2></div></div>${comparisonChart(first, second)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${number(meetings.length)} recorded meetings</p><h2>Head to head</h2></div><strong>${escapeHTML(a.nation)}: ${head.W} wins · ${head.D} draws · ${head.L} losses · goals ${head.gf}–${head.ga}</strong></div>
-          ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe to see every column →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td>${validDate(match.date)}</td><td>${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td>${venueHTML(match.site)}</td><td>${formHTML([match.result])}</td><td>${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No recorded meetings.</div>`}
+          ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td>${validDate(match.date)}</td><td>${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td>${venueHTML(match.site)}</td><td>${formHTML([match.result])}</td><td>${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No recorded meetings.</div>`}
         </section>`;
     };
     document.getElementById("compare-a").addEventListener("change", draw);
@@ -1704,13 +1777,21 @@
     };
 
     const loadDate = async (dateValue, preserveRequestedTeams = false) => {
+      const currentA = document.getElementById("predict-a")?.value;
+      const currentB = document.getElementById("predict-b")?.value;
+      const preferredA = currentA || (
+        preserveRequestedTeams ? initialA : null
+      );
+      const preferredB = currentB || (
+        preserveRequestedTeams ? initialB : null
+      );
       selectedDate = dateValue;
       dateInput.value = validDate(dateValue);
       calendarInput.value = dateValue;
       document.getElementById("predict-date-error").textContent = "";
       dateInput.removeAttribute("aria-invalid");
       history.replaceState(null, "", cleanRouteURL("predict", "", new URLSearchParams({ date: dateValue })));
-      body.innerHTML = `<div class="loading-shell" role="status"><span class="spinner"></span><p>Loading ratings for ${escapeHTML(validDate(dateValue))}…</p></div>`;
+      body.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ratings for ${escapeHTML(validDate(dateValue))}…</p></div>`;
       const useCurrent = dateValue >= summary.meta.results_through;
       const historical = useCurrent ? null : await historicalPayload(dateValue);
       const teams = useCurrent ? summary.current : historical.teams;
@@ -1719,8 +1800,8 @@
         return;
       }
       const codes = new Set(teams.map((team) => team.code));
-      const codeA = preserveRequestedTeams && codes.has(initialA) ? initialA : teams[0].code;
-      const codeB = preserveRequestedTeams && codes.has(initialB) && initialB !== codeA ? initialB : teams.find((team) => team.code !== codeA).code;
+      const codeA = codes.has(preferredA) ? preferredA : teams[0].code;
+      const codeB = codes.has(preferredB) && preferredB !== codeA ? preferredB : teams.find((team) => team.code !== codeA).code;
       initialA = null;
       initialB = null;
       const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>No. ${team.rank} · ${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
@@ -1736,7 +1817,7 @@
         </div>
         <div id="forecast"></div>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Reconciled score probabilities</p><h2>Exact-score grid</h2></div></div><div id="score-grid"></div></section>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Projected post-match ratings</p><h2>Effect of each winning margin</h2></div></div><div class="record-note"><strong>±</strong><div>Historical projections use the model state stored at the selected matchday. Because the static history does not retain every pairwise covariance and opponent-breadth counterfactual, historical rating changes are close projections rather than exact replayed updates.</div></div><div id="margin-grid"></div></section>`;
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">Projected post-match ratings</p><h2>Effect of each winning margin</h2></div></div><div class="record-note"><strong>Change</strong><div>Historical projections use the model state stored at the selected matchday. Because the static history does not retain every pairwise covariance and opponent-breadth counterfactual, historical rating changes are close projections rather than exact replayed updates.</div></div><div id="margin-grid"></div></section>`;
 
       const byCode = new Map(teams.map((team) => [team.code, team]));
       const currentIndex = new Map(currentState.codes.map((code, index) => [code, index]));
@@ -1968,9 +2049,9 @@
           <div class="team-rating"><strong>${rating(cutoff ? latestPoint?.rating : team.rating)}</strong><span>${cutoff && latestPoint ? `after ${validDate(latestPoint.date)} · ` : ""}uncertainty ${rating(cutoff ? latestPoint?.se : team.se)}</span></div>
         </section>
         <div class="team-stats">
-          <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span>${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Peak by date" : "All-time peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
+          <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span title="Effective variety of recent opponents; higher values mean broader evidence.">${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Peak by date" : "All-time peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
         </div>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, displayName)}</section>
+        <nav class="context-actions team-context-actions" aria-label="Team tools"><a class="button button-quiet" href="#/compare?a=${encodeURIComponent(team.code)}">Compare this team</a><a class="button button-quiet" href="#/predict?a=${encodeURIComponent(team.code)}">Predict a matchup</a><a class="button button-quiet" href="#/rankings">Current rankings</a></nav><section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, displayName)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${cutoff ? "Matches through selected date" : "Complete match history"}</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="team-more" class="button">Show more</button><button id="team-all" class="button button-quiet">Show all</button></div></div></section>
       </div>`;
     let shown = 100;
@@ -2054,7 +2135,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Is NFELO always more likely to predict the correct result than other systems?",
-    answer: "No. In the 46,801-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct 59.095% of the time, compared with 58.804% for the published World Football Elo forecast, 58.779% for the tested G-Elo comparison and 58.527% for the best tested scalar Elo. The differences in top-choice accuracy are small. The current attack/defence layer is designed to preserve the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities."
+    answer: `No. In the ${number(summary.validation.nested.matches)}-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, compared with ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for the published World Football Elo forecast, ${precisePercent(summary.validation.nested.g_elo_accuracy)} for the tested G-Elo comparison and ${precisePercent(summary.validation.nested.best_scalar_elo_accuracy)} for the best tested scalar Elo. The differences in top-choice accuracy are small. The current attack/defence layer preserves the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities.`
   },
   {
     question: "What does better log loss mean in practice?",
@@ -2131,7 +2212,7 @@ function renderFAQ() {
     <article class="page page-narrow prose faq-page">
       <p class="eyebrow">Understanding the site</p>
       <h1>Frequently asked questions</h1>
-      <p class="lede">Straightforward answers about the ratings, forecasts, historical data and the methodology behind NFELO.</p>
+      <p class="lede">Straightforward answers about ratings, forecasts, historical data, tournaments, records and methodology.</p>
       <div class="faq-tools" role="search">
         <div class="field field-grow">
           <label for="faq-search">Search questions</label>
@@ -2212,7 +2293,7 @@ function renderFAQ() {
         <h2>2. Expected result and football era</h2>
         <div class="formula">δ = a(y)(μ₁ − μ₂) + H(y)h<br>E = 1 / [1 + 10^(−δ/400)]</div>
         <p><code>h</code> is +1 for team one's home advantage, −1 for team two's and 0 at a neutral venue. <code>E</code> is expected fractional score. Era values are smoothly interpolated; gap scale is interpolated in log space, draw rate in a bounded-logit coordinate and home advantage linearly.</p>
-        <div class="table-hint" aria-hidden="true">Swipe to see all parameters →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
+        <div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
 
         <h2>3. Network W/D/L forecast</h2>
         <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
@@ -2241,7 +2322,7 @@ function renderFAQ() {
         <p>This is an assumed-density Gaussian update, not an exact Bayesian posterior for the displayed three-way likelihood. It is invariant to arbitrary within-date row order. The friendly multiplier reduces both gradient and curvature before the joint update; the resulting displayed point movement is therefore not a simple fixed percentage.</p>
 
         <h2>6. Public rating and match forecast</h2>
-        <p>Let <code>B</code> be the mean latent strength of the ten strongest eligible active teams. Recent-opponent weights have an eight-year half-life; their effective distinct count gives breadth reliability <code>ρ=N/(N+4)</code>. The same public rating is used for current rankings, historical rankings, nation peaks and team pages:</p>
+        <p>Let <code>B</code> be the mean latent strength of the ten strongest eligible active teams. Recent-opponent weights have an eight-year half-life; their effective distinct count gives breadth reliability <code>ρ=N/(N+4)</code>. The same public rating is used for current rankings, historical rankings, tournament snapshots, team peaks, record tables and team pages:</p>
         <div class="formula">Mᵢ = 2000 + ρᵢ(μᵢ−B)<br>NRᵢ = Mᵢ − 1.644854√Σᵢᵢ</div>
         <p>The uncertainty term is the team's marginal posterior uncertainty. NFELO intentionally does <b>not</b> cancel uncertainty shared with the contemporaneous elite reference when making cross-era records: that common component contains information about how well an era or regional network is anchored to the rest of international football. Cancelling it can make a small, inward-looking historical group appear implausibly dominant.</p>
         <p>The latent posterior mean is used for match prediction because it contains useful short-horizon information. The displayed rating additionally applies breadth adjustment and a conservative uncertainty deduction. Consequently, a team can have the higher public rating while its opponent has the higher win probability. That is not a contradiction: the rating asks which estimate is better supported for ranking and cross-era comparison, while the forecast asks what is most likely in one specified match.</p>
@@ -2282,7 +2363,7 @@ function renderFAQ() {
         </section>
         <article class="section prose">
           <h2>Data sources</h2>
-          <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
+          <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. The <a href="https://github.com/nfelo/nfelo.github.io" rel="external">source code and build history are available on GitHub</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
           <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen state, then all of that date's evidence is learned jointly. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings.</p>
           <h2>One rating across the whole site</h2>
@@ -2301,7 +2382,7 @@ function renderFAQ() {
 
   function renderNotFound() {
     setTitle("Not found");
-    content.innerHTML = `<div class="error-panel"><p class="eyebrow">404</p><h2>Page not found</h2><p>Return to the current rankings or explore the match history.</p><a class="button button-dark" href="#/">Go home</a></div>`;
+    content.innerHTML = `<div class="error-panel"><p class="eyebrow">404</p><h2>Page not found</h2><p>Return to a main section below.</p><div class="context-actions"><a class="button button-dark" href="#/rankings">Rankings</a><a class="button button-quiet" href="#/matches">Matches</a><a class="button button-quiet" href="#/">Home</a></div></div>`;
   }
 
   async function route() {
