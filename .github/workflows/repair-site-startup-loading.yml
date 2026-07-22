@@ -1,0 +1,701 @@
+name: Repair site startup loading
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repair-site-startup-loading
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    name: Repair browser startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Install resilient browser startup
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import re
+
+
+          APP_PATH = Path("public/assets/app.js")
+          INDEX_PATH = Path("public/index.html")
+          TEST_PATH = Path("tests/test_build.py")
+          SMOKE_PATH = Path("scripts/smoke_browser_boot.js")
+          STYLE_PATH = Path("public/assets/styles.css")
+
+          app = APP_PATH.read_text(encoding="utf-8")
+          index = INDEX_PATH.read_text(encoding="utf-8")
+          tests = TEST_PATH.read_text(encoding="utf-8")
+
+
+          def replace_once(
+              text: str,
+              old: str,
+              new: str,
+              description: str,
+          ) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(old, new, 1)
+
+
+          # Prevent duplicate execution when the cache-busting fallback
+          # and primary script finish at nearly the same time.
+          boot_guard = '''  window.__nfeloBoot = window.__nfeloBoot || {};
+            if (window.__nfeloBoot.started) return;
+            window.__nfeloBoot.started = true;
+          '''
+          if "window.__nfeloBoot.started = true;" not in app:
+              app = replace_once(
+                  app,
+                  '  "use strict";\n',
+                  '  "use strict";\n\n' + boot_guard,
+                  "application strict-mode header",
+              )
+
+          # A stale clean-route shell must not prevent the data pages from
+          # starting merely because its optional navigation controls differ.
+          old_active_nav = '''  function setActiveNav(section) {
+              nav.querySelectorAll("a").forEach((link) => {
+                const target = link.getAttribute("href").replace("#/", "");
+                if (target === section) link.setAttribute("aria-current", "page");
+                else link.removeAttribute("aria-current");
+              });
+              nav.classList.remove("is-open");
+              menuButton.setAttribute("aria-expanded", "false");
+            }
+          '''
+          new_active_nav = '''  function setActiveNav(section) {
+              nav?.querySelectorAll("a").forEach((link) => {
+                const target = link.getAttribute("href").replace("#/", "");
+                if (target === section) link.setAttribute("aria-current", "page");
+                else link.removeAttribute("aria-current");
+              });
+              nav?.classList.remove("is-open");
+              menuButton?.setAttribute("aria-expanded", "false");
+            }
+          '''
+          if "nav?.querySelectorAll" not in app:
+              app = replace_once(
+                  app,
+                  old_active_nav,
+                  new_active_nav,
+                  "active-navigation function",
+              )
+
+          if "window.__nfeloBoot.ready = true;" not in app:
+              app = replace_once(
+                  app,
+                  "      content.focus({ preventScroll: true });\n",
+                  (
+                      "      content.focus({ preventScroll: true });\n"
+                      "      window.__nfeloBoot.ready = true;\n"
+                  ),
+                  "successful route completion",
+              )
+
+          if "window.__nfeloBoot.failed = true;" not in app:
+              app = replace_once(
+                  app,
+                  "      console.error(error);\n",
+                  (
+                      "      console.error(error);\n"
+                      "      window.__nfeloBoot.failed = true;\n"
+                  ),
+                  "route error handler",
+              )
+
+          if 'menuButton?.addEventListener("click"' not in app:
+              app = replace_once(
+                  app,
+                  '  menuButton.addEventListener("click", () => {\n',
+                  '  menuButton?.addEventListener("click", () => {\n',
+                  "menu-button listener",
+              )
+
+          app = app.replace(
+              'nav.classList.contains("is-open")',
+              'nav?.classList.contains("is-open")',
+          )
+          app = app.replace(
+              "!nav.contains(event.target)",
+              "!nav?.contains(event.target)",
+          )
+          if 'nav.classList.contains("is-open")' in app:
+              raise RuntimeError(
+                  "A non-null-safe navigation startup reference remains."
+              )
+
+
+          app_source = re.search(
+              r'<script src="(?P<src>assets/app\.js'
+              r'(?:\?v=[^"]+)?)" defer></script>',
+              index,
+          )
+          if app_source is None:
+              # Accept a previously repaired multiline tag.
+              app_source = re.search(
+                  r'<script\s+src="(?P<src>assets/app\.js'
+                  r'(?:\?v=[^"]+)?)"\s+defer[\s\S]*?</script>',
+                  index,
+              )
+          if app_source is None:
+              raise RuntimeError(
+                  "Could not locate the application script tag."
+              )
+          current_app_src = app_source.group("src")
+
+          startup_block = f'''    <script>
+                window.__nfeloBoot = window.__nfeloBoot || {{
+                  started: false,
+                  ready: false,
+                  failed: false,
+                }};
+                window.__nfeloShowBootError = (message) => {{
+                  const target = document.getElementById("content");
+                  if (!target || !target.querySelector(".loading-shell")) return;
+                  target.innerHTML = `
+                    <div class="error-panel" role="alert">
+                      <p class="eyebrow">Browser startup problem</p>
+                      <h2>The ratings application did not start.</h2>
+                      <p>${{message}}</p>
+                      <button class="button button-dark" type="button"
+                        onclick="location.reload()">Reload page</button>
+                    </div>`;
+                }};
+                window.addEventListener("DOMContentLoaded", () => {{
+                  window.setTimeout(() => {{
+                    if (window.__nfeloBoot.started) return;
+                    const fallback = document.createElement("script");
+                    fallback.src = (
+                      "assets/" + "app.js"
+                      + "?fallback=" + Date.now()
+                    );
+                    fallback.onerror = () => (
+                      window.__nfeloShowBootError(
+                        "The application script could not be loaded."
+                      )
+                    );
+                    document.head.appendChild(fallback);
+                  }}, 1500);
+                  window.setTimeout(() => {{
+                    if (
+                      !window.__nfeloBoot.ready
+                      && !window.__nfeloBoot.failed
+                    ) {{
+                      window.__nfeloShowBootError(
+                        "The application loaded but did not finish starting."
+                      );
+                    }}
+                  }}, 10000);
+                }});
+              </script>
+              <script
+                src="{current_app_src}"
+                defer
+                onerror="window.__nfeloShowBootError(
+                  'The application script could not be loaded.'
+                )">
+              </script>
+              <script>
+                window.goatcounter = {{ no_onload: true }};
+              </script>
+              <script
+                data-goatcounter="https://nfelo.goatcounter.com/count"
+                async
+                src="https://gc.zgo.at/count.js">
+              </script>'''
+
+          if "__nfeloShowBootError" not in index:
+              analytics_start = index.find(
+                  '    <script>\n'
+                  '      window.goatcounter = { no_onload: true };'
+              )
+              application_end = index.find(
+                  "</script>",
+                  app_source.start(),
+              )
+              if analytics_start < 0 or application_end < 0:
+                  raise RuntimeError(
+                      "Could not locate the current startup-script block."
+                  )
+              application_end += len("</script>")
+              index = (
+                  index[:analytics_start]
+                  + startup_block
+                  + index[application_end:]
+              )
+
+          # Keep the committed source shell internally consistent too.
+          app_revision = sha256(app.encode("utf-8")).hexdigest()[:12]
+          style_revision = sha256(
+              STYLE_PATH.read_bytes()
+          ).hexdigest()[:12]
+          index = re.sub(
+              r'assets/app\.js(?:\?v=[^"\']*)?',
+              f"assets/app.js?v={app_revision}",
+              index,
+          )
+          index = re.sub(
+              r'assets/styles\.css(?:\?v=[^"\']*)?',
+              f"assets/styles.css?v={style_revision}",
+              index,
+          )
+          # The fallback is intentionally assembled from two strings so the
+          # build-time versioner cannot rewrite it.
+          index = index.replace(
+              '"assets/app.js?v=' + app_revision + '" + "?fallback="',
+              '"assets/" + "app.js" + "?fallback="',
+          )
+
+
+          smoke = r'''#!/usr/bin/env node
+          "use strict";
+
+          const fs = require("fs");
+          const path = require("path");
+          const vm = require("vm");
+
+          const publicDir = process.argv[2];
+          if (!publicDir) {
+            throw new Error("Usage: smoke_browser_boot.js PUBLIC_DIR");
+          }
+
+          const javascript = fs.readFileSync(
+            path.join(publicDir, "assets", "app.js"),
+            "utf8",
+          );
+
+          const listeners = new Map();
+          const classList = {
+            contains: () => false,
+            remove: () => {},
+            toggle: () => {},
+          };
+          const content = {
+            innerHTML: (
+              '<div class="loading-shell">'
+              + "<p>Loading the latest ratings…</p></div>"
+            ),
+            focus: () => {},
+            querySelector(selector) {
+              return selector === ".loading-shell"
+                && this.innerHTML.includes("loading-shell")
+                ? {}
+                : null;
+            },
+          };
+          const navigation = {
+            classList,
+            contains: () => false,
+            querySelectorAll: () => [],
+          };
+          const menuButton = {
+            addEventListener: () => {},
+            setAttribute: () => {},
+            focus: () => {},
+          };
+          const metadataNode = { setAttribute: () => {} };
+
+          const document = {
+            baseURI: "https://example.test/",
+            title: "",
+            head: { appendChild: () => {} },
+            getElementById(id) {
+              if (id === "content") return content;
+              if (id === "site-nav") return navigation;
+              return null;
+            },
+            querySelector(selector) {
+              if (selector === ".menu-button") return menuButton;
+              if (selector === "h1") return null;
+              if (
+                selector.startsWith("meta[")
+                || selector.startsWith("link[")
+              ) return metadataNode;
+              return null;
+            },
+            addEventListener(type, callback) {
+              listeners.set(`document:${type}`, callback);
+            },
+            createElement() {
+              return {
+                set src(value) { this._src = value; },
+                get src() { return this._src; },
+                onerror: null,
+              };
+            },
+          };
+
+          const windowObject = {
+            __nfeloBoot: {},
+            goatcounter: null,
+            addEventListener(type, callback) {
+              listeners.set(`window:${type}`, callback);
+            },
+            setTimeout,
+            clearTimeout,
+          };
+          windowObject.window = windowObject;
+          windowObject.document = document;
+
+          const location = {
+            pathname: "/",
+            search: "",
+            hash: "",
+            origin: "https://example.test",
+            reload: () => {},
+          };
+          const history = { replaceState: () => {} };
+
+          const summary = {
+            current: [],
+            teams: [],
+            top_matches: [],
+            meta: {
+              results_through: "2026-07-21",
+              matches: 0,
+              teams: 0,
+            },
+            validation: {
+              nested: { accuracy: 0 },
+            },
+          };
+          const catalog = { teams: [], tournaments: [] };
+          const fixtures = { fixtures: [] };
+
+          async function fetchMock(input) {
+            const pathname = new URL(String(input)).pathname;
+            let value;
+            if (pathname.endsWith("/data/summary.json")) value = summary;
+            else if (pathname.endsWith("/data/catalog.json")) value = catalog;
+            else if (pathname.endsWith("/data/fixtures.json")) value = fixtures;
+            else throw new Error(`Unexpected fetch in boot smoke test: ${pathname}`);
+            return {
+              ok: true,
+              status: 200,
+              async json() { return value; },
+            };
+          }
+
+          const sandbox = {
+            window: windowObject,
+            document,
+            location,
+            history,
+            fetch: fetchMock,
+            URL,
+            URLSearchParams,
+            Date,
+            Math,
+            Intl,
+            Number,
+            String,
+            Object,
+            Array,
+            Map,
+            Set,
+            Promise,
+            console,
+            encodeURIComponent,
+            decodeURIComponent,
+            setTimeout,
+            clearTimeout,
+          };
+          vm.createContext(sandbox);
+          vm.runInContext(javascript, sandbox, {
+            filename: "public/assets/app.js",
+          });
+
+          (async () => {
+            for (let attempt = 0; attempt < 20; attempt += 1) {
+              if (windowObject.__nfeloBoot.ready) break;
+              await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+
+            if (!windowObject.__nfeloBoot.started) {
+              throw new Error("Application JavaScript never started.");
+            }
+            if (!windowObject.__nfeloBoot.ready) {
+              throw new Error(
+                "Application JavaScript started but did not complete routing.",
+              );
+            }
+            if (content.innerHTML.includes("Loading the latest ratings")) {
+              throw new Error("Initial loading shell was not replaced.");
+            }
+            if (!content.innerHTML.includes("home-page")) {
+              throw new Error("Home page was not rendered.");
+            }
+
+            console.log(
+              "Browser boot smoke test passed: the application replaced "
+              + "the initial loading shell.",
+            );
+          })().catch((error) => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          '''
+          SMOKE_PATH.write_text(
+              smoke.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+
+          test_name = (
+              "def test_browser_application_replaces_initial_loading_shell"
+          )
+          if test_name not in tests:
+              marker = (
+                  "    def test_public_metadata_and_discovery_files"
+                  "(self) -> None:\n"
+              )
+              new_test = r'''    def test_browser_application_replaces_initial_loading_shell(self) -> None:
+                  public = ROOT / "public"
+                  html = (public / "index.html").read_text(
+                      encoding="utf-8"
+                  )
+                  app_position = html.index('src="assets/app.js')
+                  analytics_position = html.index(
+                      'src="https://gc.zgo.at/count.js"'
+                  )
+                  self.assertLess(app_position, analytics_position)
+                  self.assertIn("__nfeloShowBootError", html)
+                  self.assertIn("fallback.src", html)
+
+                  subprocess.run(
+                      [
+                          "node",
+                          str(
+                              ROOT
+                              / "scripts"
+                              / "smoke_browser_boot.js"
+                          ),
+                          str(public),
+                      ],
+                      cwd=ROOT,
+                      check=True,
+                  )
+
+          '''
+              if tests.count(marker) != 1:
+                  raise RuntimeError(
+                      "Could not locate the browser-smoke test insertion point."
+                  )
+              tests = tests.replace(
+                  marker,
+                  new_test + marker,
+                  1,
+              )
+
+
+          required_app = [
+              "window.__nfeloBoot.started = true;",
+              "window.__nfeloBoot.ready = true;",
+              "window.__nfeloBoot.failed = true;",
+              "nav?.querySelectorAll",
+              'menuButton?.addEventListener("click"',
+          ]
+          missing_app = [
+              marker
+              for marker in required_app
+              if marker not in app
+          ]
+          if missing_app:
+              raise RuntimeError(
+                  "Startup repair is incomplete; missing: "
+                  + ", ".join(missing_app)
+              )
+
+          required_index = [
+              "__nfeloShowBootError",
+              '"assets/" + "app.js"',
+              "The application script could not be loaded.",
+              'src="https://gc.zgo.at/count.js"',
+              "async",
+          ]
+          missing_index = [
+              marker
+              for marker in required_index
+              if marker not in index
+          ]
+          if missing_index:
+              raise RuntimeError(
+                  "Startup shell repair is incomplete; missing: "
+                  + ", ".join(missing_index)
+              )
+
+          if index.index('src="assets/app.js') > index.index(
+              'src="https://gc.zgo.at/count.js"'
+          ):
+              raise RuntimeError(
+                  "Optional analytics still loads before the application."
+              )
+
+          APP_PATH.write_text(
+              app.rstrip() + "\n",
+              encoding="utf-8",
+          )
+          INDEX_PATH.write_text(
+              index.rstrip() + "\n",
+              encoding="utf-8",
+          )
+          TEST_PATH.write_text(
+              tests.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+          print(
+              "Installed resilient application loading, analytics isolation "
+              "and a browser boot smoke test."
+          )
+          PY
+
+      - name: Save repaired browser source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nfelo-startup-repair
+          cp public/index.html /tmp/nfelo-startup-repair/index.html
+          cp public/assets/app.js /tmp/nfelo-startup-repair/app.js
+
+      - name: Validate source syntax
+        run: |
+          set -euo pipefail
+          python -m py_compile \
+            scripts/build_site.py \
+            scripts/audit_site_consistency.py \
+            tests/test_build.py
+          node --check public/assets/app.js
+          node --check scripts/smoke_browser_boot.js
+
+      - name: Build complete site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Verify application startup and complete site
+        run: |
+          set -euo pipefail
+          node scripts/smoke_browser_boot.js public
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+
+      - name: Preserve browser source and discard generated output
+        shell: bash
+        run: |
+          set -euo pipefail
+          git restore --worktree -- public source
+          git clean -fd -- public
+          cp /tmp/nfelo-startup-repair/index.html public/index.html
+          cp /tmp/nfelo-startup-repair/app.js public/assets/app.js
+
+      - name: Check final patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node --check public/assets/app.js
+          node --check scripts/smoke_browser_boot.js
+          python -m py_compile tests/test_build.py
+          git diff --check
+
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          expected="$(
+            printf '%s\n' \
+              public/assets/app.js \
+              public/index.html \
+              scripts/smoke_browser_boot.js \
+              tests/test_build.py \
+            | sort
+          )"
+          if [ "$changed" != "$expected" ]; then
+            echo "Unexpected changed files:"
+            printf '%s\n' "$changed"
+            exit 1
+          fi
+
+          grep -F \
+            'window.__nfeloBoot.ready = true;' \
+            public/assets/app.js
+          grep -F \
+            '__nfeloShowBootError' \
+            public/index.html
+          grep -F \
+            'test_browser_application_replaces_initial_loading_shell' \
+            tests/test_build.py
+
+      - name: Commit and push
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet && \
+             [ -z "$(git ls-files --others --exclude-standard)" ]
+          then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "The browser startup repair is already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            public/assets/app.js \
+            public/index.html \
+            scripts/smoke_browser_boot.js \
+            tests/test_build.py
+
+          git commit -m "Repair browser startup loading"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm automatic deployment
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          echo "The push to main automatically runs pages.yml."
+          echo "The normal Pages build will rerun the browser boot smoke test."
