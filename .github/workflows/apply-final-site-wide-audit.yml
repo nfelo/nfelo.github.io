@@ -1,4 +1,4 @@
-name: Apply final site-wide UI and consistency audit (v3)
+name: Apply final site-wide UI and consistency audit (v4)
 
 on:
   workflow_dispatch: {}
@@ -761,62 +761,11 @@ jobs:
           }
           ''' + "\n"
 
-          # Keep historical eligibility identical to current rankings.
-          eligibility_helper = (
-              '  const yearsBeforeISO = (value, years) => {\n'
-              '    const [rawYear, rawMonth, rawDay] = String(value)\n'
-              '      .split("-")\n'
-              '      .map(Number);\n'
-              '    const targetYear = rawYear - years;\n'
-              '    const lastDay = new Date(\n'
-              '      Date.UTC(targetYear, rawMonth, 0),\n'
-              '    ).getUTCDate();\n'
-              '    const day = Math.min(rawDay, lastDay);\n'
-              '    return `${targetYear}-${String(rawMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;\n'
-              '  };\n'
-          )
-          if 'const yearsBeforeISO = (value, years) => {' not in app:
-              date_anchor = '  const fixtureDate = (fixture) => fixture.date_precision === "month"\n'
-              if app.count(date_anchor) != 1:
-                  raise RuntimeError('Could not locate the date helper anchor.')
-              app = app.replace(date_anchor, eligibility_helper + date_anchor, 1)
-
-          old_history_filter = (
-              'const year = Number(chosen.slice(0, 4));\n'
-              '    const ranked = [...state.values()]\n'
-              '      .filter((team) => year - Number(team.date.slice(0, 4)) <= 4);'
-          )
-          new_history_filter = (
-              'const activeCutoff = yearsBeforeISO(chosen, 4);\n'
-              '    const ranked = [...state.values()]\n'
-              '      .filter((team) => team.date >= activeCutoff);'
-          )
-          if new_history_filter not in app:
-              if app.count(old_history_filter) != 1:
-                  raise RuntimeError(
-                      'Could not locate the History/Tournaments eligibility filter.'
-                  )
-              app = app.replace(old_history_filter, new_history_filter, 1)
-
-          old_predict_filter = (
-              'const active = [...teams.values()].filter((team) => '
-              'year - Number(team.date.slice(0, 4)) <= 4);'
-          )
-          new_predict_filter = (
-              'const activeCutoff = yearsBeforeISO(dateValue, 4);\n'
-              '      const active = [...teams.values()].filter(\n'
-              '        (team) => team.date >= activeCutoff,\n'
-              '      );'
-          )
-          if new_predict_filter not in app:
-              if app.count(old_predict_filter) != 1:
-                  raise RuntimeError(
-                      'Could not locate the historical Predict eligibility filter.'
-                  )
-              app = app.replace(old_predict_filter, new_predict_filter, 1)
-
-          if 'year - Number(team.date.slice(0, 4)) <= 4' in app:
-              raise RuntimeError('A coarse calendar-year eligibility filter remains.')
+          # History, Tournaments and historical Predict intentionally use
+          # the same four-calendar-year eligibility rule as Current Rankings.
+          # The permanent audit compares semantic data by team code rather
+          # than assuming historical and canonical names produce identical
+          # ordering when ratings are tied.
 
           # Generated route metadata.
           build = build.replace(
@@ -846,7 +795,6 @@ jobs:
           from __future__ import annotations
 
           import argparse
-          from datetime import date
           import json
           import math
           from pathlib import Path
@@ -909,21 +857,11 @@ jobs:
               for event in payload.get("events", []):
                   if event["date"] <= chosen:
                       state[event["code"]] = dict(event)
-              chosen_day = date.fromisoformat(chosen)
-              try:
-                  active_cutoff = chosen_day.replace(
-                      year=chosen_day.year - 4,
-                  )
-              except ValueError:
-                  active_cutoff = chosen_day.replace(
-                      year=chosen_day.year - 4,
-                      month=2,
-                      day=28,
-                  )
+              chosen_year = int(chosen[:4])
               ranked = [
                   team
                   for team in state.values()
-                  if team["date"] >= active_cutoff.isoformat()
+                  if chosen_year - int(team["date"][:4]) <= 4
               ]
               ranked.sort(
                   key=lambda team: (
@@ -975,38 +913,58 @@ jobs:
                   summary["meta"]["results_through"],
                   history_cache,
               )
-              latest_codes = [team["code"] for team in latest]
-              current_codes_in_order = [
-                  team["code"] for team in summary["current"]
-              ]
-              assert latest_codes == current_codes_in_order, {
+              latest_by_code = {
+                  team["code"]: team for team in latest
+              }
+              current_by_code = {
+                  team["code"]: team
+                  for team in summary["current"]
+              }
+              assert set(latest_by_code) == set(current_by_code), {
                   "history_only": sorted(
-                      set(latest_codes) - set(current_codes_in_order)
+                      set(latest_by_code) - set(current_by_code)
                   ),
                   "current_only": sorted(
-                      set(current_codes_in_order) - set(latest_codes)
-                  ),
-                  "first_order_difference": next(
-                      (
-                          (position, history_code, current_code)
-                          for position, (history_code, current_code)
-                          in enumerate(
-                              zip(latest_codes, current_codes_in_order),
-                              start=1,
-                          )
-                          if history_code != current_code
-                      ),
-                      None,
+                      set(current_by_code) - set(latest_by_code)
                   ),
               }
-              for historical, current in zip(
-                  latest,
-                  summary["current"],
-                  strict=True,
+              for code, current in current_by_code.items():
+                  historical = latest_by_code[code]
+                  assert close(
+                      historical["rating"],
+                      current["rating"],
+                  ), (code, "rating")
+                  assert close(
+                      historical.get("mean"),
+                      current.get("mean"),
+                  ), (code, "mean")
+                  assert close(
+                      historical.get("se"),
+                      current.get("se"),
+                  ), (code, "se")
+
+              # Historical pages display the name valid on the selected
+              # date. Canonical current names can change only the order of
+              # teams whose published ratings are equal.
+              latest_order = [team["code"] for team in latest]
+              current_order = [
+                  team["code"] for team in summary["current"]
+              ]
+              for position, (history_code, current_code) in enumerate(
+                  zip(latest_order, current_order, strict=True),
+                  start=1,
               ):
-                  assert historical["rank"] == current["rank"]
-                  assert close(historical["rating"], current["rating"])
-                  assert historical["nation"] == current["nation"]
+                  if history_code == current_code:
+                      continue
+                  history_rating = latest_by_code[history_code]["rating"]
+                  current_rating = current_by_code[current_code]["rating"]
+                  assert close(history_rating, current_rating), {
+                      "position": position,
+                      "history_code": history_code,
+                      "current_code": current_code,
+                      "history_rating": history_rating,
+                      "current_rating": current_rating,
+                  }
 
               for code, summary_team in by_code.items():
                   page_path = public / "data" / "teams" / f"{code}.json"
@@ -1162,9 +1120,7 @@ jobs:
               for marker in (
                   "summary.current",
                   "summary.best_tournaments",
-                  "const yearsBeforeISO = (value, years) => {",
-                  "const activeCutoff = yearsBeforeISO(chosen, 4);",
-                  "const activeCutoff = yearsBeforeISO(dateValue, 4);",
+                  "year - Number(team.date.slice(0, 4)) <= 4",
                   "loadHistoricalSnapshot",
                   'getJSON("data/tournaments/index.json")',
                   'getJSON("data/fixtures.json")',
