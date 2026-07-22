@@ -188,14 +188,17 @@ jobs:
                 window.__nfeloShowBootError = (message) => {{
                   const target = document.getElementById("content");
                   if (!target || !target.querySelector(".loading-shell")) return;
-                  target.innerHTML = `
-                    <div class="error-panel" role="alert">
+                  target.innerHTML = (
+                    `<div class="error-panel" role="alert">
                       <p class="eyebrow">Browser startup problem</p>
                       <h2>The ratings application did not start.</h2>
-                      <p>${{message}}</p>
+                      <p>`
+                    + message
+                    + `</p>
                       <button class="button button-dark" type="button"
                         onclick="location.reload()">Reload page</button>
-                    </div>`;
+                    </div>`
+                  );
                 }};
                 window.addEventListener("DOMContentLoaded", () => {{
                   window.setTimeout(() => {{
