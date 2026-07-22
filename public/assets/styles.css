@@ -647,3 +647,28 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   }
   .site-footer .footer-links { margin: 16px 0; }
 }
+
+/* Match-table links to the full Predict view */
+.page-action-hint {
+  display: block;
+  margin-top: 7px;
+  color: #315f54;
+  font-size: 13px;
+  font-weight: 800;
+}
+.probability-link {
+  display: block;
+  min-width: 150px;
+  margin: -10px 0;
+  padding: 10px 0;
+  color: inherit;
+  border-radius: 10px;
+  text-decoration: none;
+}
+.probability-link:hover .probability {
+  box-shadow: 0 0 0 2px rgba(49, 95, 84, .35);
+}
+.probability-link:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}

@@ -1168,6 +1168,44 @@ class StaticBuildTests(unittest.TestCase):
             check=True,
         )
 
+    def test_match_probability_bars_link_to_predict(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+
+        for phrase in (
+            "const previousISODate",
+            "const predictURL",
+            "function probabilityHTML(values, prediction = null)",
+            'class="probability-link"',
+            "date: previousISODate(match.date)",
+            "date: todayISO()",
+            "first: fixture.team1_code",
+            'route.query.get("venue")',
+            'route.query.get("class")',
+            "venue: String(home)",
+        ):
+            self.assertIn(phrase, javascript)
+
+        self.assertEqual(
+            javascript.count(
+                "Tap or click a probability bar "
+                "for the full prediction."
+            ),
+            2,
+        )
+        self.assertIn(
+            "/* Match-table links to the full Predict view */",
+            stylesheet,
+        )
+        self.assertIn(
+            ".probability-link:focus-visible",
+            stylesheet,
+        )
+
     def test_public_metadata_and_discovery_files(self) -> None:
         public = ROOT / "public"
         html = (public / "index.html").read_text(encoding="utf-8")

@@ -36,6 +36,37 @@
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   };
+  const previousISODate = (value) => {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    if (
+      Number.isNaN(parsed.valueOf())
+      || parsed.toISOString().slice(0, 10) !== value
+    ) {
+      return "";
+    }
+    parsed.setUTCDate(parsed.getUTCDate() - 1);
+    return parsed.toISOString().slice(0, 10);
+  };
+  const predictURL = ({
+    date,
+    first,
+    second,
+    venue = 0,
+    matchClass = "competitive",
+  }) => {
+    const query = new URLSearchParams({
+      date,
+      a: first,
+      b: second,
+      venue: String(venue),
+      "class": (
+        matchClass === "friendly"
+          ? "friendly"
+          : "competitive"
+      ),
+    });
+    return `#/predict?${query.toString()}`;
+  };
   const validDate = (value) => {
     const [year, month, day] = String(value).split("-");
     if (month === "00") return year;
@@ -174,10 +205,22 @@
     return `<span class="form" aria-label="Recent form ${values.join(", ")}">${values.map((item) => `<i class="${item}">${item}</i>`).join("")}</span>`;
   }
 
-  function probabilityHTML(values) {
+  function probabilityHTML(values, prediction = null) {
     const labels = ["W", "D", "L"];
     const classes = ["pw", "pd", "pl"];
-    return `<div class="probability" aria-label="Win ${percent(values[0])}, draw ${percent(values[1])}, loss ${percent(values[2])}">${values.map((value, index) => `<span class="${classes[index]}" style="width:${Math.max(12, value * 100)}%" title="${labels[index]} ${percent(value)}">${number(value * 100, 0)}</span>`).join("")}</div>`;
+    const bar = `<div class="probability" aria-label="Win ${percent(values[0])}, draw ${percent(values[1])}, loss ${percent(values[2])}">${values.map((value, index) => `<span class="${classes[index]}" style="width:${Math.max(12, value * 100)}%" title="${labels[index]} ${percent(value)}">${number(value * 100, 0)}</span>`).join("")}</div>`;
+    if (
+      !prediction?.date
+      || !prediction.first
+      || !prediction.second
+    ) {
+      return bar;
+    }
+    const label = (
+      prediction.label
+      || "Open the full match prediction"
+    );
+    return `<a class="probability-link" href="${predictURL(prediction)}" title="Open full prediction" aria-label="${escapeHTML(label)}">${bar}</a>`;
   }
 
   function ratingForecastExplanation() {
@@ -995,7 +1038,7 @@
     const latest = index.decades[index.decades.length - 1].decade;
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">International results since 1872</p><h1>Matches</h1></div><p class="lede">Browse the complete match history. Probabilities and ratings are calculated using only information available before each match.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">International results since 1872</p><h1>Matches</h1></div><p class="lede">Browse the complete match history. Probabilities and ratings are calculated using only information available before each match.<span class="page-action-hint">Tap or click a probability bar for the full prediction.</span></p></header>
         ${ratingForecastExplanation()}
         <div class="toolbar">
           <div class="field"><label for="match-decade">Era</label><select id="match-decade"><option value="all">All ${number(summary.meta.matches)} matches</option>${index.decades.slice().reverse().map((item) => `<option value="${item.decade}">${item.decade}s · ${number(item.count)}</option>`).join("")}</select></div>
@@ -1101,7 +1144,21 @@
       <td data-label="Venue">${venueHTML(matchSite(match, perspective))}</td>
       <td class="numeric" data-label="Score"><span class="score">${match.sa}–${match.sb}</span></td>
           <td class="hide-mobile" data-label="Competition">${escapeHTML(match.t)}</td>
-      <td data-label="Forecast">${probabilityHTML(match.p)}</td>
+      <td data-label="Forecast">${probabilityHTML(match.p, {
+      date: previousISODate(match.date),
+      first: match.a,
+      second: match.b,
+      venue: Number(match.home) || 0,
+      matchClass: (
+        Number(match.level) === 0
+          ? "friendly"
+          : "competitive"
+      ),
+      label: (
+        `Open full prediction for ${match.an} `
+        + `versus ${match.bn}`
+      ),
+    })}</td>
       <td data-label="Team ratings"><span class="rating-pair"><b>${escapeHTML(match.an)}</b> ${rating(match.pre_a)} → ${rating(match.post_a)}</span><span class="rating-pair"><b>${escapeHTML(match.bn)}</b> ${rating(match.pre_b)} → ${rating(match.post_b)}</span></td>
       <td class="numeric" data-label="Combined pre-match">${rating(match.combined)}</td>
     </tr>`).join("")}</tbody></table></div>`;
@@ -1578,7 +1635,7 @@
       : "Team or competition…";
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Validated fixtures from multiple public schedules, paired with probabilities from the current ratings. W and L are from the perspective of the first-listed team.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Validated fixtures from multiple public schedules, paired with probabilities from the current ratings. W and L are from the perspective of the first-listed team.<span class="page-action-hint">Tap or click a probability bar for the full prediction.</span></p></header>
         <div class="record-note"><strong>${number(fixtures.length)}</strong><div><b>Known future pairings.</b> Placeholder knockout matches remain hidden until both teams are identified. Feed checked ${validTimestamp(payload.checked_at)}.</div></div>
         <div class="toolbar"><div class="field field-grow"><label for="fixture-search">Team or competition</label><input id="fixture-search" type="search" placeholder="${escapeHTML(fixtureSearchPlaceholder)}" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="fixture-competition">Competition</label><select id="fixture-competition"><option value="">All competitions</option>${competitions.map((name) => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("")}</select></div></div>
         <p id="fixture-count" class="muted small"></p>
@@ -1601,7 +1658,21 @@
       document.getElementById("fixture-more").hidden = visible.length >= filtered.length;
       document.getElementById("fixture-all").hidden = visible.length >= filtered.length;
       document.getElementById("fixture-table").innerHTML = visible.length ? `<div class="table-shell fixture-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Combined rating</th><th>W / D / L</th><th class="hide-mobile">Competition</th><th class="hide-mobile">Location</th></tr></thead><tbody>${visible.map((fixture) => `<tr>
-        <td>${fixtureDate(fixture)}</td><td data-label="Match">${teamLink(fixture.team1_code, fixture.team1_name)} <span class="muted">v</span> ${teamLink(fixture.team2_code, fixture.team2_name)}<span class="rating-sub">${rating(fixture.rating1)} + ${rating(fixture.rating2)}</span></td><td data-label="Venue">${venueHTML(fixtureSite(fixture))}</td><td class="numeric" data-label="Combined"><span class="rating-main">${rating(fixture.combined_rating)}</span></td><td data-label="Forecast">${probabilityHTML(fixture.probabilities)}</td><td class="hide-mobile" data-label="Competition">${escapeHTML(fixture.tournament_name)}</td><td class="hide-mobile" data-label="Location">${escapeHTML([fixture.city, fixture.country].filter(Boolean).join(", "))}${fixture.neutral ? `<span class="rating-sub">neutral venue</span>` : ""}</td>
+        <td>${fixtureDate(fixture)}</td><td data-label="Match">${teamLink(fixture.team1_code, fixture.team1_name)} <span class="muted">v</span> ${teamLink(fixture.team2_code, fixture.team2_name)}<span class="rating-sub">${rating(fixture.rating1)} + ${rating(fixture.rating2)}</span></td><td data-label="Venue">${venueHTML(fixtureSite(fixture))}</td><td class="numeric" data-label="Combined"><span class="rating-main">${rating(fixture.combined_rating)}</span></td><td data-label="Forecast">${probabilityHTML(fixture.probabilities, {
+      date: todayISO(),
+      first: fixture.team1_code,
+      second: fixture.team2_code,
+      venue: Number(fixture.home_sign) || 0,
+      matchClass: (
+        fixture.tournament_code === "F"
+          ? "friendly"
+          : "competitive"
+      ),
+      label: (
+        `Open full prediction for ${fixture.team1_name} `
+        + `versus ${fixture.team2_name}`
+      ),
+    })}</td><td class="hide-mobile" data-label="Competition">${escapeHTML(fixture.tournament_name)}</td><td class="hide-mobile" data-label="Location">${escapeHTML([fixture.city, fixture.country].filter(Boolean).join(", "))}${fixture.neutral ? `<span class="rating-sub">neutral venue</span>` : ""}</td>
       </tr>`).join("")}</tbody></table></div>` : `<div class="empty"><h2>No fixtures match those filters.</h2></div>`;
       replaceRouteQuery("fixtures", { q: document.getElementById("fixture-search").value.trim(), competition, shown: shown > 50 ? shown : "" });
     };
@@ -1766,6 +1837,16 @@
     const calendarInput = document.getElementById("predict-calendar");
     let initialA = route.query.get("a");
     let initialB = route.query.get("b");
+    let initialVenue = (
+      ["-1", "0", "1"].includes(route.query.get("venue"))
+        ? route.query.get("venue")
+        : "0"
+    );
+    let initialClass = (
+      route.query.get("class") === "friendly"
+        ? "friendly"
+        : "competitive"
+    );
 
     const historicalPayload = async (dateValue) => {
       const year = Math.min(Number(dateValue.slice(0, 4)), Number(historyIndex.last.slice(0, 4)));
@@ -1783,11 +1864,25 @@
     const loadDate = async (dateValue, preserveRequestedTeams = false) => {
       const currentA = document.getElementById("predict-a")?.value;
       const currentB = document.getElementById("predict-b")?.value;
+      const currentVenue = document.getElementById(
+        "predict-venue"
+      )?.value;
+      const currentClass = document.getElementById(
+        "predict-class"
+      )?.value;
       const preferredA = currentA || (
         preserveRequestedTeams ? initialA : null
       );
       const preferredB = currentB || (
         preserveRequestedTeams ? initialB : null
+      );
+      const preferredVenue = currentVenue || (
+        preserveRequestedTeams ? initialVenue : "0"
+      );
+      const preferredClass = currentClass || (
+        preserveRequestedTeams
+          ? initialClass
+          : "competitive"
       );
       selectedDate = dateValue;
       dateInput.value = validDate(dateValue);
@@ -1808,6 +1903,8 @@
       const codeB = codes.has(preferredB) && preferredB !== codeA ? preferredB : teams.find((team) => team.code !== codeA).code;
       initialA = null;
       initialB = null;
+      initialVenue = null;
+      initialClass = null;
       const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>No. ${team.rank} · ${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
       body.innerHTML = `
         <div class="predictor">
@@ -1822,6 +1919,21 @@
         <div id="forecast"></div>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Reconciled score probabilities</p><h2>Exact-score grid</h2></div></div><div id="score-grid"></div></section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Projected post-match ratings</p><h2>Effect of each winning margin</h2></div></div><div class="record-note"><strong>Change</strong><div>Historical projections use the model state stored at the selected matchday. Because the static history does not retain every pairwise covariance and opponent-breadth counterfactual, historical rating changes are close projections rather than exact replayed updates.</div></div><div id="margin-grid"></div></section>`;
+
+      const venueSelect = document.getElementById(
+      "predict-venue"
+    );
+    const classSelect = document.getElementById(
+      "predict-class"
+    );
+    venueSelect.value = ["-1", "0", "1"].includes(
+      preferredVenue
+    )
+      ? preferredVenue
+      : "0";
+    classSelect.value = preferredClass === "friendly"
+      ? "friendly"
+      : "competitive";
 
       const byCode = new Map(teams.map((team) => [team.code, team]));
       const currentIndex = new Map(currentState.codes.map((code, index) => [code, index]));
@@ -1957,7 +2069,23 @@
           rows.push({ margin, postA, postB, changeA: postA - first.rating, changeB: postB - second.rating });
         }
         document.getElementById("margin-grid").innerHTML = `<div class="table-hint" aria-hidden="true">Swipe to see both teams →</div><div class="table-shell margin-grid"><table><thead><tr><th>Result</th><th class="numeric">${escapeHTML(first.nation)} rating</th><th class="numeric">Change</th><th class="numeric">${escapeHTML(second.nation)} rating</th><th class="numeric">Change</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row.margin > 0 ? `${escapeHTML(first.nation)} by ${row.margin}` : row.margin < 0 ? `${escapeHTML(second.nation)} by ${Math.abs(row.margin)}` : "Draw"}</td><td class="numeric"><b>${rating(row.postA)}</b></td><td class="numeric ${row.changeA >= 0 ? "positive" : "negative"}">${row.changeA >= 0 ? "+" : ""}${rating(row.changeA)}</td><td class="numeric"><b>${rating(row.postB)}</b></td><td class="numeric ${row.changeB >= 0 ? "positive" : "negative"}">${row.changeB >= 0 ? "+" : ""}${rating(row.changeB)}</td></tr>`).join("")}</tbody></table></div>`;
-        history.replaceState(null, "", cleanRouteURL("predict", "", new URLSearchParams({ date: dateValue, a: first.code, b: second.code })));
+        history.replaceState(
+        null,
+        "",
+        cleanRouteURL(
+          "predict",
+          "",
+          new URLSearchParams({
+            date: dateValue,
+            a: first.code,
+            b: second.code,
+            venue: String(home),
+            "class": (
+              friendly ? "friendly" : "competitive"
+            ),
+          }),
+        ),
+      );
       };
       ["predict-a", "predict-b", "predict-venue", "predict-class"].forEach((id) => document.getElementById(id).addEventListener("change", update));
       update();
