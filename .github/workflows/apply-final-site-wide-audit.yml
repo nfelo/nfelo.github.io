@@ -1,4 +1,4 @@
-name: Apply final site-wide UI and consistency audit
+name: Apply final site-wide UI and consistency audit (v3)
 
 on:
   workflow_dispatch: {}
@@ -761,6 +761,63 @@ jobs:
           }
           ''' + "\n"
 
+          # Keep historical eligibility identical to current rankings.
+          eligibility_helper = (
+              '  const yearsBeforeISO = (value, years) => {\n'
+              '    const [rawYear, rawMonth, rawDay] = String(value)\n'
+              '      .split("-")\n'
+              '      .map(Number);\n'
+              '    const targetYear = rawYear - years;\n'
+              '    const lastDay = new Date(\n'
+              '      Date.UTC(targetYear, rawMonth, 0),\n'
+              '    ).getUTCDate();\n'
+              '    const day = Math.min(rawDay, lastDay);\n'
+              '    return `${targetYear}-${String(rawMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;\n'
+              '  };\n'
+          )
+          if 'const yearsBeforeISO = (value, years) => {' not in app:
+              date_anchor = '  const fixtureDate = (fixture) => fixture.date_precision === "month"\n'
+              if app.count(date_anchor) != 1:
+                  raise RuntimeError('Could not locate the date helper anchor.')
+              app = app.replace(date_anchor, eligibility_helper + date_anchor, 1)
+
+          old_history_filter = (
+              'const year = Number(chosen.slice(0, 4));\n'
+              '    const ranked = [...state.values()]\n'
+              '      .filter((team) => year - Number(team.date.slice(0, 4)) <= 4);'
+          )
+          new_history_filter = (
+              'const activeCutoff = yearsBeforeISO(chosen, 4);\n'
+              '    const ranked = [...state.values()]\n'
+              '      .filter((team) => team.date >= activeCutoff);'
+          )
+          if new_history_filter not in app:
+              if app.count(old_history_filter) != 1:
+                  raise RuntimeError(
+                      'Could not locate the History/Tournaments eligibility filter.'
+                  )
+              app = app.replace(old_history_filter, new_history_filter, 1)
+
+          old_predict_filter = (
+              'const active = [...teams.values()].filter((team) => '
+              'year - Number(team.date.slice(0, 4)) <= 4);'
+          )
+          new_predict_filter = (
+              'const activeCutoff = yearsBeforeISO(dateValue, 4);\n'
+              '      const active = [...teams.values()].filter(\n'
+              '        (team) => team.date >= activeCutoff,\n'
+              '      );'
+          )
+          if new_predict_filter not in app:
+              if app.count(old_predict_filter) != 1:
+                  raise RuntimeError(
+                      'Could not locate the historical Predict eligibility filter.'
+                  )
+              app = app.replace(old_predict_filter, new_predict_filter, 1)
+
+          if 'year - Number(team.date.slice(0, 4)) <= 4' in app:
+              raise RuntimeError('A coarse calendar-year eligibility filter remains.')
+
           # Generated route metadata.
           build = build.replace(
               '"records": ("Records", "All-time national-team rating '
@@ -789,6 +846,7 @@ jobs:
           from __future__ import annotations
 
           import argparse
+          from datetime import date
           import json
           import math
           from pathlib import Path
@@ -851,11 +909,21 @@ jobs:
               for event in payload.get("events", []):
                   if event["date"] <= chosen:
                       state[event["code"]] = dict(event)
-              year = int(chosen[:4])
+              chosen_day = date.fromisoformat(chosen)
+              try:
+                  active_cutoff = chosen_day.replace(
+                      year=chosen_day.year - 4,
+                  )
+              except ValueError:
+                  active_cutoff = chosen_day.replace(
+                      year=chosen_day.year - 4,
+                      month=2,
+                      day=28,
+                  )
               ranked = [
                   team
                   for team in state.values()
-                  if year - int(team["date"][:4]) <= 4
+                  if team["date"] >= active_cutoff.isoformat()
               ]
               ranked.sort(
                   key=lambda team: (
@@ -907,9 +975,30 @@ jobs:
                   summary["meta"]["results_through"],
                   history_cache,
               )
-              assert [team["code"] for team in latest] == [
+              latest_codes = [team["code"] for team in latest]
+              current_codes_in_order = [
                   team["code"] for team in summary["current"]
               ]
+              assert latest_codes == current_codes_in_order, {
+                  "history_only": sorted(
+                      set(latest_codes) - set(current_codes_in_order)
+                  ),
+                  "current_only": sorted(
+                      set(current_codes_in_order) - set(latest_codes)
+                  ),
+                  "first_order_difference": next(
+                      (
+                          (position, history_code, current_code)
+                          for position, (history_code, current_code)
+                          in enumerate(
+                              zip(latest_codes, current_codes_in_order),
+                              start=1,
+                          )
+                          if history_code != current_code
+                      ),
+                      None,
+                  ),
+              }
               for historical, current in zip(
                   latest,
                   summary["current"],
@@ -1073,6 +1162,9 @@ jobs:
               for marker in (
                   "summary.current",
                   "summary.best_tournaments",
+                  "const yearsBeforeISO = (value, years) => {",
+                  "const activeCutoff = yearsBeforeISO(chosen, 4);",
+                  "const activeCutoff = yearsBeforeISO(dateValue, 4);",
                   "loadHistoricalSnapshot",
                   'getJSON("data/tournaments/index.json")',
                   'getJSON("data/fixtures.json")',
