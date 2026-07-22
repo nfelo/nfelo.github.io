@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  window.__nfeloBoot = window.__nfeloBoot || {};
+  if (window.__nfeloBoot.started) return;
+  window.__nfeloBoot.started = true;
+
   const content = document.getElementById("content");
   const nav = document.getElementById("site-nav");
   const menuButton = document.querySelector(".menu-button");
@@ -116,13 +120,13 @@
   }
 
   function setActiveNav(section) {
-    nav.querySelectorAll("a").forEach((link) => {
+    nav?.querySelectorAll("a").forEach((link) => {
       const target = link.getAttribute("href").replace("#/", "");
       if (target === section) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
-    nav.classList.remove("is-open");
-    menuButton.setAttribute("aria-expanded", "false");
+    nav?.classList.remove("is-open");
+    menuButton?.setAttribute("aria-expanded", "false");
   }
 
   const isoDate = (value) => {
@@ -2068,7 +2072,8 @@
   }
 
 
-const FAQ_ITEMS = [
+function buildFAQItems() {
+  return [
   {
     question: "What is NFELO?",
     answer: "NFELO is an independent rating system for men’s international football. It ranks national teams using their results, the strength of their opponents and the wider network of matches connecting teams across countries, regions and eras."
@@ -2192,7 +2197,8 @@ const FAQ_ITEMS = [
   link: "https://github.com/nfelo/nfelo.github.io",
   linkLabel: "Open the NFELO GitHub repository →"
 }
-];
+  ];
+}
 
 function faqSearchTokens(value) {
   return value
@@ -2231,11 +2237,12 @@ function renderFAQ() {
   const list = document.getElementById("faq-list");
   const count = document.getElementById("faq-count");
   const search = document.getElementById("faq-search");
+  const faqItems = buildFAQItems();
 
   const draw = () => {
     const query = search.value.trim();
     const terms = faqSearchTokens(query);
-    const filtered = FAQ_ITEMS.filter((item) => {
+    const filtered = faqItems.filter((item) => {
       const words = faqSearchTokens(`${item.question} ${item.answer}`);
       return terms.every((term) =>
   words.some((word) => word.includes(term))
@@ -2246,7 +2253,7 @@ function renderFAQ() {
         <summary>${escapeHTML(item.question)}</summary>
         <div class="faq-answer"><p>${escapeHTML(item.answer)}</p>${item.link ? `<a class="faq-source-link" href="${escapeHTML(item.link)}" rel="external">${escapeHTML(item.linkLabel)}</a>` : ""}</div>
       </details>`).join("") : `<div class="empty-state"><h2>No matching questions</h2><p>Try a broader term or clear the search.</p></div>`;
-    count.textContent = query ? `${filtered.length} of ${FAQ_ITEMS.length} questions shown` : `${FAQ_ITEMS.length} questions`;
+    count.textContent = query ? `${filtered.length} of ${faqItems.length} questions shown` : `${faqItems.length} questions`;
   };
 
   search.addEventListener("input", draw);
@@ -2413,26 +2420,28 @@ function renderFAQ() {
         title: document.title,
       });
       content.focus({ preventScroll: true });
+      window.__nfeloBoot.ready = true;
     } catch (error) {
       console.error(error);
+      window.__nfeloBoot.failed = true;
       content.innerHTML = `<div class="error-panel" role="alert"><p class="eyebrow">Build data unavailable</p><h2>The static rating files could not be loaded.</h2><p>${escapeHTML(error.message)}</p><button class="button button-dark" type="button" id="retry">Retry</button></div>`;
       document.getElementById("retry")?.addEventListener("click", () => { dataCache.clear(); summary = null; route(); });
     }
   }
 
-  menuButton.addEventListener("click", () => {
-    const open = !nav.classList.contains("is-open");
+  menuButton?.addEventListener("click", () => {
+    const open = !nav?.classList.contains("is-open");
     nav.classList.toggle("is-open", open);
     menuButton.setAttribute("aria-expanded", String(open));
   });
   document.addEventListener("click", (event) => {
-    if (nav.classList.contains("is-open") && !nav.contains(event.target) && event.target !== menuButton) {
+    if (nav?.classList.contains("is-open") && !nav?.contains(event.target) && event.target !== menuButton) {
       nav.classList.remove("is-open");
       menuButton.setAttribute("aria-expanded", "false");
     }
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && nav.classList.contains("is-open")) {
+    if (event.key === "Escape" && nav?.classList.contains("is-open")) {
       nav.classList.remove("is-open");
       menuButton.setAttribute("aria-expanded", "false");
       menuButton.focus();

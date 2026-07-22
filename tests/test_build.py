@@ -1141,6 +1141,33 @@ class StaticBuildTests(unittest.TestCase):
             check=True,
         )
 
+    def test_browser_application_replaces_initial_loading_shell(self) -> None:
+        public = ROOT / "public"
+        html = (public / "index.html").read_text(
+            encoding="utf-8"
+        )
+        app_position = html.index('src="assets/app.js')
+        analytics_position = html.index(
+            'src="https://gc.zgo.at/count.js"'
+        )
+        self.assertLess(app_position, analytics_position)
+        self.assertIn("__nfeloShowBootError", html)
+        self.assertIn("fallback.src", html)
+
+        subprocess.run(
+            [
+                "node",
+                str(
+                    ROOT
+                    / "scripts"
+                    / "smoke_browser_boot.js"
+                ),
+                str(public),
+            ],
+            cwd=ROOT,
+            check=True,
+        )
+
     def test_public_metadata_and_discovery_files(self) -> None:
         public = ROOT / "public"
         html = (public / "index.html").read_text(encoding="utf-8")
