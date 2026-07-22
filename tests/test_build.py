@@ -303,7 +303,11 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 29)
+        self.assertEqual(javascript.count('question: "'), 30)
+        self.assertIn(
+            "What do the Tournaments and Best tournaments pages show?",
+            javascript,
+        )
         self.assertIn("Search questions", javascript)
         self.assertIn("Expand all", javascript)
         self.assertIn("Collapse all", javascript)
@@ -1033,6 +1037,43 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn(
             '"end_rating": end_rating',
             builder,
+        )
+
+    def test_records_lineage_labels_and_repository_version(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        readme = (
+            ROOT / "README.md"
+        ).read_text(encoding="utf-8")
+
+        for phrase in (
+            "Explore nation peaks, No. 1 chronology and totals",
+            "const bestTournamentCurrentNames = new Map(",
+            "const bestTournamentAliases = new Map();",
+            "label: displayAliases.length",
+            "escapeHTML(team.label)",
+            "What do the Tournaments and Best tournaments pages show?",
+            "Current and historical rankings, tournament snapshots",
+        ):
+            self.assertIn(phrase, javascript)
+
+        self.assertNotIn(
+            "Methodology: "
+            "${escapeHTML(summary.meta.methodology_version)}",
+            javascript,
+        )
+        self.assertIn(
+            "**Current methodology version:**",
+            readme,
+        )
+        self.assertIn(
+            self.summary["meta"]["methodology_version"],
+            readme,
+        )
+        self.assertIn(
+            "Tournament snapshots use the same published rating",
+            readme,
         )
 
     def test_public_metadata_and_discovery_files(self) -> None:

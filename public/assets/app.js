@@ -87,7 +87,7 @@
       tournaments: "Compare participating teams immediately before and after international tournaments.",
       matches: "Search international football results and pre-match forecasts from 1872 onward.",
       fixtures: "Upcoming senior internationals with current ratings and match probabilities.",
-      records: "All-time national-team rating peaks, greatest matchups and largest upsets.",
+      records: "Nation peaks, number-one records, top matches, largest upsets and tournament rating gains.",
       compare: "Compare two national teams' ratings, movement, histories and head-to-head results.",
       predict: "Predict historical or current matchups with W/D/L, exact-score and rating-impact tables.",
       methodology: "Detailed, reproducible methodology for the Network Football Elo model.",
@@ -1119,31 +1119,72 @@
   function renderRecords(route) {
     setTitle("Records");
     const bestTournamentRows = (summary.best_tournaments || []).slice(0, 500);
-    const bestTournamentTeams = [
-      ...new Map(
-        bestTournamentRows.map(
-          (row) => [row.code, row.nation],
-        ),
-      ).entries(),
-    ]
-      .map(([code, nation]) => ({ code, nation }))
-      .sort(
-        (a, b) => (
-          a.nation.localeCompare(b.nation)
-          || a.code.localeCompare(b.code)
-        ),
-      );
+        const bestTournamentCurrentNames = new Map(
+          summary.teams.map(
+            (team) => [team.code, team.nation],
+          ),
+        );
+        const bestTournamentAliases = new Map();
+
+        bestTournamentRows.forEach((row) => {
+          const currentName = bestTournamentCurrentNames.get(
+            row.code,
+          );
+          if (
+            !row.nation
+            || row.nation === currentName
+          ) {
+            return;
+          }
+          if (!bestTournamentAliases.has(row.code)) {
+            bestTournamentAliases.set(row.code, new Set());
+          }
+          bestTournamentAliases.get(row.code).add(row.nation);
+        });
+
+        const bestTournamentTeams = [
+          ...new Set(
+            bestTournamentRows.map((row) => row.code),
+          ),
+        ]
+          .map((code) => {
+            const aliases = [
+              ...(bestTournamentAliases.get(code) || []),
+            ].sort((a, b) => a.localeCompare(b));
+            const nation = (
+              bestTournamentCurrentNames.get(code)
+              || aliases[0]
+              || code
+            );
+            const displayAliases = aliases.filter(
+              (alias) => alias !== nation,
+            );
+            return {
+              code,
+              nation,
+              aliases: displayAliases,
+              label: displayAliases.length
+                ? `${nation} (incl. ${displayAliases.join(", ")})`
+                : nation,
+            };
+          })
+          .sort(
+            (a, b) => (
+              a.label.localeCompare(b.label)
+              || a.code.localeCompare(b.code)
+            ),
+          );
     const bestTournamentTeamOptions = bestTournamentTeams
       .map(
         (team) => (
           `<option value="${escapeHTML(team.code)}">`
-          + `${escapeHTML(team.nation)}</option>`
+          + `${escapeHTML(team.label)}</option>`
         ),
       )
       .join("");
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Nation peaks show each country's highest rating. Top matches rank individual fixtures by the combined pre-match rating of both teams. Limited or narrowly connected schedules receive an uncertainty adjustment.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Explore nation peaks, No. 1 chronology and totals, top matchups, largest upsets and the biggest tournament rating gains.</p></header>
         <div id="number-one-filters" class="toolbar record-filters" hidden>
           <div class="field field-grow"><label for="number-one-team">Filter nation</label><input id="number-one-team" type="search" placeholder="Brazil, Spain, Germany…" value="${escapeHTML(route.query.get("q") || "")}"></div>
           <div class="field"><label for="number-one-from">From date</label><div class="date-combo"><input id="number-one-from" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${route.query.get("from") ? validDate(route.query.get("from")) : ""}" aria-describedby="number-one-from-error"><button class="button" type="button" id="number-one-from-button" aria-label="Open from-date calendar">Calendar</button><input id="number-one-from-calendar" class="native-date-proxy" type="date" min="1872-01-01" max="${summary.meta.results_through}" value="${escapeHTML(route.query.get("from") || "")}" tabindex="-1" aria-hidden="true"></div><span id="number-one-from-error" class="field-error" role="alert"></span></div>
@@ -2028,6 +2069,10 @@ const FAQ_ITEMS = [
     answer: "Yes. The History page reconstructs the rankings as they stood after the latest completed matchday on or before the selected date. Historical country names, such as West Germany, the Soviet Union and Czechoslovakia, are shown where appropriate for that period."
   },
   {
+    question: "What do the Tournaments and Best tournaments pages show?",
+    answer: "The Tournaments page compares every participant immediately before or after a completed edition, using positions in the full world ranking and rating movement from that edition’s own matchdays. Best tournaments ranks the 500 largest positive tournament rating gains. Its team filter groups successor histories under the current canonical name and notes historical tournament names such as West Germany or the Soviet Union."
+  },
+  {
     question: "How often is the site updated?",
     answer: "The site checks for new results and fixtures three times each day. When new completed matches are found, it validates the source data, replays the complete rating history and rebuilds the site. If an update fails its checks, the existing verified version remains online rather than publishing incomplete or inconsistent data."
   }
@@ -2232,7 +2277,7 @@ function renderFAQ() {
         <p class="eyebrow">Data · updates · limitations</p><h1>About</h1>
         <p class="lede">Network Football Elo is an independent, results-only international football strength and prediction system. It covers senior men's internationals from 1872 to the present and publishes its evidence limits alongside its results.</p>
         <section class="section split">
-          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Methodology: ${escapeHTML(summary.meta.methodology_version)}<br>Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
+          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
           <div class="panel panel-dark"><p class="eyebrow">Automatic updates</p><h2>Checked three times daily.</h2><p class="muted">Results and fixtures are checked after the main Americas, Asia/Oceania and Europe/Africa match windows. Each update is validated and the complete rating history is rebuilt before publication. If new data fails validation, the existing site remains online unchanged.</p></div>
         </section>
         <article class="section prose">
@@ -2241,7 +2286,7 @@ function renderFAQ() {
           <h2>Automatic updates</h2>
           <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen state, then all of that date's evidence is learned jointly. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings.</p>
           <h2>One rating across the whole site</h2>
-          <p>Current rankings, historical rankings, nation peaks and matchup records all use the same evidence-adjusted NFELO rating. The latent posterior mean remains an internal forecasting signal; it is not exposed as a competing table. This preserves opponent-breadth and uncertainty protection when comparing sparsely connected regions and eras.</p>
+          <p>Current and historical rankings, tournament snapshots, nation peaks and every record table all use the same evidence-adjusted NFELO rating. The latent posterior mean remains an internal forecasting signal; it is not exposed as a competing table. This preserves opponent-breadth and uncertainty protection when comparing sparsely connected regions and eras.</p>
           <h2>Validation labels</h2>
           <p>The primary comparative result is the original nested historical holdout: NFELO network log loss ${number(summary.validation.nested.log_loss, 4)} against ${number(summary.validation.nested.published_wfe_log_loss, 4)} for published WFER. The lower ${number(summary.validation.retrospective.log_loss, 4)} figure is explicitly a retrospective replay with final constants, not another out-of-sample result.</p>
           <h2>Prospective record</h2>

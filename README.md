@@ -2,9 +2,10 @@
 
 [NFELO](https://nfelo.github.io/) is a static, searchable rating and prediction
 site for senior men's international football. It covers results from 1872 to
-the present, current and historical rankings, every source match, one peak per
-nation, top match instances, number-one chronology, team comparison and a
-date-aware probability calculator.
+the present, current and historical rankings, tournament snapshots, every
+source match, nation peaks, number-one chronology and totals, top match
+instances, largest upsets, Best tournaments, team comparison and a date-aware
+probability calculator.
 
 ## What the model publishes
 
@@ -13,6 +14,10 @@ dates, nation peaks, team pages and match records all use the same
 evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.
+
+**Current methodology version:** `2026-07-20-friendly-information-0.63901`.
+
+Tournament snapshots use the same published rating immediately before and after each completed edition. Tournament rating change and Best tournaments include only published movement from that edition's matchdays, excluding annual recalibration and unrelated results. Successor lineages are grouped under the current canonical name while historical tournament names remain visible as aliases.
 
 The rating state is a full-covariance dynamic Gaussian opponent network. The
 base-10 Elo expectation remains the observation link, while the model also
