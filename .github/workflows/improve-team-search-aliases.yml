@@ -972,25 +972,36 @@ jobs:
               ),
           )
 
-          old_tournament_sort_assertion = r'''        self.assertIn(
-              '<option value="rating">Rating</option>'
-              '<option value="rating_change">Rating change</option>'
-              '<option value="name">Name</option>',
-              javascript,
+          old_tournament_sort_assertion = (
+              '        self.assertIn(\n'
+              '            \'<option value="rating">Rating</option>\'\n'
+              '            \'<option value="rating_change">Rating change</option>\'\n'
+              '            \'<option value="name">Name</option>\',\n'
+              '            javascript,\n'
+              '        )\n'
           )
-          '''
-          new_tournament_sort_assertion = r'''        self.assertIn(
-              '<option value="rating">Rating</option>'
-              '<option value="rating_change">Rating change</option>'
-              '<option value="rank_change">Rank change</option>'
-              '<option value="name">Name</option>',
-              javascript,
+          new_tournament_sort_assertion = (
+              '        self.assertIn(\n'
+              '            \'<option value="rating">Rating</option>\'\n'
+              '            \'<option value="rating_change">Rating change</option>\'\n'
+              '            \'<option value="rank_change">Rank change</option>\'\n'
+              '            \'<option value="name">Name</option>\',\n'
+              '            javascript,\n'
+              '        )\n'
           )
-          '''
-          tests = tests.replace(
-              old_tournament_sort_assertion,
-              new_tournament_sort_assertion,
-          )
+          if new_tournament_sort_assertion not in tests:
+              count = tests.count(old_tournament_sort_assertion)
+              if count != 1:
+                  raise RuntimeError(
+                      "Expected exactly one legacy Tournament sort "
+                      f"assertion; found {count}"
+                  )
+              tests = tests.replace(
+                  old_tournament_sort_assertion,
+                  new_tournament_sort_assertion,
+                  1,
+              )
+
 
           test_name = (
               "def test_alias_search_dynamic_suggestions_and_rank_sort"
