@@ -1,0 +1,633 @@
+name: Link match probability bars to Predict
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: add-match-predict-links
+  cancel-in-progress: false
+
+jobs:
+  install:
+    name: Add Predict links
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Add dynamic Predict links
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          from pathlib import Path
+
+
+          APP_PATH = Path("public/assets/app.js")
+          STYLE_PATH = Path("public/assets/styles.css")
+          TEST_PATH = Path("tests/test_build.py")
+
+          app = APP_PATH.read_text(encoding="utf-8")
+          styles = STYLE_PATH.read_text(encoding="utf-8")
+          tests = TEST_PATH.read_text(encoding="utf-8")
+
+
+          def replace_once(
+              text: str,
+              old: str,
+              new: str,
+              description: str,
+          ) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(
+                      f"Expected exactly one {description}; found {count}"
+                  )
+              return text.replace(old, new, 1)
+
+
+          helpers = r'''
+            const previousISODate = (value) => {
+              const parsed = new Date(`${value}T00:00:00Z`);
+              if (
+                Number.isNaN(parsed.valueOf())
+                || parsed.toISOString().slice(0, 10) !== value
+              ) {
+                return "";
+              }
+              parsed.setUTCDate(parsed.getUTCDate() - 1);
+              return parsed.toISOString().slice(0, 10);
+            };
+            const predictURL = ({
+              date,
+              first,
+              second,
+              venue = 0,
+              matchClass = "competitive",
+            }) => {
+              const query = new URLSearchParams({
+                date,
+                a: first,
+                b: second,
+                venue: String(venue),
+                "class": (
+                  matchClass === "friendly"
+                    ? "friendly"
+                    : "competitive"
+                ),
+              });
+              return `#/predict?${query.toString()}`;
+            };
+          '''.strip("\n")
+
+          today_block = r'''  const todayISO = () => {
+              const today = new Date();
+              return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+            };
+          '''
+          if "const previousISODate" not in app:
+              app = replace_once(
+                  app,
+                  today_block,
+                  today_block + helpers + "\n",
+                  "today-date helper",
+              )
+
+
+          old_probability = r'''  function probabilityHTML(values) {
+              const labels = ["W", "D", "L"];
+              const classes = ["pw", "pd", "pl"];
+              return `<div class="probability" aria-label="Win ${percent(values[0])}, draw ${percent(values[1])}, loss ${percent(values[2])}">${values.map((value, index) => `<span class="${classes[index]}" style="width:${Math.max(12, value * 100)}%" title="${labels[index]} ${percent(value)}">${number(value * 100, 0)}</span>`).join("")}</div>`;
+            }
+          '''
+          new_probability = r'''  function probabilityHTML(values, prediction = null) {
+              const labels = ["W", "D", "L"];
+              const classes = ["pw", "pd", "pl"];
+              const bar = `<div class="probability" aria-label="Win ${percent(values[0])}, draw ${percent(values[1])}, loss ${percent(values[2])}">${values.map((value, index) => `<span class="${classes[index]}" style="width:${Math.max(12, value * 100)}%" title="${labels[index]} ${percent(value)}">${number(value * 100, 0)}</span>`).join("")}</div>`;
+              if (
+                !prediction?.date
+                || !prediction.first
+                || !prediction.second
+              ) {
+                return bar;
+              }
+              const label = (
+                prediction.label
+                || "Open the full match prediction"
+              );
+              return `<a class="probability-link" href="${predictURL(prediction)}" title="Open full prediction" aria-label="${escapeHTML(label)}">${bar}</a>`;
+            }
+          '''
+          if "function probabilityHTML(values, prediction = null)" not in app:
+              app = replace_once(
+                  app,
+                  old_probability,
+                  new_probability,
+                  "probability renderer",
+              )
+
+
+          hint = (
+              '<span class="page-action-hint">'
+              'Tap or click a probability bar for the full prediction.'
+              '</span>'
+          )
+          old_matches_lede = (
+              '<p class="lede">Browse the complete match history. '
+              'Probabilities and ratings are calculated using only '
+              'information available before each match.</p>'
+          )
+          new_matches_lede = (
+              '<p class="lede">Browse the complete match history. '
+              'Probabilities and ratings are calculated using only '
+              'information available before each match.'
+              + hint
+              + '</p>'
+          )
+          if new_matches_lede not in app:
+              app = replace_once(
+                  app,
+                  old_matches_lede,
+                  new_matches_lede,
+                  "Matches header description",
+              )
+
+          old_fixtures_lede = (
+              '<p class="lede">Validated fixtures from multiple public '
+              'schedules, paired with probabilities from the current '
+              'ratings. W and L are from the perspective of the '
+              'first-listed team.</p>'
+          )
+          new_fixtures_lede = (
+              '<p class="lede">Validated fixtures from multiple public '
+              'schedules, paired with probabilities from the current '
+              'ratings. W and L are from the perspective of the '
+              'first-listed team.'
+              + hint
+              + '</p>'
+          )
+          if new_fixtures_lede not in app:
+              app = replace_once(
+                  app,
+                  old_fixtures_lede,
+                  new_fixtures_lede,
+                  "Upcoming header description",
+              )
+
+
+          match_link = r'''${probabilityHTML(match.p, {
+                date: previousISODate(match.date),
+                first: match.a,
+                second: match.b,
+                venue: Number(match.home) || 0,
+                matchClass: (
+                  Number(match.level) === 0
+                    ? "friendly"
+                    : "competitive"
+                ),
+                label: (
+                  `Open full prediction for ${match.an} `
+                  + `versus ${match.bn}`
+                ),
+              })}'''
+          if "date: previousISODate(match.date)" not in app:
+              app = replace_once(
+                  app,
+                  "${probabilityHTML(match.p)}",
+                  match_link,
+                  "Matches probability bar",
+              )
+
+          fixture_link = r'''${probabilityHTML(fixture.probabilities, {
+                date: todayISO(),
+                first: fixture.team1_code,
+                second: fixture.team2_code,
+                venue: Number(fixture.home_sign) || 0,
+                matchClass: (
+                  fixture.tournament_code === "F"
+                    ? "friendly"
+                    : "competitive"
+                ),
+                label: (
+                  `Open full prediction for ${fixture.team1_name} `
+                  + `versus ${fixture.team2_name}`
+                ),
+              })}'''
+          if "first: fixture.team1_code" not in app:
+              app = replace_once(
+                  app,
+                  "${probabilityHTML(fixture.probabilities)}",
+                  fixture_link,
+                  "Upcoming probability bar",
+              )
+
+
+          old_initial = r'''    let initialA = route.query.get("a");
+              let initialB = route.query.get("b");
+          '''
+          new_initial = r'''    let initialA = route.query.get("a");
+              let initialB = route.query.get("b");
+              let initialVenue = (
+                ["-1", "0", "1"].includes(route.query.get("venue"))
+                  ? route.query.get("venue")
+                  : "0"
+              );
+              let initialClass = (
+                route.query.get("class") === "friendly"
+                  ? "friendly"
+                  : "competitive"
+              );
+          '''
+          if "let initialVenue" not in app:
+              app = replace_once(
+                  app,
+                  old_initial,
+                  new_initial,
+                  "Predict initial selections",
+              )
+
+
+          old_preferences = r'''      const currentA = document.getElementById("predict-a")?.value;
+                const currentB = document.getElementById("predict-b")?.value;
+                const preferredA = currentA || (
+                  preserveRequestedTeams ? initialA : null
+                );
+                const preferredB = currentB || (
+                  preserveRequestedTeams ? initialB : null
+                );
+          '''
+          new_preferences = r'''      const currentA = document.getElementById("predict-a")?.value;
+                const currentB = document.getElementById("predict-b")?.value;
+                const currentVenue = document.getElementById(
+                  "predict-venue"
+                )?.value;
+                const currentClass = document.getElementById(
+                  "predict-class"
+                )?.value;
+                const preferredA = currentA || (
+                  preserveRequestedTeams ? initialA : null
+                );
+                const preferredB = currentB || (
+                  preserveRequestedTeams ? initialB : null
+                );
+                const preferredVenue = currentVenue || (
+                  preserveRequestedTeams ? initialVenue : "0"
+                );
+                const preferredClass = currentClass || (
+                  preserveRequestedTeams
+                    ? initialClass
+                    : "competitive"
+                );
+          '''
+          if "const currentVenue = document.getElementById(" not in app:
+              app = replace_once(
+                  app,
+                  old_preferences,
+                  new_preferences,
+                  "Predict preserved options",
+              )
+
+
+          old_reset = r'''      initialA = null;
+                initialB = null;
+          '''
+          new_reset = r'''      initialA = null;
+                initialB = null;
+                initialVenue = null;
+                initialClass = null;
+          '''
+          if "initialVenue = null;" not in app:
+              app = replace_once(
+                  app,
+                  old_reset,
+                  new_reset,
+                  "Predict initial-option reset",
+              )
+
+
+          selection_setup = r'''      const venueSelect = document.getElementById(
+                "predict-venue"
+              );
+              const classSelect = document.getElementById(
+                "predict-class"
+              );
+              venueSelect.value = ["-1", "0", "1"].includes(
+                preferredVenue
+              )
+                ? preferredVenue
+                : "0";
+              classSelect.value = preferredClass === "friendly"
+                ? "friendly"
+                : "competitive";
+
+          '''
+          by_code_marker = (
+              '      const byCode = new Map('
+              'teams.map((team) => [team.code, team]));\n'
+          )
+          if "const venueSelect = document.getElementById(" not in app:
+              app = replace_once(
+                  app,
+                  by_code_marker,
+                  selection_setup + by_code_marker,
+                  "Predict select initialization",
+              )
+
+
+          old_route_state = (
+              'history.replaceState(null, "", cleanRouteURL('
+              '"predict", "", new URLSearchParams({ date: dateValue, '
+              'a: first.code, b: second.code })));'
+          )
+          new_route_state = r'''history.replaceState(
+                  null,
+                  "",
+                  cleanRouteURL(
+                    "predict",
+                    "",
+                    new URLSearchParams({
+                      date: dateValue,
+                      a: first.code,
+                      b: second.code,
+                      venue: String(home),
+                      "class": (
+                        friendly ? "friendly" : "competitive"
+                      ),
+                    }),
+                  ),
+                );'''
+          if '"class": (' not in app[app.find("function renderPredict"):]:
+              app = replace_once(
+                  app,
+                  old_route_state,
+                  new_route_state,
+                  "Predict route-state update",
+              )
+
+
+          style_block = r'''
+          /* Match-table links to the full Predict view */
+          .page-action-hint {
+            display: block;
+            margin-top: 7px;
+            color: #315f54;
+            font-size: 13px;
+            font-weight: 800;
+          }
+          .probability-link {
+            display: block;
+            min-width: 150px;
+            margin: -10px 0;
+            padding: 10px 0;
+            color: inherit;
+            border-radius: 10px;
+            text-decoration: none;
+          }
+          .probability-link:hover .probability {
+            box-shadow: 0 0 0 2px rgba(49, 95, 84, .35);
+          }
+          .probability-link:focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 2px;
+          }
+          '''.strip()
+          if "/* Match-table links to the full Predict view */" not in styles:
+              styles = styles.rstrip() + "\n\n" + style_block + "\n"
+
+
+          test_name = (
+              "def test_match_probability_bars_link_to_predict"
+          )
+          if test_name not in tests:
+              marker = (
+                  "    def test_public_metadata_and_discovery_files"
+                  "(self) -> None:\n"
+              )
+              test_method = r'''    def test_match_probability_bars_link_to_predict(self) -> None:
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  stylesheet = (
+                      ROOT / "public" / "assets" / "styles.css"
+                  ).read_text(encoding="utf-8")
+
+                  for phrase in (
+                      "const previousISODate",
+                      "const predictURL",
+                      "function probabilityHTML(values, prediction = null)",
+                      'class="probability-link"',
+                      "date: previousISODate(match.date)",
+                      "date: todayISO()",
+                      "first: fixture.team1_code",
+                      'route.query.get("venue")',
+                      'route.query.get("class")',
+                      "venue: String(home)",
+                  ):
+                      self.assertIn(phrase, javascript)
+
+                  self.assertEqual(
+                      javascript.count(
+                          "Tap or click a probability bar "
+                          "for the full prediction."
+                      ),
+                      2,
+                  )
+                  self.assertIn(
+                      "/* Match-table links to the full Predict view */",
+                      stylesheet,
+                  )
+                  self.assertIn(
+                      ".probability-link:focus-visible",
+                      stylesheet,
+                  )
+
+          '''
+              if tests.count(marker) != 1:
+                  raise RuntimeError(
+                      "Could not locate the test insertion point."
+                  )
+              tests = tests.replace(
+                  marker,
+                  test_method + marker,
+                  1,
+              )
+
+
+          required = (
+              "const previousISODate",
+              "const predictURL",
+              "function probabilityHTML(values, prediction = null)",
+              "date: previousISODate(match.date)",
+              "date: todayISO()",
+              "let initialVenue",
+              "venue: String(home)",
+          )
+          missing = [item for item in required if item not in app]
+          if missing:
+              raise RuntimeError(
+                  "Predict-link patch incomplete; missing: "
+                  + ", ".join(missing)
+              )
+
+          if app.count(
+              "Tap or click a probability bar for the full prediction."
+          ) != 2:
+              raise RuntimeError(
+                  "The concise Predict hint must appear exactly twice."
+              )
+
+          APP_PATH.write_text(
+              app.rstrip() + "\n",
+              encoding="utf-8",
+          )
+          STYLE_PATH.write_text(
+              styles.rstrip() + "\n",
+              encoding="utf-8",
+          )
+          TEST_PATH.write_text(
+              tests.rstrip() + "\n",
+              encoding="utf-8",
+          )
+
+          print(
+              "Added linked probability bars for Matches and Upcoming, "
+              "including date, teams, venue and match class."
+          )
+          PY
+
+      - name: Preserve patched browser source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nfelo-predict-links
+          cp public/assets/app.js \
+            /tmp/nfelo-predict-links/app.js
+          cp public/assets/styles.css \
+            /tmp/nfelo-predict-links/styles.css
+
+      - name: Check browser syntax
+        run: |
+          set -euo pipefail
+          node --check public/assets/app.js
+          python -m py_compile tests/test_build.py
+
+      - name: Build complete site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Run complete validation
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+          if [ -f scripts/smoke_browser_boot.js ]; then
+            node scripts/smoke_browser_boot.js public
+          fi
+
+      - name: Discard generated data and keep source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git restore --worktree -- public source
+          git clean -fd -- public
+          cp /tmp/nfelo-predict-links/app.js \
+            public/assets/app.js
+          cp /tmp/nfelo-predict-links/styles.css \
+            public/assets/styles.css
+
+      - name: Check final patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          node --check public/assets/app.js
+          python -m py_compile tests/test_build.py
+          git diff --check
+
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          expected="$(
+            printf '%s\n' \
+              public/assets/app.js \
+              public/assets/styles.css \
+              tests/test_build.py \
+            | sort
+          )"
+          if [ "$changed" != "$expected" ]; then
+            echo "Unexpected changed files:"
+            printf '%s\n' "$changed"
+            exit 1
+          fi
+
+          grep -F \
+            'date: previousISODate(match.date)' \
+            public/assets/app.js
+          grep -F \
+            'date: todayISO()' \
+            public/assets/app.js
+          grep -F \
+            '.probability-link:focus-visible' \
+            public/assets/styles.css
+          grep -F \
+            'test_match_probability_bars_link_to_predict' \
+            tests/test_build.py
+
+      - name: Commit and push
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Predict links are already installed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            public/assets/app.js \
+            public/assets/styles.css \
+            tests/test_build.py
+
+          git commit -m \
+            "Link match probability bars to Predict"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm deployment trigger
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          echo "The push to main triggers the restored Pages workflow."
