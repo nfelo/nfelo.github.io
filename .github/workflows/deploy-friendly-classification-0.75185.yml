@@ -1,4 +1,4 @@
-name: Deploy evidence-backed friendly classification
+name: Deploy evidence-backed friendly classification v2
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: deploy-friendly-classification-0-75185
+  group: deploy-friendly-classification-0-75185-v2
   cancel-in-progress: false
 
 jobs:
@@ -1256,13 +1256,16 @@ jobs:
               ]
               == 0.75185
           )
-          assert (
-              summary["parameters"]["forecast_temperature"]
-              == {
-                  "friendly": 0.890607603114,
-                  "competitive": 1.05583721825,
-              }
-          )
+          temperatures = summary["parameters"]["forecast_temperature"]
+          # Public JSON is compacted to eight decimal places by build_site.py.
+          # Validate against the unrounded deployment constants with a tolerance
+          # tighter than one unit in the published final decimal place.
+          assert abs(
+              temperatures["friendly"] - 0.890607603114
+          ) < 0.00000001, temperatures
+          assert abs(
+              temperatures["competitive"] - 1.05583721825
+          ) < 0.00000001, temperatures
           replay = summary["validation"]["retrospective"]
           assert replay["matches"] == 46801
           assert abs(
