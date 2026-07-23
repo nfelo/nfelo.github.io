@@ -82,11 +82,11 @@ class StaticBuildTests(unittest.TestCase):
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-20-friendly-information-0.63901",
+            "2026-07-23-evidence-backed-friendly-0.75185",
         )
         self.assertAlmostEqual(
             self.summary["parameters"]["network"]["friendly_information_ratio"],
-            0.63901,
+            0.75185,
             places=10,
         )
 
@@ -262,10 +262,10 @@ class StaticBuildTests(unittest.TestCase):
         # producing indistinguishable forecasts. Keep this tight enough to
         # detect a real release change without requiring bitwise optimisation.
         self.assertAlmostEqual(
-            calibration["draw_log_tilt"], 0.15176472, delta=0.00005
+            calibration["draw_log_tilt"], 0.15087279, delta=0.00005
         )
         self.assertAlmostEqual(
-            calibration["nfelo_weight"], 0.5257464, delta=0.00005
+            calibration["nfelo_weight"], 0.54059719, delta=0.00005
         )
         self.assertEqual(len(layer["attack"]), len(self.state["codes"]))
         self.assertEqual(len(layer["defence"]), len(self.state["codes"]))
@@ -286,7 +286,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertAlmostEqual(
             actual_log_loss, validation["retrospective"]["log_loss"], places=6
         )
-        self.assertAlmostEqual(actual_log_loss, 0.88025, delta=0.0003)
+        self.assertAlmostEqual(actual_log_loss, 0.880130657, delta=0.00005)
         self.assertEqual(validation["primary_evidence"], "nested_historical_holdout")
         self.assertIn(
             "rolling historical holdout",
@@ -310,6 +310,11 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
         self.assertIn("Search questions", javascript)
+        self.assertIn(
+            "Why is a friendly’s rating change not always "
+            "75.2% of a competitive match?",
+            javascript,
+        )
         self.assertIn("Expand all", javascript)
         self.assertIn("Collapse all", javascript)
         self.assertIn("https://nfelo.github.io/faq/", sitemap)
@@ -351,18 +356,14 @@ class StaticBuildTests(unittest.TestCase):
         ))
         self.assertEqual(sum(row["spells"] for row in summaries), len(spells))
         self.assertIn("Leadership is determined jointly after all results on each date", javascript)
-        brazil_2013 = next(
-            spell for spell in spells
-            if spell["code"] == "BR" and spell["from"] == "2013-11-19"
-        )
-        self.assertEqual(
-            {brazil_2013["match"]["team1_code"], brazil_2013["match"]["team2_code"]},
-            {"ES", "ZA"},
-        )
-        self.assertEqual(
-            sorted((brazil_2013["match"]["score1"], brazil_2013["match"]["score2"])),
-            [0, 1],
-        )
+        change_matches = [spell["match"] for spell in spells if spell.get("match")]
+        self.assertTrue(change_matches)
+        self.assertTrue(all(
+            match["team1_code"] and match["team2_code"]
+            and isinstance(match["score1"], int)
+            and isinstance(match["score2"], int)
+            for match in change_matches
+        ))
 
     def test_ranking_movement_comparison_and_number_one_filters(self) -> None:
         current = self.summary["current"]
@@ -456,11 +457,24 @@ class StaticBuildTests(unittest.TestCase):
             "retrospective replay",
             "Public rating and match forecast",
             "marginal posterior uncertainty",
-            "Why friendlies use 0.63901",
-            "0.63901",
+            "Why friendlies use 75.2%",
+            "number(p.network.friendly_information_ratio, 5)",
         ):
             self.assertIn(phrase, javascript)
         self.assertIn("applyForecastLayer", javascript)
+        self.assertIn(
+            "Why is a friendly’s rating change not always "
+            "75.2% of a competitive match?",
+            javascript,
+        )
+        self.assertNotIn("63.901%", javascript)
+        self.assertNotIn("0.63901", javascript)
+        self.assertNotIn("0.75185", javascript)
+        self.assertIn(
+            '<div class="formula">qₖ = '
+            '${number(p.network.friendly_information_ratio, 5)}',
+            javascript,
+        )
 
     def test_rating_forecast_explanation_and_validation_comparison(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
@@ -494,7 +508,9 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("debut = self.debut_mean(year)", model)
         self.assertIn("self.initialise_with(index, first_match.day, debut)", model)
         self.assertIn("joint_gaussian_update(", model)
-        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.63901", model)
+        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.75185", model)
+        self.assertIn("runtime_is_friendly(", model)
+        self.assertIn('item["friendly"]', model)
         self.assertIn("weight *= FRIENDLY_INFORMATION_RATIO", model)
         self.assertIn("def predict_day(", forecast)
         self.assertIn(

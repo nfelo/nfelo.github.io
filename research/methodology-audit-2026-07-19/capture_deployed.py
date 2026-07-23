@@ -123,7 +123,7 @@ def main() -> None:
         goals1=np.asarray([row["sa"] for row in output.matches], dtype=np.int16),
         goals2=np.asarray([row["sb"] for row in output.matches], dtype=np.int16),
         home=np.asarray([row["home"] for row in output.matches], dtype=np.int8),
-        friendly=np.asarray([row["level"] == 0 for row in output.matches], dtype=bool),
+        friendly=np.asarray([row["friendly"] for row in output.matches], dtype=bool),
         outcome=outcomes,
         network=np.asarray([row["network"] for row in captures], dtype=np.float64),
         score_raw=np.asarray([row["score_raw"] for row in captures], dtype=np.float64),

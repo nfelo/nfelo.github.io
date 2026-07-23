@@ -17,6 +17,12 @@ def main() -> None:
     args = parser.parse_args()
     sys.path.insert(0, str(args.repo / "scripts"))
     from ledger import read_matches, read_successors
+    from tournament_classification import (
+        load_registry,
+        read_evidence,
+        runtime_is_friendly,
+        validate_registry,
+    )
 
     source = args.repo / "source"
     successors = {} if args.no_successors else read_successors(source / "teams.tsv")
@@ -27,14 +33,32 @@ def main() -> None:
     )
     teams = sorted({match.team1 for match in matches} | {match.team2 for match in matches})
     team_index = {team: index for index, team in enumerate(teams)}
-    levels = json.loads((args.repo / "config" / "elo_matches.json").read_text(encoding="utf-8"))[
+    config = args.repo / "config"
+    levels = json.loads((config / "elo_matches.json").read_text(encoding="utf-8"))[
         "tournament_levels"
     ]
+    registry = load_registry(config / "tournament_classification.json")
+    validate_registry(registry)
+    evidence_path = config / "tournament_evidence.json"
+    evidence = read_evidence(evidence_path if evidence_path.exists() else None)
+    names: dict[str, str] = {}
+    for line in (source / "en.tournaments.tsv").read_text(encoding="utf-8").splitlines():
+        fields = line.split("\t")
+        if len(fields) >= 2 and fields[0]:
+            names[fields[0]] = fields[1]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8") as handle:
         handle.write(f"# teams={len(teams)} matches={len(matches)}\n")
         for match_id, match in enumerate(matches):
             level = int(levels.get(match.tournament, 0 if match.tournament == "F" else 1))
+            friendly = runtime_is_friendly(
+                match.tournament,
+                match.date_text,
+                registry,
+                aliases=(names.get(match.tournament, match.tournament),),
+                level=level,
+                evidence=evidence.get(match.tournament),
+            )
             fields = (
                 match_id,
                 match.day,
@@ -46,7 +70,7 @@ def main() -> None:
                 match.score1,
                 match.score2,
                 match.home_sign,
-                int(level == 0),
+                int(friendly),
                 level,
                 match.official_pre1,
                 match.official_pre2,

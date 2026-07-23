@@ -1,0 +1,82 @@
+{
+  "classification_policy": "evidence-backed friendly; uncertain operationally competitive",
+  "coefficient_only_current_temperatures": {
+    "best": {
+      "accuracy": 0.591162581996,
+      "brier": 0.519046035026,
+      "competitive_temperature": 1.0635626456560392,
+      "friendly_temperature": 0.9697407083655329,
+      "log_loss": 0.881770229184,
+      "matches": 46801,
+      "ratio": 0.75408,
+      "rps": 0.172691448607
+    },
+    "current_ratio": {
+      "accuracy": 0.590842076024,
+      "brier": 0.519148014245,
+      "competitive_temperature": 1.0635626456560392,
+      "friendly_temperature": 0.9697407083655329,
+      "log_loss": 0.881856896795,
+      "matches": 46801,
+      "ratio": 0.63901,
+      "rps": 0.172735671669
+    },
+    "log_loss_improvement": 8.666761099995757e-05
+  },
+  "deployed_python_replay_cross_check": {
+    "accuracy": 0.5910984808016922,
+    "calibration_2026": {
+      "competitive_temperature": 1.065485433339147,
+      "draw_log_tilt": 0.1508727854394914,
+      "friendly_temperature": 0.9160989033910156,
+      "nfelo_weight": 0.5405971899067039,
+      "training_first_year": 2018,
+      "training_last_year": 2025,
+      "training_matches": 7922
+    },
+    "final_layer_brier": 0.5182352192367428,
+    "final_layer_log_loss": 0.8801306569302232,
+    "final_layer_rps": 0.17246849304636702,
+    "matches": 46801,
+    "network_only_log_loss": 0.8814758972235746
+  },
+  "input_commit": "13eaaa3ceb57c5d5f0a0bb2fe262a4e929d62fd2",
+  "interpretation": {
+    "fixed_temperature_number": 0.75408,
+    "primary_number": 0.75185,
+    "reason": "The requested experiment included rerunning the replay and refitting class temperatures."
+  },
+  "joint_refit": {
+    "best": {
+      "accuracy": 0.591141214931,
+      "brier": 0.518781837373,
+      "competitive_temperature": 1.05583721825,
+      "friendly_matches": 16907,
+      "friendly_temperature": 0.890607603114,
+      "log_loss": 0.881431526524,
+      "matches": 46801,
+      "ratio": 0.75185,
+      "rps": 0.172608129915
+    },
+    "current_ratio": {
+      "accuracy": 0.590842076024,
+      "brier": 0.518874439253,
+      "competitive_temperature": 1.0553686268,
+      "friendly_temperature": 0.889804222701,
+      "log_loss": 0.881510253247,
+      "matches": 46801,
+      "ratio": 0.63901,
+      "rps": 0.172649103006
+    },
+    "log_loss_improvement": 7.872672300002215e-05
+  },
+  "ledger": {
+    "friendly_matches": 19829,
+    "matches": 52312,
+    "score_first_year": 1960,
+    "score_last_date": "2026-07-11",
+    "scored_friendly_matches": 16907,
+    "scored_matches": 46801
+  },
+  "study": "full-sample friendly information ratio"
+}

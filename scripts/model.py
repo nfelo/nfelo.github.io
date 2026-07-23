@@ -17,6 +17,12 @@ import numpy as np
 
 from forecast_layer import ForecastLayer
 from ledger import Match, read_dictionary, read_matches, read_successors
+from tournament_classification import (
+    load_registry,
+    read_evidence,
+    runtime_is_friendly,
+    validate_registry,
+)
 
 
 KNOT_YEARS = (1900, 1930, 1960, 1990, 2020)
@@ -52,9 +58,9 @@ ACTIVE_POOL_SLOPE = -84.24860586823341
 PRIOR_SD = 299.99999999999994
 DRIFT_SD = 19.750212594949737
 QUALITY_SCALE = 1.7440260583320362
-FRIENDLY_INFORMATION_RATIO = 0.63901
-FRIENDLY_TEMPERATURE = 0.9697407083655329
-COMPETITIVE_TEMPERATURE = 1.0635626456560392
+FRIENDLY_INFORMATION_RATIO = 0.75185
+FRIENDLY_TEMPERATURE = 0.890607603114
+COMPETITIVE_TEMPERATURE = 1.05583721825
 
 CONFIDENCE = 0.95
 CONFIDENCE_Z = NormalDist().inv_cdf(CONFIDENCE)
@@ -254,6 +260,14 @@ class NetworkEloReplay:
             str(code): int(level)
             for code, level in metadata.get("tournament_levels", {}).items()
         }
+        self.tournament_registry = load_registry(
+            config / "tournament_classification.json"
+        )
+        validate_registry(self.tournament_registry)
+        evidence_path = config / "tournament_evidence.json"
+        self.tournament_evidence = read_evidence(
+            evidence_path if evidence_path.exists() else None
+        )
         self.teams = sorted({m.team1 for m in self.matches} | {m.team2 for m in self.matches})
         self.team_index = {team: index for index, team in enumerate(self.teams)}
         self.count = len(self.teams)
@@ -299,10 +313,20 @@ class NetworkEloReplay:
         return self.tournament_names.get(code, code)
 
     def level(self, tournament: str) -> int:
-        # Competitive levels share one state-update information ratio.
-        # Friendlies use the separately validated ratio below, and F is the
-        # source's friendly code.
+        # Source importance remains useful for display and tournament identity,
+        # but rating weight comes from the separate evidence registry.
         return self.levels.get(tournament, 0 if tournament == "F" else 1)
+
+    def is_friendly_match(self, match: Match) -> bool:
+        code = match.tournament
+        return runtime_is_friendly(
+            code,
+            match.date_text,
+            self.tournament_registry,
+            aliases=(self.tournament_name(code),),
+            level=self.level(code),
+            evidence=self.tournament_evidence.get(code),
+        )
 
     def active_indices(self, year: int, years: int) -> list[int]:
         return [
@@ -560,11 +584,12 @@ class NetworkEloReplay:
                     ),
                 )
                 level = self.level(match.tournament)
+                friendly = self.is_friendly_match(match)
                 network_probabilities = three_way_probabilities(
                     difference,
                     difference_variance,
                     match.year,
-                    friendly=level == 0,
+                    friendly=friendly,
                 )
                 pending.append({
                     "id": match_id, "match": match, "i": i, "j": j,
@@ -572,6 +597,7 @@ class NetworkEloReplay:
                     "pre_pair": pre_pair, "scale": scale,
                     "difference": difference, "expected": expected_score,
                     "variance": difference_variance, "level": level,
+                    "friendly": friendly,
                     "network": network_probabilities,
                 })
                 score_rows.append({
@@ -579,7 +605,7 @@ class NetworkEloReplay:
                     "goals1": match.score1, "goals2": match.score2,
                     "expected_score": expected_score,
                     "nfelo_probabilities": network_probabilities,
-                    "friendly": level == 0,
+                    "friendly": friendly,
                 })
 
             probabilities = self.forecast_layer.predict_day(score_rows)
@@ -618,7 +644,7 @@ class NetworkEloReplay:
             for item in pending:
                 match = item["match"]
                 weight = QUALITY_SCALE * goal_weight(match.margin, margin_environment)
-                if item["level"] == 0:
+                if item["friendly"]:
                     weight *= FRIENDLY_INFORMATION_RATIO
                 beta = math.log(10.0) * item["scale"] / 400.0
                 information = max(1e-8, item["expected"] * (1.0 - item["expected"]))
@@ -669,6 +695,8 @@ class NetworkEloReplay:
                     "sa": match.score1, "sb": match.score2,
                     "tc": match.tournament, "t": self.tournament_name(match.tournament),
                     "level": item["level"],
+                    "friendly": item["friendly"],
+                    "class": "friendly" if item["friendly"] else "competitive",
                     "venue": self.name(match.venue) if match.venue else self.name(match.team1),
                     "home": match.home_sign,
                     "p": item["probabilities"].tolist(),
@@ -696,7 +724,10 @@ class NetworkEloReplay:
                         "gf": gf, "ga": ga,
                         "result": "W" if gf > ga else "L" if gf < ga else "D",
                         "tournament": self.tournament_name(match.tournament),
-                        "level": item["level"], "venue": row["venue"],
+                        "level": item["level"],
+                        "friendly": item["friendly"],
+                        "class": "friendly" if item["friendly"] else "competitive",
+                        "venue": row["venue"],
                         "site": "N" if match.home_sign == 0 else (
                             "H" if (index == i and match.home_sign == 1)
                             or (index == j and match.home_sign == -1) else "A"
@@ -857,6 +888,13 @@ class NetworkEloReplay:
         if supplemental.exists():
             source_hash.update(supplemental.name.encode("utf-8"))
             source_hash.update(supplemental.read_bytes())
+        classification_path = self.config / "tournament_classification.json"
+        source_hash.update(classification_path.name.encode("utf-8"))
+        source_hash.update(classification_path.read_bytes())
+        evidence_path = self.config / "tournament_evidence.json"
+        if evidence_path.exists():
+            source_hash.update(evidence_path.name.encode("utf-8"))
+            source_hash.update(evidence_path.read_bytes())
 
         retrospective = self.finish_validation_score(self.validation_totals["final"])
         retrospective_network = self.finish_validation_score(
@@ -868,7 +906,7 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-20-friendly-information-0.63901",
+                "methodology_version": "2026-07-23-evidence-backed-friendly-0.75185",
                 "results_through": last_match.date_text,
                 "matches": len(self.matches),
                 "teams": self.count,
@@ -908,6 +946,14 @@ class NetworkEloReplay:
                     "competition_information_ratios": [
                         FRIENDLY_INFORMATION_RATIO, 1, 1, 1, 1
                     ],
+                    "class_information_ratios": {
+                        "friendly": FRIENDLY_INFORMATION_RATIO,
+                        "competitive": 1.0,
+                    },
+                    "classification_policy": (
+                        "evidence-backed friendly; uncertain and unknown competitive"
+                    ),
+                    "classification_registry": "config/tournament_classification.json",
                 },
                 "forecast_temperature": {
                     "friendly": FRIENDLY_TEMPERATURE,

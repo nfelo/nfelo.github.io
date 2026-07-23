@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "tournaments": {
+    "EXAMPLE": {
+      "status": "friendly",
+      "source_url": "https://official-organiser.example/competition",
+      "source_statement": "Official organiser explicitly describes every match in this edition as an international friendly.",
+      "effective_from": "2026-01-01",
+      "effective_to": "2026-12-31",
+      "reviewed_at": "2026-07-23"
+    }
+  }
+}

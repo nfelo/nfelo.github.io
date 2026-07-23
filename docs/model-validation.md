@@ -57,20 +57,33 @@ The audit did not support Dixon–Coles when log loss remained primary, a new
 global core fit, different competitive update ratios, or a retrospective
 replacement of the existing score-state release schedule.
 
-### Post-audit friendly-information sensitivity
+### Evidence-backed tournament classification and joint refit
 
-The audit grouped all competition classes when deciding whether to refit the
-core broadly. A subsequent one-dimensional study isolated the friendly
-state-update ratio while keeping every other released mechanic fixed. It
-replayed all 52,312 results through 19 July 2026 and scored 46,806 forecasts from
-1960 onward. The retrospective log-loss minimum was 0.63901, at 0.880236 versus
-0.880682 for ratio 1.00. A paired calendar-year bootstrap favoured the reduced
-ratio in 99.1% of samples, with a 95% improvement interval of
-0.000076–0.000853.
+The source importance level is no longer used as the friendly/competitive
+decision. A separate three-state registry classifies tournaments as friendly,
+competitive or uncertain. Only positive friendly evidence receives the reduced
+information ratio; uncertain and unknown competitions are operationally
+competitive. The complete historical map contains 19,829 friendly matches,
+29,910 competitive matches and 2,573 uncertain matches.
 
-The exact fifth decimal is a frozen release value, not a claim of equivalent
-statistical precision: nearby ratios from roughly 0.62 to 0.72 were practically
-close. Competitive classes remain at ratio 1.00.
+With uncertain competitions treated as competitive, the full 52,312-match
+replay scored 46,801 forecasts from 1960 through 11 July 2026. Jointly refitting
+the information ratio and network probability temperatures selected:
+
+| Parameter | Deployed value |
+| --- | ---: |
+| Friendly information ratio | 0.75185 |
+| Friendly network temperature | 0.890607603114 |
+| Competitive network temperature | 1.055837218250 |
+
+Network-only retrospective log loss was 0.881431526524, versus 0.881510253247
+at the former ratio under the same classification. With the previously
+deployed temperatures held fixed, the coefficient-only optimum was 0.75408.
+
+This is a full-sample retrospective deployment fit. It is reproducible to the
+fixed ledger and objective, but it is not a new nested out-of-period result.
+The original nested historical holdout remains the primary comparison against
+other rating systems.
 
 ### Core ablations
 
@@ -129,33 +142,27 @@ Tail mass is included before the visible 0–5 grid is truncated.
 
 ## Retrospective full-history replay
 
-Each build computes this diagnostic directly from stored pre-match rows through
-the fixed 11 July 2026 cutoff. On the 18 July 2026 source snapshot, the
-corrected deployment produced:
+Each build computes a final-layer diagnostic directly from stored pre-match rows
+through the fixed 11 July 2026 cutoff. Under the evidence-backed classification
+and deployed constants, the Python replay produced:
 
 | Diagnostic | Value |
 | --- | ---: |
-| Final-layer log loss | 0.880683 |
-| Network-only log loss | 0.882157 |
-| Final-layer Brier score | 0.518483 |
-| Final-layer ranked probability score | 0.172567 |
-| Most-likely outcome correct | 59.123% |
+| Final-layer log loss | 0.880131 |
+| Network-only log loss | 0.881476 |
+| Final-layer Brier score | 0.518235 |
+| Final-layer ranked probability score | 0.172468 |
+| Most-likely outcome correct | 59.110% |
 | Matches | 46,801 |
 
-These final constants were fitted using information extending beyond parts of
-the replay window. The figures are useful for component checks, but they are
-not nested out-of-sample estimates and must not replace 0.884219 as the
-headline comparative result.
+The 2026 annual calibration used 7,922 matches from 2018–2025 and produced draw
+log tilt 0.150873, friendly calibration power 0.916099, competitive calibration
+power 1.065485 and network pool weight 0.540597.
 
-### Integration note on the audit's 0.880568 result
-
-The audit evaluator reported 0.880568 for its strict-date boundary system. Its
-numeric day key grouped the 196 incomplete-date matches as if each synthetic
-date were known; one year-boundary representation could also collide. The
-written recommendation correctly says incomplete dates should remain
-sequential. The deployed implementation follows that written rule and computes
-its own retrospective value from the actual public replay. The audit number is
-retained as a component diagnostic, not copied into site output.
+These final constants and calibrations use information extending beyond parts
+of the replay window. The figures diagnose the deployed chronology and verify
+the implementation; they are not nested out-of-sample estimates and do not
+replace 0.884219 as the headline comparative result.
 
 ## Why one public rating was preserved
 

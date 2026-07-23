@@ -22,6 +22,12 @@ from model import (
     three_way_probabilities,
 )
 from forecast_layer import forecast_from_snapshot
+from tournament_classification import (
+    load_registry,
+    read_evidence,
+    runtime_is_friendly,
+    validate_registry,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -157,6 +163,8 @@ MODEL_VERIFICATION_MATCH_KEYS = (
     "sb",
     "tc",
     "level",
+    "friendly",
+    "class",
     "home",
     "p",
     "expected",
@@ -492,6 +500,7 @@ def annotate_ongoing_tournament_editions(
             str(fixture.get("tournament_code", "")),
             str(fixture.get("tournament_name", "")),
             1,
+            bool(fixture.get("friendly", False)),
         )
         if identity is None:
             continue
@@ -630,11 +639,19 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
     )
 
 
-def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
+def build_fixtures(
+    source: Path,
+    config: Path,
+    output: Any,
+) -> dict[str, Any]:
     path = source / "upcoming_fixtures.json"
     if not path.exists():
         return {"checked_at": None, "source": None, "fixtures": []}
     payload = json.loads(path.read_text(encoding="utf-8"))
+    registry = load_registry(config / "tournament_classification.json")
+    validate_registry(registry)
+    evidence_path = config / "tournament_evidence.json"
+    evidence = read_evidence(evidence_path if evidence_path.exists() else None)
     state = output.state
     index = {code: position for position, code in enumerate(state["codes"])}
     count = len(state["codes"])
@@ -664,11 +681,20 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
                 - 2.0 * covariance[i * count + j]
             ),
         )
+        tournament_code = str(fixture.get("tournament_code", ""))
+        friendly = runtime_is_friendly(
+            tournament_code,
+            str(fixture["date"]),
+            registry,
+            aliases=(str(fixture.get("tournament_name", "")),),
+            level=1,
+            evidence=evidence.get(tournament_code),
+        )
         network_probabilities = three_way_probabilities(
             difference,
             variance,
             year,
-            friendly=fixture.get("tournament_code") == "F",
+            friendly=friendly,
         )
         year_value, month_value, day_value = (
             int(value) for value in str(fixture["date"]).split("-")
@@ -681,13 +707,15 @@ def build_fixtures(source: Path, output: Any) -> dict[str, Any]:
             day=forecast_day,
             expected_score=float(logistic10(difference)),
             nfelo_probabilities=network_probabilities,
-            friendly=fixture.get("tournament_code") == "F",
+            friendly=friendly,
         )
         first_team = current[first]
         second_team = current[second]
         fixtures.append(
             {
                 **fixture,
+                "friendly": friendly,
+                "class": "friendly" if friendly else "competitive",
                 "team1_name": first_team["nation"],
                 "team2_name": second_team["nation"],
                 "rating1": first_team["rating"],
@@ -1036,13 +1064,14 @@ def tournament_identity(
     tournament_code: str,
     competition: str,
     level: int,
+    friendly: bool = False,
 ) -> tuple[str, str] | None:
     # Return a category and family without merging unrelated events.
     source_code = str(tournament_code or "").strip().upper()
     name = re.sub(r"\s+", " ", str(competition or "")).strip()
     folded = folded_competition(name)
 
-    if not name or level <= 0:
+    if not name or friendly or level <= 0:
         return None
 
 
@@ -1314,6 +1343,7 @@ def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
             str(match.get("tc", "")),
             str(match.get("t", "")),
             int(match.get("level", 0)),
+            bool(match.get("friendly", False)),
         )
         if identity is None:
             continue
@@ -1883,7 +1913,7 @@ def main() -> None:
     build_ranking_movements(output)
     write_json(data / "summary.json", output.summary)
     write_json(data / "state.json", output.state)
-    fixtures = build_fixtures(args.source, output)
+    fixtures = build_fixtures(args.source, args.config, output)
     annotate_ongoing_tournament_editions(
         data / "tournaments" / "index.json",
         fixtures,
@@ -1922,7 +1952,10 @@ def main() -> None:
                 "id": match["id"], "date": match["date"], "year": match["year"],
                 "a": match["a"], "b": match["b"], "an": match["an"], "bn": match["bn"],
                 "ac": match["ac"], "bc": match["bc"], "t": match["t"],
-                "level": match["level"], "decade": int(match["year"]) // 10 * 10,
+                "level": match["level"],
+                "friendly": match["friendly"],
+                "class": match["class"],
+                "decade": int(match["year"]) // 10 * 10,
             }
             for match in output.matches
         ]
