@@ -1,0 +1,587 @@
+name: Fix friendly deployment follow-up
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix-friendly-deployment-follow-up
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Protect workflow files and prospective forecasts
+        shell: bash
+        run: |
+          set -euo pipefail
+          find .github/workflows -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
+            > /tmp/workflows.sha256
+          cp source/prospective_forecasts.jsonl \
+            /tmp/prospective_forecasts.jsonl
+
+      - name: Apply follow-up corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/fix-friendly-followup.py <<'PY'
+          #!/usr/bin/env python3
+          from __future__ import annotations
+
+          from pathlib import Path
+
+          ROOT = Path(".")
+
+
+          def read(path: str) -> str:
+              return (ROOT / path).read_text(encoding="utf-8")
+
+
+          def write(path: str, value: str) -> None:
+              (ROOT / path).write_text(value, encoding="utf-8", newline="\n")
+
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              value = read(path)
+              count = value.count(old)
+              if count != 1:
+                  raise RuntimeError(
+                      f"{path}: expected one occurrence, found {count}: "
+                      f"{old[:120]!r}"
+                  )
+              write(path, value.replace(old, new, 1))
+
+
+          # Publish exact deployment strings without relying on JSON float compaction.
+          replace_once(
+              "scripts/model.py",
+              '''                    "friendly_information_ratio": FRIENDLY_INFORMATION_RATIO,
+                              "competition_information_ratios": [
+          ''',
+              '''                    "friendly_information_ratio": FRIENDLY_INFORMATION_RATIO,
+                              "friendly_information_ratio_exact": (
+                                  f"{FRIENDLY_INFORMATION_RATIO:.5f}"
+                              ),
+                              "competition_information_ratios": [
+          ''',
+          )
+          replace_once(
+              "scripts/model.py",
+              '''                "forecast_temperature": {
+                              "friendly": FRIENDLY_TEMPERATURE,
+                              "competitive": COMPETITIVE_TEMPERATURE,
+                          },
+                          "forecast_layer": self.forecast_layer.public_parameters(),
+          ''',
+              '''                "forecast_temperature": {
+                              "friendly": FRIENDLY_TEMPERATURE,
+                              "competitive": COMPETITIVE_TEMPERATURE,
+                          },
+                          "forecast_temperature_exact": {
+                              "friendly": f"{FRIENDLY_TEMPERATURE:.12f}",
+                              "competitive": f"{COMPETITIVE_TEMPERATURE:.12f}",
+                          },
+                          "forecast_layer": self.forecast_layer.public_parameters(),
+          ''',
+          )
+
+          # Current No. 1 spells continue through the build date, not the last result.
+          replace_once(
+              "scripts/build_site.py",
+              '''    for spell in number_ones:
+                  effective_end = spell["to"] or last_date
+                  spell["days"] = (
+                      date.fromisoformat(effective_end) - date.fromisoformat(spell["from"])
+                  ).days + 1
+          ''',
+              '''    number_one_as_of = max(
+                  date.today(),
+                  date.fromisoformat(last_date),
+              ).isoformat()
+              for spell in number_ones:
+                  effective_end = spell["to"] or number_one_as_of
+                  spell["days"] = (
+                      date.fromisoformat(effective_end)
+                      - date.fromisoformat(spell["from"])
+                  ).days + 1
+          ''',
+          )
+          replace_once(
+              "scripts/build_site.py",
+              '''            "latest": spell["to"] or last_date,
+          ''',
+              '''            "latest": spell["to"] or number_one_as_of,
+          ''',
+          )
+          replace_once(
+              "scripts/build_site.py",
+              '''        row["latest"] = max(row["latest"], spell["to"] or last_date)
+          ''',
+              '''        row["latest"] = max(
+                      row["latest"],
+                      spell["to"] or number_one_as_of,
+                  )
+          ''',
+          )
+
+          # Methodology uses exact values. The FAQ keeps its requested rounded title.
+          replace_once(
+              "public/assets/app.js",
+              '''            <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes about 75.2% of the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
+          ''',
+              '''            <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes exactly ${p.network.friendly_information_ratio_exact} times the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''        <p>This construction preserves <code>W + D/2 = E</code>. The strength difference here is the latent opponent-network difference, <b>not the difference between the two displayed ratings</b>. NFELO integrates W/D/L over <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature, then raises the probabilities to power <b>${number(p.forecast_temperature.friendly, 4)}</b> for friendlies or <b>${number(p.forecast_temperature.competitive, 4)}</b> for competitive matches and renormalises.</p>
+          ''',
+              '''        <p>This construction preserves <code>W + D/2 = E</code>. The strength difference here is the latent opponent-network difference, <b>not the difference between the two displayed ratings</b>. NFELO integrates W/D/L over <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature, then raises the probabilities to power <b>${p.forecast_temperature_exact.friendly}</b> for friendlies or <b>${p.forecast_temperature_exact.competitive}</b> for competitive matches and renormalises.</p>
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code> and <code>βₖ=a(y)ln(10)/400</code>. The class ratio is 75.2% for an evidence-backed friendly or 1 for a competitive or unresolved match. The exact deployed value and complete matchday update are:</p>
+          ''',
+              '''        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code> and <code>βₖ=a(y)ln(10)/400</code>. The class ratio is exactly <b>${p.network.friendly_information_ratio_exact}</b> for an evidence-backed friendly or 1 for a competitive or unresolved match. The complete matchday update is:</p>
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''        <h3>Why friendlies use 75.2%</h3>
+                  <p>Tournament importance and match class are separate. The registry marks only evidence-backed exhibitions and preparation events as friendly; every uncertain or unknown competition remains competitive for rating weight. A full ${number(52312)}-match replay jointly refitted the friendly ratio and the two network probability temperatures while scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The resulting retrospective deployment value is 75.2%; the exact implementation constant appears only in the formula box above. This is a reproducible full-sample fit, not a claim of equivalent statistical certainty or a replacement for the nested historical holdout.</p>
+          ''',
+              '''        <h3>Why friendlies use ${p.network.friendly_information_ratio_exact}</h3>
+                  <p>Tournament importance and match class are separate. The registry marks only evidence-backed exhibitions and preparation events as friendly; every uncertain or unknown competition remains competitive for rating weight. A full ${number(52312)}-match replay jointly refitted the friendly ratio and the two network probability temperatures while scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The deployed values are information ratio <b>${p.network.friendly_information_ratio_exact}</b>, friendly network temperature <b>${p.forecast_temperature_exact.friendly}</b> and competitive network temperature <b>${p.forecast_temperature_exact.competitive}</b>. This is a reproducible full-sample fit, not a claim of equivalent statistical certainty or a replacement for the nested historical holdout.</p>
+          ''',
+          )
+
+          # Public match and fixture tools follow the registry-derived class flag.
+          replace_once(
+              "public/assets/app.js",
+              '''        if (cls === "friendly" && match.level !== 0) return false;
+                  if (cls === "competitive" && match.level === 0) return false;
+          ''',
+              '''        if (cls === "friendly" && !match.friendly) return false;
+                  if (cls === "competitive" && match.friendly) return false;
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''          Number(match.level) === 0
+                      ? "friendly"
+                      : "competitive",
+          ''',
+              '''          match.friendly
+                      ? "friendly"
+                      : "competitive",
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''        Number(match.level) === 0
+                    ? "friendly"
+                    : "competitive"
+          ''',
+              '''        match.friendly
+                    ? "friendly"
+                    : "competitive"
+          ''',
+          )
+          replace_once(
+              "public/assets/app.js",
+              '''        fixture.tournament_code === "F"
+                    ? "friendly"
+                    : "competitive"
+          ''',
+              '''        fixture.friendly
+                    ? "friendly"
+                    : "competitive"
+          ''',
+          )
+
+          # README describes the standalone audit command, not a required workflow.
+          replace_once(
+              "README.md",
+              '''classified automatically; ambiguous codes remain safely competitive and are
+          listed by the audit workflow.
+          ''',
+              '''classified automatically; ambiguous codes remain safely competitive and are
+          listed by the standalone tournament-classification audit command.
+          ''',
+          )
+
+          # Update the previous public-copy assertions.
+          replace_once(
+              "tests/test_build.py",
+              '''            "Why friendlies use 75.2%",
+                      "number(p.network.friendly_information_ratio, 5)",
+          ''',
+              '''            "Why friendlies use ${p.network.friendly_information_ratio_exact}",
+                      "p.forecast_temperature_exact.friendly",
+                      "p.forecast_temperature_exact.competitive",
+          ''',
+          )
+          replace_once(
+              "tests/test_build.py",
+              '''        self.assertNotIn("0.75185", javascript)
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+          ''',
+              '''        self.assertIn(
+                      '${p.network.friendly_information_ratio_exact}',
+                      javascript,
+                  )
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+          ''',
+          )
+
+          replace_once(
+              "tests/test_tournament_classification.py",
+              '''import json
+          from pathlib import Path
+          ''',
+              '''import json
+          from datetime import date
+          from pathlib import Path
+          ''',
+          )
+          replace_once(
+              "tests/test_tournament_classification.py",
+              '''        self.assertNotIn("0.75185", javascript)
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+
+
+          if __name__ == "__main__":
+          ''',
+              '''        self.assertIn(
+                      '${p.network.friendly_information_ratio_exact}',
+                      javascript,
+                  )
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+
+              def test_methodology_uses_exact_deployment_values(self) -> None:
+                  summary = json.loads(
+                      (ROOT / "public" / "data" / "summary.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  self.assertEqual(
+                      summary["parameters"]["network"]
+                      ["friendly_information_ratio_exact"],
+                      "0.75185",
+                  )
+                  self.assertEqual(
+                      summary["parameters"]["forecast_temperature_exact"],
+                      {
+                          "friendly": "0.890607603114",
+                          "competitive": "1.055837218250",
+                      },
+                  )
+
+              def test_friendly_events_are_absent_from_tournament_records(self) -> None:
+                  registry = load_registry(
+                      ROOT / "config" / "tournament_classification.json"
+                  )
+                  friendly_codes = {
+                      code
+                      for code, entry in registry["tournaments"].items()
+                      if entry["operational_class"] == "friendly"
+                  }
+                  catalog = json.loads(
+                      (
+                          ROOT / "public" / "data" / "tournaments" / "index.json"
+                      ).read_text(encoding="utf-8")
+                  )
+                  catalog_codes = {
+                      code
+                      for family in catalog["families"]
+                      for code in family.get("source_codes", [])
+                  }
+                  self.assertFalse(friendly_codes & catalog_codes)
+                  summary = json.loads(
+                      (ROOT / "public" / "data" / "summary.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  family_ids = {
+                      family["id"] for family in catalog["families"]
+                  }
+                  self.assertTrue(
+                      all(
+                          row["tournament_id"] in family_ids
+                          for row in summary["best_tournaments"]
+                      )
+                  )
+
+              def test_current_number_one_days_include_today(self) -> None:
+                  summary = json.loads(
+                      (ROOT / "public" / "data" / "summary.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  current = next(
+                      spell for spell in summary["number_ones"]
+                      if spell["to"] is None
+                  )
+                  as_of = max(
+                      date.today(),
+                      date.fromisoformat(summary["meta"]["results_through"]),
+                  )
+                  expected = (
+                      as_of - date.fromisoformat(current["from"])
+                  ).days + 1
+                  self.assertEqual(current["days"], expected)
+                  total = next(
+                      row for row in summary["number_one_summary"]
+                      if row["code"] == current["code"]
+                  )
+                  self.assertEqual(total["latest"], as_of.isoformat())
+                  self.assertEqual(
+                      total["days"],
+                      sum(
+                          spell["days"]
+                          for spell in summary["number_ones"]
+                          if spell["code"] == current["code"]
+                      ),
+                  )
+
+              def test_public_class_tools_use_registry_flag(self) -> None:
+                  javascript = (
+                      ROOT / "public" / "assets" / "app.js"
+                  ).read_text(encoding="utf-8")
+                  self.assertIn(
+                      'if (cls === "friendly" && !match.friendly)',
+                      javascript,
+                  )
+                  self.assertIn(
+                      'if (cls === "competitive" && match.friendly)',
+                      javascript,
+                  )
+                  self.assertNotIn("match.level !== 0", javascript)
+                  self.assertNotIn("match.level === 0", javascript)
+                  self.assertNotIn(
+                      'fixture.tournament_code === "F"',
+                      javascript,
+                  )
+
+
+          if __name__ == "__main__":
+          ''',
+          )
+
+          # Static assertions before the expensive replay.
+          model = read("scripts/model.py")
+          builder = read("scripts/build_site.py")
+          app = read("public/assets/app.js")
+          for value in (
+              "FRIENDLY_INFORMATION_RATIO = 0.75185",
+              "FRIENDLY_TEMPERATURE = 0.890607603114",
+              "COMPETITIVE_TEMPERATURE = 1.05583721825",
+              "friendly_information_ratio_exact",
+              "forecast_temperature_exact",
+          ):
+              if value not in model:
+                  raise RuntimeError(f"Model value missing: {value}")
+          for value in ("number_one_as_of", 'spell["to"] or number_one_as_of'):
+              if value not in builder:
+                  raise RuntimeError(f"No. 1 duration fix missing: {value}")
+          for value in (
+              "p.network.friendly_information_ratio_exact",
+              "p.forecast_temperature_exact.friendly",
+              "p.forecast_temperature_exact.competitive",
+              'if (cls === "friendly" && !match.friendly)',
+              "fixture.friendly",
+          ):
+              if value not in app:
+                  raise RuntimeError(f"Public integration missing: {value}")
+          if 'fixture.tournament_code === "F"' in app:
+              raise RuntimeError("Fixture links still use the old friendly-code test.")
+
+          PY
+          python /tmp/fix-friendly-followup.py
+
+      - name: Rebuild complete site
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Verify all corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+          python scripts/audit_site_consistency.py \
+            --public public
+
+          python - <<'PY'
+          from datetime import date
+          import json
+          from pathlib import Path
+
+          root = Path(".")
+          summary = json.loads(
+              (root / "public/data/summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          app = (root / "public/assets/app.js").read_text(
+              encoding="utf-8"
+          )
+          registry = json.loads(
+              (root / "config/tournament_classification.json")
+              .read_text(encoding="utf-8")
+          )
+          catalog = json.loads(
+              (root / "public/data/tournaments/index.json")
+              .read_text(encoding="utf-8")
+          )
+
+          assert summary["meta"]["methodology_version"] == (
+              "2026-07-23-evidence-backed-friendly-0.75185"
+          )
+          network = summary["parameters"]["network"]
+          assert network["friendly_information_ratio"] == 0.75185
+          assert network["friendly_information_ratio_exact"] == "0.75185"
+          assert summary["parameters"]["forecast_temperature_exact"] == {
+              "friendly": "0.890607603114",
+              "competitive": "1.055837218250",
+          }
+
+          friendly_codes = {
+              code
+              for code, entry in registry["tournaments"].items()
+              if entry["operational_class"] == "friendly"
+          }
+          catalog_codes = {
+              code
+              for family in catalog["families"]
+              for code in family.get("source_codes", [])
+          }
+          assert not (friendly_codes & catalog_codes)
+          family_ids = {family["id"] for family in catalog["families"]}
+          assert all(
+              row["tournament_id"] in family_ids
+              for row in summary["best_tournaments"]
+          )
+
+          current = next(
+              spell for spell in summary["number_ones"]
+              if spell["to"] is None
+          )
+          as_of = max(
+              date.today(),
+              date.fromisoformat(summary["meta"]["results_through"]),
+          )
+          expected_days = (
+              as_of - date.fromisoformat(current["from"])
+          ).days + 1
+          assert current["days"] == expected_days
+          total = next(
+              row for row in summary["number_one_summary"]
+              if row["code"] == current["code"]
+          )
+          assert total["latest"] == as_of.isoformat()
+          assert total["days"] == sum(
+              spell["days"]
+              for spell in summary["number_ones"]
+              if spell["code"] == current["code"]
+          )
+
+          assert (
+              "Why is a friendly’s rating change not always "
+              "75.2% of a competitive match?"
+          ) in app
+          assert "p.network.friendly_information_ratio_exact" in app
+          assert "p.forecast_temperature_exact.friendly" in app
+          assert "p.forecast_temperature_exact.competitive" in app
+          assert 'fixture.tournament_code === "F"' not in app
+          assert "match.level !== 0" not in app
+          assert "match.level === 0" not in app
+          PY
+
+      - name: Restore prospective ledger and protect workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/prospective_forecasts.jsonl \
+            source/prospective_forecasts.jsonl
+          sha256sum --check /tmp/workflows.sha256
+          git diff --quiet -- .github/workflows
+          git diff --cached --quiet -- .github/workflows
+
+      - name: Commit correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            README.md \
+            scripts/model.py \
+            scripts/build_site.py \
+            public/assets/app.js \
+            tests/test_build.py \
+            tests/test_tournament_classification.py
+
+          if ! git diff --quiet -- .github/workflows \
+            || ! git diff --cached --quiet -- .github/workflows; then
+            echo "::error::A workflow file changed unexpectedly."
+            git status --short -- .github/workflows
+            exit 1
+          fi
+
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No correction changes to commit."
+            exit 0
+          fi
+          git commit -m \
+            "Fix friendly metadata and No. 1 day counts"
+          git push origin HEAD:main
