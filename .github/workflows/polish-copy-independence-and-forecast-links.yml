@@ -1,4 +1,4 @@
-name: Polish copy and fix friendly forecasts v4
+name: Polish copy and fix friendly forecasts v5
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: polish-copy-independence-and-forecast-links-v4
+  group: polish-copy-independence-and-forecast-links-v5
   cancel-in-progress: false
 
 jobs:
@@ -839,10 +839,15 @@ jobs:
                       "date: previousISODate(match.date)",
                       javascript,
                   )
+                  normalized_javascript = " ".join(
+                      javascript.split()
+                  )
                   self.assertNotIn(
-                      "date: todayISO(),\n"
-                      "      first: fixture.team1_code",
-                      javascript,
+                      (
+                          "date: todayISO(), "
+                          "first: fixture.team1_code"
+                      ),
+                      normalized_javascript,
                   )
           ''',
           )
@@ -1092,6 +1097,18 @@ jobs:
           ):
               if forbidden in readme:
                   raise RuntimeError(f"Patch-note README copy remains: {forbidden}")
+
+          # Compile modified tests before the model replay. This catches any
+          # generated quoting or indentation error at the patching step.
+          for test_path in (
+              "tests/test_build.py",
+              "tests/test_tournament_classification.py",
+          ):
+              compile(
+                  read(test_path),
+                  test_path,
+                  "exec",
+              )
 
           PY
           python - <<'PY'
