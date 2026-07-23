@@ -1,4 +1,4 @@
-name: Polish copy and fix friendly forecasts v5
+name: Polish copy and fix friendly forecasts v6
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: polish-copy-independence-and-forecast-links-v5
+  group: polish-copy-independence-and-forecast-links-v6
   cancel-in-progress: false
 
 jobs:
@@ -871,6 +871,16 @@ jobs:
           ''',
           )
 
+          replace_once(
+              test_build,
+              '''            "What do the Tournaments and Best tournaments pages show?",
+                      "Current and historical rankings, tournament snapshots",
+          ''',
+              '''            "How is the methodology tested?",
+                      "Current and historical rankings, tournament snapshots",
+          ''',
+          )
+
           classification_test = "tests/test_tournament_classification.py"
           replace_all(classification_test, "0.75185", "0.76064")
           replace_all(
@@ -1055,12 +1065,37 @@ jobs:
               '"date: match.date"',
               '"date: fixture.date"',
               '\'route.query.get("match")\'',
+              '"How is the methodology tested?"',
           ):
               if required_test not in build_tests:
                   raise RuntimeError(
-                      "Updated probability-link test is missing: "
-                      f"{required_test}"
+                      "Updated public-copy or probability-link test "
+                      f"is missing: {required_test}"
                   )
+
+          removed_tournament_question = (
+              "What do the Tournaments and Best tournaments "
+              "pages show?"
+          )
+          if build_tests.count(removed_tournament_question) != 1:
+              raise RuntimeError(
+                  "Expected the removed tournament FAQ question only "
+                  "inside its assertNotIn regression check; found "
+                  f"{build_tests.count(removed_tournament_question)} "
+                  "occurrences."
+              )
+          expected_negative_check = (
+              'self.assertNotIn(\n'
+              '            "What do the Tournaments and Best tournaments '
+              'pages show?",\n'
+              '            javascript,\n'
+              '        )'
+          )
+          if expected_negative_check not in build_tests:
+              raise RuntimeError(
+                  "The removed tournament FAQ question is not protected "
+                  "by the expected assertNotIn check."
+              )
 
           for required in (
               "FRIENDLY_INFORMATION_RATIO = 0.76064",
