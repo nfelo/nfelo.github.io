@@ -15,7 +15,7 @@ evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.
 
-**Current methodology version:** `2026-07-23-evidence-backed-friendly-0.75185`.
+**Current methodology version:** `2026-07-23-evidence-backed-friendly-0.76064`.
 
 Tournament snapshots use the same published rating immediately before and after each completed edition. Tournament rating change and Best tournaments include only published movement from that edition's matchdays, excluding annual recalibration and unrelated results. Successor lineages are grouped under the current canonical name while historical tournament names remain visible as aliases.
 
@@ -23,7 +23,7 @@ The rating state is a full-covariance dynamic Gaussian opponent network. The
 base-10 Elo expectation remains the observation link, while the model also
 represents uncertainty shared through common opponents, era-specific home and
 draw conditions, an active-pool debut prior and goal-margin information.
-Competitive and unresolved results use information ratio 1.00; evidence-backed friendlies use 0.75185.
+Competitive and unresolved results use information ratio 1.00; evidence-backed friendlies use 0.76064.
 
 Every match with a complete shared date is forecast from one frozen start-of-day
 state. Same-date debutants receive the same pre-date pool prior, and all results
@@ -76,57 +76,50 @@ outcome. The exact-score table is then raked so its win, draw and loss regions
 sum to the displayed final probabilities; omitted scorelines above 5–5 remain
 in the reported tail mass.
 
-The 0.75185 friendly multiplier applies to the opponent-network update before
+The 0.76064 friendly multiplier applies to the opponent-network update before
 the joint matchday calculation. It scales both gradient and curvature, so a
-friendly's displayed point movement is not mechanically 75.2% of an otherwise
+friendly's displayed point movement is not mechanically 76.1% of an otherwise
 similar competitive match.
 
-## What the 19 July 2026 audit changed
+## Chronology and publication safeguards
 
-The audit supported the existing core constants and did not justify a broad
-parameter refit. This release adopts the findings that improve chronology,
-probability consistency and publication quality without replacing the public
-rating:
+Every match on a complete date is forecast from the same frozen start-of-day
+state. Same-date debutants receive the same prior, and all results from that
+date enter one joint, order-invariant update. The attack and defence state is
+also held fixed until every forecast for the date has been stored.
 
-- complete-date forecasts and score states are frozen at the start of the day;
-- same-date network evidence is learned jointly and is row-order invariant;
-- the probability gate retains the maximum safe score correction instead of
-  reverting the whole vector;
-- exact-score probabilities agree with the displayed W/D/L forecast;
-- first-published future forecasts are appended to a versioned prospective
-  ledger;
-- validation evidence is labelled by design; and
-- tests cover date order, covariance validity, probability symmetry, score-grid
-  reconciliation and historical peak guardrails.
+The probability layer keeps the largest score-based correction that does not
+change the network model's most likely outcome. Exact-score probabilities are
+then reconciled with the displayed win, draw and loss vector. First-published
+future forecasts are stored by methodology version so later evaluation can use
+probabilities recorded before the result was known.
 
-The audit's proposal to publish raw posterior-mean strength as the main ranking
-was not adopted. That signal predicted near-term results well, but it does not
-serve NFELO's cross-era record objective: cancelling common uncertainty made
-pre-First World War British football implausibly dominate the all-time table.
-The established evidence-adjusted rating remains the sole public measure.
+NFELO publishes one evidence-adjusted rating for rankings, records and
+historical comparisons. The latent network mean remains part of the forecast
+calculation rather than appearing as a competing public table.
 
-## Tournament classification and friendly-information study
+## Tournament classification and friendly information
 
-Tournament importance and match class are now separate. The historical registry
-marks 114 codes covering 19,829 matches as evidence-backed friendlies, 236 codes
-covering 29,910 matches as competitive and 310 codes covering 2,573 matches as
-uncertain. Uncertain and unknown competitions are treated as competitive for
-rating updates. New codes with decisive official or friendly naming are
-classified automatically; ambiguous codes remain safely competitive and are
-listed by the standalone tournament-classification audit command.
+Tournament importance and match class are separate. The historical registry
+contains 116 friendly codes covering 20,688 matches, 236 competitive codes
+covering 29,910 matches and 308 uncertain codes covering 1,714 matches.
+Uncertain and unknown competitions use the competitive information weight.
 
-With that fixed classification, the full 52,312-match replay jointly refitted
-the friendly information ratio and the two network probability temperatures.
-Scoring 46,801 forecasts from 1960 through 11 July 2026 produced a numerical
-minimum at ratio `0.75185`, friendly temperature `0.890607603114` and competitive
-temperature `1.055837218250`. Network-only retrospective log loss was
-`0.881431526524`, compared with `0.881510253247` at the former ratio under the
-same reclassification. Holding the old temperatures fixed gives a coefficient-
-only optimum of `0.75408`.
+The friendly class includes the source's Independence Tournament and Merdeka
+Tournament codes. The underlying series appear in RSSSF's international
+friendly-tournament archive, and the AFC categorises the modern Merdeka
+Tournament under International Friendlies.
 
-These are full-sample retrospective deployment constants, not a claim of
-five-decimal population certainty. Classification evidence, future results and
-prospective scoring can move the preferred value.
+Under this classification, the full 52,312-match replay jointly fitted:
+
+- friendly information ratio `0.76064`;
+- friendly network temperature `0.890357703717`; and
+- competitive network temperature `1.060042606190`.
+
+The scoring period contains 46,801 forecasts from 1960 through 11 July 2026,
+including 17,724 friendlies. The network-only log-loss minimum is
+`0.881383694951`. These are reproducible full-sample constants for the fixed
+ledger and objective, not claims of equivalent population precision.
 
 ## Validation: two different evidence classes
 
@@ -150,7 +143,7 @@ useful for checking date batching, the boundary gate and other mechanics, but
 it is not a second out-of-sample estimate and must not be compared as if it were
 the same experiment as the nested holdout.
 
-From this release onward, first-published fixture probabilities are stored in
+First-published fixture probabilities are stored in
 `source/prospective_forecasts.jsonl` by methodology version, source hash,
 model-state hash and results-through date. That ledger supplies genuinely
 prospective evidence as matches are completed.

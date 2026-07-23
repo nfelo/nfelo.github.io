@@ -72,6 +72,22 @@ class RuleTests(unittest.TestCase):
             aliases=("Summer Invitational Tournament",), level=1,
         ))
 
+    def test_future_independence_tournament_is_friendly(self) -> None:
+        decision = classify_candidate(
+            "NEW",
+            ["National Independence Tournament"],
+            1,
+        )
+        self.assertEqual(decision.status, "friendly")
+
+    def test_future_merdeka_tournament_is_friendly(self) -> None:
+        decision = classify_candidate(
+            "NEW",
+            ["Merdeka Tournament"],
+            1,
+        )
+        self.assertEqual(decision.status, "friendly")
+
     def test_runtime_ambiguous_future_code_is_competitive(self) -> None:
         self.assertFalse(runtime_is_friendly(
             "NEW", "2030-06-01", {"tournaments": {}},
@@ -162,12 +178,24 @@ class RegistryTests(unittest.TestCase):
         fit = self.registry["fit"]
         self.assertEqual(
             fit["primary_joint_refit"]["ratio"],
-            0.75185,
+            0.76064,
         )
         self.assertEqual(
-            fit["coefficient_only_current_temperatures"]["ratio"],
-            0.75408,
+            fit["primary_joint_refit"]["friendly_matches"],
+            17724,
         )
+
+    def test_independence_codes_are_friendly(self) -> None:
+        tournaments = self.registry["tournaments"]
+        for code in ("IND", "MRD"):
+            self.assertEqual(
+                tournaments[code]["status"],
+                "friendly",
+            )
+            self.assertEqual(
+                tournaments[code]["operational_class"],
+                "friendly",
+            )
 
 
 class PublicCopyTests(unittest.TestCase):
@@ -175,7 +203,7 @@ class PublicCopyTests(unittest.TestCase):
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         self.assertIn(
             "Why is a friendly’s rating change not always "
-            "75.2% of a competitive match?",
+            "76.1% of a competitive match?",
             javascript,
         )
         self.assertNotIn("63.901%", javascript)
@@ -199,13 +227,13 @@ class PublicCopyTests(unittest.TestCase):
         self.assertEqual(
             summary["parameters"]["network"]
             ["friendly_information_ratio_exact"],
-            "0.75185",
+            "0.76064",
         )
         self.assertEqual(
             summary["parameters"]["forecast_temperature_exact"],
             {
-                "friendly": "0.890607603114",
-                "competitive": "1.055837218250",
+                "friendly": "0.890357703717",
+                "competitive": "1.060042606190",
             },
         )
 
@@ -292,6 +320,73 @@ class PublicCopyTests(unittest.TestCase):
         self.assertNotIn("match.level === 0", javascript)
         self.assertNotIn(
             'fixture.tournament_code === "F"',
+            javascript,
+        )
+
+    def test_public_copy_has_a_timeless_voice(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn(
+            "What do the Tournaments and Best tournaments pages show?",
+            javascript,
+        )
+        self.assertIn(
+            "How is the methodology tested?",
+            javascript,
+        )
+        for phrase in (
+            "Tournament class was subsequently separated",
+            "The current attack/defence layer",
+            "while the full grid now sums",
+        ):
+            self.assertNotIn(phrase, javascript)
+        for phrase in (
+            "What the 19 July 2026 audit changed",
+            "This release adopts",
+            "From this release onward",
+            "are now separate",
+        ):
+            self.assertNotIn(phrase, readme)
+
+    def test_probability_links_preserve_the_displayed_forecast(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "matchId: match.id",
+            "probabilities = linkedMatch.p.map(Number)",
+            "date: fixture.date",
+            "maximumPredictionDate",
+        ):
+            self.assertIn(phrase, javascript)
+
+        # Formatting is intentionally multiline in app.js. Collapse
+        # whitespace before checking the two start-of-day ternaries.
+        normalized = " ".join(javascript.split())
+        self.assertIn(
+            (
+                "beforeDate ? event.date < dateValue "
+                ": event.date <= dateValue"
+            ),
+            normalized,
+        )
+        self.assertIn(
+            (
+                "beforeDate ? item.date < dateValue "
+                ": item.date <= dateValue"
+            ),
+            normalized,
+        )
+        self.assertNotIn(
+            "date: previousISODate(match.date)",
+            javascript,
+        )
+        self.assertNotIn(
+            "date: todayISO(),\n      first: fixture.team1_code",
             javascript,
         )
 

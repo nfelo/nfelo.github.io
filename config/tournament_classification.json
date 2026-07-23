@@ -1,46 +1,26 @@
 {
   "fit": {
-    "coefficient_only_current_temperatures": {
+    "comparison_previous_deployed_ratio": {
       "accuracy": 0.591162581996,
-      "brier": 0.519046035026,
-      "competitive_temperature": 1.0635626456560392,
-      "friendly_temperature": 0.9697407083655329,
-      "log_loss": 0.881770229184,
+      "brier": 0.518762723619,
+      "competitive_temperature": 1.06003938124,
+      "friendly_temperature": 0.890335396628,
+      "log_loss": 0.881384414078,
       "matches": 46801,
-      "ratio": 0.75408,
-      "rps": 0.172691448607
-    },
-    "comparison_fixed_current_ratio": {
-      "accuracy": 0.590842076024,
-      "brier": 0.519148014245,
-      "competitive_temperature": 1.0635626456560392,
-      "friendly_temperature": 0.9697407083655329,
-      "log_loss": 0.881856896795,
-      "matches": 46801,
-      "ratio": 0.63901,
-      "rps": 0.172735671669
-    },
-    "comparison_joint_current_ratio": {
-      "accuracy": 0.590842076024,
-      "brier": 0.518874439253,
-      "competitive_temperature": 1.0553686268,
-      "friendly_temperature": 0.889804222701,
-      "log_loss": 0.881510253247,
-      "matches": 46801,
-      "ratio": 0.63901,
-      "rps": 0.172649103006
+      "ratio": 0.75185,
+      "rps": 0.172599228728
     },
     "complete_ledger_matches": 52312,
     "primary_joint_refit": {
-      "accuracy": 0.591141214931,
-      "brier": 0.518781837373,
-      "competitive_temperature": 1.05583721825,
-      "friendly_matches": 16907,
-      "friendly_temperature": 0.890607603114,
-      "log_loss": 0.881431526524,
+      "accuracy": 0.591098480802,
+      "brier": 0.518758489316,
+      "competitive_temperature": 1.06004260619,
+      "friendly_matches": 17724,
+      "friendly_temperature": 0.890357703717,
+      "log_loss": 0.881383694951,
       "matches": 46801,
-      "ratio": 0.75185,
-      "rps": 0.172608129915
+      "ratio": 0.76064,
+      "rps": 0.172597463088
     },
     "scoring_period": {
       "first_year": 1960,
@@ -49,7 +29,7 @@
     "state_initialisation_uses_pre_1960_matches": true
   },
   "generated_from_commit": "13eaaa3ceb57c5d5f0a0bb2fe262a4e929d62fd2",
-  "methodology_version": "2026-07-23-evidence-backed-friendly-0.75185",
+  "methodology_version": "2026-07-23-evidence-backed-friendly-0.76064",
   "policy": {
     "date_or_edition_overrides_supported": true,
     "friendly_requires_positive_evidence": true,
@@ -5696,18 +5676,19 @@
         "Independence Tourn",
         "Indep Tourn"
       ],
-      "basis": "level-1 named event without decisive evidence",
-      "confidence": "low",
+      "basis": "The source code groups commemorative Independence tournaments listed in RSSSF's International Country Results – Friendly Tournaments archive.",
+      "confidence": "high",
       "evidence": {
-        "secondary_exact_title": "independence tournament 1962 uganda"
+        "source_label": "RSSSF International Country Results – Friendly Tournaments",
+        "source_url": "https://www.rsssf.org/intland-friend.html"
       },
-      "evidence_type": "secondary_exact_title",
+      "evidence_type": "secondary_friendly_archive",
       "historical_match_count": 279,
       "name": "Independence Tournament",
       "official_structure": false,
-      "operational_class": "competitive",
+      "operational_class": "friendly",
       "overrides": [],
-      "status": "uncertain"
+      "status": "friendly"
     },
     "ING": {
       "aliases": [
@@ -6996,18 +6977,19 @@
         "Independence Tourn",
         "Indep Tourn"
       ],
-      "basis": "level-1 named event without decisive evidence",
-      "confidence": "low",
+      "basis": "The Merdeka Tournament is listed in the international friendly-tournament archive, and the AFC categorises the modern edition under International Friendlies.",
+      "confidence": "high",
       "evidence": {
-        "secondary_exact_title": "independence tournament 1962 uganda"
+        "source_label": "AFC International Friendlies – Merdeka Tournament",
+        "source_url": "https://www.the-afc.com/en/more/international_friendlies/news/malaysia_edge_lebanon_to_win_merdeka_tournament.html"
       },
-      "evidence_type": "secondary_exact_title",
+      "evidence_type": "official_and_secondary_friendly_evidence",
       "historical_match_count": 580,
       "name": "Independence Tournament",
       "official_structure": false,
-      "operational_class": "competitive",
+      "operational_class": "friendly",
       "overrides": [],
-      "status": "uncertain"
+      "status": "friendly"
     },
     "MRL": {
       "aliases": [

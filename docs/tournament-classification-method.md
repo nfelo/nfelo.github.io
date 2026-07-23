@@ -59,7 +59,11 @@ combines multiple competitions.
 
 A secondary historical index may support an exact-title historical
 entry, but it cannot override official competition evidence and must
-never be matched against undelimited page text.
+never be matched against undelimited page text. The Independence
+Tournament and Merdeka Tournament source codes are friendly because their
+underlying series are listed in the RSSSF friendly-tournament archive;
+the AFC also places the modern Merdeka edition under International
+Friendlies.
 
 ## Future competitions
 
@@ -80,18 +84,20 @@ organiser regulations or an explicit official description are preferred.
 
 ## Full-sample coefficient fit
 
-With every evidence-backed friendly code classified as friendly and
-every uncertain code operationally competitive:
+With every evidence-backed friendly code classified as friendly and every
+uncertain code operationally competitive:
 
 - complete ledger: 52,312 matches;
+- friendly matches: 20,688;
 - scored period: 46,801 matches from 1960 through 11 July 2026;
-- scored friendlies: 16,907;
-- coefficient and class temperatures jointly refitted:
-  **0.75185**;
-- coefficient-only fit with the currently deployed temperatures fixed:
-  **0.75408**.
+- scored friendlies: 17,724;
+- jointly fitted information ratio: **0.76064**;
+- friendly network temperature: **0.890357703717**;
+- competitive network temperature: **1.060042606190**.
 
-The five-decimal joint optimum is numerically precise for this fixed
-historical sample and objective. It is not a five-decimal estimate of
-the true population parameter; classification changes and future data
-can move it.
+Holding the previously deployed network temperatures fixed also selected
+`0.76064` to five decimals.
+
+The five-decimal optimum is numerically precise for this fixed historical
+sample and objective. It is not a five-decimal estimate of the true population
+parameter; classification evidence and future results can move it.

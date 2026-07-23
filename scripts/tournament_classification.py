@@ -86,6 +86,8 @@ FRIENDLY_SIGNAL_PATTERNS = (
     r"\bcommemorat(?:ion|ive)\b",
     r"\bcentenary\b",
     r"\bcentennial\b",
+    r"\bindependence (?:anniversary )?(?:tournament|cup|festival|celebration)\b",
+    r"\bmerdeka (?:tournament|cup|games)\b",
 )
 
 

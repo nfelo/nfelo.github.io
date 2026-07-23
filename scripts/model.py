@@ -58,9 +58,9 @@ ACTIVE_POOL_SLOPE = -84.24860586823341
 PRIOR_SD = 299.99999999999994
 DRIFT_SD = 19.750212594949737
 QUALITY_SCALE = 1.7440260583320362
-FRIENDLY_INFORMATION_RATIO = 0.75185
-FRIENDLY_TEMPERATURE = 0.890607603114
-COMPETITIVE_TEMPERATURE = 1.05583721825
+FRIENDLY_INFORMATION_RATIO = 0.76064
+FRIENDLY_TEMPERATURE = 0.890357703717
+COMPETITIVE_TEMPERATURE = 1.060042606190
 
 CONFIDENCE = 0.95
 CONFIDENCE_Z = NormalDist().inv_cdf(CONFIDENCE)
@@ -906,7 +906,7 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-23-evidence-backed-friendly-0.75185",
+                "methodology_version": "2026-07-23-evidence-backed-friendly-0.76064",
                 "results_through": last_match.date_text,
                 "matches": len(self.matches),
                 "teams": self.count,

@@ -57,33 +57,35 @@ The audit did not support Dixon–Coles when log loss remained primary, a new
 global core fit, different competitive update ratios, or a retrospective
 replacement of the existing score-state release schedule.
 
-### Evidence-backed tournament classification and joint refit
+### Tournament classification and friendly-information fit
 
-The source importance level is no longer used as the friendly/competitive
-decision. A separate three-state registry classifies tournaments as friendly,
-competitive or uncertain. Only positive friendly evidence receives the reduced
-information ratio; uncertain and unknown competitions are operationally
-competitive. The complete historical map contains 19,829 friendly matches,
-29,910 competitive matches and 2,573 uncertain matches.
+The friendly/competitive decision is separate from the source importance
+level. A three-state registry classifies tournaments as friendly, competitive
+or uncertain. Only positive friendly evidence receives the reduced information
+ratio; uncertain and unknown competitions are operationally competitive.
 
-With uncertain competitions treated as competitive, the full 52,312-match
-replay scored 46,801 forecasts from 1960 through 11 July 2026. Jointly refitting
-the information ratio and network probability temperatures selected:
+The historical map contains 20,688 friendly matches, 29,910 competitive
+matches and 1,714 uncertain matches. The Independence Tournament and Merdeka
+Tournament source codes are included as friendlies using the international
+friendly-tournament archive and AFC classification evidence.
 
-| Parameter | Deployed value |
+The full 52,312-match replay scored 46,801 forecasts from 1960 through
+11 July 2026. Joint fitting selected:
+
+| Parameter | Value |
 | --- | ---: |
-| Friendly information ratio | 0.75185 |
-| Friendly network temperature | 0.890607603114 |
-| Competitive network temperature | 1.055837218250 |
+| Friendly information ratio | 0.76064 |
+| Friendly network temperature | 0.890357703717 |
+| Competitive network temperature | 1.060042606190 |
 
-Network-only retrospective log loss was 0.881431526524, versus 0.881510253247
-at the former ratio under the same classification. With the previously
-deployed temperatures held fixed, the coefficient-only optimum was 0.75408.
+Network-only retrospective log loss was 0.881383694951. At the previously
+deployed ratio of 0.75185, with temperatures refitted under the same
+classification, it was 0.881384414078.
 
-This is a full-sample retrospective deployment fit. It is reproducible to the
-fixed ledger and objective, but it is not a new nested out-of-period result.
-The original nested historical holdout remains the primary comparison against
-other rating systems.
+This is a full-sample retrospective fit. It is reproducible to the fixed ledger
+and objective, but it is not a new nested out-of-period result. The original
+nested historical holdout remains the primary comparison against other rating
+systems.
 
 ### Core ablations
 
@@ -98,9 +100,9 @@ The joint date result is statistically tied on log loss but removes unknown
 kickoff-order leakage and arbitrary row-order dependence, so it is preferred
 as a structural correction.
 
-## Deployed chronological mechanics
+## Chronological mechanics
 
-For every complete date, the release now:
+For every complete date, NFELO:
 
 1. computes one pre-date debut prior;
 2. initialises all same-date debutants from that prior;
@@ -117,9 +119,9 @@ semidefiniteness.
 
 ## Boundary gate and score grid
 
-The former gate discarded the entire score correction whenever the linear pool
-would change the network top pick. The boundary gate retains the largest safe
-fraction instead.
+A full-reversion gate would discard the entire score correction whenever the
+linear pool changed the network top pick. The boundary gate retains the largest
+safe fraction instead.
 
 | Retrospective gate diagnostic | Log loss | Brier | Accuracy |
 | --- | ---: | ---: | ---: |
@@ -142,27 +144,27 @@ Tail mass is included before the visible 0–5 grid is truncated.
 
 ## Retrospective full-history replay
 
-Each build computes a final-layer diagnostic directly from stored pre-match rows
-through the fixed 11 July 2026 cutoff. Under the evidence-backed classification
-and deployed constants, the Python replay produced:
+Each build computes a final-layer diagnostic directly from stored pre-match
+rows through the fixed 11 July 2026 cutoff. Under the published classification
+and constants, the Python replay produces:
 
 | Diagnostic | Value |
 | --- | ---: |
-| Final-layer log loss | 0.880131 |
-| Network-only log loss | 0.881476 |
-| Final-layer Brier score | 0.518235 |
-| Final-layer ranked probability score | 0.172468 |
-| Most-likely outcome correct | 59.110% |
+| Final-layer log loss | 0.880065 |
+| Network-only log loss | 0.881427 |
+| Final-layer Brier score | 0.518203 |
+| Final-layer ranked probability score | 0.172454 |
+| Most-likely outcome correct | 59.103% |
 | Matches | 46,801 |
 
-The 2026 annual calibration used 7,922 matches from 2018–2025 and produced draw
-log tilt 0.150873, friendly calibration power 0.916099, competitive calibration
-power 1.065485 and network pool weight 0.540597.
+The 2026 annual calibration uses 7,922 matches from 2018–2025 and produces
+draw log tilt 0.150867, friendly calibration power 0.915748, competitive
+calibration power 1.065716 and network pool weight 0.542471.
 
-These final constants and calibrations use information extending beyond parts
-of the replay window. The figures diagnose the deployed chronology and verify
-the implementation; they are not nested out-of-sample estimates and do not
-replace 0.884219 as the headline comparative result.
+These constants and calibrations use information extending beyond parts of the
+replay window. The figures diagnose the published chronology and verify the
+implementation; they are not nested out-of-sample estimates and do not replace
+0.884219 as the headline comparative result.
 
 ## Why one public rating was preserved
 
@@ -174,7 +176,7 @@ connected regions and eras.
 
 If uncertainty shared with a contemporaneous elite reference is cancelled, an
 entire isolated cluster can appear precisely placed relative to modern global
-football even though the cross-network level is uncertain. In a test release,
+football even though the cross-network level is uncertain. In a test configuration,
 that made England 1912 rate 2229 and placed several pre-First World War British
 teams near the top of football history. The mathematically narrower
 within-date interval was therefore unsuitable as an all-time public rating.

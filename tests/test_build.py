@@ -82,11 +82,11 @@ class StaticBuildTests(unittest.TestCase):
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-23-evidence-backed-friendly-0.75185",
+            "2026-07-23-evidence-backed-friendly-0.76064",
         )
         self.assertAlmostEqual(
             self.summary["parameters"]["network"]["friendly_information_ratio"],
-            0.75185,
+            0.76064,
             places=10,
         )
 
@@ -262,10 +262,10 @@ class StaticBuildTests(unittest.TestCase):
         # producing indistinguishable forecasts. Keep this tight enough to
         # detect a real release change without requiring bitwise optimisation.
         self.assertAlmostEqual(
-            calibration["draw_log_tilt"], 0.15087279, delta=0.00005
+            calibration["draw_log_tilt"], 0.15086673, delta=0.00005
         )
         self.assertAlmostEqual(
-            calibration["nfelo_weight"], 0.54059719, delta=0.00005
+            calibration["nfelo_weight"], 0.54247050, delta=0.00005
         )
         self.assertEqual(len(layer["attack"]), len(self.state["codes"]))
         self.assertEqual(len(layer["defence"]), len(self.state["codes"]))
@@ -286,7 +286,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertAlmostEqual(
             actual_log_loss, validation["retrospective"]["log_loss"], places=6
         )
-        self.assertAlmostEqual(actual_log_loss, 0.880130657, delta=0.00005)
+        self.assertAlmostEqual(actual_log_loss, 0.880065198, delta=0.00005)
         self.assertEqual(validation["primary_evidence"], "nested_historical_holdout")
         self.assertIn(
             "rolling historical holdout",
@@ -304,15 +304,19 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 30)
-        self.assertIn(
+        self.assertEqual(javascript.count('question: "'), 29)
+        self.assertNotIn(
             "What do the Tournaments and Best tournaments pages show?",
+            javascript,
+        )
+        self.assertIn(
+            "How is the methodology tested?",
             javascript,
         )
         self.assertIn("Search questions", javascript)
         self.assertIn(
             "Why is a friendly’s rating change not always "
-            "75.2% of a competitive match?",
+            "76.1% of a competitive match?",
             javascript,
         )
         self.assertIn("Expand all", javascript)
@@ -465,7 +469,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("applyForecastLayer", javascript)
         self.assertIn(
             "Why is a friendly’s rating change not always "
-            "75.2% of a competitive match?",
+            "76.1% of a competitive match?",
             javascript,
         )
         self.assertNotIn("63.901%", javascript)
@@ -512,7 +516,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("debut = self.debut_mean(year)", model)
         self.assertIn("self.initialise_with(index, first_match.day, debut)", model)
         self.assertIn("joint_gaussian_update(", model)
-        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.75185", model)
+        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.76064", model)
         self.assertIn("runtime_is_friendly(", model)
         self.assertIn('item["friendly"]', model)
         self.assertIn("weight *= FRIENDLY_INFORMATION_RATIO", model)
@@ -1085,7 +1089,7 @@ class StaticBuildTests(unittest.TestCase):
             'id="record-list-competition"',
             "currentFirstRecordLabel",
             "peakRecordLabel",
-            "What do the Tournaments and Best tournaments pages show?",
+            "How is the methodology tested?",
             "Current and historical rankings, tournament snapshots",
         ):
             self.assertIn(phrase, javascript)
@@ -1208,18 +1212,37 @@ class StaticBuildTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         for phrase in (
-            "const previousISODate",
             "const predictURL",
             "function probabilityHTML(values, prediction = null)",
             'class="probability-link"',
-            "date: previousISODate(match.date)",
-            "date: todayISO()",
+            "matchId = null",
+            'query.set("match", String(matchId))',
+            "matchId: match.id",
+            "date: match.date",
+            "date: fixture.date",
             "first: fixture.team1_code",
             'route.query.get("venue")',
             'route.query.get("class")',
+            'route.query.get("match")',
+            "maximumPredictionDate",
             "venue: String(home)",
         ):
             self.assertIn(phrase, javascript)
+
+        self.assertNotIn(
+            "date: previousISODate(match.date)",
+            javascript,
+        )
+        normalized_javascript = " ".join(
+            javascript.split()
+        )
+        self.assertNotIn(
+            (
+                "date: todayISO(), "
+                "first: fixture.team1_code"
+            ),
+            normalized_javascript,
+        )
 
         self.assertEqual(
             javascript.count(

@@ -159,6 +159,7 @@ const filteredEmptyState = (subject) => (
     second,
     venue = 0,
     matchClass = "competitive",
+    matchId = null,
   }) => {
     const query = new URLSearchParams({
       date,
@@ -171,6 +172,9 @@ const filteredEmptyState = (subject) => (
           : "competitive"
       ),
     });
+    if (matchId != null) {
+      query.set("match", String(matchId));
+    }
     return `#/predict?${query.toString()}`;
   };
   const validDate = (value) => {
@@ -1588,10 +1592,11 @@ function defaultMajorTournamentFamily(families) {
       <td class="numeric" data-label="Score"><span class="score">${match.sa}–${match.sb}</span></td>
           <td class="hide-mobile" data-label="Competition">${escapeHTML(match.t)}</td>
       <td data-label="Forecast">${probabilityHTML(match.p, {
-      date: previousISODate(match.date),
+      date: match.date,
       first: match.a,
       second: match.b,
       venue: Number(match.home) || 0,
+      matchId: match.id,
       matchClass: (
         match.friendly
           ? "friendly"
@@ -2383,7 +2388,7 @@ function renderRecords(route) {
       document.getElementById("fixture-all").hidden = visible.length >= filtered.length;
       document.getElementById("fixture-table").innerHTML = visible.length ? `<div class="table-shell fixture-table"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th class="numeric">Combined rating</th><th>W / D / L</th><th class="hide-mobile">Competition</th><th class="hide-mobile">Location</th></tr></thead><tbody>${visible.map((fixture) => `<tr>
         <td>${fixtureDate(fixture)}</td><td data-label="Match">${teamLink(fixture.team1_code, fixture.team1_name)} <span class="muted">v</span> ${teamLink(fixture.team2_code, fixture.team2_name)}<span class="rating-sub">${rating(fixture.rating1)} + ${rating(fixture.rating2)}</span></td><td data-label="Venue">${venueHTML(fixtureSite(fixture))}</td><td class="numeric" data-label="Combined"><span class="rating-main">${rating(fixture.combined_rating)}</span></td><td data-label="Forecast">${probabilityHTML(fixture.probabilities, {
-      date: todayISO(),
+      date: fixture.date,
       first: fixture.team1_code,
       second: fixture.team2_code,
       venue: Number(fixture.home_sign) || 0,
@@ -2540,19 +2545,37 @@ function renderRecords(route) {
   async function renderPredict(route = { query: new URLSearchParams() }) {
     setTitle("Predict a match");
     loading("Loading prediction history…");
-    const [historyIndex, currentState] = await Promise.all([
+    const [historyIndex, currentState, fixturePayload] = await Promise.all([
       getJSON("data/rankings-history/index.json"),
       getJSON("data/state.json"),
+      getJSON("data/fixtures.json"),
     ]);
     const today = todayISO();
+    const latestFixtureDate = (fixturePayload.fixtures || []).reduce(
+      (latest, fixture) => (
+        String(fixture.date) > latest
+          ? String(fixture.date)
+          : latest
+      ),
+      today,
+    );
+    const maximumPredictionDate = (
+      latestFixtureDate > today
+        ? latestFixtureDate
+        : today
+    );
     const requested = isoDate(route.query.get("date")) || today;
-    let selectedDate = requested < historyIndex.first ? historyIndex.first : requested > today ? today : requested;
+    let selectedDate = requested < historyIndex.first
+      ? historyIndex.first
+      : requested > maximumPredictionDate
+        ? maximumPredictionDate
+        : requested;
     content.innerHTML = `
       <div class="page predict-page">
         <header class="page-heading"><div><p class="eyebrow">Historical and current match calculator</p><h1>Predict a match</h1></div><p class="lede">Choose any date and two teams ranked on that date. The calculator shows W/D/L probabilities, a 6×6 exact-score grid and projected rating effects for margins from five goals either way.</p></header>
         ${ratingForecastExplanation()}
         <div class="toolbar history-toolbar predict-date-toolbar">
-          <div class="history-date-actions"><div class="field history-date-field"><label for="predict-date">Prediction date</label><div class="date-combo"><input id="predict-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selectedDate)}" aria-describedby="predict-date-error"><button class="button" type="button" id="predict-calendar-button" aria-label="Open prediction-date calendar">Calendar</button><input id="predict-calendar" class="native-date-proxy" type="date" min="${historyIndex.first}" max="${today}" value="${selectedDate}" tabindex="-1" aria-hidden="true"></div><span id="predict-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="predict-apply">Apply date</button></div>
+          <div class="history-date-actions"><div class="field history-date-field"><label for="predict-date">Prediction date</label><div class="date-combo"><input id="predict-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selectedDate)}" aria-describedby="predict-date-error"><button class="button" type="button" id="predict-calendar-button" aria-label="Open prediction-date calendar">Calendar</button><input id="predict-calendar" class="native-date-proxy" type="date" min="${historyIndex.first}" max="${maximumPredictionDate}" value="${selectedDate}" tabindex="-1" aria-hidden="true"></div><span id="predict-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="predict-apply">Apply date</button></div>
         </div>
         <div id="predict-body"></div>
       </div>`;
@@ -2571,17 +2594,43 @@ function renderRecords(route) {
         ? "friendly"
         : "competitive"
     );
+    let initialMatchId = /^\d+$/.test(
+      route.query.get("match") || "",
+    )
+      ? Number(route.query.get("match"))
+      : null;
 
-    const historicalPayload = async (dateValue) => {
+    const historicalPayload = async (
+      dateValue,
+      beforeDate = false,
+    ) => {
       const year = Math.min(Number(dateValue.slice(0, 4)), Number(historyIndex.last.slice(0, 4)));
       const payload = await getJSON(`data/rankings-history/${year}.json`);
-      const teams = new Map(payload.opening.map((team) => [team.code, team]));
-      payload.events.forEach((event) => { if (event.date <= dateValue) teams.set(event.code, event); });
+      const teams = new Map(
+        payload.opening.map((team) => [team.code, team]),
+      );
+      payload.events.forEach((event) => {
+        if (
+          beforeDate
+            ? event.date < dateValue
+            : event.date <= dateValue
+        ) {
+          teams.set(event.code, event);
+        }
+      });
       const active = [...teams.values()].filter((team) => year - Number(team.date.slice(0, 4)) <= 4);
       active.sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation));
       active.forEach((team, index) => { team.rank = index + 1; });
       let context = payload.opening_prediction_context;
-      (payload.prediction_contexts || []).forEach((item) => { if (item.date <= dateValue) context = item; });
+      (payload.prediction_contexts || []).forEach((item) => {
+        if (
+          beforeDate
+            ? item.date < dateValue
+            : item.date <= dateValue
+        ) {
+          context = item;
+        }
+      });
       return { teams: active, context };
     };
 
@@ -2615,8 +2664,33 @@ function renderRecords(route) {
       dateInput.removeAttribute("aria-invalid");
       history.replaceState(null, "", cleanRouteURL("predict", "", new URLSearchParams({ date: dateValue })));
       body.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ratings for ${escapeHTML(validDate(dateValue))}…</p></div>`;
-      const useCurrent = dateValue >= summary.meta.results_through;
-      const historical = useCurrent ? null : await historicalPayload(dateValue);
+      let linkedMatch = null;
+      if (
+        preserveRequestedTeams
+        && initialMatchId !== null
+      ) {
+        const matchDecade = (
+          Math.floor(Number(dateValue.slice(0, 4)) / 10)
+          * 10
+        );
+        const matchPayload = await getJSON(
+          `data/matches/${matchDecade}.json`,
+        );
+        linkedMatch = (matchPayload.matches || []).find(
+          (match) => (
+            Number(match.id) === initialMatchId
+            && match.date === dateValue
+          ),
+        ) || null;
+      }
+      const preMatch = Boolean(linkedMatch);
+      const useCurrent = (
+        !preMatch
+        && dateValue >= summary.meta.results_through
+      );
+      const historical = useCurrent
+        ? null
+        : await historicalPayload(dateValue, preMatch);
       const teams = useCurrent ? summary.current : historical.teams;
       if (teams.length < 2) {
         body.innerHTML = `<div class="empty"><h2>Not enough eligible teams</h2><p>Two teams must have reached 30 matches by this date.</p></div>`;
@@ -2629,6 +2703,7 @@ function renderRecords(route) {
       initialB = null;
       initialVenue = null;
       initialClass = null;
+      initialMatchId = null;
       const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>No. ${team.rank} · ${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
       body.innerHTML = `
         <div class="predictor">
@@ -2745,6 +2820,17 @@ function renderRecords(route) {
           const pooled = base.map((value, index) => layer.calibration.nfelo_weight * value + layer.calibration.score_weight * calibrated[index]);
           probabilities = boundaryPool(base, pooled);
         }
+        const linkedSelection = Boolean(
+          linkedMatch
+          && linkedMatch.date === dateValue
+          && linkedMatch.a === first.code
+          && linkedMatch.b === second.code
+          && Number(linkedMatch.home) === home
+          && Boolean(linkedMatch.friendly) === friendly
+        );
+        if (linkedSelection) {
+          probabilities = linkedMatch.p.map(Number);
+        }
         const labels = [`${first.nation} win`, "Draw", `${second.nation} win`];
         const maximum = Math.max(...probabilities);
         document.getElementById("forecast").innerHTML = `<section class="forecast" aria-live="polite"><div class="forecast-title"><div><p class="eyebrow">Match forecast · ${validDate(dateValue)}</p><h2>${escapeHTML(first.nation)} v ${escapeHTML(second.nation)}</h2></div><span>${friendly ? "friendly" : "competitive"} · ${home === 0 ? "neutral" : home === 1 ? `${escapeHTML(first.nation)} home` : `${escapeHTML(second.nation)} home`}</span></div><div class="forecast-bars">${probabilities.map((value, index) => `<div class="forecast-outcome ${value === maximum ? "is-top" : ""}"><span>${escapeHTML(labels[index])}</span><strong>${percent(value)}</strong></div>`).join("")}</div><div class="forecast-meta"><span>${escapeHTML(first.nation)} <b>No. ${first.rank} · ${rating(first.rating)}</b></span><span>${escapeHTML(second.nation)} <b>No. ${second.rank} · ${rating(second.rating)}</b></span><span>Expected goals <b>${number(lambdaA, 2)}–${number(lambdaB, 2)}</b></span></div></section>`;
@@ -2807,6 +2893,9 @@ function renderRecords(route) {
             "class": (
               friendly ? "friendly" : "competitive"
             ),
+            ...(linkedSelection
+              ? { match: String(linkedMatch.id) }
+              : {}),
           }),
         ),
       );
@@ -2817,7 +2906,7 @@ function renderRecords(route) {
 
     const applyDate = () => {
       const chosen = inputDate(dateInput.value);
-      const error = historyDateInputError(dateInput.value, historyIndex.first, today);
+      const error = historyDateInputError(dateInput.value, historyIndex.first, maximumPredictionDate);
       if (!chosen || error) {
         document.getElementById("predict-date-error").textContent = error || "Enter a complete date as DD/MM/YYYY.";
         dateInput.setAttribute("aria-invalid", "true");
@@ -2827,7 +2916,7 @@ function renderRecords(route) {
     };
     dateInput.addEventListener("input", () => {
       dateInput.value = formatHistoryDateInput(dateInput.value);
-      const error = historyDateInputError(dateInput.value, historyIndex.first, today);
+      const error = historyDateInputError(dateInput.value, historyIndex.first, maximumPredictionDate);
       document.getElementById("predict-date-error").textContent = error;
       if (error) dateInput.setAttribute("aria-invalid", "true"); else dateInput.removeAttribute("aria-invalid");
     });
@@ -2965,11 +3054,11 @@ function buildFAQItems() {
   },
   {
     question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
-    answer: "Not in the traditional Elo sense. Competitive and unresolved competitions share information ratio 1 because progressively larger updates for qualifiers and tournaments did not improve the historical evaluation reliably. Evidence-backed friendlies are the supported exception: they supply about 75.2% of the network information of a competitive match. Friendly and competitive forecasts also retain separate probability calibration."
+    answer: "Not in the traditional Elo sense. Competitive and unresolved matches use the full information weight. Evidence-backed friendlies use about 76.1% of that weight. Friendly and competitive forecasts also have separate probability calibration."
   },
   {
-    question: "Why is a friendly’s rating change not always 75.2% of a competitive match?",
-    answer: "The 75.2% value scales the information entering the opponent-network update; it is not applied to the final displayed points. Opponent strength, surprise, winning margin, uncertainty, covariance with other teams and every other result on the same date are evaluated together. Those interactions make the eventual rating movement nonlinear. Friendlies also have their own probability calibration."
+    question: "Why is a friendly’s rating change not always 76.1% of a competitive match?",
+    answer: "The 76.1% value scales the information entering the opponent-network update; it is not applied to the final displayed points. Opponent strength, surprise, winning margin, uncertainty and every other result on the same date are considered together, so the displayed movement is not a fixed percentage. Friendlies also have their own probability calibration."
   },
   {
     question: "How is home advantage handled?",
@@ -3004,12 +3093,12 @@ function buildFAQItems() {
     answer: "It means the model estimates a 45% chance that the first-listed team wins, a 29% chance of a draw and a 26% chance that the second-listed team wins. A 45% prediction is not a claim that the team should always win: it would still be expected not to win 55% of the time."
   },
   {
-    question: "How was the methodology selected?",
-    answer: "The principal comparison used a five-block nested historical holdout: model choices used earlier periods and were scored on later periods. Structural checks and component replays were then used to test implementation details without relabelling retrospective results as new out-of-sample evidence. Tournament class was subsequently separated from source importance, and the 75.2% friendly value came from a documented full-sample retrospective joint refit under the evidence-backed classification."
+    question: "How is the methodology tested?",
+    answer: "Model choices are evaluated with rolling historical holdouts: earlier periods are used to choose the method and later periods are used to score it. Separate retrospective replays check implementation details and parameter sensitivity, while first-published fixture forecasts provide prospective evidence. Each result is labelled by the kind of evidence it represents."
   },
   {
     question: "Is NFELO always more likely to predict the correct result than other systems?",
-    answer: `No. In the ${number(summary.validation.nested.matches)}-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, compared with ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for the published World Football Elo forecast, ${precisePercent(summary.validation.nested.g_elo_accuracy)} for the tested G-Elo comparison and ${precisePercent(summary.validation.nested.best_scalar_elo_accuracy)} for the best tested scalar Elo. The differences in top-choice accuracy are small. The current attack/defence layer preserves the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities.`
+    answer: `No. In the ${number(summary.validation.nested.matches)}-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, compared with ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for the published World Football Elo forecast, ${precisePercent(summary.validation.nested.g_elo_accuracy)} for the tested G-Elo comparison and ${precisePercent(summary.validation.nested.best_scalar_elo_accuracy)} for the best tested scalar Elo. The differences in top-choice accuracy are small. The attack/defence layer preserves the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities.`
   },
   {
     question: "What does better log loss mean in practice?",
@@ -3022,10 +3111,6 @@ function buildFAQItems() {
   {
     question: "Can I view rankings from a previous date?",
     answer: "Yes. The History page reconstructs the rankings as they stood after the latest completed matchday on or before the selected date. Historical country names, such as West Germany, the Soviet Union and Czechoslovakia, are shown where appropriate for that period."
-  },
-  {
-    question: "What do the Tournaments and Best tournaments pages show?",
-    answer: "The Tournaments page compares every participant immediately before or after a completed edition, using positions in the full world ranking and rating movement from that edition’s own matchdays. Best tournaments ranks the 500 largest positive tournament rating gains. Its team filter groups successor histories under the current canonical name and notes historical tournament names such as West Germany or the Soviet Union."
   },
   {
     question: "How often is the site updated?",
@@ -3053,8 +3138,8 @@ function buildFAQItems() {
   answer: "The posterior mean is useful inside the forecast model, but it can be misleading as an all-time table. In a small, inward-looking historical network, uncertainty may be shared by every leading team; cancelling that common uncertainty can make the whole cluster look implausibly strong. NFELO therefore publishes one breadth- and uncertainty-adjusted rating for rankings and records."
 },
 {
-  question: "Why are two different historical log-loss figures shown?",
-  answer: "They answer different questions. The 0.8842 figure is the primary nested historical holdout, where choices were tested on later blocks. The lower retrospective figure replays final constants through past matches and is useful for comparing mechanics such as date batching and the probability gate, but it is not a second out-of-sample claim."
+    question: "Why are two different historical log-loss figures shown?",
+    answer: "They answer different questions. The 0.8842 figure comes from a rolling historical holdout, where choices were tested on later periods. The lower figure is a retrospective replay of the published model through past matches. It checks the implementation, but it is not a second out-of-sample result."
 },
 {
   question: "Why might a recent result or fixture be missing?",
@@ -3189,7 +3274,7 @@ function renderFAQ() {
         <h3>Exact-score grid</h3>
         <p>The displayed score grid is reconciled to the final W/D/L vector. For a scoreline in outcome region <code>o</code>:</p>
         <div class="formula">P*(i,j) = Praw(i,j) · Pfinal(o) / Praw(o)</div>
-        <p>Relative scoreline probabilities within wins, draws and losses are unchanged, while the full grid now sums to the same three outcome probabilities shown above it. Tail mass is included before the visible 0–5 cells are cut off.</p>
+        <p>Relative scoreline probabilities within wins, draws and losses are unchanged, while the full grid sums to the same three outcome probabilities shown above it. Tail mass is included before the visible 0–5 cells are cut off.</p>
 
         <h2>5. Goal margin and the joint date update</h2>
         <p>Goal margin is capped at seven and normalised against decisive scoring in the preceding 20 years. The information weights are draw <b>${number(p.goal_margin.draw, 3)}</b>, one goal <b>1.000</b>, two goals <b>${number(p.goal_margin.two, 3)}</b>, three goals <b>${number(p.goal_margin.three, 3)}</b>, and <b>${number(p.goal_margin.tail, 3)}</b> per further effective goal.</p>
@@ -3210,7 +3295,7 @@ function renderFAQ() {
         <h2 id="validation">7. Forecast validation</h2>
         <h3>Primary evidence: nested historical holdout</h3>
         <div class="table-hint" aria-hidden="true">Swipe to compare every method →</div><div class="table-shell parameter-table"><table><thead><tr><th>Method tested</th><th class="numeric">Log loss</th><th class="numeric">Most-likely W/D/L correct</th></tr></thead><tbody><tr><td><b>NFELO full-covariance network</b></td><td class="numeric"><b>${number(nested.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(nested.accuracy)}</b></td></tr><tr><td>Best tested scalar Elo</td><td class="numeric">${number(nested.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.best_scalar_elo_accuracy)}</td></tr><tr><td>G-Elo comparison</td><td class="numeric">${number(nested.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.g_elo_accuracy)}</td></tr><tr><td>Published World Football Elo forecast</td><td class="numeric">${number(nested.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.published_wfe_accuracy)}</td></tr></tbody></table></div>
-        <p>The five-block rolling evaluation contains ${number(nested.matches)} predictions from 1960 onward. Choices were made using earlier periods and scored on later periods. NFELO selected the most likely W/D/L outcome ${precisePercent(nested.accuracy)} of the time, versus ${precisePercent(nested.published_wfe_accuracy)} for published WFER—a difference of ${number((nested.accuracy - nested.published_wfe_accuracy) * 100, 3)} percentage points. The current attack/defence layer preserves the network's top choice, so it can improve the probability vector but cannot change this accuracy figure. Log loss is primary because it evaluates all three probabilities and penalises unjustified confidence. Lower is better.</p>
+        <p>The five-block rolling evaluation contains ${number(nested.matches)} predictions from 1960 onward. Choices were made using earlier periods and scored on later periods. NFELO selected the most likely W/D/L outcome ${precisePercent(nested.accuracy)} of the time, versus ${precisePercent(nested.published_wfe_accuracy)} for published WFER—a difference of ${number((nested.accuracy - nested.published_wfe_accuracy) * 100, 3)} percentage points. The attack/defence layer preserves the network's top choice, so it can improve the probability vector but cannot change this accuracy figure. Log loss is primary because it evaluates all three probabilities and penalises unjustified confidence. Lower is better.</p>
         <p>These are the methods included in the recorded comparison, not a claim to cover every football forecasting method. The original fitter programs and frozen derived evaluation dataset were not retained, so the aggregate comparison cannot currently be reconstructed bit-for-bit.</p>
 
         <h3>Secondary evidence: retrospective replay</h3>
@@ -3218,7 +3303,7 @@ function renderFAQ() {
         <p>This ${number(replay.matches)}-match diagnostic replays final constants through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
 
         <h3>Why friendlies use ${p.network.friendly_information_ratio_exact}</h3>
-        <p>Tournament importance and match class are separate. The registry marks only evidence-backed exhibitions and preparation events as friendly; every uncertain or unknown competition remains competitive for rating weight. A full ${number(52312)}-match replay jointly refitted the friendly ratio and the two network probability temperatures while scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The deployed values are information ratio <b>${p.network.friendly_information_ratio_exact}</b>, friendly network temperature <b>${p.forecast_temperature_exact.friendly}</b> and competitive network temperature <b>${p.forecast_temperature_exact.competitive}</b>. This is a reproducible full-sample fit, not a claim of equivalent statistical certainty or a replacement for the nested historical holdout.</p>
+        <p>Tournament importance and match class are separate. Only evidence-backed exhibitions, preparation matches and friendly tournaments receive the friendly weight; uncertain or unknown competitions remain competitive. The model uses information ratio <b>${p.network.friendly_information_ratio_exact}</b>, friendly network temperature <b>${p.forecast_temperature_exact.friendly}</b> and competitive network temperature <b>${p.forecast_temperature_exact.competitive}</b>. These values come from a ${number(52312)}-match full-sample fit scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The fit is retrospective and does not replace the nested historical holdout.</p>
 
         <h2>8. Reproducibility and limitations</h2>
         <p>The repository records a methodology version, source hash and first-published prospective forecast for every identified future fixture. Historical validation must be labelled as nested holdout, retrospective replay or prospective. Routine data refreshes rebuild history but do not refit the structural constants; annual probability calibration follows its declared prior-years-only rule.</p>
@@ -3227,7 +3312,7 @@ function renderFAQ() {
   }
 
   function renderAbout() {
-    setTitle("About and updates");
+    setTitle("About");
     const update = summary.meta.source_update || {};
     content.innerHTML = `
       <div class="page page-narrow">
