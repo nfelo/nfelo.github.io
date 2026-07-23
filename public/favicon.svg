@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Network Football Elo">
-  <rect width="64" height="64" rx="14" fill="#0b1f26"/>
-  <rect x="13" y="35" width="10" height="16" rx="3" fill="#d8ef84" opacity=".72"/>
-  <rect x="27" y="13" width="10" height="38" rx="3" fill="#d8ef84"/>
-  <rect x="41" y="24" width="10" height="27" rx="3" fill="#d8ef84" opacity=".86"/>
+  <rect width="64" height="64" rx="14" fill="#2b103b"/>
+  <rect x="13" y="35" width="10" height="16" rx="3" fill="#dfbfff" opacity=".8"/>
+  <rect x="27" y="13" width="10" height="38" rx="3" fill="#ff9ddd"/>
+  <rect x="41" y="24" width="10" height="27" rx="3" fill="#bd7df0" opacity=".92"/>
 </svg>
