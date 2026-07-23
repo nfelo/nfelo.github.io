@@ -1,0 +1,1349 @@
+name: Deploy evidence-backed friendly classification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-friendly-classification-0-75185
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Protect deployment invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum .github/workflows/pages.yml \
+            > /tmp/pages-workflow.sha256
+          cp source/prospective_forecasts.jsonl \
+            /tmp/prospective_forecasts.jsonl
+
+      - name: Install classification payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/nfelo-deployment.zip.b64 <<'PAYLOAD'
+          UEsDBBQAAAAIAJpL91wovlVDAAQAAIUMAAA1AAAALmdpdGh1Yi93b3JrZmxvd3MvdG91cm5hbWVudC1jbGFzc2lmaWNhdGlvbi1h
+          dWRpdC55bWylVutu2zYU/q+nOGAG2MlAe1m3btDqIl2xS39kMNb0R+AZKi1RNluJFHhxZqQF9hB7wj3JDiVfdLHsDFOAWOL5zneu
+          PKRkOQ/hTjkt8U1aiDNmjEhFzKxQEphLhA0CJcMA4EHpj2mmHqJEmILZeOUXTbziicu4fwegEGsEA7n+Dp7DFf5dExQUzqwqAOqt
+          TPXq0cSg6ZiPuRzZvRNmZM2adDDGFUXGPYBlUR39wSh5Bq65cRlC42PEPFNRwZbcjK+uatJYyVQsS2nuo+UdS1vEwZeomb7zeL4W
+          CZcx78QQa1FYc4K62NTglhsPxv/RaY2g4DoXuKpkWQX0yPochqA5S4IAv2OnNbq08eKlVq4I4cBJm5y06g/kYRhERoWkhVZLzDYy
+          Wu14EHxQi9JSiawKr5001HeJWzhpHc2Y97wUWZFz5SzNhXS4GML1t0EpMJYXtb5xxgtZ7J0wY6xN/BHVbtZbdBdiuHUFLTZ2peTN
+          +vkWhT0t7Crcf2F/lgi65trnCBv52ej6a3JgldWGQX/bW6VQmYg3eyoMMoRPHWagOTgprI8Y/qiJMXZfxNHpIrZU6Lrt2SufZqhq
+          aIHJBCR/qBXQ9DvI9NJMhk1+Wm0RqH5asqqdofppyTRfCmP1Bp60R1rKWMrCWVg4kSXj3uarKV3W3kUKM6DpEcONzQbzH8CueNO0
+          T8GXkyGlO+g5lrrhVHSr/ZR9DOSLR294djP/3Om0qVtkwqzAuDxn+gntBS9eDKb3A3j5Enl/eXP367sfo7d3P02jt+9ub1/9fk/q
+          qcoLpS20KpBqlZdzOhOLHWSKn0HdGttkiiUwKZVH/t00WwdKnfaaf8iZuo7JMaXeDEblZGkM0N1zOfJTLbL8TzvEkqlEyOWEOJvS
+          78llT/tsE42RbWOcke0SmdcToIW0Q3Jx7uxs2KmUuispofBaJX5ePW6NzQaxXxhgSxzH31ZHUl1je0od12mlBhl+1oLLJNtAjpYy
+          yHeE7SympGbCQ6vjMIoVTm+0NhukWyZvuSetfU68VnnBrbBizf+/H/GB7KwrPoe/4WiM23nHeRmdyP2REFZMLnlCfRfs6E75Hlf4
+          yOMPlvqn2b4P956Redji73bWYZVcXBwiJW1MqnQpASGfZMk/Wj3g/pB+Wx2R+mfNMsd7ZN5iKW+YRE7T2GH1B7NQasyI94rMYTIp
+          nT4Cb8d3yEOfO1jC94+e7fN7+Oevv+ERXcE2wOpgXbqlPOhVQGOZdb6EJ5DDsl/DLbXCS1g5IvBiWs4MVL48plyPZXrfd7Vxhc8g
+          ZdqKFNdu1t/03m6qM+X8dW6fOBzh4X84h0VKpaKpyLihKW7LJASutdI1iOb+wumNJWyDUTz7KvgXUEsDBBQAAAAIACdQ91yrraGS
+          xlAAAMEZBQAlAAAAY29uZmlnL3RvdXJuYW1lbnRfY2xhc3NpZmljYXRpb24uanNvbu193XLbOLPg/fcUqLnI3Hw5keT/vZNly3Fi
+          yx4rjndmaysFSbTEMUV6SMoZ59Sp2nfYJ9ln2DfZJ1mQoviHBtBSrLjBTJ06c07QTRn9i0aj0fjPfzH2y70b//Lf2H+K/1f8Yxw4
+          9/fu2HX8+Evge89fxoswTP4RO/NHJ+TxInSiHF18wMcCg4+fxVjrP/aO2u39zt5h++ho/98rjFHoOuES3D5q7e63dvZanQI8DsQP
+          x27sPjnlPyI+aP9Ha39nb7+zv7u3vyc+O+rkH92L3/QnYnrVL1r/cbR/dLDbOmgd7uzv7e10jvIvvGD6xQuiKMU6PGwfHLQ6naP2
+          4W6OMefxeJYSt7t/2Grn4+LX3SD97GBvt3VYjD8uf6x90Nk/au/uHu63DlLYf/37XzllPHSjwP9y7/7tTHJern5RxcTW4W6ndbDf
+          6uzCTGzvivntdnb3XpuJh3v7h0f7B0d7azBxf+eoPF4w8UBM86C9v3+kYuKfgSuY90JMPDw82N0V3NjbwTFRMGL/ULDx0My+w8Oj
+          w9Zup9M5KBFaZ91euyX+dmf34CVYt7971G7ttFr7Eus8J3a+eM5k6oRfij+w19lpZ3rwy2Poznn4nHE3dMruALLv3XanvXu004a5
+          eiCUYudA/A+WqwK70z7s7MlsLabb3j9qHSD4ftTaTyS+Iyap5PvuTnuvs7/XWc/uhaaDfG8dtjtHR+29Ct+jcRC6/vSLmJwbTMrM
+          vHfDKP7y7PCEX+2j/VYxTS4AEx4nlPzSEf7xbevgbbv9S/WHY4HwxfUFM7nnRsn8/C+LyIm+PIbOl+T3SkyLw4Xzr+zbX6aOn3BK
+          +KD7MJh/ETKZp2L+pb3jcM53xs5o72C8N9m7b/HWaNS5dzr7Hb7rHHWOJvud+0nnl/Rn5k48CyaB4OnzlycnjMTfL8+3s/PWeXIn
+          jj923o74+MGZvF0J623GxeXvPAaem6pUtuokhH8Jwi/OxE1pCsSPh+KHoi/R4vExCMXEM4oyTuQ6EDp/Ldww4UAQLXVsNYPqB0G6
+          qnFPkO5H4psEI+Ha2En+Sv5zPp8LySk+jYJFOF4y+17Mrz6nyBG/PUlMaeZGsVCBsfjG9SfO3+IbLgTkF5RJf2Qh5hPG3BUYqU4L
+          LiSTFWqRyLJsRL/kXzz4wdf18RMlWqRI+d/8JdeTSCjPnJdkm5rDL7GgXLBGuN1i7f9lr9WtOArP5VGqef8jG0px4hnr+r6b/KJg
+          DestHn/5NwTXQX7Jhv9n4XN45GY08PnInS6CRcRWUnzn/D1zR6kmsUygJW/k3+f68cvMnc4KWElz/vO/pNEv8fNj+pHz96PQXjdO
+          lMUpvi4JPTVCoWkLP16xMEVJP/hvBq6U9E3oxzjzbvfci5wCBZL5ivzSL63MKBFKwbxCA/JPKm6m2+0ZBdsVfuRtN3K5XxdcGaIR
+          3IpKNp7x+aMgJZq5j+88h08XzrupYFTECvq3Ij6AzwhhdiRpKlgBy7EweZUYZdPFSLL8VU2YZ+sI8yzhfPPEppXakmZycvtklttk
+          4kasO+Ijzjp7NZ/yKffZFes0fmLG1uMhUPRAu719S9a0NaVEYAE4RiwAxz2Viq0gGkF6zpPjvW0nAnMmTPzDj9lXVwSXi5hNnLEb
+          CQaxXEIKeXrB17XFufBFsBh4TyJ4M8tyT5YlTPXGItvMaVQCt7LYhhixDdVyGxoFt/BdETwz528+jtnNcDjs54b4No11maDGU4pM
+          SNtdzGGpFTMpIun073xZ/qT4nI/GESuCUdZptdvskYdc7GDdUcCihdh48flq/ho9gP8EYiHZhXQCZCkFOzavIaeLUExCrIKDdB4R
+          u0jXctZ9d8yuPf78VlARldVE8wGIpgarQOVxTCRS7OgIRRzyOrAep6mEIYiVIA99Gxc27nbkzRvdSL+HkNXc9cY8ZD0+CoU06lu3
+          8rhamHf90xuWruCs83Y3X7dXPsi4busWAZ3LTtMvX9x5khDiCSSdA8ppA15bzYkfvJprBHpiFmg4FWuO6zusJyxr5IQsuGcnzuMi
+          doVN1eUbTtdBSxDqMPO49VEfYPJoJhMJBHt9s+L0e4z7E9br9q2XGLDnKlFHTTaofIygMktMsL8WAuneFVqXUiREkDisCk4t/1b7
+          mL3Z9Cst/gp3hahAKiNUgBmkK4atjfLagLPYWHhk4oj32Jhvxj3P8aeOtIJkYG/azLhwZ0cWu4YjZAT7m1Gwd0HoTZLJs8SFLrX3
+          uZxTA3Eq0J522F5bl1cZI7PICB6RGIrccWSw1ldO/qQzHAtut4+Odtmf/JH728z0QCY+fqFw7+VSPD3EMUG/m648jg+cwNaASpD1
+          QSKwUiv5QiVU/GyWrZ/W6rGe++R67rcss1TfnOmA3eRbg+HbIWHAYo3cISLpE0TqZuJOeFREGNXzswzmTa2XIhBaqSinIrxztPCa
+          aWUFccQkc2oOeLvD0+4gzeusth/Fnq1iYjCeAkUJa1YAjGIelSAYkRNLt+V0A+DK9LYQ8gICXv5JQvFu31x0eJsg2e5mZVmkZBFz
+          sH3s8WA/COKRWL9ZT7DRmWQTk3NG/doOxP7jBMCoMByhImDMEVTC/n6Q1EazE66sPAPR9BjVfQoGYr26AOEVgr9UtAWxxqYhQ678
+          fdgXLJH6VV/QyIMqIzuoiHbNY6vmJf0PVOER1XOc/rrp/uzEFJX2L+Oqsd7AOD00UIa8k8ZXg3e9Rm2u0LIho2+IVHQYO3M3YP2Q
+          ++OZyz6FwePsubaYY2DNcy/Qwq9lFhWxn5n3AMfuOM+znwVLrS4Ldgk3g6wPAA4lIWtZQ2TtP0Ok0eCqB32JiQaqqDWx17+3W0Bi
+          28A0MhaOcOwAKfUA4udWAEP0SHlhf39plv9X9j5w2KUzF8QDlcU5WAExFR6Qv/d1JItXwxICidRzhFDdMLlY48v1XQXA+iUZKA0H
+          ySayFn9EZFwfvjpuI84aAdnktBGTywXCnLw5n/BGCAYopimIoyaZa7NkYo/7sTtOd9vJTvvCfYwDubVBGe2NGskIN8Ae46YqCYLP
+          RLQGYc5zx3BcbIeYgMA0o4yaSI4RLnYkttJvLwMRGDqe6iQKQNLBYZg2B2WH5CEvbuIfFV24QthnwLqCYGcRSn42A0HjpEugxfx4
+          RtKyELpzJP6ze7jNOmg5Z6XiLIFdzSVisZ8/BqYrrnbYL5BRymmjZq+IFNJc/DFH5bNLQOvlBq24KtqJyG+AONkfJPX0DTAroO3L
+          ijRqUhmYpaJuvlcB2Z19g0r/ybbXGyB8oZ+EX00wJiDGzGkjZk1XiNRav/f2qt/T3HzNEbK7ryBMCWniZVnANrVcpHLqcYVvonDV
+          zDrVEnXUTHWT0qYr5I3mMq4a6w2M00MDZcg7aXw12PjSJoVsqPiC6xuzL8iaxHB2LawuYWD8K9Rap4RkgtZgq1HbPQ1U6WTiHRG/
+          gyiEWbUHUxVBVOAKSJNsXcsQKvb9G6rjNbqvi9wS29ySB/WNBltqx1NHyfvtYKNMkgq2LyvYhoIho3uYslk+0vmUMhgG2CtwwKNo
+          uEFGqHff5VDunCheyzOs/wHOldxpXMmd5a6kjSvJM8qEis4hYtRs9qsOtApFaWQa4nBXvXRA/CAjVcSpd72s4sYN2HFyayAwlLBo
+          EdfB0WBgoI1IdQL7GqRgiOxubhBRcLb2Ns8/tI8OZPmtqCXnFBAb0WqUVL+M0eSQcdcYM1K8ZXFjXr/PQoeLGCSM3Yz/N8kZl/LC
+          /Xeg1TAQIOvdt1zBj2c3FQeOuoHpThvSiqoNFMCUyCMmnCEqd2i9UOAMIDlhYBvXDAPPnfDQjeXyiSXcm5iqta17LwGyKx0zyDyY
+          MDw1S1VqWVaRaQFtXoSL6d9GLioaIvqONPnlwp19oByN8LOFQ3Pz+GEwFk6ZdaOZ4Lnc5aEGVoGsXyjbsmB1nCGycH4y99+Tsh5Q
+          UFbHe6PBMiOYgY0IeBEZJsIB8KcNMpl9x3P/ZsfBlE9Mucy+Gi3DUMONsJ9FfZT8pqJDiLi9TtNV9JV7CTnh4ptBhwyoKywl/E0B
+          +QmURcktKspysZayWC8yoAdFmTxq0kFcXqhr3MD5ar6XrUQywg2wr82IIhD3sgE2UNEaxCl3nZoPC88N2E0w5lrNSQ/oTEhvVCgG
+          aAliu/4gVgYFx6noEOJdFW/O2afPkiRXw3SvCCczjJ/S68GdVuuARTN3/pCcVWQfb+GKMFBYAbCPwM2rO/PmtV7ls9xUaZ/Nvft+
+          fB0mFivZ5+YYMFwNNcO0Om9pck2+2r6u+Kmk3X5HpGV+77Jj7j9IPi0ft35lAvpFQUQTWYb++GiW2Tf3wf1qbo/3qitONsdx2pBi
+          v53852CLqw3Qj6LEJUKrzR+I0/hvsSNiJLFQt1TlGXUMJdB66wXiSj17aNjxcRfRAHnh+EHEui5w66sKq0BKH9guXHnTqeQJFbGa
+          s0cVEq7D4MkVv8Uugjh25HYLFWQFzvVxVwUqDzdcGbScpKId5kZDME06rbiWrlocVyE/i+ApCty8mh87XnJZZPJrsoFIIjJ4SYfR
+          VBgAtAKwXSXkqhQMG4koxTFi6Q+Drz47dmK5gqwCqgJUH+TYVHcDo5SmUTrL5Y5gd0f8Z6+1xR0BUEmh4vrrbwtQKiP0M5opq9Qq
+          cBjQvFzNHihlDaOIpGaOe+aixGPuPXC/cmP5dBGK2SVJKJUSmL4BkN+shYpCOjUBm6eJHUAR1xUgGeU0RzU5IatbkhepgNjxux67
+          9vjzW0FKVJa/5gMQTQ1WgcrjGPUieUtJDnzW4zQVFToxX3U/Xky+Om7kyNubAmB9IAvtbSCyiYSuiKd7xfIqaPVYP3ScSSA93VIe
+          phuOLkm4z+a6DEmPDlkUuszj/sM239MGNELDUQKhqbnW/jjw3CceyvXnBayplfht+ZhbyQ0qvhnzNh/3p3wkIpfZAn6ArwzXAfVu
+          YMX74trTiqz1RYyx+9LEpglVmeHvs06r02IJ2OOCpTOE+Y8XQlDO5Is8YXWIKJ9EavlMwfbNL33rirFV1delUdsXeFmmxKulj8/+
+          QOQs/emMf3PZuf/kxtl8JCGWkJQw5bjdraXlu5BmlhEw53P8q6w+8GBfFWa96QJCVBFPxHQ/IGIxx/1TWIfBcnMcY5xO3hShowID
+          CwhY4keEJJHpoxQjh5wL/Q19leBNP8nerPdL1dxh5Te+53vxqeaLdXBP18BDICkwHtYDy0D1Z9kXzds4AbHwy+o7le3WBaIKM6st
+          veFzVcVXHUMJtH5ZBkr59OwhsjhfYLbVnvlama0G3QJSIQW95KzSXGebOaRGSmsfykXk5JITlvl+17HH3RBoHLEat94tArsViGQq
+          zhBRGLV0DopyqBLQetGBtqagnYr8EOd33HO+csjkVgDrBScXn8NEExEa4q2q4yCK3GZkXoGCi4I4YpK5xrjDaOIE7FrsbvgzaFVV
+          eAVWGrZdrNDGUMMZIgL+DRGhBH8tnFDuI1CMWy87YKGDiKYisyHCKMO/FoK5cycWfgXo91hF0MGsFy5kmDruEJHyDSLTGi78gJ3x
+          tA5DvmxhBjRRtkqeUJHruVGu5/7EeXT8lC916aUwQxy0zR6txUyU5QpuefpZ64YjFi1CVwgJU6G0ca/XHbnrvZKXVPq8HiP6XF8n
+          V0h6TsRDhwnn5cSxyy6dueBBtd89Emb3wZls8yj2EDg8Q3T0FTis3WrFM6Z567qGBIFNgKapgJlvFOSP2E15fPzAhjEPI1WGqY6h
+          BNKtY01nGaWzjHMik4q2XTZahA/J25n3PAq2WM3aAY7f9ax/ff0xZ0l6QkrOJJuD/U2FZRnVCKQV2vXMB6a94JGz7txJqG3e4czu
+          keyYKxTr5fXDz2d6XYTEVo9upm3K+0EQj7iX/DMKBAHJBMv+t4bdrcC64t8NNEk8g6iYKcKRrohaKm5W3SE2laORA90W6BWYb0x4
+          eAw1NIRg3Qqkcd6lvSMf1K8lJzJep7/eQs6C+7yL28q+oDKafq/mbprobdCMoeJszGk8SYl17gV2CQ01+Y6czzEwi4yNm7N8EiW6
+          tF8Pj4ZEABOL35F03K5HQewqvzvt+GIXI/GSpeKkzN3Le9znE1PL59dNK4yXU8wux+2x5b+3KHm5RX2JS4TyBl3zA6vlbRr8yKqE
+          oQba28ZAPgg2MIbMemM+x8+9EvDq+3JlaPKL6ZqNK8APMmK9XTNBIQs1H26cSDtyaamaGVQkan42Kt++NnH7ltNGLAJCNDIr0gqN
+          tKZ9jbRoWhJiZ81DLxo5YUNePAN2GhUCqdkUZlchNEzEzNK6lY8T3m1kU/xx+w1gvYP4R2DHcYzYcZSdi2LLIaFooBIoG7Z2LwJc
+          dTLxjIxrNleo9gJvMR8tTP3gX9nGV5PMbLyzfRuXbwdUOEXJxs3VLJC+PpeLh356IzcEXRDPqBj5uuUo0hqfQpsZTLc78m1wDTfI
+          iBS1O405O/a4Lz8NWIVBkEaWnCtZQiQOx1hq/cSiLtkcDh4oNdOGNSlDiE1kjBhRXiCQlL24C2ADZboLxFdKZpCRKCLTkZghVPzS
+          OBECVqminZwc35vleDXodXtdjXVWEMqQQeqJm2m3ey35SrueVWRkbn54qxcswjgqaW8vmYw7rgbLBY4OnkFsD7KATJeJSVSCLUzS
+          M4pdzwvYgP8p5iNH0TVwHVgAbBczFEureUNFwubH0q4FD4SuuuHYk2qpqjDrRSgnKZXEU5EfIjcNLS2KHLUSVY2lA1dzXNmabnOG
+          qw0VcSL5S2URP0HkRYJwEow4u1z4YsaPAkduulDGUcGacFAJ3QIycIeIbzhBlQF4QcRO3DgeBSFQcaOCVMatFzFg1BrGUBHvpVG8
+          l87f7hjumVIBWS9BOUGtIp2K8BCHisnpXFL5NZy5jjep2GUBsl500MEwTDgV0W3+MFvv3cl6D7OJD0A0NVgFKo9bG37hH2aDOU0l
+          BDs1G3+l+bb1Rq4+fcgIJGbjp4jQ6TS5A93M06L9A8ArF/SSMyfMHVQhatdj90HITpO0U7nD/bJoHrzuXb2diPmRbvWTU8NNeUs1
+          BLrM+r0cpqJOCG2qkNVg75wRSMw79xGdLjweuj7bMzSfktA2RTDCmtajCsNgAnV9iLdU5VKmInm3dGJ5gg+q+ZI+RHxT4L7RYrIe
+          +6uCAudZF4pDVXsDfSjptomUyCwp664ppeYz/YLsX9mtr2rSs/qsL+PcDs77/a79WR7ztUcM06gsYmv00rhXt8uogBoXZnY0XXJA
+          ppAxePO53F0QLt+aZYnXguvJZZwKtKcdttf9y4ZuZBYZwSMSu6uVauiIoCUC1+6h4mB2aL0T3wGKFhUMoeKpEffW80qefAWSV+oC
+          57YyLv5pu1B1Nz8UHCEiXMQ77Ll65o+DN26dBeQnEU3N056ZixFPBVJP0Xq4BLPe/OTtkpJyKmaH8KlJs5qzBY+dOfcamWSrEkhM
+          Qu8RjnHGx814xgrIN+S0UZMLoiZ35vqm4qvVelE8pLGa0YsuS+OF4Icz+SL/uKbGDhCGS68twHtz6ayY9+Oj67DrwOOhVDubD76W
+          9RRzUV4af0wnmTUg3F12IUxkOubbbGgPmaOKk1TM0rzhz/o4zUQs7PhTR90qQoUI4XhTLbh5V8pxXKQSpL43FwupCapng/7Ri430
+          gmSe6HyN3mnN3HMCeSDSLbrO/2kD9N0yt7cL0Pk/DWK2kmaypUHMBaLmZJUyq9WiVh9OKSHpESBgeoUqB1irB+0W4AiM3COjCoil
+          W0HMsUkVYAQIWFaFY4tV4RBoPG7kHhlVWOP0oF6hblIFGAECllXB4qKfI+Cw38g8MpqAKOco700qwi0AlHNB43yaWQfBNhP/8rg/
+          +bEtBEE2EkkDXZgv5fUCL5iPTHnzV+8Vmc5xKei9TvKfvW2+YAn1yCjY9N1Cfrms78UaF+5rTkt/5R5ARuGZlhEYAQKWlxGLNxn7
+          QLdCtETILCeIMqLk+FBYiRs5AWFHIiY5Xk4yWTKOWHKtmgvv7RX1iltwKIrT1hW7KDkURGLBfXI995ui8+gS2IhjWEBqStKJLPiI
+          9b7aZ7GJQqpRSE1E5v36ULB4VnTCzEvWKrcOylZX/6C+Wbs8Pb66aKCo12MUFQXA3Oa97PYMPvSuf3rDUsGxztvdXFx5AYVJXLql
+          VLcEBotQ/NOdPwaCuASSzgETVUO3eFd0vpKM1CHPJaK5oKDCa8RKBzWLW9FGzXowFe2Xp0PTXXg7BANsRAviqEnmD6NkLoNx7Hxb
+          zKXGjCWA9TKTjQkmm4jYBoijpKSNc3KrcdDt2y8fIGKs0EdNPmveGU5e7h6ItXn2b2Z4wr3U9gB8/HyVp2iixLfAMSr6gghc4ASU
+          IXenydwp8nb2Zu2gWNXANCq5usFadz3Lns986zPBflPgVrB6KfgdAliDpApjcYZXez3UxF8yWoPI+wnf6PhJVw34ClMNrgBZv5jA
+          L+MqGUNlVVj3teOBIr/78z6JDJz9GjlGxrx/X8O8AZFnAOuNF6juAckmYrVXmFThyWn3qnG5QqD4piD0laSkNq8rfMs/sddIs9ZO
+          6K/d6Q/6ttbg72r4kzX4W5ufVFzyFeLmpIggk70poBHlcdudMmDrMOFUvDKi6CZ3Voo6mypcBbJ3U7QDHCnoeELGKm8QnjyMXOCF
+          ztWw9fYIvjEhkUzFGBEb17riSddgmm6NwPKp5QkVa7zGdn24dvgYKmQuQNZbZQdqRADTTsQ0r0+M0vuwEBvna9ePA3ayCOWMAhZk
+          vXTbchCk5Q0VESOWy5nrOSx5uSzhT/yrnFLKEXQQ6yUM9hHRcIaIhH9DrK9JLWt2YqZaYesoamCjVlkDZ6isszeot7lWV2NVz+dW
+          MVQgaTwZw8jcqoQFtP/Rc5CMLphX7VStbzK3Ve8BXBq33WUrDBqgnIizvrlC2LEbNqNLGnAQl9NGTS6I5lygd2CPHn+uP89VQ0Xj
+          6ODXVyqo9lPoO+U3GX6T1nek0Mj49rWaxpgf6FXj6nTNCFdqG9SDxOoXfPe0LWjseMH3BrEHXIgfdxqx6gDbuII4asvOWl2CZG3T
+          tAv6x963u4QQ3iwOzUpVqoux3uA1FwwT8oiZ/BBRza+vELBWKglZ1KSBqAtJKzaaWTK3C5XxFPSSc2yobilu5CzmjQhloHPeEnnU
+          bOkOEcwsIucrf2bq3kYFxrIlrQaoBMEA69UByqdo+UlEMT4hApLAj11fsD1S1a7XEFQw64UM7De1vCEiY0T1ejPfLSo9zkRFFD/i
+          rCgbblxEtAMERHYcC93STR0aYBqAvYmEQ2i1tixxeEs4PfUz6lQTklOfzSdtn7n3yEPuRgHrubF03UkCq4DWhxvyWqRjDZHw4w5x
+          ky3ftqj2d9aLDqouAYgmIrPfcS0skre5Qh8wyQzYiKQLcH6kJJ2G+E6OzeI7WYy4W6QJysJbgbwp2bagk3SKRUPpTqt1+EPfE1Ox
+          7/Ubgp4cm4O0kz/53PU4Ow4WMzcUtgfnWGA0PUYVWgbY7gfkRAyGjUQ8AuIM8MSdumPHY8OZ63iTihxzCF2HkE0xSief+IMDEcu6
+          vjvh2+wuL68NCi4S8AuIl6pPF6GYhNg8nPvJ6pZNpr64o4DAuKnzonV33tvAaRmChVQuwZ98MDe2PXH5XFgG+7AYuZ7jqBYKCEuL
+          oABql4mF+MMjd7oIFlGuFO+cv2fuyE37ewlwZYP7ktvzVLwbrRFmBhLwDR/NB6kn3F+Mls8iJu2RPgpWs0t3lkRBVUtfIbI3FSQV
+          igZehtoePQAhJIqhROIHRJf5E8eLTa9GWyurnDZickH0miz0jG70tpzi8rWY3RbbbW8xZgN8dMEhQj558B6xifdnrmeKq157q76c
+          Y/bm0xF7cp1YcH6b23U5LCtzipKMzZXYJ47vC9OXVtnVcCO9rUwyFX+L2Ec/+zzK8oJq2Vh6HA70NCjTq5fWDz9cOkE0yTzhrthb
+          LhsXsU9i8zZ7roaiFXAFVBq23QgBsWr4QsQYP2PS3E9i3Akl95mPWy+6ttzmEqSahtBOkUkosvGMU5neFqIX+VA/4widuOW0a84c
+          5Ymw+nvM747Ztcef3woqyhapwQfR1GAVqDyOWZhJlnzIjxOuxWgiC/NpF5GMFlFF1iDSZ/1UD9Nalponr6FJYB2s/Knyu0bGccCi
+          geE3GfUxX9NZkpP2ec7bi/bBt9jKmP0KoNvXPaVhqeiB9QXHKjLCNz+VXaLoLBFEzbJLgMaJV95OK5lBRqDmTFeJBlWFeh0FknlD
+          i9T3tTZNuUr9tGs+ecpJUdnyK5syZtOQkMCTqS7/Wvtot8Nmkes/JCeW5r3E1lwCVY9gvrugUHD48oIOWYcnI6wDhUE2F5wfyYcn
+          eDmQUS5zDvenify6pYiXjHzMSVu90tWvmfxj/T9g52DJfZNTRG20KqNy/K63VupK4OtSVwBYBSqPW6s++NQVyGgyCmR+BuR0suDh
+          hB07vtwiuQqrSnk1qBbxK+e+l3MfpdNcHujvHLCdbZbeAxWWKuYSyIuv4VuU29jEDZiBzYtOdg41DoL0HrZnbuGULpTp07SrVlRZ
+          onXo+G4QqvufKD/c4AsA740RK0ExApuZJAdaQm8mRzKKau4UrVqSe+9O1op9BL4u9gHAKlB53NrYB9g3r8NoMgpkblctcBpRBAws
+          Rr1XfcxQVVDRQ2yXnxI+sF7w+JhcQZCKnOrwqv0Vw7bLFPDnOs5QEbC5j5pQzbvuUHE7pwxs1PUruaOKmg9ULl2dnmDMlY8Xy8K7
+          E656vBtC0sHrsGzUepMGlMDIPiKGjaiFE+Fm8k6qsSbODmHBCcQSgcQEhKsyKR6ylZPJy+Hmyq1GNxW5Ibr4nhq6Klu6Z4UejkQ0
+          Wv7xW4kzxMH/3PXcgJ3xMBTqxr8t2KWIMcbSjdMMDwWshrb5qO0WCkS2GOYRsddzRN7UY+f+uKn3S8vUUZMNIkrx3IiPnHj25Hqe
+          U+t8cFpc0FcEstLXL/RRGd+IgIXZ3Z8A0ryNZUfgvOUCEaFd9JvqNDLKiDmMS2Rpf7IcCWULue9AJwsYcNMaysi38AycIpPVGCCO
+          wFT3VHTnBBKwAGBCd5JnAe39A1nORuZQidsHm1/90l7kUl7jsviyVnsf8NpG5pCR9OaVUtq6J2XVk8W1Te0jwHcbmUNG0pufC2tP
+          eZVnvBaf5B5per4peUNG0BebClojZoWQ7RVxB31aT07AiHsTUEmV4taEElWNBYL1IJtLojuHOmWx5ELEb2uEdDBJaUnUcSh+PJpp
+          ixdrisLeVL/SKA4WFYFXQ1JjJEBrVbOtiUg2lSIZjV3j1qCW2kseCgwuV2lDV0GETijxq8gozBoahITGkIEliLUqDJztby5VMrqL
+          uD+AsNNBEE7c8ZrOtvyR3tdiMM1oVRwlQjix29Nu5Gh1AiSjq4hiJQ2p0kW8fwJKky6puj9ZdMNuiFqb0+qR8nvc5VXX+tMaTcUM
+          vTfITz8hjtGq54SfQj5xWJ+71Q1jjqRBUIHK47aL33jOCvCAii6YW9IuVVl1Ml8CWi9H+EAOpp2I/D6b6zVOFhPPeWangsOXzlwQ
+          LlZDoPNpBUuPYABWAKsxtW5YWUiBYOrrF0yY/Xy/8h0onklSR8ZjYbb5Sfo4mLxsEJX/jS/ZaXr1L6jlcrC3L7e268v8e3VJHCOe
+          570a9Lq9br8a+aW3D9d5uBf8lTfb/g315/J3yA82QjZhGvBypCrGgHXnauhrvatchquAAMTyLVMHaEr+AqZDZDvV75mP4fuuz/1x
+          8oAM9D6ugBrGrY/T5OVYwxIagVq/90ILwGJzn/39n2K9PBp9bVSzf9dgqVBq7l36BQQL9bRXoYBHToftdcmHwHvHGyszGU9szmz1
+          w8TrRONAcrYFoIneFiSbiKM9NfcL7gsrXyXopCajK6AC0tRGwkD3EzWbqJgo4uJfV9fZ0Q4DBC75dU19HH+42fURcet5v8uGjtgg
+          R9lC8OjG8puyZbQ3ayJBKEs4DHO1pryyqCLzsWLPixrueBGmuQ/5x9doMINhLoE8SN9cklhqSh8J5ayGUhVgHbAcVMvTgkyjbOtq
+          dlAQJyJGstzU9uSylDJJlIRhPr5PIrf4G+tzX3nXUkZRQ6uQfNT2BVdOMJn4RmQRRlzG6weh4059dun6bnq2VV9YC7gWZL2QAbPW
+          sYaIhK8Ru5tkdxY8zgLfAfYwCbCpexjoKEjFCypbGHNacNVzcnUXQZmEUiFCOMYfMX5scbpqF6jix3GZjNaYa/jhBFy1KBE+HTHn
+          hotfUR0K4n5jg88V3yE/MCOvi6nFKyFB+WYYiuCIhvYSCDr5s9dqd+UWnS+g4mQM2hy5rUntYnM7xn6K/+p70E2o6+FpsFQokrku
+          VCYHANC9skkaXbt19L1WR+9ORv+36y2unuzR48+1ttmbrqLr/Zb+Z9ZeUtf5CvlFDf36Cru+qlFLeLo/X0ar/pa8GNf/GF40SO6b
+          +FyDq6cDgYDhjA1fBPxL+pNffjNr1D+FZ/8Unv1TeKZNGL3gIkFmaTTnkNU75foFsM0SEqpfaXBGQj71QTKZitrcIBLPyjfdlxBD
+          oLyts7tiGsp3sO6LmS9fwTrYYxFfTFzGQz4qrq+94DHgDnAOuM4b7T/03OkGk5POJw+kpFPxm3LSdE8Igab0Sno3NdgXlJb5+e2y
+          qq1eOJIllsMhW06Gf7wxb/XKj5YrFMzQ3GmgHwqezNin5A8IsuUa8dAIa0R31V3ohFfDGiKHfzeYA/5cSVXH+1UEwHhNlzlpLMVx
+          Tp5YkQ/3WafVarMFd7awGkMlIFo+U/AGv6+lK9KNzgoQUhLLr3QCFXRKdhAQJ9byRVgUa+x+BYYhdkv04BDy6mqmvL5Uz47N5XNn
+          yW/7QciOw2QfuNTMNLOQQ56SBym9YDSSHgcVKOB3mk8q6G8MSCWEKngFa0CdkBwIbi4SGnHE2bHZm4A06lRLBbNe/nJRkZ43RGSM
+          uEd65vjBWPw26wXzedLEYPmKWt2HlLHUQNU4zThyuprfuEJ6kt7ptNp77MGdCpZtI7Eja5NZCgRWqp45a3AWJi7wJnhObh2onqs2
+          gDEArUa5fy2Ez0iEzW6Gw2E/V6y3rj9x/ma1h+jxL0BglCplQJhSOM7nu9Sp1l7yn0M2f+b+nIcIzYL/zEb+yigYCgq2xv3os8Cb
+          IK4zV9AMGNXlKx9Vq5p1JwoY7hE5TjhDPHJ8tuAT7vE/ecjBdgcVuAZkfXwCxKc61hAJTz4gwhOhp47PPixGrucAW5sqtAITCl4A
+          7N7UAtGnki0E3PgHsxs/C/xv3AvYB1dsx51vwpTYbwsnEjoryRiBsx6GCqYENCHbDe1gUSIg4isQz76dLbx7dKWlVXdadtty3XNO
+          LbV1+wKxbocOj5P3NCby3bMqrAophq03R7mkVskUIhY4QFhgd3Dav1IcOpWB1stvF/CnSuKJCBBRn3PGRyLkueETV+pmUwxaLztZ
+          dAqyqQjO/FbXGQ8XycJdLi+sXU6vYenAapgO0Lx1F0jUmflMZR1GlIKIJcfxPY6ou3vdlNpqlsvKu8NW8p/dLabPgGirwilCe60h
+          Zg+NOiNUQz8rIaVR21cF+dzYkoO8obny8iyIIj41yclSJ92GYukSwdT88h3CYtOtwF3S8AfcHS0hlB22mOTXZJKZx95hh0db9NdA
+          RAdzkIDDvsOcuweTr66YumIjVQHDEDtrqAE7VnPi9WX5vmd+k+598jqRm7STmYFHFOI3inGqBj0LxJrgsnlCxDiZ7NKsj9LzzCNW
+          B//QyEzLYAI6cmp29+8d13ceHKnqohi3PrqSd1Ig0TRCqvenZh+dT1+ufCqBmiw3kiVP788w5jYWxLKzYJ6d7ZRlVxq2XXZyEYiS
+          cirCM29l3idh/ZnQwWkgNft4rwKYhq0Xtbx5VfKJiKjfI+zUjR65747Zeyd04/p2roagh6kg1gse8M9arhGR/hVC+jxMapSuJosR
+          IN3yuO0ylHevatqJyO/GfGdBqF/gRI0QELSQ5sRRkwwidF2EaV8Bh904nuvcK9IMMJoeQwetw1bDau145U1vPv9wSV3lsuHRIfOC
+          pMv61PGKK+s/JLeFkd/rb3zPjXp47sdOKJgSiw2FH2vvitvhJ+R6W4lEWt7i3LwM1ylQ9qOEEUEMPUgex7astOvYQg7dcLwmco5x
+          jkhspQSx078fpWqSMsR6u5fz1grCiVi9eZd9HqVn3Q1tEQ6ZXplgapaGddNvMyogW8th9lubYpmFqCdicBc4i5u7je3K3wZ8ZIVi
+          ajY3QNqcn80EMDqvEZtf+fKJmm4i5jYw10uei+3jo9i1JHxR7H9lFAn6ysXMxWyUm1i3TERlA7vfYYup8JeYznWb7l07B3Jpjonz
+          VHQI4bLLlEgd7ZYK0lB3Lp83aJhBxqWbn52Td2BAKLXcpyoB1nt84GEULV+IWCziTEEoqct9djUGGvXnMC3EeuHuQ5YLM4WKXFGe
+          uCAB8sQr+WlhzXPT7RYUvSl5RcVRX5nPMCpUKOO3GopC8FqY9QbfAddqLfOIGP41yqEXUYfstp3HV92CrRufZ11ijli0CF0xpW02
+          iIGyzwpeUlEH8/3TZR7oOghjZuo0boL8oAJqhIq8QOfxF6nFNjOXwKHjEBHjp2nCSLVqlKHWO38466agnoadf+iai+ob3Ul+V47Z
+          6HaS/9A1x2of+AMXgmZd3xcaEkbCxymMT4mpRDKCIRDh3tZ/ZlPkJQ5U0nYH6eXXNhOBQ+A70VYenjiQT1iQMnz9FeAD4k5O1uY9
+          6bUY+F8d7sUzyI+gEZSwr03N/wFncGamEtlefuiZL8b3hFKHQirdubN8gqcaHAuoIwxBIEiSh79MPwGQN0QDMYw/gfj4DBpvYmYE
+          eMdrM5GTUWpzRe6HIEyqwWf8yfn2dsj9OIjYyWIOZLM/oLA2+SXtT+iBEEj1SQMStXLaBik/ImH8R3P25kMwD9hHx3/mcSx37FNC
+          zOPWC1/et6l5RUTeFwh5c29saiH1ujXff6YzXKZZ9pJIe2+bbQvky8wFhwhF1JcIyS7EgnnpTn0+WoQL2ZSVoCrAdrOVL4poGEPE
+          bhFd4T4EDrsJRiNXyrF/MI7TNXVBVLicZNbNYJfNXbGz/6F3ORSsJWD1iMZSqXIngQif89AFVnAsrAypjNvuEIAgTsMzIh7hzpxB
+          +eBO5w674/50PFs8sMvkyYpkb/TR9ae/SoG8jK1CxCCVRtXq8YPPaB7EnFiUOZL9w+T9kCMWz7ibJNu3c0ADqBZeKK/vXz52zf4l
+          mTjreoLXPtAouA4FYQ3wIXKUqOELDRfyEfHwUEpEL7noDAo2g1h5giObpoJYAmaI6MOQTv69+MvKUhsJQwm0Up5thUDVPCEgWMSu
+          LVsYLt3kNSARS8ubMzOAbHyfLcnzfKpZdU2LRV/5N+zCvGmkL5dZaplNQF8QBe//RF5ZfTS8JNOLsa5uzDINQoc3IvnSlusmCuKI
+          xUeI0sZ0hbl2gzhk5+dgiFQAFSA7oyc5961mBQEbu/5sFGXXn4QO+8iFBoVPjuMXWzO5eWBXgVcRsYyhBqsgdj+JJUdkaCYT0BlE
+          zvWjG7p+8VJj1cKXIG9qvc+Wy0hUdBNx3IhHFTIKfliQ9LLe90DOURcEETKhW4QgFr7jxqEpunnlbcpqkllt9y6LnkNUVd/Gl3Ll
+          O7kVThESMqJXunD47C4AFtIcYL2TBAIikGgaLvKia5TZRVodxrqosjJLXtbNadJL44cXhl10j9HyeHfcRIkIqsjJxHyV6aK70RWm
+          /DP4E1q5m9e52QRoipLXr78GXqDNt4nGS890j81bt9Xc3+nyL9ZK5F2PnEzQImmiQAiKAyGPJI2EePbGjgAdkE2FPmIBes/cHmul
+          W+9OmmgxgipqNoMWSRMFQk8ciFdkLs5oBdPedFXHepAcc+9tJ3jekw/ZMkYQCpnPzMeePR4JvrELPjU+IvG6+cHxcqJeOtG8hEH8
+          p7PFFCFQ8CIxjJC835vThBd8FrukBe2lM8zey2yze9ffcomKLOOCSYSEe44QruN85eGE6Tt7gFgKBAMQBDShV5ScakbwlkhYa65a
+          vxAz8FcXfK0XFhBOVegjJp7B72b5LHwesoHzlf3ucKneuw6twNTjq1E6gVpKhy/m+5zMLAvadpI1/ZDNAn/6IP53O9GbfOtdw3IC
+          vh9RJnXB2bXH44aUsAEmXSKPmEVfm8PsfPo3SdcY1hPsTJQ29IGXkAtS18Eyw2Go+rtm65FJEFR0CxH1uY9xYCq0sUNeHWBXXVBH
+          TDSfEE5ZrGDsk5PcealZWQGguxFL5hgnc1xut9vJdrvdZg88mEXuArU2b7onk0tzYFYSWJs/Y9ZmYXzOs9MIG5Vr/ivkETPSz4ho
+          23lqxvELYDQr0ohJ5Xdz0eKFO3rmvnRfPh+m6zazGeZOMw7dx8DbZjsFIMwBuPf6vvKy+4dR7pfO327S+iWLx1jyklX3W+yM+TLj
+          C+e06l+9kb9RoteRIcQCBwKjgNa7F1nLNpAVDQd0aS4m6l0NLk+Pry6sF5ucHstJoyaU34xSuQtCLy3eYysi2F8LgXn/XL6Io0as
+          oPSQsBpgmLSD/KtJx884rhI5k748MQfcl2IJF5v6kPvAAzcp0BDw3fVPb1hq36zzdje36jwxarJqXQyhCwCEwxT/dOePgTCQBJLO
+          YaOMppoHP9jcNZI0X7WuUiG1bF3KsqHNhYFsiI4dVOzzFCFUj1d6djdocS1oI7a69q/NcrntXzdiJwyEqivSqEnFnN+t2rz6ysPS
+          F64DL0O/+zWYV3ws4AXuT6x779q03pK9R3GJKOm7FqaW8Cdm13zhsUs+9QI3lJpbJmgIDBWwMm67x5H73GCYSMQJIXpfXQpLmrH3
+          AiY3QSqDKoB80HbpAtau4AcRiZ6bBeqOw6CxQVhBHDXBmG8FXybNd0mXaKbtgVclmvvsqL3N3Lbch6FgEKFl9QMikOPhn0mbPOmK
+          fg6w3hRBRwkQTcQaP5ordy4XD0nDcsWxQwkIjVsvT7k2Ws0PKjIdIjzsA4940VxHbuuYwT2pcKMCUgCslzqwfdZxjIjgEYXP1aaT
+          tosJcLYv21TzheVjPvTPk2dA0j6FgMNNy+XvySU2CsaQyeQPEDvIPCaXhZuCmiZGyIvCLKAjRvP12+yscHWQws4CT+qxUsLRwmGg
+          CpCPNUhH5BMeI3/pKAvi9K6k8PLZ3dLqG3p4B21bVcygcnKH2A3xZ3bjPAXeIs3pl16DlJKCEqICBQEDIa9yGLHdEwQUcwnkOhBt
+          Wy8DPw4dQC/ycevDb2B9h4gmEn3fmJf2ykOvcMJDRpGgxlfFtyvdYjbK9KVbJqLyqPh+hy2mXHy0xYTm3qGcrzZxnooOXSB2cKHn
+          GmN5um1/d+SnC8skUXLCiO108rKaz00vVbzyYcJqkllTj4Pl0xXTBZ8zX8TTMyf02Qrph7aBqLCPkuQRGU7+HITRr8QFn8xxJfZD
+          5gjB+Fvt+AyGXDmfKEn4FiFhP8gusd76iXtSnFCAaAoMLayJ8RqCh0SWXozJh7HrO9/YcOY63qQqxhxE2Btkc4zS6YtgrLMj/rOz
+          s01/ACz2Ci4ScAqfzA+sJBuQlDum18WttdgqgcSMFHEV+DKY8XnC88/yzriANFJyIOFEJHeHOb/wXZbflKkmMguIPG7n41NyPaOC
+          /k1zly/mFwdts+wG4rfnI7HMtyMp1Shg+XDzzE5JOQ3DGxysIbyDeAYJbzVsu/DksyAl5USEh3i6epDs4Fet2PziXGvm1uQoo1Xg
+          Blg2qlYBS0+R5JYOGIYSOU8aIJ73uE2QbLdcOaGbkkXMWo/NFaoD13PYsWC+Kp1QR1DBrBcpUHasZw4RIZs9cu9q0Ov2Gml1OWnU
+          hLJmY4OUCExjgwKxgtJDwmqAQbMbGyi5SmW5PMVFU8l5yOkiFFNqoAnXKSRmyeaAJiege1/pPlwEufcN7bqsopyI6BD3XgfOLFyA
+          tYcZBB629ax7X07yKDjw+tnvwUdzy6auxwb8YST1jCsGbTc6OSgFaSZicYjbVYOHcDHnzcjf7AAusUQeMeGYS3luT/tdoVxxWoa8
+          fKGoSbEhRB61iBDxot/AHQfizwsKgm+S4ytGbTcu+aRWSTgVAzNv+vJNSVUNFTs/HTYKT4WkR4CA6U4xBzTIKawhESo+wnzrsZIy
+          tt4TKDYeRJ97GVxith1eFPjskvsTx9NcS1bhVS0TDfYq3qUybuNupiNX96EYS2Bvc2VuClLOHUj3JwcIQPPOxuSCXTWTqDhrxEM+
+          A+dRiOKa+0Iaz2JxHrpeUqD4YTFyPQfwCVXsegMuBIBmTzc/Jewxn2a0ZMOfGRvy5jMPPJ7NhYEvttDkDSinwAuHgF/5DX8aVDlI
+          zsIdV1CWtPROLqKFguzi0LmqS6bfePMdv7D2xy/1lQl/bWQ9mhInq25Q/4aJTvUkV2PWxu+78q7wu/WZykrxm/m0XkercvMo4RqM
+          QqmvoJLaq0uavaCJvWRUxnxrBGMet4PyBnhtX7/h5+t9+RKfIJz2+rgGDw8ilV08iKClUjnH4qesNcp2Sz7x+D4VpmKriOvYYjcz
+          cce6kskc3MDN3SGQ8dUwhIxczS8cDfhTuGhGVh4okiuII5aIG5oTpV3v7YBHQr24ovyxjqCCNVCwet4QkTHiSc7yovBaXrOYjTr9
+          kU1zmefY32WjkH9zvXWSHC9VcE54Fb1d44ytEi6AQUIRRJhDViD0fInPNTHm932yEToCV4enRlpFvEoEJHPNHNEzQENveWIWx8/I
+          8BlrD1QM/w5xl8H52uBnsUvU0VqDr4yCuRo73G/kswMryohJxBwUZRNXpRhKYBXoNcOprbnPQ7kRr45TRJzjVQ8h8Ogr9yYB69U3
+          awmsGLXdRIFbXErKqRjre7PwFnHoTqdOWFQ0hJIQSzjeVAKrPyxDrJe/XBJi5B0VNTBnKwBXVEuDqtup6799s8GXqI82meL6U1t/
+          SibMTbCkLiHb6G1PfP8BlMRvrLVkVlfzO5pmGq8D73kzy1z/S9RHm0xx/amtPyUT5iZYUi2U8tMMAg7bbZkd+e7XxlpLxjLN2UAt
+          jUYd1yEoYaAqJh9YqzttIKxC8ZWMopizRxBBiQl8Crkfvf3EoznOAb9BfbHOr6N+dU0sHUoVwUDvP1kDqC55bWWiYiiniEzCaW+o
+          rFEogM0Ts5yTVbOCijzN7Quu+vbv+oFNR79nkMUP3+D38VnZfhDEI+55rCf46EyyqUH+tF/1z82UJY4rVMS8TusfITBj158VTgXa
+          0w7bG2nqOvoomEXF1Zofx7rynsVKMW7qA1jtIyD5XiGZnMgQLrlMQOJ5hCNL56UoGJPx5cIxgZN0lhGw5ikB4L7X4SAVzXhv1oxj
+          R0w+nATs6tf37nTqyvuhYzWoCrB9zQaqTgzcIbJYnyMcwKPjs3M/TuhZTka9+clQ0RgqUPPcgnyxEstXKh7B/PhS1dFVE6mG0n75
+          U/am8k19+VihhMnLoRKwgFgbCAI5lQ3ZS0WBrocIXyN+JWu5P3RCt/p86hKajdu+ZMhlxxriiawWiNMGWEf1pg5BleP2WvTBDpBA
+          M/CLiu3+htjcGQ/ThsICZ+yaj8VQfUdU+oHv/lB4/yESe4UKom2A8oLg3hJyfWavxgPb4e9SEjLWsNlpGpzoktXehPETHbyuU01D
+          Mik2NIfNQ76YuKwb8lGS45WuQi/BfdO9ZjuiHtkj6KgnEvYgHjm7euJe8oqelObIx60XHRC8QETTkJm5Yu3a489iqrgMpCW+MaeJ
+          mBe8RjybdM0TKvRvJkk4aqAEaeqh/K6cKDCykoxamHcVZVqkALwClCX+usdMxWyUV54fS/Nf/r320c7B1m88d+RGE2o2k9EVc/vu
+          a+45Ub4gqeX+us/+PuazXN50P+gwN+R/IaS+6aO/e/KlriqrvnvtfrEGftddc45J0lU4zwSjKbyEHmZvjAAUrmLYR8boze8pCHLe
+          JruHxhYV7IPeukwzNakdY6K9cBSwY0e+jbeE0HbgyQxHydwTD95ptXbFf9odFi1CV4hoi55c3j4rGEnAkyPu5F47fGxarO3YHLfl
+          45yCOGJb4565JnaVfm2qaErkERPOCWbFC0MuGOyxG9eZBoADrYIrwArAetFC7lDJGyISPkVsZBwv79JLdhXM5rhcAjt7LBKkxmzO
+          w3hF8laWQCCgLXGL0PrXNx8SLZeI5NSrn/5G2pgILqtcor6REE04argKpu3lt632+JjwGdvCHtIQHJ8JaA0mI1Y+Gm3cfucAymcS
+          Pgy+RtRQV/drqSKm/5RW7graGwNSjlAG10GN0w+g1BbDXira8h6x+s9cz31sSGG0LKwSdcQiswuz8x2KOEPEG54zFVv9QLFWQ0g6
+          eAVWhVCN/iJBwmMx0TjnQ5IOabEnLv65xSBQXiPMgiGwuF+Yi0G20pnDDl8BOPZ1um/8eHeB2KoHHg/hNGcKeU2xYfZ46SRLSc7W
+          EUveqRvzYIvGDawZMBuJ6AHivcPr0J077NL1Bc1O+KtsxCu4AVQF5KO2W34HOKDUcYyK4PGbtYSQt0D9ghnSwAgeOtBSsolK4H6J
+          SOfUdfZTGDzOnlXWbIKCxi6Gbbd2uZDQxDgi9j7AHJz4/N6JYki4Bch6EUKJd5hwIqIz9+jOY03rhaOJo8mJxfwMcDecCjYL1yA2
+          Ae8DPwhZ9ysPJ/UwaYXmGJDWAleAalAVYLv6tOXNNUYGVDTK/CLgbbiYLvizXp8E0lrgCvCnURW5paaZuUQU5QazaxM+U7AnXm4/
+          4PflZaTqK/M1uBJkvTIAx25G/lHRBfPThNfhIqGE9pF8NsdlXfHuIXtw/amQ1ldf7APZkyt+SUgq+6EfczRf4tp3y/zl8rA3iI17
+          SXfPAk9aAGT4T2n00F5Owzgq9j5c1/c3V4LtXSj5BhNPRHxDxNI9cz3PfWRDh0+5dKM2H6TqyaN0hks/vr+z8uM/uKxKyUICHnyI
+          Ka6KnZAN48XzkxNxH0zJrAWuqFAFYLsPgIqX9cwj4gk+IY7g0tqvbPq2CwrIu5XJIyYdxL356zB4CqJYujdfjDdRZhDRNGRmvn33
+          W9FrQy0Z4rfi5Azpb2Q7iJg93I0zdfWtVO0wFFkqK8po2cgNopvBTTAJ3enCiVhXUC9tIW5Kw7aLTU4X64gnIkLEFcUbN2DHIffH
+          ptuIdoipLW/zahRSE9FHhOdzRsFDI8QDWFFBHDHJ9I4R/i8Se8aZ88TFHlLsJI4Ft53k5YKaH6yh1cA1iPUylvdZGD5RkTrCZfJ5
+          8kI3j2LX86S0y40SUhm3XcrymZiGLVRkaz4AEThJV8ZYUfOegA0Q6yULHHfquEJFtubnlW+Ckfg0SBxR+AyYbT5svQQBB6winYr4
+          zKVLN3yRvAnkBfORdBv8BgFoolhVLKEiVXP++mYWTJLNk2C543OhnHKCuoRihAKQxiZFTawjogQniIjKeVyMPHfMTrjsmJ3HfFgt
+          w9c9yApX85+IiWbnWR0Wc3/K/Wf3YZt3xOQqcyUzX/9A6+bM3LH0JkgEeRbMnW/sWui17NHVsBrEdpMHUoU65hCx9w+YvGESjrAP
+          4v98k+VbDNsuQFUgBlBORHiX5lLlG0Fo8uLTZRAm7RVZ98n1oNwvGq4GqQHWqwaQCTPzlYqSmPfRw5njPszYDY9m7oSNXF+QNePz
+          RCI3fM4nmvbH2E8rmvG9yABS+Wu1ttl6O01Sv00lRuUAcYBZduLYCSd8Ho1nbOA6i6/RyONS0aMSrYIk4LrfqIMVwAZ4MuAmBYbR
+          RHzZlVltPiw8N2Cr2yEBuwnGUuS5xIEg+Zjtcu7IPsPIGSJCvkYc5ax2Tcfcf4D2oPpx66ULhKpKjhCRKqJAdij24J7zLBRzIUWT
+          Q3A0H1MLdLXy5hkGtiJh/QW++MPq5EIyo2VS4XAv+c8RIp2Q9K+InckXeWbr+HEl+wikEhBFkWIZ4g1O6efEEbPLW0zCb+EnrRCW
+          D0RLXjUBEk/4leeftY7psFngTx+ComZwC/k+qIJCxUsCVvoZkU9wngJvkU6+6/tCBcMoTWbDx6waZB0eBkMHlWDZsE5ByfcQhXLH
+          WFlQ0C2Mn8npkZxMAbF+dYCcAkg4kRXiM+JcsCDA6Al0tq1rLmiHcKGCYR1vaMh4aHb8yzdQu6bn0CA0LRwCAp/BowU+gNy8PODO
+          gVwwi5ELkazfsNv+HjVj5yZFM2DAYPBT1XjxDfiBGGyc0skeDScjMkrX+T6lQ2idSe20eqdUPLXmwar3j+4RVD5ze7aMorSjbD8I
+          4hH3PNZ3JtnsACVYovYrkK74988jfiOzyMgf0b67RJLUc3NYATROwPvKeAZgBxmZmi+k6rwU+DCk6QPjGoRD0q9TIBj8VDVeWqSg
+          D2x+tRJ4JX4tIZPR3uFaHmm4eJTvQA1RQA3A+m0+cPqiZRqVbb45lTPki4mbvlXichFkKJ+TALBqwkYCQYD9iSC5eQ2Cs0TU5BiR
+          DuIjztL/9JNHm5+E31ZpygrRCLde5vJdLBybiIjdnKHv9u133fKmIqGKmijMr7IMRdAhHEm71VJZVg1BBSN7bhsVkyw95tM+Omqz
+          6KvY822z9xgQ7mn5/fonbMOeeV/SXb1bs3yQbPmvVQfUdBzcnRSfvXnZj9bCNyF7UwgvR9JglOFqqAxbjxMY6o0UK2lQA7Jha3de
+          wuJkl72BIlPZgfXMtVCXPIwENWIjMQ6lPmQCaARYv0rLGyw1T4is2Yirk8PuSa+nWq4LGN0VmU/G49pi3Nrms1ty0YuShQRW4FNc
+          asUJfXa6CMVkrDdTRYa+RCExIz1FVjo4PIqLdUVd6lDHqyCcViCYBdiq7P1OW24ehGIelZX4FGuwCT0Nt9gSidRMFnmGVtI6+Rzt
+          tNkHae1Dueu9nilkbNDcZKBOyLXju3608LhGzkgcCNq9bqqWqI5bEbwloy7Iw1fFEqQ5fdV9YUSWsU6xYJu35vtAxns97pPRK+Sx
+          aE5ZowOBLr13+YaniLNLs+5V2mn/Y/ovXpu1BvepmD6yRC/Z03bvE1YAJS/L8aa6BJlyIj6hb97N966GXYHWuFhOllVGKTnzWq8E
+          1nCxRJFpaXaipX2grD6jn2Q5Q6TF3YcHd87Okr/iB6HieTsZS2ooh4FY76WB2jMz/4g47I+IZlQPz5Ng7pC+UR5lc1w2ejjaY2Pu
+          88k2O0cCLaBKfPpuKb/cGcjHC4y5O2K8Ea0egJCpRB0160Nscl3+wNkwTvgtN2GpAqsrcDFsu0wBW1NyhYhkLxB+NfBc4XjcWNWt
+          oY6ggtH1ysUkq0fU+2yUpDW36J6h7LuO3QQc9QWmFtyLm+GmAZPOaaNmyp/NcvH4kztWmXEJCI1bL0sg/lXyg4hML7Fb4OVlIsIe
+          Npklr85yC+7UcO+Xkhu9NHcrHLrzUUPcKHCAmBNHzebwDQcveRzPnK9A00EVpDJO1Vrnq0lm/QgPRVgUBn4c/Ni6eR2TKRgwInTm
+          84XjsY/sJJCKbjOYAUJWR6LlJB/YJFilMw73f+gLGErmUtANRIz8GIRxNOf+rxHw3k0VqoRYvzAA+x81X4gsEAPzwYS+q4YdooHu
+          u/WpyeIasVinEeA1HyftM+WV2gywXpLAJlbJEypyxfY/WdEAdEDRg5paq9c+VPUYgPlB5bjvGrvXXZFx6fruW43YNXAErHmKsaMo
+          utcxjIpyrHND1XCpVH191OKiqqOW3DZCxxEyckW0DpDJUN3dVAt8+Rl4P1j90Vr4myIvb99W8UpISowqXA2twzBTVPxJ1bAhl0Hc
+          dPblzMMmKkfGopDVrtr+U2Cx6z9dxghr8XoNLwkX1d58QGTVwj/5TNkWqABav3EDpKqkncjGDXsdIikNLl8WKOyzyXck6lRTERqi
+          1PZnaRRrTnL9eKeIeAOjF4S+k7zTNuRc6GgovVDXU0Iq47Zbnpzr0nOGiAX+Yb7Nei24kHAmZsv3oYfc8ZP3of/v/5EkmqBisXQY
+          6wCrGlUG2K5S8tETVhQ0lMu8IyjCCV1C1A5pyS69TB0xyfTMjv1TyP3obY8vxlx7zwXEqyIwPLSycpTHGxcCAK2CUCwnEht86r1H
+          mPdzkNQsqtI+GMCr+YViNspahHE+zexeRZuJf3ncn/zQJ/q0bCbicPoIh3Pev+pdKbbXZSDZ2pTYvQ/GQbmWu9Nq7Wy9llsOPdWs
+          fP0alU99RFwQ8onD+twNVepQQ1DB4HHrYw1A4lqOEXECZ+bS00/u1AnZMX8uuTO5SqmM5U0xCGqgCtJEJTEzl4qmIJaLlJicEFmM
+          qXBtF6Lcr0ZFNxXJmVN6SwpKryEtG83LEtRD7H4dVz43N7GFwNJ9Zq6HyNRTVQ9RBTfp3EtHOJU925m5k3NOhvWuUyMiak7z/a1R
+          LkXqL8kSsPeLBZhWVQHN49bLW453DDwjIvxzxIoZuo+B57JzP3ZEbL+cj35/pP9AgbsGCgTOILp1+VW359k03QpT7pNJV65f7++K
+          /xwcMs8dPW/z0mAH8FBrCZpARHBhDtQv3SRS9YXkpEtpJUgD3Y+CcCJu5+ocEQskyfPgXqjjxJXO4erQCqw83jzJahhDRLqI+yli
+          5z9/DL5GD64cFBSQJkoPJpyI5G5OMeEA96cLTywL9vd335WvaFfooyYec8FEklJLCG3ELgo8pizRR0w8iLOFRci576oC5zLUfuHJ
+          slNTT0WC2NKETzy5rSuvXWaA/XKFdg4KnhAR639HpJ4c92/HlesEi3HrBQcc3kNE05DZbddsirfhYrrgz0Lnuos4mAfJX2Y9J9m+
+          1sVYRVUj6cBYkPWKIntuLKep6I45q3XrJ2cxYheVPDFdHHx0oygQ80+mV7klW0PvVoH6ntl2CF326uuwiIjge+YW57eD836/a7+R
+          AvLKKKMmE3NYfDtkvSB9SCd2FLGxjKKGApAGdI0BNkMmvhHRAMRbn7cnp90ee8d6p5fi/zZh7wrYp0QjNTmZsz9LGvTyueuf3rBU
+          SKzzdjcXzSqJbxSN7qRFdxIi9F/8050nvZR4AknngBDVARDw5HS+koyU5+i3CCGdNjMeOTU+2PHDTeZ0jUhz+WCkiKHx0WbxSS3i
+          bKiE12QVFSUwd/EROFddVWhTwJooUxXlVIRnLiu7C8LlAyEssTtFuwgAqQLuGcabVI5mZhiRorRbhPse9Lo/xSXwJaHkBITYO4h9
+          b/OC0rZcfV0ilFxU2je/ZHPrczFZAYmdSRMXujJ5xBa59+YDkH7oOJNg3oi9t7yfK1NHTDaInvi381EYkO6evkhnmL/wtf2bqIB3
+          zJn03QJ+sRLF28FaXpH1EurEL0Vp67VPyd9MyHdqu8Ofxo8iGELEigeIk4fV7nYgYoHVM7h++dLNJJsmnAyofdavYg20Uaq9yrA+
+          z6hoBCZyFSE3GyznL51Gr4AwANt/0qpdSVu+mabmEZUtCqI1fnJUHgpp5J0JcwVOFbwsXRn1VhJ+8wQPPNCMZBkZLTDnkSRVhq8p
+          wmhK12CCgq6jWfkmDGPJ6AniOFxBTj3l+I+ivJSikMxNDhEBxJD2rnD1mtZRJ+lG02JiOklUn1BfPEOxhd3hjvzETsYqQntDRLGx
+          WOriZ9oiTmeYSFkIeJd5AivYar8hoAomZxId4X4+Me8HP4ugRjCFdUeO40ltyD5PFIDSqO37PSDc1zCFxr7uc98c7n92nVgQJPbo
+          klT7pp2bJZKTHxBQEE1EaufYN7NWZAxWF6BPuPoNcP0HFdxN8NA4FRXDwFKA7Uq4r3r0CStDIrp5Ya4f+cw9sQ1mF8GI+8FT9PDM
+          Lp25YEo1oP9sQlgLrILY3fsIcFxm3hIIKO7MDuzz+ecuy2svKopRgsjjumJ4S/NJQGABM4fIZu8Ocd3pzoniPANeE/BdBdA4ccrX
+          tJXMICNQc5i4pCHttgwcaFTEW8LsVwA/yQsVSFaREb75Jc8SRdKbjHcVQOPEC2z7lNwgI1Fzx/ESDap+9XUUSOhLQPOEDmRuTBwj
+          I3xzGUdlPVKc6P7EC/i+yuQ1HCMjfXODxAot6rPdKtptbSG/tX5Drlq39YyhsQtH7K/6533F/qoYbJzltlv7cvSt4AQVi+1dmS32
+          vHelfhwkg8pvv5YA1lurnD3TMIWKka5zWycpGexdDXrd9Cxbfgu0VndRfPim9pl8awdGrZ6h3/UEdNC1/JHVdgdYujdiMRXvcIpa
+          zpNnK5fXEK03dHhZLhFIzMhxmZP0XdE0slCEWA2WW41uKnJD5DBTz5EHgmAY1Y9HWohGritXV9zrWhHzoh51vAiT6vQv8o+vs9iq
+          WfH6xw13iFPupm5ZuqWdGRXLQoQ9iu20ItappSLWwJKyFraXCcongmvwkkpQ018zSfFPisp8adCaDNUZIj/Jp74TAq+V5QDrXbl8
+          JRAmmohPPzcXgt+5/uQrDyfsPEquU0aKOiQYTYVhgsKQJjRQ2wFOIBAcJqIvV+umPq7GDvddjggGwM8Q6G8kZCn/IRBsjw92VLH7
+          eoymslhcDV9Sj1KMZdXdNR+LoTFwnG3Wr/V+RtY7MTTc4MvVZ8ZPvhO9Gkbh0HpYnN4SfH1mr4m1j77HxIzKQ8X0EA+j3LmeGJ6z
+          6yCQS//vSsPWr8bAWqwincgKvM4CbFg51QcKFi+UB0ctIAbXsISKXf5mvqxTdUf4PAv4GSq00uZdqnjy/c10ZWhAbmbnEIjZNxAF
+          GU0zN/sBDCYl9DgUPxjN1LVlle+E+CsfKDAraDUFWgL1r5ETV5+2LnRfg71k1Ad7wiLTB57SavWn+oVagUp4gAalB+D2atChfJN4
+          Mw6TUaGTjVVoEIQTEVujFaiMr1afHAtSnnBitfYARwsb8JaM6ph7PCq9K/fihDxF2Vy+ZJnQSjjgcuXF2vNh4uoC7Inw/CSjJYjD
+          CLURJE2+Vh1/VI4GQku/V++vBuujZ4hvdGjdAqkHQzOQvTqJ2tGhpUdGSREVogoygVSU2qfJn5lcoApv6eCyhKC96rSH93E6RpPR
+          I/OLrHXykl5D7NHjz4IERQ45VQUDCgzvlQHWKomuo7yOiWS0Yt0jluwOFCotVEFVY6lyQiuAtcqxu6eLqk3cJKMiiNN/QOd/omwy
+          zgmQE6y50/qSjBsxE3+qc9J2nOOoxLSiTy+fH36Gc4PcwzZVLtTkgVgpVzXvwqtXnNzq8nATRQXRTEViqMrwn6MrRbdP7sWcO0Rb
+          yTvujYM4NuwkX7ex5NdsjuO0gWhnT/xn53CbLUOBo6ISm77bCF/uasanjwgB+3HwQFy+6RTHy86hh2wWiL1+yLcoYSDzULCJkHxv
+          ca2gkvVh+TyCrttIDUsHrlYa5aOv5ccxOpRRsEjnWp7Fst3wKDvTfXLDqeszd1nji1CxbVwoMciLyvJxi4/IltQMF2Ja0D2SEooE
+          vi19RtZDVbQrSuebuatW8p82G/PnOV9Hr17QdRlk8Pp+7HfzTvh3h9t/7UQOC1OyaEXtvyP2vcm0vecGJyZqBFKTkNnxJgRErH14
+          0Pl//+t/t49a7YYKqUojLTn98d4cnv3hhAF7H4Sc7ewlR6K+L/50GAm/X18IIUw1DgasBCkAdnfzlTdtSN6//vr4x2fzEcAfge+w
+          z4prf2Vgk16+lSt+1Wx49fdv/5X873/96/8DUEsDBBQAAAAIAJpL91y1NwEJ7gAAAJYBAAAnAAAAY29uZmlnL3RvdXJuYW1lbnRf
+          ZXZpZGVuY2UuZXhhbXBsZS5qc29ubY89a8MwEIZ3/4rDcxzHDrSQrUO2lHbsZlT5VB/ow0hnNybkv1cXWqeUgrQ8evW8d5cCoEx6
+          QKe6GWOi4MsDNBvBHKbolUPPKbNLRhke356eX0/HFch3VjxJpDSR0Pd2KTfrW3Zo7KZo5X1gHtOhroMxpEnZKsQP5Slh3OJZudFi
+          rYMbkYllkL8WKUKZR1wv3w5YHYDn0WbGdoEek470jgkwr7WAU6wHIA88UGb9rQBUAuUzZcyLCsm6nx2293o0BjXTjJ2JwUl5u2sf
+          ql2Tz38pDmumaav9r0zEmfAT+07xXfNYtfvylrgWcq/FF1BLAwQUAAAACAAnUPdcXV/eKyYHAACQDwAAKAAAAGRvY3MvdG91cm5h
+          bWVudC1jbGFzc2lmaWNhdGlvbi1tZXRob2QubWR9V01v20gSvfevKCCHBQSRsjyx43FOxqyFnUV2vPAmyHHUIptSx2Q3pz8s65b/
+          sHvc/XP5Jfuqm6IoT2aAwLGlZvWrqvdeFd/QRxudkZ0ygapWeq8bXcmgraFOhZ2thXjzhh565dKHsiUXWyXEL6v7Dw8UvfIUdk4p
+          krHWgXyQQflbIQqazRqnlanbw2xG377+h3rrddDPitSzrpWp8AuOb1rtdymKDPihqJOh4g+kU4JIm6CAb7h7iKiVn5N62emN5i88
+          WUe9U710A/Ic4n1CUdmuVyHdPADhW8ZPcXwnEaFB3hpXVDvZ9Rx0p/s5APwWZTvWZE6tktuo5rjOdjZ/5FSrtvli4OhUzVEQQP0W
+          OcsBRsSvLkhtJiDks9QtKjApifZkbKBaVdoDcSnECkE5L7Ol2Ndc3jltbNjRepLZmqSpaT1esgaqSnGxcY+YHKQutkH3KKFDzrRe
+          lhcX65I+mSdj94aaGKLj6tTcgdZbIGkkHqFgp2FK+rgDVPyrVas3zA7VHkj6QwfaOF3dkjyrsfaixgV7pbe7oGqyho83aO6JF0e+
+          jNUoE/k+7w6ZGImPfGeqrnuW/JQQD8fWObWNrcyMUC/IsdIB0WrtuXoRPDuDdCRag1aK8e7hU5TkfnX3F0/3nx4fppHn1KAh6gUs
+          acEDn1mH5AVKVjnUgl7Hor6VB+S83ylDQckukTv1WZtn2z7jO23Ed7CVtPp5dUetflJ77dU0FeXprK35gbnwsdqhD/TZuramn2L/
+          msGc7kRI+Qokyu3PKfR8UIAdXPUE4F8K58+KmoWeVSvblnTwZ8r9I92ipf90upPugKI2yiWFJL/YhdD728WitlVkO/JlBPVKJLlw
+          i8dTAwrbFABWcH+K++hsr6QpVtaGDYAUP030W1xeXF4XlzeLOxd01ari8qpYDc0pBrTFg2m1URMA2njQr2z0cLsyi+Ck8UBb+IMP
+          qlvILQNcpBBF/uNPAli3lUb7BH8Bf9CyYM+QMM8FHyp8Km9Gm2N6QKthtAVUWYw2keRwf7QK62rlhPjIbjY4N9Qkexa3nzgKOMda
+          TcdR6WVJf0XvCjYrYGFQhe/hN6AIEx0UQ3Pss3KOsxCXJd0PfT8FhbsgHu01fEiak3sOqQLHp8cPpfihpFGdU0u8fU1KVgiCQF2/
+          DAL+kI0WDnzyWoZ8cttSvGVosgoT53ipVJ8DHIWwnjB4XYqrkh4Bfsso6+/bfrJxtknUxbpQbDEeES+4WLE7luKaDVN2G72NNvrx
+          9jnLWYeB9NMJNYd5ddblCnFK0hio1nnWwR6VhKhL8a6kz6v7R9IdXyu5zq16Vq2ny29f//2Wk5lasLhBdaEEl6xh4v1zsqd5jaKc
+          PSS+2xBoeC8PnjZKnqpZtNY+8dxhhJ4tH8lKcnYvKgRG+b59/e/vfIY5iFn0j2PC+Orb1/+hbx2wvcqA+fw3EA4nq4RodECfiT3y
+          EWBDeh4FSX/WA7NB/ugcry+7UyCf3LkUd2OP8kTLIM5rtYlp7zgkT55aKvt8h8dakacW94jOQPnYc6fAsaNc/DprYq2aRlUc5lf2
+          2zSexeTDYNeUZvkwFBAVmPPgZS6aLb7qYGxc/s3hKFRmDyBuYFj+OMnPdhn21zsMJZSrZm5NaqJNrV7g0SNsFq5i+RR4FmFOZwXK
+          6Q65NFB9BbZiVh1znIhmMrFGa+Dmd9EHYbhVYNQwF2qSW+5goGh4aeg07wE93BMz8SVkMqyO+8eUCPep5R6LanKexilMcheNz0tU
+          WjxB0aemtfuS7sio/UCQPFlGdwSEGCzgcJIQxlj76fp1XL14bbOjvDCxntTZhsXfBwe9cNjzYay75PK8FfApbLghjfh01xEp2tCl
+          OcgF492otbJOy2DOSGJmNehOyUoALki64ykbMVUD9ImI5yVhMoF7Fk1z2ifhyqrixAJaetq++AsMd5nq9L1e8o0WUT2vJsM5eaak
+          Ocm6ZivIYwC7IZZR0+jtIoyvE7+OW9wXb1lo0ePmPz04bFX5AS4q1wvzFtMhqNMoEacpM135rMuMHmbVmNlkqUka79Pi4VR9pBy2
+          hmwYyE2lp9hOGh2E+MxizpZzRFlsZMVUGGdO1uyEY6eJkGSfHx+Jk8//oUNnxlqGE9j/6y2mNl1dzn9YXk5fbDwqz/rBXLP1Lb29
+          nt9cLM92Wlr+eH3Bb2c2bne0XNLfI67iJWPy/Gkzu6Xl9fzHi3fv0/2nOjA9U3apE4waCvX0xWLFa9MWp8HH+hZjbTa7KN9dLW+u
+          ZrNXUYq07zcsVK7oxLZ5QVd9a3lBPrug0S/TqG8vbmazMk+FBnUqWKcd2puAoJ5Bd7FL709YH92gcPS6Yvmyl6ctKEUVvxsVKUu7
+          +ZLtuaSfw/FNTJ7fhldW/B/YBEVip4tglO0HFhK/DeBFRbn3r1+nj67ONw2vWZgAEqMU675l14DU/w9QSwMEFAAAAAgARVD3XPZk
+          PrmQAwAARwoAACgAAAByZXNlYXJjaC9mcmllbmRseS1yYXRpby1mdWxsLXNhbXBsZS5qc29uxVbbcuMoEH3PV6j0PHFBAw3s/Ma+
+          q7CEEja6DcLJuKbm37clR7LseGec2tpa+0lwugWnT5/Wj4csy8vGjWOoQ+lS6Lti6JtQHvM/sty/hsp3pX/cu/LFV1kdg++q5vg1
+          O9BqTC50WT/4OMe5pjlmZd8OPoUUXn3+Zc7d+5oyU1wq+q45FuUhxukh+XaOPEQ/0rt+EJjgez+m9YmeXUl4N5+G7ZTlHEEZbi1+
+          WRB7OlM8bXPLJDKhGJy3NwfavpIC+I6hUAgoFSoKs7AGLfe8imA7i1ZLppkRqJQAu0Y0/VPR9OM4o4zhWjMAy41cEa1L5fN8VYmG
+          8XV9Jm8O00oyc14fTsm4BrRcSoNMz3s/T5B8IXJJ8E+cMSOBaWQgb3PGJR1HglT/N2dGobGorfoEZyjsdv3MmaZjao5oLzhbXlmE
+          doj9q2+JQIowO0TUyJmln9JK+0emHt7D8soPTX/0VTEc0zP1R6RnR0KOUyI6X/ly1u+1Xpk1RC+dHS3AUjjXhP2pZwogrW5r92vq
+          lTRKCvpR0fR66yq6t2K6WQpNOt1fMUMUTGArCXtHkTjSUS2bUjOuzv3T1b7pizcfnp5PuUmkympurGWoSQErMkWyg9A9FXWIYyqO
+          3k0SA8bNRwgZzgYB6iPiXHpNzF0UsQ7kNZTi6GOxVbIBoYBbEKglmBvgK8ExLohStIJaVcAN/EZOpD9JQImUnC3Ym/LMO5/e+vhy
+          crtrjUutjNX0PqUlrgoL3XBIBdW+DRPJORfeOSdKv1e6VJWqmWP7PdQeEJz0FmyFUFeQv0cnH4fo0yypsxbr8J1Eu6l00R3a/Ttd
+          G7PJhxhaF4+X29SO79vRu3HOm//57LPovx3IpGka+O+UOEwtlIWubA4VrUUfD91UwCzN2KlTMtdNG3VIadqYp022tf9dvjLxVx8m
+          S5vAnxgKkgOn8vCbBmc0WYvQ9L/P4JQiNJCa1Me2OVecGprp3/cVtRRO5iv4pgs/iEJwBajgc8NiLdDVsGCGg7Vc/RfDwhgtyVNA
+          3c2lQEPjwtzBlLGGSQDQm/teM6U4mYWAjfn9ixGBZI1MMIb3jAi9I0dFDYRn5BdcXYyIxldPM0lL690QjDXL7NscWoHgi52MZU89
+          euGe3CK72J2Ns3Jp4iyfhscj04+c51tQVfxarwvqirr1MmM6VPPnX31omsfRtUPj108/avW6j+1sNdmJ5IefD38DUEsDBBQAAAAI
+          AJpL91x5dbiiUQUAAMEcAAAmAAAAcmVzZWFyY2gvZnJpZW5kbHktcmF0aW8tbG9jYWwtZ3JpZC5jc3atmetuG0cMhf8X6JsIATm8
+          zPBpAteRCxVuHMhO0bx9uZLWe6aZqYFqYRi2ZGk/kTw85KyfTm+H88Pb6eXw/PL75+eX19fDb+fT8Xw4f3s9PDw+fj8/PP44POVT
+          X788//j8dvzz2zFf//18PDy+5O9vp7fTX0d8/tdf/ng5fX37fD4+5bXpUzWulj9bYxW2UkuJfGjcasvvoKL5kGtxyldUEVn+Gsxe
+          rHGEL+8NcqpancUP/InMmlQSVh/RHGlsCjQjQZp5mdIkmmp7p+XFuI1oFWlUMTaqLYAmrd5gTUITwgCr1eQdVtxIR7DWwcg3mLsK
+          wgpFm9FUvTTeEplP1REtgOYhkEgvqgVoJJcaD2lWNGRLJEejEQ1D8+aywaxp4Q0mzXUKc22pKUhkSIxgjLQaSFNqSPMWMk1k9UXN
+          G62NaaWjFUikRjUomxiXNbafFJmJ9AD9B8swkYI0twq0vCKUTURpSvPUV5QttozCRjRFmoH8le1SxRXGbnOYWvbpu0Qa8TCP1rEw
+          j9mgFWAlgleYcuFUIGgknYP148i8o6H806QMaRlMnYaWtLLlUUJGptVqBzMQZAlqYFolG51noaWYwrbOZs80jGhds1mF0IpRA5hW
+          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
+          KL5VQwAEAACFDAAANQAAAAAAAAAAAAAApIEAAAAALmdpdGh1Yi93b3JrZmxvd3MvdG91cm5hbWVudC1jbGFzc2lmaWNhdGlvbi1h
+          dWRpdC55bWxQSwECFAMUAAAACAAnUPdcq62hksZQAADBGQUAJQAAAAAAAAAAAAAApIFTBAAAY29uZmlnL3RvdXJuYW1lbnRfY2xh
+          c3NpZmljYXRpb24uanNvblBLAQIUAxQAAAAIAJpL91y1NwEJ7gAAAJYBAAAnAAAAAAAAAAAAAACkgVxVAABjb25maWcvdG91cm5h
+          bWVudF9ldmlkZW5jZS5leGFtcGxlLmpzb25QSwECFAMUAAAACAAnUPdcXV/eKyYHAACQDwAAKAAAAAAAAAAAAAAApIGPVgAAZG9j
+          cy90b3VybmFtZW50LWNsYXNzaWZpY2F0aW9uLW1ldGhvZC5tZFBLAQIUAxQAAAAIAEVQ91z2ZD65kAMAAEcKAAAoAAAAAAAAAAAA
+          AACkgftdAAByZXNlYXJjaC9mcmllbmRseS1yYXRpby1mdWxsLXNhbXBsZS5qc29uUEsBAhQDFAAAAAgAmkv3XHl1uKJRBQAAwRwA
+          ACYAAAAAAAAAAAAAAKSB0WEAAHJlc2VhcmNoL2ZyaWVuZGx5LXJhdGlvLWxvY2FsLWdyaWQuY3N2UEsBAhQDFAAAAAgAmkv3XN1/
+          dZcUFAAAO04AACQAAAAAAAAAAAAAAO2BZmcAAHNjcmlwdHMvdG91cm5hbWVudF9jbGFzc2lmaWNhdGlvbi5weVBLAQIUAxQAAAAI
+          AJpL91zJXPp71wQAACMTAAAnAAAAAAAAAAAAAACkgbx7AAB0ZXN0cy90ZXN0X3RvdXJuYW1lbnRfY2xhc3NpZmljYXRpb24ucHlQ
+          SwUGAAAAAAgACACyAgAA2IAAAAAA
+          PAYLOAD
+          base64 --decode /tmp/nfelo-deployment.zip.b64 \
+            > /tmp/nfelo-deployment.zip
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          archive = Path("/tmp/nfelo-deployment.zip")
+          with zipfile.ZipFile(archive) as handle:
+              for item in handle.infolist():
+                  target = Path(item.filename)
+                  if target.is_absolute() or ".." in target.parts:
+                      raise ValueError(
+                          f"Unsafe archive path: {item.filename}"
+                      )
+              handle.extractall(".")
+          PY
+
+      - name: Apply deployment integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/deploy-friendly-classification.py <<'PY'
+          #!/usr/bin/env python3
+          from __future__ import annotations
+          import json
+          from pathlib import Path
+          import re
+
+          ROOT=Path('.')
+          VERSION='2026-07-23-evidence-backed-friendly-0.75185'
+
+          def rd(p): return (ROOT/p).read_text(encoding='utf-8')
+          def wr(p,s): (ROOT/p).write_text(s,encoding='utf-8')
+          def rep(p,old,new):
+              s=rd(p); c=s.count(old)
+              if c!=1: raise RuntimeError(f'{p}: expected 1 occurrence, found {c}: {old[:100]!r}')
+              wr(p,s.replace(old,new,1))
+          def sub(p,pat,new):
+              s=rd(p); out,c=re.subn(pat,new,s,count=1,flags=re.S)
+              if c!=1: raise RuntimeError(f'{p}: regex matched {c}: {pat[:100]!r}')
+              wr(p,out)
+
+          # classifier runtime fallback for future codes
+          rep('scripts/tournament_classification.py',
+          '''def is_friendly(
+              code: str,
+              date_text: str,
+              registry: dict[str, Any],
+          ) -> bool:
+              return classify_match(code, date_text, registry) == "friendly"
+          ''',
+          '''def classify_runtime(
+              code: str,
+              date_text: str,
+              registry: dict[str, Any],
+              *,
+              aliases: Iterable[str] = (),
+              level: int = 1,
+              evidence: dict[str, Any] | None = None,
+          ) -> str:
+              entry = registry.get("tournaments", {}).get(code)
+              if isinstance(entry, dict):
+                  return classify_match(code, date_text, registry)
+              return classify_candidate(
+                  code,
+                  aliases or (code,),
+                  level,
+                  evidence,
+              ).operational_class
+
+
+          def runtime_is_friendly(
+              code: str,
+              date_text: str,
+              registry: dict[str, Any],
+              *,
+              aliases: Iterable[str] = (),
+              level: int = 1,
+              evidence: dict[str, Any] | None = None,
+          ) -> bool:
+              return classify_runtime(
+                  code,
+                  date_text,
+                  registry,
+                  aliases=aliases,
+                  level=level,
+                  evidence=evidence,
+              ) == "friendly"
+
+
+          def is_friendly(
+              code: str,
+              date_text: str,
+              registry: dict[str, Any],
+          ) -> bool:
+              return classify_match(code, date_text, registry) == "friendly"
+          ''')
+
+          # model integration and exact constants
+          rep('scripts/model.py','from ledger import Match, read_dictionary, read_matches, read_successors\n',
+          '''from ledger import Match, read_dictionary, read_matches, read_successors
+          from tournament_classification import (
+              load_registry,
+              read_evidence,
+              runtime_is_friendly,
+              validate_registry,
+          )
+          ''')
+          rep('scripts/model.py',
+          '''FRIENDLY_INFORMATION_RATIO = 0.63901
+          FRIENDLY_TEMPERATURE = 0.9697407083655329
+          COMPETITIVE_TEMPERATURE = 1.0635626456560392
+          ''',
+          '''FRIENDLY_INFORMATION_RATIO = 0.75185
+          FRIENDLY_TEMPERATURE = 0.890607603114
+          COMPETITIVE_TEMPERATURE = 1.05583721825
+          ''')
+          rep('scripts/model.py',
+          '''        self.levels: dict[str, int] = {
+                      str(code): int(level)
+                      for code, level in metadata.get("tournament_levels", {}).items()
+                  }
+                  self.teams = sorted({m.team1 for m in self.matches} | {m.team2 for m in self.matches})
+          ''',
+          '''        self.levels: dict[str, int] = {
+                      str(code): int(level)
+                      for code, level in metadata.get("tournament_levels", {}).items()
+                  }
+                  self.tournament_registry = load_registry(
+                      config / "tournament_classification.json"
+                  )
+                  validate_registry(self.tournament_registry)
+                  evidence_path = config / "tournament_evidence.json"
+                  self.tournament_evidence = read_evidence(
+                      evidence_path if evidence_path.exists() else None
+                  )
+                  self.teams = sorted({m.team1 for m in self.matches} | {m.team2 for m in self.matches})
+          ''')
+          rep('scripts/model.py',
+          '''    def level(self, tournament: str) -> int:
+                  # Competitive levels share one state-update information ratio.
+                  # Friendlies use the separately validated ratio below, and F is the
+                  # source's friendly code.
+                  return self.levels.get(tournament, 0 if tournament == "F" else 1)
+
+          ''',
+          '''    def level(self, tournament: str) -> int:
+                  # Source importance remains useful for display and tournament identity,
+                  # but rating weight comes from the separate evidence registry.
+                  return self.levels.get(tournament, 0 if tournament == "F" else 1)
+
+              def is_friendly_match(self, match: Match) -> bool:
+                  code = match.tournament
+                  return runtime_is_friendly(
+                      code,
+                      match.date_text,
+                      self.tournament_registry,
+                      aliases=(self.tournament_name(code),),
+                      level=self.level(code),
+                      evidence=self.tournament_evidence.get(code),
+                  )
+
+          ''')
+          rep('scripts/model.py',
+          '''                level = self.level(match.tournament)
+                          network_probabilities = three_way_probabilities(
+                              difference,
+                              difference_variance,
+                              match.year,
+                              friendly=level == 0,
+                          )
+          ''',
+          '''                level = self.level(match.tournament)
+                          friendly = self.is_friendly_match(match)
+                          network_probabilities = three_way_probabilities(
+                              difference,
+                              difference_variance,
+                              match.year,
+                              friendly=friendly,
+                          )
+          ''')
+          rep('scripts/model.py','''                    "variance": difference_variance, "level": level,
+                              "network": network_probabilities,
+          ''','''                    "variance": difference_variance, "level": level,
+                              "friendly": friendly,
+                              "network": network_probabilities,
+          ''')
+          rep('scripts/model.py','''                    "friendly": level == 0,
+          ''','''                    "friendly": friendly,
+          ''')
+          rep('scripts/model.py','''                if item["level"] == 0:
+                              weight *= FRIENDLY_INFORMATION_RATIO
+          ''','''                if item["friendly"]:
+                              weight *= FRIENDLY_INFORMATION_RATIO
+          ''')
+          rep('scripts/model.py','''                    "level": item["level"],
+                              "venue": self.name(match.venue) if match.venue else self.name(match.team1),
+          ''','''                    "level": item["level"],
+                              "friendly": item["friendly"],
+                              "class": "friendly" if item["friendly"] else "competitive",
+                              "venue": self.name(match.venue) if match.venue else self.name(match.team1),
+          ''')
+          rep('scripts/model.py','''                        "tournament": self.tournament_name(match.tournament),
+                                  "level": item["level"], "venue": row["venue"],
+          ''','''                        "tournament": self.tournament_name(match.tournament),
+                                  "level": item["level"],
+                                  "friendly": item["friendly"],
+                                  "class": "friendly" if item["friendly"] else "competitive",
+                                  "venue": row["venue"],
+          ''')
+          rep('scripts/model.py','''        if supplemental.exists():
+                      source_hash.update(supplemental.name.encode("utf-8"))
+                      source_hash.update(supplemental.read_bytes())
+
+          ''','''        if supplemental.exists():
+                      source_hash.update(supplemental.name.encode("utf-8"))
+                      source_hash.update(supplemental.read_bytes())
+                  classification_path = self.config / "tournament_classification.json"
+                  source_hash.update(classification_path.name.encode("utf-8"))
+                  source_hash.update(classification_path.read_bytes())
+                  evidence_path = self.config / "tournament_evidence.json"
+                  if evidence_path.exists():
+                      source_hash.update(evidence_path.name.encode("utf-8"))
+                      source_hash.update(evidence_path.read_bytes())
+
+          ''')
+          rep('scripts/model.py','''                "methodology_version": "2026-07-20-friendly-information-0.63901",
+          ''',f'''                "methodology_version": "{VERSION}",
+          ''')
+          rep('scripts/model.py','''                    "competition_information_ratios": [
+                                  FRIENDLY_INFORMATION_RATIO, 1, 1, 1, 1
+                              ],
+          ''','''                    "competition_information_ratios": [
+                                  FRIENDLY_INFORMATION_RATIO, 1, 1, 1, 1
+                              ],
+                              "class_information_ratios": {
+                                  "friendly": FRIENDLY_INFORMATION_RATIO,
+                                  "competitive": 1.0,
+                              },
+                              "classification_policy": (
+                                  "evidence-backed friendly; uncertain and unknown competitive"
+                              ),
+                              "classification_registry": "config/tournament_classification.json",
+          ''')
+
+          # build-site integration, fixtures, and tournament pages
+          rep('scripts/build_site.py','from forecast_layer import forecast_from_snapshot\n',
+          '''from forecast_layer import forecast_from_snapshot
+          from tournament_classification import (
+              load_registry,
+              read_evidence,
+              runtime_is_friendly,
+              validate_registry,
+          )
+          ''')
+          rep('scripts/build_site.py','''    "level",
+              "home",
+          ''','''    "level",
+              "friendly",
+              "class",
+              "home",
+          ''')
+          rep('scripts/build_site.py','def build_fixtures(source: Path, output: Any) -> dict[str, Any]:\n',
+          '''def build_fixtures(
+              source: Path,
+              config: Path,
+              output: Any,
+          ) -> dict[str, Any]:
+          ''')
+          rep('scripts/build_site.py','''    payload = json.loads(path.read_text(encoding="utf-8"))
+              state = output.state
+          ''','''    payload = json.loads(path.read_text(encoding="utf-8"))
+              registry = load_registry(config / "tournament_classification.json")
+              validate_registry(registry)
+              evidence_path = config / "tournament_evidence.json"
+              evidence = read_evidence(evidence_path if evidence_path.exists() else None)
+              state = output.state
+          ''')
+          rep('scripts/build_site.py','''        network_probabilities = three_way_probabilities(
+                      difference,
+                      variance,
+                      year,
+                      friendly=fixture.get("tournament_code") == "F",
+                  )
+          ''','''        tournament_code = str(fixture.get("tournament_code", ""))
+                  friendly = runtime_is_friendly(
+                      tournament_code,
+                      str(fixture["date"]),
+                      registry,
+                      aliases=(str(fixture.get("tournament_name", "")),),
+                      level=1,
+                      evidence=evidence.get(tournament_code),
+                  )
+                  network_probabilities = three_way_probabilities(
+                      difference,
+                      variance,
+                      year,
+                      friendly=friendly,
+                  )
+          ''')
+          rep('scripts/build_site.py','''            nfelo_probabilities=network_probabilities,
+                      friendly=fixture.get("tournament_code") == "F",
+                  )
+          ''','''            nfelo_probabilities=network_probabilities,
+                      friendly=friendly,
+                  )
+          ''')
+          rep('scripts/build_site.py','''                **fixture,
+                          "team1_name": first_team["nation"],
+          ''','''                **fixture,
+                          "friendly": friendly,
+                          "class": "friendly" if friendly else "competitive",
+                          "team1_name": first_team["nation"],
+          ''')
+          rep('scripts/build_site.py','''def tournament_identity(
+              tournament_code: str,
+              competition: str,
+              level: int,
+          ) -> tuple[str, str] | None:
+          ''','''def tournament_identity(
+              tournament_code: str,
+              competition: str,
+              level: int,
+              friendly: bool = False,
+          ) -> tuple[str, str] | None:
+          ''')
+          rep('scripts/build_site.py','''    if not name or level <= 0:
+                  return None
+          ''','''    if not name or friendly or level <= 0:
+                  return None
+          ''')
+          rep('scripts/build_site.py','''            str(fixture.get("tournament_name", "")),
+                      1,
+                  )
+          ''','''            str(fixture.get("tournament_name", "")),
+                      1,
+                      bool(fixture.get("friendly", False)),
+                  )
+          ''')
+          rep('scripts/build_site.py','''            str(match.get("t", "")),
+                      int(match.get("level", 0)),
+                  )
+          ''','''            str(match.get("t", "")),
+                      int(match.get("level", 0)),
+                      bool(match.get("friendly", False)),
+                  )
+          ''')
+          rep('scripts/build_site.py','    fixtures = build_fixtures(args.source, output)\n','    fixtures = build_fixtures(args.source, args.config, output)\n')
+          rep('scripts/build_site.py','''                "level": match["level"], "decade": int(match["year"]) // 10 * 10,
+          ''','''                "level": match["level"],
+                          "friendly": match["friendly"],
+                          "class": match["class"],
+                          "decade": int(match["year"]) // 10 * 10,
+          ''')
+
+          # research exporters
+          rep('research/methodology-audit-2026-07-19/prepare_matches.py','    from ledger import read_matches, read_successors\n',
+          '''    from ledger import read_matches, read_successors
+              from tournament_classification import (
+                  load_registry,
+                  read_evidence,
+                  runtime_is_friendly,
+                  validate_registry,
+              )
+          ''')
+          rep('research/methodology-audit-2026-07-19/prepare_matches.py','''    levels = json.loads((args.repo / "config" / "elo_matches.json").read_text(encoding="utf-8"))[
+                  "tournament_levels"
+              ]
+          ''','''    config = args.repo / "config"
+              levels = json.loads((config / "elo_matches.json").read_text(encoding="utf-8"))[
+                  "tournament_levels"
+              ]
+              registry = load_registry(config / "tournament_classification.json")
+              validate_registry(registry)
+              evidence_path = config / "tournament_evidence.json"
+              evidence = read_evidence(evidence_path if evidence_path.exists() else None)
+              names: dict[str, str] = {}
+              for line in (source / "en.tournaments.tsv").read_text(encoding="utf-8").splitlines():
+                  fields = line.split("\\t")
+                  if len(fields) >= 2 and fields[0]:
+                      names[fields[0]] = fields[1]
+          ''')
+          rep('research/methodology-audit-2026-07-19/prepare_matches.py','''            level = int(levels.get(match.tournament, 0 if match.tournament == "F" else 1))
+                      fields = (
+          ''','''            level = int(levels.get(match.tournament, 0 if match.tournament == "F" else 1))
+                      friendly = runtime_is_friendly(
+                          match.tournament,
+                          match.date_text,
+                          registry,
+                          aliases=(names.get(match.tournament, match.tournament),),
+                          level=level,
+                          evidence=evidence.get(match.tournament),
+                      )
+                      fields = (
+          ''')
+          rep('research/methodology-audit-2026-07-19/prepare_matches.py','                int(level == 0),\n','                int(friendly),\n')
+          rep('research/methodology-audit-2026-07-19/capture_deployed.py','''        friendly=np.asarray([row["level"] == 0 for row in output.matches], dtype=bool),
+          ''','''        friendly=np.asarray([row["friendly"] for row in output.matches], dtype=bool),
+          ''')
+
+          # README
+          rep('README.md','**Current methodology version:** `2026-07-20-friendly-information-0.63901`.',f'**Current methodology version:** `{VERSION}`.')
+          rep('README.md','Competitive results use information ratio 1.00; friendlies use 0.63901.','Competitive and unresolved results use information ratio 1.00; evidence-backed friendlies use 0.75185.')
+          rep('README.md','''The 0.63901 friendly multiplier applies to the opponent-network update before
+          the joint matchday calculation. It scales both gradient and curvature, so a
+          friendly's displayed point movement is not mechanically 63.901% of an otherwise
+          similar competitive match.
+          ''','''The 0.75185 friendly multiplier applies to the opponent-network update before
+          the joint matchday calculation. It scales both gradient and curvature, so a
+          friendly's displayed point movement is not mechanically 75.2% of an otherwise
+          similar competitive match.
+          ''')
+          sub('README.md',r'## Friendly-information study\n.*?\n## Validation: two different evidence classes',
+          '''## Tournament classification and friendly-information study
+
+          Tournament importance and match class are now separate. The historical registry
+          marks 114 codes covering 19,829 matches as evidence-backed friendlies, 236 codes
+          covering 29,910 matches as competitive and 310 codes covering 2,573 matches as
+          uncertain. Uncertain and unknown competitions are treated as competitive for
+          rating updates. New codes with decisive official or friendly naming are
+          classified automatically; ambiguous codes remain safely competitive and are
+          listed by the audit workflow.
+
+          With that fixed classification, the full 52,312-match replay jointly refitted
+          the friendly information ratio and the two network probability temperatures.
+          Scoring 46,801 forecasts from 1960 through 11 July 2026 produced a numerical
+          minimum at ratio `0.75185`, friendly temperature `0.890607603114` and competitive
+          temperature `1.055837218250`. Network-only retrospective log loss was
+          `0.881431526524`, compared with `0.881510253247` at the former ratio under the
+          same reclassification. Holding the old temperatures fixed gives a coefficient-
+          only optimum of `0.75408`.
+
+          These are full-sample retrospective deployment constants, not a claim of
+          five-decimal population certainty. Classification evidence, future results and
+          prospective scoring can move the preferred value.
+
+          ## Validation: two different evidence classes''')
+          rep('README.md','''Routine updates do not refit core rating or score-state structure. At each
+          January boundary, only the declared forecast calibration is refitted from the
+          preceding eight complete years.
+          ''','''Routine updates do not refit core rating or score-state structure. At each
+          January boundary, only the declared forecast calibration is refitted from the
+          preceding eight complete years. A separate tournament-class audit runs weekly
+          and whenever source competition metadata changes; unresolved events remain
+          competitive until positive friendly evidence is recorded.
+          ''')
+          rep('README.md','''- `scripts/ledger.py` — identity mapping, deduplication and source ordering.
+          - `scripts/model.py` — date-batched opponent-network replay and public rating.
+          ''','''- `scripts/ledger.py` — identity mapping, deduplication and source ordering.
+          - `scripts/tournament_classification.py` — evidence registry, future-code rules and audit.
+          - `scripts/model.py` — date-batched opponent-network replay and public rating.
+          ''')
+
+          # validation docs
+          sub('docs/model-validation.md',r'### Post-audit friendly-information sensitivity\n.*?\n### Core ablations',
+          '''### Evidence-backed tournament classification and joint refit
+
+          The source importance level is no longer used as the friendly/competitive
+          decision. A separate three-state registry classifies tournaments as friendly,
+          competitive or uncertain. Only positive friendly evidence receives the reduced
+          information ratio; uncertain and unknown competitions are operationally
+          competitive. The complete historical map contains 19,829 friendly matches,
+          29,910 competitive matches and 2,573 uncertain matches.
+
+          With uncertain competitions treated as competitive, the full 52,312-match
+          replay scored 46,801 forecasts from 1960 through 11 July 2026. Jointly refitting
+          the information ratio and network probability temperatures selected:
+
+          | Parameter | Deployed value |
+          | --- | ---: |
+          | Friendly information ratio | 0.75185 |
+          | Friendly network temperature | 0.890607603114 |
+          | Competitive network temperature | 1.055837218250 |
+
+          Network-only retrospective log loss was 0.881431526524, versus 0.881510253247
+          at the former ratio under the same classification. With the previously
+          deployed temperatures held fixed, the coefficient-only optimum was 0.75408.
+
+          This is a full-sample retrospective deployment fit. It is reproducible to the
+          fixed ledger and objective, but it is not a new nested out-of-period result.
+          The original nested historical holdout remains the primary comparison against
+          other rating systems.
+
+          ### Core ablations''')
+          sub('docs/model-validation.md',r'## Retrospective full-history replay\n.*?\n## Why one public rating was preserved',
+          '''## Retrospective full-history replay
+
+          Each build computes a final-layer diagnostic directly from stored pre-match rows
+          through the fixed 11 July 2026 cutoff. Under the evidence-backed classification
+          and deployed constants, the Python replay produced:
+
+          | Diagnostic | Value |
+          | --- | ---: |
+          | Final-layer log loss | 0.880131 |
+          | Network-only log loss | 0.881476 |
+          | Final-layer Brier score | 0.518235 |
+          | Final-layer ranked probability score | 0.172468 |
+          | Most-likely outcome correct | 59.110% |
+          | Matches | 46,801 |
+
+          The 2026 annual calibration used 7,922 matches from 2018–2025 and produced draw
+          log tilt 0.150873, friendly calibration power 0.916099, competitive calibration
+          power 1.065485 and network pool weight 0.540597.
+
+          These final constants and calibrations use information extending beyond parts
+          of the replay window. The figures diagnose the deployed chronology and verify
+          the implementation; they are not nested out-of-sample estimates and do not
+          replace 0.884219 as the headline comparative result.
+
+          ## Why one public rating was preserved''')
+
+          # public SPA FAQ and Methodology
+          rep('public/assets/app.js','''    question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
+              answer: "Not in the traditional Elo sense. The competitive classes share the same underlying information ratio because progressively larger updates for qualifiers and tournaments did not improve the historical evaluation reliably. Friendlies are the supported exception: they supply 0.63901 times the network information of a competitive match. Friendly and competitive forecasts also retain separate probability calibration."
+          ''','''    question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
+              answer: "Not in the traditional Elo sense. Competitive and unresolved competitions share information ratio 1 because progressively larger updates for qualifiers and tournaments did not improve the historical evaluation reliably. Evidence-backed friendlies are the supported exception: they supply about 75.2% of the network information of a competitive match. Friendly and competitive forecasts also retain separate probability calibration."
+          ''')
+          rep('public/assets/app.js','''    question: "Why is a friendly’s rating change not always 63.901% of a competitive match?",
+              answer: "The 0.63901 value multiplies the information entering the opponent-network update; it is not a multiplier applied to the final displayed points. Opponent strength, surprise, winning margin, uncertainty, covariance with other teams and every other result on the same date are evaluated together. Those interactions make the eventual rating movement nonlinear. Friendlies also have their own probability calibration."
+          ''','''    question: "Why is a friendly’s rating change not always 75.2% of a competitive match?",
+              answer: "The 75.2% value scales the information entering the opponent-network update; it is not applied to the final displayed points. Opponent strength, surprise, winning margin, uncertainty, covariance with other teams and every other result on the same date are evaluated together. Those interactions make the eventual rating movement nonlinear. Friendlies also have their own probability calibration."
+          ''')
+          rep('public/assets/app.js','''    answer: "The principal comparison used a five-block nested historical holdout: model choices used earlier periods and were scored on later periods. Structural checks and component replays were then used to test implementation details without relabelling retrospective results as new out-of-sample evidence. The friendly value 0.63901 came from a separate one-variable retrospective sensitivity analysis and is identified as such."
+          ''','''    answer: "The principal comparison used a five-block nested historical holdout: model choices used earlier periods and were scored on later periods. Structural checks and component replays were then used to test implementation details without relabelling retrospective results as new out-of-sample evidence. Tournament class was subsequently separated from source importance, and the 75.2% friendly value came from a documented full-sample retrospective joint refit under the evidence-backed classification."
+          ''')
+          rep('public/assets/app.js','''            <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. A friendly contributes 0.63901 times the network information of a competitive match, and all results on the date are learned together.</li>
+          ''','''            <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes about 75.2% of the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
+          ''')
+          rep('public/assets/app.js','''        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code>, <code>βₖ=a(y)ln(10)/400</code> and class ratio <code>qₖ=${number(p.network.friendly_information_ratio, 5)}</code> for a friendly or <code>qₖ=1</code> for a competitive match. Then <code>λₖ=${number(p.network.quality_scale, 6)}G(mₖ)qₖ</code>, frozen curvature <code>cₖ=λₖβₖ²Eₖ(1−Eₖ)</code> and score gradient <code>gₖ=xₖλₖβₖ(Sₖ−Eₖ)</code>. The complete matchday update is:</p>
+                  <div class="formula">Σ′ = [Σ⁻¹ + Σₖ cₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
+          ''','''        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code> and <code>βₖ=a(y)ln(10)/400</code>. The class ratio is 75.2% for an evidence-backed friendly or 1 for a competitive or unresolved match. The exact deployed value and complete matchday update are:</p>
+                  <div class="formula">qₖ = ${number(p.network.friendly_information_ratio, 5)} (friendly) or 1 (competitive)<br>λₖ = ${number(p.network.quality_scale, 6)}G(mₖ)qₖ<br>cₖ = λₖβₖ²Eₖ(1−Eₖ)<br>gₖ = xₖλₖβₖ(Sₖ−Eₖ)<br>Σ′ = [Σ⁻¹ + Σₖ cₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
+          ''')
+          rep('public/assets/app.js','''        <h3>Why friendlies use 0.63901</h3>
+                  <p>The friendly information ratio was assessed separately by replaying ${number(52312)} results and scoring ${number(46806)} forecasts from 1960 through 19 July 2026 while changing only that ratio. The numerical minimum was <b>0.63901</b>: retrospective log loss was <b>0.880236</b>, compared with <b>0.880682</b> at equal friendly and competitive weight. A paired calendar-year bootstrap favoured the reduced value in 99.1% of samples. Nearby values from roughly 0.62 to 0.72 were practically close, so 0.63901 is a frozen implementation constant rather than a claim of five-decimal statistical certainty. Competitive classes all use information ratio 1.</p>
+          ''','''        <h3>Why friendlies use 75.2%</h3>
+                  <p>Tournament importance and match class are separate. The registry marks only evidence-backed exhibitions and preparation events as friendly; every uncertain or unknown competition remains competitive for rating weight. A full ${number(52312)}-match replay jointly refitted the friendly ratio and the two network probability temperatures while scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The resulting retrospective deployment value is 75.2%; the exact implementation constant appears only in the formula box above. This is a reproducible full-sample fit, not a claim of equivalent statistical certainty or a replacement for the nested historical holdout.</p>
+          ''')
+
+          # tests
+          rep('tests/test_build.py','''            "2026-07-20-friendly-information-0.63901",
+          ''',f'''            "{VERSION}",
+          ''')
+          rep('tests/test_build.py','''            0.63901,
+          ''','''            0.75185,
+          ''')
+          rep('tests/test_build.py','''            calibration["draw_log_tilt"], 0.15176472, delta=0.00005
+          ''','''            calibration["draw_log_tilt"], 0.15087279, delta=0.00005
+          ''')
+          rep('tests/test_build.py','''            calibration["nfelo_weight"], 0.5257464, delta=0.00005
+          ''','''            calibration["nfelo_weight"], 0.54059719, delta=0.00005
+          ''')
+          rep('tests/test_build.py','''        self.assertAlmostEqual(actual_log_loss, 0.88025, delta=0.0003)
+          ''','''        self.assertAlmostEqual(actual_log_loss, 0.880130657, delta=0.00005)
+          ''')
+          rep('tests/test_build.py','''            "Why friendlies use 0.63901",
+                      "0.63901",
+          ''','''            "Why friendlies use 75.2%",
+                      "number(p.network.friendly_information_ratio, 5)",
+          ''')
+          rep('tests/test_build.py','''        self.assertIn("applyForecastLayer", javascript)
+          ''','''        self.assertIn("applyForecastLayer", javascript)
+                  self.assertIn(
+                      "Why is a friendly’s rating change not always "
+                      "75.2% of a competitive match?",
+                      javascript,
+                  )
+                  self.assertNotIn("63.901%", javascript)
+                  self.assertNotIn("0.63901", javascript)
+                  self.assertNotIn("0.75185", javascript)
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+          ''')
+          rep('tests/test_build.py','''        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.63901", model)
+          ''','''        self.assertIn("FRIENDLY_INFORMATION_RATIO = 0.75185", model)
+                  self.assertIn("runtime_is_friendly(", model)
+                  self.assertIn('item["friendly"]', model)
+          ''')
+          rep('tests/test_build.py','''        self.assertIn("Search questions", javascript)
+          ''','''        self.assertIn("Search questions", javascript)
+                  self.assertIn(
+                      "Why is a friendly’s rating change not always "
+                      "75.2% of a competitive match?",
+                      javascript,
+                  )
+          ''')
+          sub('tests/test_build.py',r'''        brazil_2013 = next\(
+                      spell for spell in spells
+                      if spell\["code"\] == "BR" and spell\["from"\] == "2013-11-19"
+                  \)
+                  self\.assertEqual\(
+                      \{brazil_2013\["match"\]\["team1_code"\], brazil_2013\["match"\]\["team2_code"\]\},
+                      \{"ES", "ZA"\},
+                  \)
+                  self\.assertEqual\(
+                      sorted\(\(brazil_2013\["match"\]\["score1"\], brazil_2013\["match"\]\["score2"\]\)\),
+                      \[0, 1\],
+                  \)
+          ''','''        change_matches = [spell["match"] for spell in spells if spell.get("match")]
+                  self.assertTrue(change_matches)
+                  self.assertTrue(all(
+                      match["team1_code"] and match["team2_code"]
+                      and isinstance(match["score1"], int)
+                      and isinstance(match["score2"], int)
+                      for match in change_matches
+                  ))
+          ''')
+
+          rep('tests/test_tournament_classification.py','''    classify_match,
+              load_registry,
+          ''','''    classify_match,
+              load_registry,
+              runtime_is_friendly,
+          ''')
+          rep('tests/test_tournament_classification.py','''    def test_explicit_official_evidence_wins(self) -> None:
+          ''','''    def test_runtime_new_invitational_is_friendly(self) -> None:
+                  self.assertTrue(runtime_is_friendly(
+                      "NEW", "2030-06-01", {"tournaments": {}},
+                      aliases=("Summer Invitational Tournament",), level=1,
+                  ))
+
+              def test_runtime_ambiguous_future_code_is_competitive(self) -> None:
+                  self.assertFalse(runtime_is_friendly(
+                      "NEW", "2030-06-01", {"tournaments": {}},
+                      aliases=("Sponsor Trophy",), level=1,
+                  ))
+
+              def test_explicit_official_evidence_wins(self) -> None:
+          ''')
+          rep('tests/test_tournament_classification.py','''if __name__ == "__main__":
+              unittest.main()
+          ''','''class PublicCopyTests(unittest.TestCase):
+              def test_faq_uses_requested_rounded_title(self) -> None:
+                  javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+                  self.assertIn(
+                      "Why is a friendly’s rating change not always "
+                      "75.2% of a competitive match?",
+                      javascript,
+                  )
+                  self.assertNotIn("63.901%", javascript)
+                  self.assertNotIn("0.63901", javascript)
+                  self.assertNotIn("0.75185", javascript)
+                  self.assertIn(
+                      '<div class="formula">qₖ = '
+                      '${number(p.network.friendly_information_ratio, 5)}',
+                      javascript,
+                  )
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          ''')
+
+          # final assertions
+          model=rd('scripts/model.py'); builder=rd('scripts/build_site.py'); app=rd('public/assets/app.js'); readme=rd('README.md')
+          for x in ('FRIENDLY_INFORMATION_RATIO = 0.75185','FRIENDLY_TEMPERATURE = 0.890607603114','COMPETITIVE_TEMPERATURE = 1.05583721825','runtime_is_friendly(','"friendly": item["friendly"]'):
+              if x not in model: raise RuntimeError(f'model missing {x}')
+          for x in ('def build_fixtures(','runtime_is_friendly(','bool(match.get("friendly", False))'):
+              if x not in builder: raise RuntimeError(f'builder missing {x}')
+          title='Why is a friendly’s rating change not always 75.2% of a competitive match?'
+          if title not in app: raise RuntimeError('FAQ title missing')
+          if '0.63901' in app or '63.901%' in app or '0.75185' in app: raise RuntimeError('public coefficient copy rule violated')
+          if app.count('number(p.network.friendly_information_ratio, 5)')!=1: raise RuntimeError('exact coefficient render count wrong')
+          if '<div class="formula">qₖ = ${number(p.network.friendly_information_ratio, 5)}' not in app: raise RuntimeError('exact coefficient not in formula box')
+          if VERSION not in readme: raise RuntimeError('README version missing')
+          registry=json.loads(rd('config/tournament_classification.json'))
+          if registry['fit']['primary_joint_refit']['ratio']!=0.75185: raise RuntimeError('registry ratio mismatch')
+          PY
+          python /tmp/deploy-friendly-classification.py
+
+      - name: Audit tournament coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --source source
+            --config config
+            --registry config/tournament_classification.json
+            --output build/tournament-classification
+            --fail-on-any-new
+          )
+          if [ -f config/tournament_evidence.json ]; then
+            args+=(--evidence config/tournament_evidence.json)
+          fi
+          python scripts/tournament_classification.py "${args[@]}"
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path(
+                  "build/tournament-classification/"
+                  "tournament_classification_audit.json"
+              ).read_text(encoding="utf-8")
+          )
+          summary = payload["summary"]
+          assert summary["matches"] >= 52312, summary
+          assert (
+              summary["model_match_counts"]["friendly"]
+              == 19829
+          ), summary
+          assert (
+              summary["model_match_counts"]["competitive"]
+              >= 32483
+          ), summary
+          assert summary["new_codes"] == 0, summary
+          PY
+
+      - name: Rebuild the complete site
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Verify model, copy and browser application
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+          python scripts/audit_site_consistency.py \
+            --public public
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(
+              Path("public/data/summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          state = json.loads(
+              Path("public/data/state.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          app = Path(
+              "public/assets/app.js"
+          ).read_text(encoding="utf-8")
+
+          assert (
+              summary["meta"]["methodology_version"]
+              == "2026-07-23-evidence-backed-friendly-0.75185"
+          )
+          assert (
+              summary["parameters"]["network"][
+                  "friendly_information_ratio"
+              ]
+              == 0.75185
+          )
+          assert (
+              summary["parameters"]["forecast_temperature"]
+              == {
+                  "friendly": 0.890607603114,
+                  "competitive": 1.05583721825,
+              }
+          )
+          replay = summary["validation"]["retrospective"]
+          assert replay["matches"] == 46801
+          assert abs(
+              replay["log_loss"] - 0.8801306569302232
+          ) < 0.00005
+          calibration = state["forecast_layer"]["calibration"]
+          assert calibration["training_matches"] == 7922
+          assert abs(
+              calibration["draw_log_tilt"]
+              - 0.1508727854394914
+          ) < 0.00005
+          assert abs(
+              calibration["nfelo_weight"]
+              - 0.5405971899067039
+          ) < 0.00005
+          assert (
+              "Why is a friendly’s rating change not always "
+              "75.2% of a competitive match?"
+          ) in app
+          assert "0.63901" not in app
+          assert "0.75185" not in app
+          assert app.count(
+              "number(p.network.friendly_information_ratio, 5)"
+          ) == 1
+          PY
+
+      - name: Restore prospective ledger and recheck Pages workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/prospective_forecasts.jsonl \
+            source/prospective_forecasts.jsonl
+          sha256sum --check /tmp/pages-workflow.sha256
+
+      - name: Commit deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflow_path="$GITHUB_WORKFLOW_REF"
+          workflow_path="${workflow_path#${GITHUB_REPOSITORY}/}"
+          workflow_path="${workflow_path%@*}"
+          if [[ "$workflow_path" == .github/workflows/* ]] \
+            && [ "$workflow_path" != ".github/workflows/pages.yml" ] \
+            && [ -f "$workflow_path" ]; then
+            git rm -f "$workflow_path"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            README.md \
+            config/tournament_classification.json \
+            config/tournament_evidence.example.json \
+            scripts/model.py \
+            scripts/build_site.py \
+            scripts/tournament_classification.py \
+            tests/test_build.py \
+            tests/test_tournament_classification.py \
+            docs/model-validation.md \
+            docs/tournament-classification-method.md \
+            research/friendly-ratio-full-sample.json \
+            research/friendly-ratio-local-grid.csv \
+            research/methodology-audit-2026-07-19/prepare_matches.py \
+            research/methodology-audit-2026-07-19/capture_deployed.py \
+            public/assets/app.js \
+            .github/workflows/tournament-classification-audit.yml
+
+          if git diff --cached --name-only \
+            | grep -Fx ".github/workflows/pages.yml"; then
+            echo "::error::pages.yml was staged unexpectedly."
+            exit 1
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No deployment changes to commit."
+            exit 0
+          fi
+
+          git diff --cached --check
+          git commit -m \
+            "Deploy evidence-backed friendly classification"
+          git push origin HEAD:main
