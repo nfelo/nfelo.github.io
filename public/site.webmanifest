@@ -1,0 +1,23 @@
+{
+  "name": "Network Football Elo",
+  "short_name": "NFELO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf5ff",
+  "theme_color": "#2b103b",
+  "icons": [
+    {
+      "src": "icon-192-2026.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512-2026.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
