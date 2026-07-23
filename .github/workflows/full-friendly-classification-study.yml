@@ -1,0 +1,1398 @@
+name: Full friendly classification and refit study
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/full-friendly-classification-study.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-friendly-classification-study
+  cancel-in-progress: false
+
+jobs:
+  study:
+    name: Classify tournaments and refit friendly treatment
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install runtime
+        run: |
+          set -euo pipefail
+          python -m pip install --requirement requirements.txt
+          python -m pip install requests
+
+      - name: Run complete classification and refit study
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/friendly-study
+
+          cat > /tmp/friendly-study/run_study.py <<'PY'
+          from __future__ import annotations
+
+          from concurrent.futures import ProcessPoolExecutor, as_completed
+          from dataclasses import asdict, is_dataclass
+          from datetime import date
+          from html import unescape
+          import csv
+          import hashlib
+          import json
+          import math
+          import os
+          from pathlib import Path
+          import random
+          import re
+          import sys
+          import textwrap
+          import time
+          from typing import Any
+          from urllib.parse import urljoin
+
+          import numpy as np
+          import requests
+
+          ROOT = Path.cwd()
+          SOURCE = ROOT / "source"
+          CONFIG = ROOT / "config"
+          OUT = Path("/tmp/friendly-study/output")
+          OUT.mkdir(parents=True, exist_ok=True)
+          sys.path.insert(0, str(ROOT / "scripts"))
+
+          import ledger  # noqa: E402
+          import model as model_module  # noqa: E402
+
+          CUTOFF = "2026-07-11"
+          CUTOFF_DAY = 2026 * 400 + 7 * 32 + 11
+          CURRENT_RATIO = 0.63901
+          FOLDS = (
+              (1940, 1959, 1960, 1979),
+              (1960, 1979, 1980, 1999),
+              (1980, 1999, 2000, 2009),
+              (2000, 2009, 2010, 2019),
+              (2010, 2019, 2020, 2026),
+          )
+
+          def normalise(value: str) -> str:
+              value = unescape(str(value)).casefold()
+              value = value.replace("&", " and ")
+              value = re.sub(r"[^a-z0-9]+", " ", value)
+              return re.sub(r"\s+", " ", value).strip()
+
+          def read_tournament_names() -> dict[str, list[str]]:
+              names: dict[str, list[str]] = {}
+              for line in (SOURCE / "en.tournaments.tsv").read_text(
+                  encoding="utf-8"
+              ).splitlines():
+                  fields = [field.strip() for field in line.split("\t")]
+                  if len(fields) >= 2 and fields[0]:
+                      names[fields[0]] = [
+                          field for field in fields[1:] if field
+                      ]
+              supplemental = SOURCE / "supplemental_tournaments.json"
+              if supplemental.exists():
+                  extra = json.loads(
+                      supplemental.read_text(encoding="utf-8")
+                  )
+                  for code, name in extra.items():
+                      values = names.setdefault(str(code), [])
+                      if str(name) not in values:
+                          values.insert(0, str(name))
+              return names
+
+          def fetch_rsssf_friendly_index() -> dict[str, Any]:
+              url = "https://www.rsssf.org/intland-friend.html"
+              result = {
+                  "url": url,
+                  "ok": False,
+                  "status": None,
+                  "sha256": None,
+                  "text": "",
+                  "links": [],
+                  "error": None,
+              }
+              try:
+                  response = requests.get(
+                      url,
+                      timeout=40,
+                      headers={"User-Agent": "NFELO-methodology-audit/1.0"},
+                  )
+                  result["status"] = response.status_code
+                  response.raise_for_status()
+                  raw = response.content
+                  result["sha256"] = hashlib.sha256(raw).hexdigest()
+                  html = raw.decode("latin-1", errors="replace")
+                  text = re.sub(r"<script.*?</script>", " ", html, flags=re.I | re.S)
+                  text = re.sub(r"<style.*?</style>", " ", text, flags=re.I | re.S)
+                  text = re.sub(r"<[^>]+>", " ", text)
+                  result["text"] = normalise(text)
+                  links = re.findall(
+                      r'href=["\']([^"\']+)["\']',
+                      html,
+                      flags=re.I,
+                  )
+                  result["links"] = sorted(
+                      {
+                          urljoin(url, link)
+                          for link in links
+                          if link
+                          and not link.startswith("#")
+                          and "rsssf.org" in urljoin(url, link)
+                      }
+                  )
+                  result["ok"] = True
+              except Exception as error:
+                  result["error"] = f"{type(error).__name__}: {error}"
+              return result
+
+          OFFICIAL_LEVEL_ONE_PATTERNS = (
+              r"\bbritish championship\b",
+              r"\bnordic championship\b",
+              r"\bbalkan cup\b",
+              r"\bbaltic cup\b",
+              r"\bgulf cup\b",
+              r"\barab cup\b",
+              r"\bceca?fa\b",
+              r"\bcosafa\b",
+              r"\bsaff\b",
+              r"\bwaff\b",
+              r"\beaff\b",
+              r"\baff championship\b",
+              r"\b asean championship\b",
+              r"\buncaf\b",
+              r"\bcaribbean (?:championship|cup)\b",
+              r"\bcentral american cup\b",
+              r"\bcentral european international cup\b",
+              r"\bmediterranean games\b",
+              r"\bcentral american and caribbean games\b",
+              r"\bsouth pacific games\b",
+              r"\bpacific games\b",
+              r"\barab games\b",
+              r"\bindian ocean island games\b",
+              r"\bafro asian cup\b",
+              r"\bartemio franchi trophy\b",
+              r"\bintercontinental championship\b",
+              r"\bconfederations cup\b",
+              r"\bolympic games\b",
+              r"\basian games\b",
+              r"\bafrican games\b",
+              r"\bpanamerican games\b",
+              r"\bnations league\b",
+              r"\bnations cup\b",
+          )
+          OFFICIAL_ANY_LEVEL_PATTERNS = (
+              r"\bqualif",
+              r"\bplay ?offs?\b",
+              r"\bworld cup\b",
+              r"\beuropean championship\b",
+              r"\bcopa america\b",
+              r"\bsouth american championship\b",
+              r"\basian cup\b",
+              r"\bafrican nations cup\b",
+              r"\bafrican cup\b",
+              r"\bconcacaf championship\b",
+              r"\bconcacaf gold cup\b",
+              r"\boceania nations cup\b",
+              r"\bconfederations cup\b",
+              r"\bnations league\b",
+              r"\bolympic games\b",
+              r"\basian games\b",
+              r"\bafrican games\b",
+              r"\bpanamerican games\b",
+              r"\bpacific games\b",
+              r"\bsouth pacific games\b",
+              r"\bmediterranean games\b",
+              r"\barab games\b",
+              r"\bcentral american and caribbean games\b",
+          )
+          EXPLICIT_COMPETITIVE_NAMES = {
+              normalise(value)
+              for value in (
+                  "Artemio Franchi Trophy",
+                  "Afro-Asian Cup",
+                  "AFC-OFC Challenge Cup",
+                  "Intercontinental Championship",
+                  "European/South American Nations Cup",
+                  "CONMEBOL-UEFA Cup of Champions",
+                  "King Fahd Cup",
+                  "FIFA Confederations Cup",
+                  "British Championship",
+                  "Nordic Championship",
+                  "Balkan Cup",
+                  "Baltic Cup",
+                  "Gulf Cup",
+                  "Arab Cup",
+                  "CECAFA Cup",
+                  "COSAFA Cup",
+                  "SAFF Championship",
+                  "WAFF Championship",
+                  "EAFF Championship",
+                  "AFF Championship",
+                  "ASEAN Championship",
+                  "UNCAF Nations Cup",
+                  "Caribbean Cup",
+                  "Caribbean Championship",
+                  "Central American Cup",
+                  "Central European International Cup",
+              )
+          }
+          EXPLICIT_FRIENDLY_NAMES = {
+              normalise(value)
+              for value in (
+                  "FIFA Series",
+                  "FIFA Series and Capital Cup",
+                  "Friendship Games",
+                  "LA Friendship Cup",
+                  "Inter-Port Friendship Cup",
+                  "Goodwill Tournament",
+                  "King Hassan Tournament",
+                  "King Carol Cup",
+                  "King Piotr II Cup",
+                  "Kirin Cup",
+                  "LG Cup",
+                  "Rous Cup",
+                  "Lunar New Year Cup",
+                  "China Cup",
+                  "King's Cup",
+                  "Merlion Cup",
+                  "Nehru Cup",
+                  "Bangabandhu Gold Cup",
+                  "Nelson Mandela Challenge Cup",
+                  "Four Nations Tournament",
+                  "Tri Nations Tournament",
+                  "Mini World Cup",
+                  "World Football Cup",
+                  "International Friendly",
+                  "Friendly",
+              )
+          }
+          OFFICIAL_CONSEQUENCE_PATTERNS = (
+              r"\bqualif",
+              r"\bplay ?offs?\b",
+              r"\bnations league\b",
+              r"\bleague [abcd]\b",
+          )
+          FRIENDLY_LEXICAL_PATTERNS = (
+              r"\bfriendly\b",
+              r"\bfriendship\b",
+              r"\bgoodwill\b",
+              r"\binvitational\b",
+              r"\bmemorial\b",
+              r"\banniversary\b",
+              r"\bjubilee\b",
+              r"\bexhibition\b",
+              r"\bfootball festival\b",
+              r"\bchallenge\b",
+              r"\bcommemoration\b",
+              r"\bcentennial\b",
+          )
+
+          def alias_in_corpus(aliases: list[str], corpus: str) -> bool:
+              if not corpus:
+                  return False
+              for alias in aliases:
+                  candidate = normalise(alias)
+                  if len(candidate) < 6:
+                      continue
+                  if re.search(
+                      r"(?:^| )" + re.escape(candidate) + r"(?: |$)",
+                      corpus,
+                  ):
+                      return True
+              return False
+
+          def classify_tournaments(
+              levels: dict[str, int],
+              names: dict[str, list[str]],
+              rsssf: dict[str, Any],
+          ) -> dict[str, dict[str, Any]]:
+              all_codes = sorted(set(levels) | set(names))
+              rows: dict[str, dict[str, Any]] = {}
+              rsssf_text = str(rsssf.get("text", ""))
+              for code in all_codes:
+                  aliases = names.get(code, [code])
+                  primary = aliases[0] if aliases else code
+                  combined = " ".join(normalise(value) for value in aliases)
+                  level = int(levels.get(code, 1))
+                  alias_set = {normalise(value) for value in aliases}
+                  official_consequence = any(
+                      re.search(pattern, combined)
+                      for pattern in OFFICIAL_CONSEQUENCE_PATTERNS
+                  )
+                  official_any = any(
+                      re.search(pattern, combined)
+                      for pattern in OFFICIAL_ANY_LEVEL_PATTERNS
+                  )
+                  official_level_one = any(
+                      re.search(pattern, combined)
+                      for pattern in OFFICIAL_LEVEL_ONE_PATTERNS
+                  )
+                  explicit_competitive = bool(
+                      alias_set & EXPLICIT_COMPETITIVE_NAMES
+                  )
+                  explicit_friendly = bool(
+                      alias_set & EXPLICIT_FRIENDLY_NAMES
+                  )
+                  rsssf_friendly = alias_in_corpus(
+                      aliases,
+                      rsssf_text,
+                  )
+                  friendly_lexical = any(
+                      re.search(pattern, combined)
+                      for pattern in FRIENDLY_LEXICAL_PATTERNS
+                  )
+
+                  if code == "F":
+                      match_class = "friendly"
+                      confidence = "high"
+                      basis = "WFER dedicated friendly code"
+                  elif official_consequence:
+                      match_class = "competitive"
+                      confidence = "high"
+                      basis = "official qualification/playoff/league consequence"
+                  elif explicit_friendly:
+                      match_class = "friendly"
+                      confidence = "high"
+                      basis = "explicit named-friendly override"
+                  elif rsssf_friendly:
+                      match_class = "friendly"
+                      confidence = "high"
+                      basis = "RSSSF international friendly-tournament index"
+                  elif official_any or explicit_competitive:
+                      match_class = "competitive"
+                      confidence = "high"
+                      basis = "official championship structure"
+                  elif friendly_lexical:
+                      match_class = "friendly"
+                      confidence = "high"
+                      basis = "explicit friendly/exhibition naming"
+                  elif level >= 2:
+                      match_class = "competitive"
+                      confidence = "medium"
+                      basis = "WFER level 2-4 without friendly evidence"
+                  elif official_level_one:
+                      match_class = "competitive"
+                      confidence = "high"
+                      basis = "recognised official regional competition"
+                  else:
+                      match_class = "friendly"
+                      confidence = "medium"
+                      basis = (
+                          "WFER level-1 residual: named event without "
+                          "official championship/qualification evidence"
+                      )
+
+                  rows[code] = {
+                      "code": code,
+                      "name": primary,
+                      "aliases": aliases,
+                      "wfer_level": level,
+                      "class": match_class,
+                      "confidence": confidence,
+                      "basis": basis,
+                      "rsssf_match": bool(rsssf_friendly),
+                  }
+
+              missing = sorted(set(levels) - set(rows))
+              if missing:
+                  raise RuntimeError(
+                      "Unclassified tournament codes: " + ", ".join(missing)
+                  )
+              return rows
+
+          def export_classification(
+              rows: dict[str, dict[str, Any]],
+              rsssf: dict[str, Any],
+          ) -> None:
+              payload = {
+                  "schema": 1,
+                  "policy": {
+                      "friendly": (
+                          "Exhibition/invitational event with no official "
+                          "championship or qualification consequence."
+                      ),
+                      "competitive": (
+                          "Official championship, qualifier, playoff, "
+                          "league or recognised multi-sport competition."
+                      ),
+                      "mixed": (
+                          "A match carrying official consequences is "
+                          "competitive even if it also awards another trophy."
+                      ),
+                  },
+                  "rsssf": {
+                      key: value
+                      for key, value in rsssf.items()
+                      if key != "text"
+                  },
+                  "tournaments": rows,
+              }
+              (OUT / "tournament_classification.json").write_text(
+                  json.dumps(payload, indent=2, sort_keys=True) + "\n",
+                  encoding="utf-8",
+              )
+              with (OUT / "tournament_classification.csv").open(
+                  "w",
+                  encoding="utf-8",
+                  newline="",
+              ) as handle:
+                  writer = csv.writer(handle)
+                  writer.writerow(
+                      (
+                          "code",
+                          "name",
+                          "class",
+                          "confidence",
+                          "wfer_level",
+                          "basis",
+                          "rsssf_match",
+                          "aliases",
+                      )
+                  )
+                  for code in sorted(rows):
+                      row = rows[code]
+                      writer.writerow(
+                          (
+                              code,
+                              row["name"],
+                              row["class"],
+                              row["confidence"],
+                              row["wfer_level"],
+                              row["basis"],
+                              int(row["rsssf_match"]),
+                              " | ".join(row["aliases"]),
+                          )
+                      )
+
+          def load_matches_and_counts(
+              classes: dict[str, dict[str, Any]],
+              levels: dict[str, int],
+          ) -> tuple[list[Any], dict[str, int], dict[str, int]]:
+              successors = ledger.read_successors(SOURCE / "teams.tsv")
+              matches = ledger.read_matches(
+                  SOURCE / "elo_pages",
+                  successors,
+                  SOURCE / "supplemental_results.csv",
+              )
+              counts: dict[str, int] = {}
+              class_counts = {"friendly": 0, "competitive": 0}
+              for match in matches:
+                  if match.tournament not in classes:
+                      raise RuntimeError(
+                          f"Match tournament {match.tournament!r} "
+                          "has no classification."
+                      )
+                  counts[match.tournament] = (
+                      counts.get(match.tournament, 0) + 1
+                  )
+                  match_class = classes[match.tournament]["class"]
+                  class_counts[match_class] += 1
+              return matches, counts, class_counts
+
+          def write_classification_counts(
+              classes: dict[str, dict[str, Any]],
+              counts: dict[str, int],
+          ) -> None:
+              with (OUT / "tournament_match_counts.csv").open(
+                  "w",
+                  encoding="utf-8",
+                  newline="",
+              ) as handle:
+                  writer = csv.writer(handle)
+                  writer.writerow(
+                      (
+                          "code",
+                          "name",
+                          "class",
+                          "confidence",
+                          "matches",
+                          "basis",
+                      )
+                  )
+                  for code in sorted(
+                      classes,
+                      key=lambda value: (
+                          -counts.get(value, 0),
+                          value,
+                      ),
+                  ):
+                      row = classes[code]
+                      writer.writerow(
+                          (
+                              code,
+                              row["name"],
+                              row["class"],
+                              row["confidence"],
+                              counts.get(code, 0),
+                              row["basis"],
+                          )
+                      )
+
+          def serialise_calibration(value: Any) -> Any:
+              if value is None:
+                  return None
+              if is_dataclass(value):
+                  return asdict(value)
+              if hasattr(value, "__dict__"):
+                  return {
+                      key: serialise_calibration(item)
+                      for key, item in vars(value).items()
+                      if not key.startswith("_")
+                  }
+              if isinstance(value, (str, int, float, bool)):
+                  return value
+              if isinstance(value, (list, tuple)):
+                  return [serialise_calibration(item) for item in value]
+              return repr(value)
+
+          _WORKER_CLASSES: dict[str, str] | None = None
+          _WORKER_MODE: str | None = None
+
+          def replay_ratio(task: tuple[float, str]) -> dict[str, Any]:
+              ratio, mode = task
+              model_module.FRIENDLY_INFORMATION_RATIO = float(ratio)
+              class_map = json.loads(
+                  (OUT / "class_map.json").read_text(encoding="utf-8")
+              )
+
+              class ClassifiedReplay(model_module.NetworkEloReplay):
+                  def level(self, tournament: str) -> int:
+                      original = int(
+                          self.levels.get(
+                              tournament,
+                              0 if tournament == "F" else 1,
+                          )
+                      )
+                      if mode == "current":
+                          friendly = tournament == "F"
+                      else:
+                          friendly = class_map[tournament] == "friendly"
+                      return 0 if friendly else max(1, original)
+
+              started = time.perf_counter()
+              replay = ClassifiedReplay(SOURCE, CONFIG)
+              output = replay.replay()
+              elapsed = time.perf_counter() - started
+
+              by_year: dict[int, dict[str, float | int]] = {}
+              per_match: list[tuple[int, int, float]] = []
+              for row in output.matches:
+                  year = int(row["year"])
+                  if row["date"] > CUTOFF:
+                      continue
+                  probabilities = np.asarray(row["p"], dtype=np.float64)
+                  outcome = (
+                      0
+                      if row["sa"] > row["sb"]
+                      else 1
+                      if row["sa"] == row["sb"]
+                      else 2
+                  )
+                  loss = -math.log(
+                      max(float(probabilities[outcome]), 1e-15)
+                  )
+                  stats = by_year.setdefault(
+                      year,
+                      {"matches": 0, "log_loss_sum": 0.0},
+                  )
+                  stats["matches"] = int(stats["matches"]) + 1
+                  stats["log_loss_sum"] = (
+                      float(stats["log_loss_sum"]) + loss
+                  )
+                  per_match.append(
+                      (int(row["id"]), year, loss)
+                  )
+
+              calibration = serialise_calibration(
+                  getattr(
+                      replay.forecast_layer,
+                      "current_calibration",
+                      None,
+                  )
+              )
+              release = getattr(
+                  getattr(
+                      replay.forecast_layer,
+                      "current_release",
+                      None,
+                  ),
+                  "name",
+                  None,
+              )
+              return {
+                  "ratio": ratio,
+                  "mode": mode,
+                  "elapsed_seconds": elapsed,
+                  "by_year": by_year,
+                  "per_match": per_match,
+                  "latest_calibration": calibration,
+                  "latest_release": release,
+              }
+
+          def run_tasks(
+              tasks: list[tuple[float, str]],
+              workers: int,
+              label: str,
+          ) -> list[dict[str, Any]]:
+              rows: list[dict[str, Any]] = []
+              with ProcessPoolExecutor(
+                  max_workers=workers
+              ) as pool:
+                  futures = {
+                      pool.submit(replay_ratio, task): task
+                      for task in tasks
+                  }
+                  complete = 0
+                  for future in as_completed(futures):
+                      task = futures[future]
+                      rows.append(future.result())
+                      complete += 1
+                      print(
+                          f"{label}: {complete}/{len(tasks)} "
+                          f"ratio={task[0]:.5f}",
+                          flush=True,
+                      )
+              return rows
+
+          def period_metric(
+              row: dict[str, Any],
+              first_year: int,
+              last_year: int,
+          ) -> dict[str, float | int]:
+              matches = 0
+              loss_sum = 0.0
+              for raw_year, stats in row["by_year"].items():
+                  year = int(raw_year)
+                  if first_year <= year <= last_year:
+                      matches += int(stats["matches"])
+                      loss_sum += float(stats["log_loss_sum"])
+              return {
+                  "matches": matches,
+                  "log_loss": loss_sum / matches,
+                  "log_loss_sum": loss_sum,
+              }
+
+          def nested_select(
+              rows: list[dict[str, Any]],
+          ) -> dict[str, Any]:
+              selected = []
+              for fold_index, fold in enumerate(FOLDS):
+                  fit_first, fit_last, test_first, test_last = fold
+                  best = min(
+                      rows,
+                      key=lambda row: (
+                          period_metric(
+                              row,
+                              fit_first,
+                              fit_last,
+                          )["log_loss"],
+                          row["ratio"],
+                      ),
+                  )
+                  fit = period_metric(
+                      best,
+                      fit_first,
+                      fit_last,
+                  )
+                  test = period_metric(
+                      best,
+                      test_first,
+                      test_last,
+                  )
+                  selected.append(
+                      {
+                          "fold": fold_index,
+                          "fit": [fit_first, fit_last],
+                          "test": [test_first, test_last],
+                          "ratio": best["ratio"],
+                          "fit_metrics": fit,
+                          "test_metrics": test,
+                      }
+                  )
+              total_matches = sum(
+                  int(row["test_metrics"]["matches"])
+                  for row in selected
+              )
+              total_loss = sum(
+                  float(row["test_metrics"]["log_loss_sum"])
+                  for row in selected
+              )
+              return {
+                  "folds": selected,
+                  "aggregate": {
+                      "matches": total_matches,
+                      "log_loss": total_loss / total_matches,
+                  },
+              }
+
+          def fixed_outer(
+              row: dict[str, Any],
+          ) -> dict[str, Any]:
+              folds = []
+              for fold_index, fold in enumerate(FOLDS):
+                  _, _, test_first, test_last = fold
+                  test = period_metric(
+                      row,
+                      test_first,
+                      test_last,
+                  )
+                  folds.append(
+                      {
+                          "fold": fold_index,
+                          "test": [test_first, test_last],
+                          "ratio": row["ratio"],
+                          "test_metrics": test,
+                      }
+                  )
+              total_matches = sum(
+                  int(item["test_metrics"]["matches"])
+                  for item in folds
+              )
+              total_loss = sum(
+                  float(item["test_metrics"]["log_loss_sum"])
+                  for item in folds
+              )
+              return {
+                  "folds": folds,
+                  "aggregate": {
+                      "matches": total_matches,
+                      "log_loss": total_loss / total_matches,
+                  },
+              }
+
+          def selected_year_losses(
+              nested: dict[str, Any],
+              rows_by_ratio: dict[float, dict[str, Any]],
+          ) -> dict[int, dict[str, float | int]]:
+              result: dict[int, dict[str, float | int]] = {}
+              for fold in nested["folds"]:
+                  ratio = float(fold["ratio"])
+                  row = rows_by_ratio[ratio]
+                  first_year, last_year = fold["test"]
+                  for raw_year, stats in row["by_year"].items():
+                      year = int(raw_year)
+                      if first_year <= year <= last_year:
+                          result[year] = {
+                              "matches": int(stats["matches"]),
+                              "log_loss_sum": float(
+                                  stats["log_loss_sum"]
+                              ),
+                          }
+              return result
+
+          def bootstrap_years(
+              baseline: dict[int, dict[str, float | int]],
+              challenger: dict[int, dict[str, float | int]],
+              *,
+              samples: int = 20000,
+              seed: int = 20260723,
+          ) -> dict[str, Any]:
+              years = sorted(set(baseline) & set(challenger))
+              if not years:
+                  raise RuntimeError("No shared bootstrap years.")
+              rng = random.Random(seed)
+              differences = []
+              observed_baseline_matches = sum(
+                  int(baseline[year]["matches"]) for year in years
+              )
+              observed_baseline_loss = sum(
+                  float(baseline[year]["log_loss_sum"])
+                  for year in years
+              ) / observed_baseline_matches
+              observed_challenger_loss = sum(
+                  float(challenger[year]["log_loss_sum"])
+                  for year in years
+              ) / observed_baseline_matches
+              observed = (
+                  observed_baseline_loss
+                  - observed_challenger_loss
+              )
+              for _ in range(samples):
+                  drawn = [
+                      years[rng.randrange(len(years))]
+                      for _ in years
+                  ]
+                  matches = sum(
+                      int(baseline[year]["matches"])
+                      for year in drawn
+                  )
+                  baseline_loss = sum(
+                      float(baseline[year]["log_loss_sum"])
+                      for year in drawn
+                  ) / matches
+                  challenger_loss = sum(
+                      float(challenger[year]["log_loss_sum"])
+                      for year in drawn
+                  ) / matches
+                  differences.append(
+                      baseline_loss - challenger_loss
+                  )
+              differences.sort()
+              lower = differences[
+                  int(0.025 * (len(differences) - 1))
+              ]
+              upper = differences[
+                  int(0.975 * (len(differences) - 1))
+              ]
+              return {
+                  "unit": "calendar year",
+                  "years": years,
+                  "samples": samples,
+                  "observed_log_loss_improvement": observed,
+                  "ci95": [lower, upper],
+                  "probability_improvement": (
+                      sum(value > 0 for value in differences)
+                      / len(differences)
+                  ),
+              }
+
+          def main() -> None:
+              metadata = json.loads(
+                  (CONFIG / "elo_matches.json").read_text(
+                      encoding="utf-8"
+                  )
+              )
+              levels = {
+                  str(code): int(level)
+                  for code, level in metadata[
+                      "tournament_levels"
+                  ].items()
+              }
+              names = read_tournament_names()
+              rsssf = fetch_rsssf_friendly_index()
+              classes = classify_tournaments(
+                  levels,
+                  names,
+                  rsssf,
+              )
+              export_classification(classes, rsssf)
+              (OUT / "class_map.json").write_text(
+                  json.dumps(
+                      {
+                          code: row["class"]
+                          for code, row in classes.items()
+                      },
+                      indent=2,
+                      sort_keys=True,
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              matches, tournament_counts, class_counts = (
+                  load_matches_and_counts(classes, levels)
+              )
+              write_classification_counts(
+                  classes,
+                  tournament_counts,
+              )
+              current_friendly_matches = sum(
+                  count
+                  for code, count in tournament_counts.items()
+                  if code == "F"
+              )
+              reclassified_friendly_matches = sum(
+                  count
+                  for code, count in tournament_counts.items()
+                  if classes[code]["class"] == "friendly"
+              )
+
+              workers = max(
+                  1,
+                  min(2, (os.cpu_count() or 2) // 2),
+              )
+              baseline = run_tasks(
+                  [(CURRENT_RATIO, "current")],
+                  workers,
+                  "current baseline",
+              )[0]
+              reclassified_current = run_tasks(
+                  [(CURRENT_RATIO, "reclassified")],
+                  workers,
+                  "reclassified current ratio",
+              )[0]
+
+              coarse_ratios = [
+                  round(0.05 * index, 5)
+                  for index in range(1, 31)
+              ]
+              coarse = run_tasks(
+                  [
+                      (ratio, "reclassified")
+                      for ratio in coarse_ratios
+                  ],
+                  workers,
+                  "coarse ratio search",
+              )
+              coarse_nested = nested_select(coarse)
+              coarse_full = min(
+                  coarse,
+                  key=lambda row: period_metric(
+                      row,
+                      1960,
+                      2026,
+                  )["log_loss"],
+              )
+              centres = {
+                  float(coarse_full["ratio"]),
+                  *(
+                      float(fold["ratio"])
+                      for fold in coarse_nested["folds"]
+                  ),
+              }
+              fine_ratios = sorted(
+                  {
+                      round(
+                          max(
+                              0.01,
+                              min(
+                                  1.75,
+                                  centre + offset * 0.005,
+                              ),
+                          ),
+                          5,
+                      )
+                      for centre in centres
+                      for offset in range(-12, 13)
+                  }
+                  | {CURRENT_RATIO}
+              )
+              completed_ratios = {
+                  float(row["ratio"]) for row in coarse
+              }
+              fine = run_tasks(
+                  [
+                      (ratio, "reclassified")
+                      for ratio in fine_ratios
+                      if ratio not in completed_ratios
+                  ],
+                  workers,
+                  "fine ratio search",
+              )
+              all_rows = coarse + fine
+              rows_by_ratio = {
+                  float(row["ratio"]): row
+                  for row in all_rows
+              }
+              nested = nested_select(all_rows)
+              full_best = min(
+                  all_rows,
+                  key=lambda row: (
+                      period_metric(
+                          row,
+                          1960,
+                          2026,
+                      )["log_loss"],
+                      row["ratio"],
+                  ),
+              )
+
+              baseline_outer = fixed_outer(baseline)
+              current_ratio_outer = fixed_outer(
+                  reclassified_current
+              )
+              baseline_years = {
+                  int(year): {
+                      "matches": int(stats["matches"]),
+                      "log_loss_sum": float(
+                          stats["log_loss_sum"]
+                      ),
+                  }
+                  for year, stats in baseline["by_year"].items()
+                  if 1960 <= int(year) <= 2026
+              }
+              nested_years = selected_year_losses(
+                  nested,
+                  rows_by_ratio,
+              )
+              nested_bootstrap = bootstrap_years(
+                  {
+                      year: stats
+                      for year, stats in baseline_years.items()
+                      if year in nested_years
+                  },
+                  nested_years,
+              )
+              full_best_years = {
+                  int(year): {
+                      "matches": int(stats["matches"]),
+                      "log_loss_sum": float(
+                          stats["log_loss_sum"]
+                      ),
+                  }
+                  for year, stats in full_best["by_year"].items()
+                  if 1960 <= int(year) <= 2026
+              }
+              retrospective_bootstrap = bootstrap_years(
+                  baseline_years,
+                  full_best_years,
+              )
+
+              classification_counts = {
+                  "tournaments": {
+                      "friendly": sum(
+                          row["class"] == "friendly"
+                          for row in classes.values()
+                      ),
+                      "competitive": sum(
+                          row["class"] == "competitive"
+                          for row in classes.values()
+                      ),
+                  },
+                  "confidence": {
+                      value: sum(
+                          row["confidence"] == value
+                          for row in classes.values()
+                      )
+                      for value in ("high", "medium", "low")
+                  },
+                  "matches": {
+                      "current_friendly": current_friendly_matches,
+                      "reclassified_friendly": (
+                          reclassified_friendly_matches
+                      ),
+                      "competitive": (
+                          len(matches)
+                          - reclassified_friendly_matches
+                      ),
+                      "total": len(matches),
+                  },
+              }
+
+              full_best_metrics = period_metric(
+                  full_best,
+                  1960,
+                  2026,
+              )
+              study = {
+                  "methodology": {
+                      "cutoff": CUTOFF,
+                      "current_ratio": CURRENT_RATIO,
+                      "classification_policy": (
+                          "Official championship/qualification consequence "
+                          "is competitive; exhibition/invitational events "
+                          "without such consequence are friendly."
+                      ),
+                      "rolling_calibration": (
+                          "Each replay refits the existing annual forecast "
+                          "calibration causally from prior seasons."
+                      ),
+                      "selection": (
+                          "Five rolling-origin folds select the friendly "
+                          "information ratio on the fit block and score it "
+                          "on the subsequent untouched block."
+                      ),
+                      "full_sample_refit": (
+                          "The deployment candidate is the best tested "
+                          "ratio on the complete 1960-cutoff retrospective "
+                          "window; this is distinct from nested evidence."
+                      ),
+                  },
+                  "rsssf": {
+                      key: value
+                      for key, value in rsssf.items()
+                      if key != "text"
+                  },
+                  "classification_counts": classification_counts,
+                  "current_baseline": baseline_outer,
+                  "reclassified_at_current_ratio": (
+                      current_ratio_outer
+                  ),
+                  "nested_reclassified_selection": nested,
+                  "nested_bootstrap_vs_current_baseline": (
+                      nested_bootstrap
+                  ),
+                  "definitiveness": {
+                      "taxonomy_high_confidence_fraction": (
+                          sum(
+                              tournament_counts.get(code, 0)
+                              for code, row in classes.items()
+                              if row["confidence"] == "high"
+                          )
+                          / max(1, len(matches))
+                      ),
+                      "nested_ci_excludes_zero": (
+                          nested_bootstrap["ci95"][0] > 0
+                          or nested_bootstrap["ci95"][1] < 0
+                      ),
+                      "nested_direction": (
+                          "improves"
+                          if nested_bootstrap[
+                              "observed_log_loss_improvement"
+                          ] > 0
+                          else "worsens"
+                      ),
+                  },
+                  "full_sample_refit": {
+                      "ratio": full_best["ratio"],
+                      "metrics": full_best_metrics,
+                      "latest_release": full_best[
+                          "latest_release"
+                      ],
+                      "latest_calibration": full_best[
+                          "latest_calibration"
+                      ],
+                      "bootstrap_vs_current_baseline": (
+                          retrospective_bootstrap
+                      ),
+                  },
+                  "ratio_grid": [
+                      {
+                          "ratio": row["ratio"],
+                          "metrics_1960_2026": period_metric(
+                              row,
+                              1960,
+                              2026,
+                          ),
+                          "latest_release": row[
+                              "latest_release"
+                          ],
+                          "latest_calibration": row[
+                              "latest_calibration"
+                          ],
+                          "elapsed_seconds": row[
+                              "elapsed_seconds"
+                          ],
+                      }
+                      for row in sorted(
+                          all_rows,
+                          key=lambda item: item["ratio"],
+                      )
+                  ],
+              }
+              (OUT / "study.json").write_text(
+                  json.dumps(
+                      study,
+                      indent=2,
+                      sort_keys=True,
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+              with (OUT / "ratio_grid.csv").open(
+                  "w",
+                  encoding="utf-8",
+                  newline="",
+              ) as handle:
+                  writer = csv.writer(handle)
+                  writer.writerow(
+                      (
+                          "ratio",
+                          "matches_1960_2026",
+                          "log_loss_1960_2026",
+                          "elapsed_seconds",
+                      )
+                  )
+                  for row in sorted(
+                      all_rows,
+                      key=lambda item: item["ratio"],
+                  ):
+                      metric = period_metric(
+                          row,
+                          1960,
+                          2026,
+                      )
+                      writer.writerow(
+                          (
+                              row["ratio"],
+                              metric["matches"],
+                              metric["log_loss"],
+                              row["elapsed_seconds"],
+                          )
+                      )
+
+              nested_delta = (
+                  baseline_outer["aggregate"]["log_loss"]
+                  - nested["aggregate"]["log_loss"]
+              )
+              full_delta = (
+                  period_metric(
+                      baseline,
+                      1960,
+                      2026,
+                  )["log_loss"]
+                  - full_best_metrics["log_loss"]
+              )
+              report = f"""# NFELO friendly-classification and refit study
+
+          ## Classification
+
+          - Tournament codes classified: {len(classes)}
+          - Friendly tournament codes: {classification_counts['tournaments']['friendly']}
+          - Competitive tournament codes: {classification_counts['tournaments']['competitive']}
+          - Matches previously treated as friendly: {current_friendly_matches:,}
+          - Matches treated as friendly after review: {reclassified_friendly_matches:,}
+          - Total replayed matches: {len(matches):,}
+          - RSSSF friendly index retrieved: {rsssf['ok']}
+          - RSSSF snapshot SHA-256: {rsssf.get('sha256')}
+
+          The operational rule is: a match is competitive when it carries an
+          official championship, qualification, playoff, league or recognised
+          multi-sport consequence. Invitational and exhibition events without
+          that consequence are friendly. Mixed events remain competitive.
+
+          ## Rolling-origin evidence
+
+          - Current baseline log loss: {baseline_outer['aggregate']['log_loss']:.9f}
+          - Reclassified nested-selected log loss: {nested['aggregate']['log_loss']:.9f}
+          - Improvement: {nested_delta:.9f}
+          - Calendar-year bootstrap 95% interval:
+            [{nested_bootstrap['ci95'][0]:.9f}, {nested_bootstrap['ci95'][1]:.9f}]
+          - Bootstrap probability of improvement:
+            {nested_bootstrap['probability_improvement']:.3%}
+
+          Fold-selected ratios:
+
+          """
+              for fold in nested["folds"]:
+                  report += (
+                      f"- Fit {fold['fit'][0]}–{fold['fit'][1]}, "
+                      f"test {fold['test'][0]}–{fold['test'][1]}: "
+                      f"ratio {fold['ratio']:.5f}, "
+                      f"test log loss "
+                      f"{fold['test_metrics']['log_loss']:.9f}\n"
+                  )
+              report += f"""
+          ## Full retrospective refit
+
+          - Best tested ratio: {full_best['ratio']:.5f}
+          - Reclassified log loss at that ratio: {full_best_metrics['log_loss']:.9f}
+          - Current-classification baseline log loss:
+            {period_metric(baseline, 1960, 2026)['log_loss']:.9f}
+          - Retrospective improvement: {full_delta:.9f}
+          - Calendar-year bootstrap 95% interval:
+            [{retrospective_bootstrap['ci95'][0]:.9f}, {retrospective_bootstrap['ci95'][1]:.9f}]
+          - Bootstrap probability of improvement:
+            {retrospective_bootstrap['probability_improvement']:.3%}
+
+          The full-sample ratio is the deployment refit. The nested result is the
+          less-biased evidence for whether the reclassification and refit improve
+          future-period forecasts.
+
+          ## Files
+
+          - `tournament_classification.csv`: every tournament and decision basis
+          - `tournament_match_counts.csv`: classification weighted by match count
+          - `ratio_grid.csv`: every tested ratio
+          - `study.json`: complete machine-readable results
+          """
+              (OUT / "report.md").write_text(
+                  textwrap.dedent(report).strip() + "\n",
+                  encoding="utf-8",
+              )
+
+              print(
+                  json.dumps(
+                      {
+                          "classification_counts": (
+                              classification_counts
+                          ),
+                          "nested": nested["aggregate"],
+                          "nested_bootstrap": nested_bootstrap,
+                          "full_best_ratio": full_best["ratio"],
+                          "full_best_metrics": full_best_metrics,
+                          "full_bootstrap": (
+                              retrospective_bootstrap
+                          ),
+                          "output": str(OUT),
+                      },
+                      indent=2,
+                      sort_keys=True,
+                  ),
+                  flush=True,
+              )
+
+          if __name__ == "__main__":
+              main()
+          PY
+
+          python /tmp/friendly-study/run_study.py
+
+      - name: Validate study artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import csv
+          import json
+
+          root = Path("/tmp/friendly-study/output")
+          required = {
+              "tournament_classification.json",
+              "tournament_classification.csv",
+              "tournament_match_counts.csv",
+              "ratio_grid.csv",
+              "study.json",
+              "report.md",
+          }
+          missing = sorted(
+              name for name in required if not (root / name).exists()
+          )
+          if missing:
+              raise RuntimeError(
+                  "Missing study outputs: " + ", ".join(missing)
+              )
+
+          classification = json.loads(
+              (root / "tournament_classification.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          study = json.loads(
+              (root / "study.json").read_text(encoding="utf-8")
+          )
+          tournaments = classification["tournaments"]
+          if not tournaments:
+              raise RuntimeError("Classification is empty.")
+          if any(
+              row["class"] not in {"friendly", "competitive"}
+              for row in tournaments.values()
+          ):
+              raise RuntimeError("Invalid tournament class.")
+          if study["classification_counts"]["matches"]["total"] < 50000:
+              raise RuntimeError("Replay match count is unexpectedly low.")
+          if not study["ratio_grid"]:
+              raise RuntimeError("Ratio grid is empty.")
+          if not (
+              0.01
+              <= study["full_sample_refit"]["ratio"]
+              <= 1.75
+          ):
+              raise RuntimeError("Refitted ratio is out of range.")
+
+          print(
+              "Validated",
+              len(tournaments),
+              "tournament codes and",
+              study["classification_counts"]["matches"]["total"],
+              "matches; best ratio",
+              study["full_sample_refit"]["ratio"],
+          )
+          PY
+
+      - name: Upload complete study
+        uses: actions/upload-artifact@v4
+        with:
+          name: friendly-classification-refit-study
+          retention-days: 30
+          if-no-files-found: error
+          path: /tmp/friendly-study/output
