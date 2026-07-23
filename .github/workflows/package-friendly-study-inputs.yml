@@ -1,0 +1,320 @@
+name: Package friendly-study inputs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-friendly-study-inputs
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Export reproducible study bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Verify required replay inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            source
+            source/elo_pages
+            source/en.tournaments.tsv
+            source/tournaments.tsv
+            source/teams.tsv
+            config
+            config/elo_matches.json
+            scripts
+            scripts/ledger.py
+            research/methodology-audit-2026-07-19
+            research/methodology-audit-2026-07-19/prepare_matches.py
+            research/methodology-audit-2026-07-19/network_eval.cpp
+            requirements.txt
+            README.md
+          )
+
+          for path in "${required[@]}"; do
+            test -e "$path" || {
+              echo "::error::Missing required path: $path"
+              exit 1
+            }
+          done
+
+          page_count="$(
+            find source/elo_pages -maxdepth 1 -type f -name '*.tsv' \
+              | wc -l
+          )"
+          if [ "$page_count" -lt 100 ]; then
+            echo "::error::Expected at least 100 team-page ledgers; found $page_count."
+            exit 1
+          fi
+
+      - name: Export canonical evaluator ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bundle="/tmp/nfelo-friendly-study-inputs"
+          mkdir -p "$bundle/evaluator" "$bundle/manifest"
+
+          python \
+            research/methodology-audit-2026-07-19/prepare_matches.py \
+            --repo . \
+            --output "$bundle/evaluator/matches.tsv"
+
+          header="$(head -n 1 "$bundle/evaluator/matches.tsv")"
+          matches="$(
+            printf '%s\n' "$header" \
+              | sed -nE 's/^# teams=[0-9]+ matches=([0-9]+)$/\1/p'
+          )"
+          teams="$(
+            printf '%s\n' "$header" \
+              | sed -nE 's/^# teams=([0-9]+) matches=[0-9]+$/\1/p'
+          )"
+
+          if [ -z "$matches" ] || [ "$matches" -lt 50000 ]; then
+            echo "::error::Canonical ledger is unexpectedly small: $header"
+            exit 1
+          fi
+          if [ -z "$teams" ] || [ "$teams" -lt 200 ]; then
+            echo "::error::Canonical team index is unexpectedly small: $header"
+            exit 1
+          fi
+
+          awk '
+            BEGIN { FS = "\t" }
+            /^#/ { next }
+            NF != 14 {
+              printf "Invalid evaluator row at line %d: %d fields\n", NR, NF \
+                > "/dev/stderr"
+              exit 1
+            }
+            $11 !~ /^[01]$/ {
+              printf "Invalid friendly flag at line %d: %s\n", NR, $11 \
+                > "/dev/stderr"
+              exit 1
+            }
+            END {
+              if (NR < 50001) {
+                print "Evaluator ledger contains too few rows." > "/dev/stderr"
+                exit 1
+              }
+            }
+          ' "$bundle/evaluator/matches.tsv"
+
+      - name: Compile evaluator
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bundle="/tmp/nfelo-friendly-study-inputs"
+          g++ \
+            -O3 \
+            -std=c++20 \
+            -DNDEBUG \
+            -Wall \
+            -Wextra \
+            -pedantic \
+            research/methodology-audit-2026-07-19/network_eval.cpp \
+            -o "$bundle/evaluator/network_eval"
+
+          "$bundle/evaluator/network_eval" 2>&1 \
+            | grep -F "usage: network_eval MATCHES.tsv" >/dev/null
+
+      - name: Copy reproducibility inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bundle="/tmp/nfelo-friendly-study-inputs"
+
+          cp -a source "$bundle/source"
+          cp -a config "$bundle/config"
+          cp -a scripts "$bundle/scripts"
+          cp -a \
+            research/methodology-audit-2026-07-19 \
+            "$bundle/research"
+          cp requirements.txt README.md "$bundle/"
+
+          cat > "$bundle/README-STUDY-BUNDLE.md" <<'EOF'
+          # NFELO friendly-classification study bundle
+
+          This archive contains the complete inputs needed to rerun the
+          friendly/competitive classification and information-ratio study
+          outside GitHub Actions.
+
+          Important paths:
+
+          - `evaluator/matches.tsv` — canonical 14-column numerical ledger
+          - `evaluator/matches.tsv.teams.json` — numerical team index
+          - `evaluator/network_eval` — compiled Linux x86-64 evaluator
+          - `research/prepare_matches.py` — canonical ledger exporter
+          - `research/network_eval.cpp` — evaluator source
+          - `source/` — complete tracked source snapshot
+          - `config/` — complete model configuration snapshot
+          - `scripts/` — deployed replay and data code
+          - `manifest/manifest.json` — commit and package metadata
+          - `manifest/SHA256SUMS` — checksum for every packaged file
+
+          The package workflow does not alter, build, or deploy the website.
+          EOF
+
+      - name: Write commit and checksum manifests
+        shell: bash
+        env:
+          BUNDLE: /tmp/nfelo-friendly-study-inputs
+        run: |
+          set -euo pipefail
+
+          git rev-parse HEAD > "$BUNDLE/manifest/commit.txt"
+          git show -s --format='%H%n%aI%n%s' HEAD \
+            > "$BUNDLE/manifest/commit-details.txt"
+          git status --porcelain=v1 \
+            > "$BUNDLE/manifest/checkout-status.txt"
+
+          git ls-files \
+            source \
+            config \
+            scripts \
+            research/methodology-audit-2026-07-19 \
+            requirements.txt \
+            README.md \
+            > "$BUNDLE/manifest/tracked-input-files.txt"
+
+          python - <<'PY'
+          from __future__ import annotations
+
+          from datetime import datetime, timezone
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+
+          bundle = Path(os.environ["BUNDLE"])
+          header = (
+              bundle / "evaluator" / "matches.tsv"
+          ).read_text(
+              encoding="utf-8"
+          ).splitlines()[0]
+          values = dict(
+              part.split("=", 1)
+              for part in header.removeprefix("# ").split()
+          )
+
+          files = [
+              path
+              for path in bundle.rglob("*")
+              if path.is_file()
+          ]
+          payload = {
+              "repository": os.environ.get(
+                  "GITHUB_REPOSITORY",
+                  "nfelo/nfelo.github.io",
+              ),
+              "commit": subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"],
+                  text=True,
+              ).strip(),
+              "ref": os.environ.get("GITHUB_REF", ""),
+              "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+              "generated_at": datetime.now(
+                  timezone.utc
+              ).replace(
+                  microsecond=0
+              ).isoformat(),
+              "canonical_ledger": {
+                  "teams": int(values["teams"]),
+                  "matches": int(values["matches"]),
+                  "columns": 14,
+              },
+              "source_team_pages": len(
+                  list(
+                      (
+                          bundle
+                          / "source"
+                          / "elo_pages"
+                      ).glob("*.tsv")
+                  )
+              ),
+              "file_count_before_checksums": len(files),
+              "bytes_before_checksums": sum(
+                  path.stat().st_size for path in files
+              ),
+              "website_modified": False,
+              "website_deployed": False,
+          }
+          (
+              bundle / "manifest" / "manifest.json"
+          ).write_text(
+              json.dumps(
+                  payload,
+                  indent=2,
+                  sort_keys=True,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(payload, indent=2))
+          PY
+
+          (
+            cd "$BUNDLE"
+            find . -type f \
+              ! -path './manifest/SHA256SUMS' \
+              -print0 \
+              | sort -z \
+              | xargs -0 sha256sum \
+              > manifest/SHA256SUMS
+            sha256sum --check manifest/SHA256SUMS
+          )
+
+      - name: Final package audit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bundle="/tmp/nfelo-friendly-study-inputs"
+
+          test -s "$bundle/evaluator/matches.tsv"
+          test -s "$bundle/evaluator/matches.tsv.teams.json"
+          test -x "$bundle/evaluator/network_eval"
+          test -s "$bundle/manifest/manifest.json"
+          test -s "$bundle/manifest/SHA256SUMS"
+          test -s "$bundle/source/en.tournaments.tsv"
+          test -s "$bundle/config/elo_matches.json"
+          test -s "$bundle/research/network_eval.cpp"
+
+          python -m py_compile \
+            "$bundle/research/prepare_matches.py" \
+            "$bundle/scripts/ledger.py" \
+            "$bundle/scripts/model.py" \
+            "$bundle/scripts/forecast_layer.py"
+
+          du -sh "$bundle"
+          find "$bundle" -type f | sort
+
+      - name: Upload study inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfelo-friendly-study-inputs
+          path: /tmp/nfelo-friendly-study-inputs
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
