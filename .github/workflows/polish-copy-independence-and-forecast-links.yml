@@ -1,4 +1,4 @@
-name: Polish copy and fix friendly forecasts v3
+name: Polish copy and fix friendly forecasts v4
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: polish-copy-independence-and-forecast-links-v3
+  group: polish-copy-independence-and-forecast-links-v4
   cancel-in-progress: false
 
 jobs:
@@ -803,6 +803,51 @@ jobs:
           )
           replace_once(
               test_build,
+              '''        for phrase in (
+                      "const previousISODate",
+                      "const predictURL",
+                      "function probabilityHTML(values, prediction = null)",
+                      'class="probability-link"',
+                      "date: previousISODate(match.date)",
+                      "date: todayISO()",
+                      "first: fixture.team1_code",
+                      'route.query.get("venue")',
+                      'route.query.get("class")',
+                      "venue: String(home)",
+                  ):
+                      self.assertIn(phrase, javascript)
+          ''',
+              '''        for phrase in (
+                      "const predictURL",
+                      "function probabilityHTML(values, prediction = null)",
+                      'class="probability-link"',
+                      "matchId = null",
+                      'query.set("match", String(matchId))',
+                      "matchId: match.id",
+                      "date: match.date",
+                      "date: fixture.date",
+                      "first: fixture.team1_code",
+                      'route.query.get("venue")',
+                      'route.query.get("class")',
+                      'route.query.get("match")',
+                      "maximumPredictionDate",
+                      "venue: String(home)",
+                  ):
+                      self.assertIn(phrase, javascript)
+
+                  self.assertNotIn(
+                      "date: previousISODate(match.date)",
+                      javascript,
+                  )
+                  self.assertNotIn(
+                      "date: todayISO(),\n"
+                      "      first: fixture.team1_code",
+                      javascript,
+                  )
+          ''',
+          )
+          replace_once(
+              test_build,
               '''        self.assertEqual(javascript.count('question: "'), 30)
                   self.assertIn(
                       "What do the Tournaments and Best tournaments pages show?",
@@ -985,6 +1030,32 @@ jobs:
           app = read(app_path)
           readme = read(readme_path)
           model = read(model_path)
+          build_tests = read(test_build)
+
+          legacy_probability_test = '''        for phrase in (
+                      "const previousISODate",
+                      "const predictURL",
+                      "function probabilityHTML(values, prediction = null)",
+                      'class="probability-link"',
+                      "date: previousISODate(match.date)",
+                      "date: todayISO()",
+          '''
+          if legacy_probability_test in build_tests:
+              raise RuntimeError(
+                  "The obsolete probability-link regression test "
+                  "was not replaced."
+              )
+          for required_test in (
+              '"matchId: match.id"',
+              '"date: match.date"',
+              '"date: fixture.date"',
+              '\'route.query.get("match")\'',
+          ):
+              if required_test not in build_tests:
+                  raise RuntimeError(
+                      "Updated probability-link test is missing: "
+                      f"{required_test}"
+                  )
 
           for required in (
               "FRIENDLY_INFORMATION_RATIO = 0.76064",
