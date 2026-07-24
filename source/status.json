@@ -1,9 +1,9 @@
 {
-  "source_checked_at": "2026-07-24T08:46:42+00:00",
+  "source_checked_at": "2026-07-24T16:59:44+00:00",
   "mode": "multi-source open-results supplement",
-  "base_snapshot_through": "2026-07-19",
+  "base_snapshot_through": "2026-07-24",
   "supplemental_results": 0,
-  "upcoming_fixtures": 353,
+  "upcoming_fixtures": 358,
   "open_feed_rows": 49520,
   "unresolved_names": [],
   "base_urls": [
@@ -13,15 +13,20 @@
   "world_cup_results": 0,
   "sportsdb_fixture_events": 156,
   "sportsdb_requests": 6,
-  "wfe_fixture_rows": 197,
+  "wfe_fixture_rows": 202,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-07-24T08:46:40+00:00",
+    "source_checked_at": "2026-07-24T16:59:40+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
-    "pages_checked": 0,
-    "pages_changed": 0,
-    "changed": [],
+    "pages_checked": 4,
+    "pages_changed": 4,
+    "changed": [
+      "Vietnam",
+      "Singapore",
+      "Cambodia",
+      "East_Timor"
+    ],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
     "integrity": "all downloaded rows passed schema and rewrite guards"

@@ -5,36 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-07-24T08:46:42+00:00",
+  "checked_at": "2026-07-24T16:59:44+00:00",
   "fixtures": [
-    {
-      "date": "2026-07-24",
-      "date_precision": "day",
-      "team1_code": "KH",
-      "team2_code": "SG",
-      "team1_name": "Cambodia",
-      "team2_name": "Singapore",
-      "tournament_code": "SEA",
-      "tournament_name": "Southeast Asian Championship",
-      "city": "",
-      "country": "Cambodia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-07-24",
-      "date_precision": "day",
-      "team1_code": "TL",
-      "team2_code": "VN",
-      "team1_name": "East Timor",
-      "team2_name": "Vietnam",
-      "tournament_code": "SEA",
-      "tournament_name": "Southeast Asian Championship",
-      "city": "",
-      "country": "Thailand",
-      "neutral": true,
-      "home_sign": 0
-    },
     {
       "date": "2026-07-25",
       "date_precision": "day",
@@ -975,6 +947,20 @@
     },
     {
       "date": "2026-09-26",
+      "date_precision": "day",
+      "team1_code": "CO",
+      "team2_code": "MX",
+      "team1_name": "Colombia",
+      "team2_name": "Mexico",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-26",
       "kickoff_utc": "2026-09-26T18:45:00",
       "team1_code": "CZ",
       "team2_code": "HR",
@@ -1110,6 +1096,20 @@
       "tournament_name": "UEFA Nations League",
       "city": "Stadion Stožice",
       "country": "Slovenia",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-26",
+      "date_precision": "day",
+      "team1_code": "US",
+      "team2_code": "PE",
+      "team1_name": "United States",
+      "team2_name": "Peru",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
       "neutral": false,
       "home_sign": 1
     },
@@ -1451,6 +1451,20 @@
     },
     {
       "date": "2026-09-29",
+      "date_precision": "day",
+      "team1_code": "MX",
+      "team2_code": "PE",
+      "team1_name": "Mexico",
+      "team2_name": "Peru",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-29",
       "kickoff_utc": "2026-09-29T18:45:00",
       "team1_code": "MD",
       "team2_code": "FO",
@@ -1544,6 +1558,20 @@
       "tournament_name": "UEFA Nations League",
       "city": "",
       "country": "Spain",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-29",
+      "date_precision": "day",
+      "team1_code": "US",
+      "team2_code": "CL",
+      "team1_name": "United States",
+      "team2_name": "Chile",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
       "neutral": false,
       "home_sign": 1
     },
@@ -2290,6 +2318,20 @@
       "home_sign": 1
     },
     {
+      "date": "2026-10-03",
+      "date_precision": "day",
+      "team1_code": "US",
+      "team2_code": "MX",
+      "team1_name": "United States",
+      "team2_name": "Mexico",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
       "date": "2026-10-04",
       "kickoff_utc": "2026-10-04T13:00:00",
       "team1_code": "AZ",
@@ -2554,6 +2596,34 @@
       "country": "Belarus",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-10-06",
+      "date_precision": "day",
+      "team1_code": "CL",
+      "team2_code": "MX",
+      "team1_name": "Chile",
+      "team2_name": "Mexico",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-10-06",
+      "date_precision": "day",
+      "team1_code": "CO",
+      "team2_code": "PE",
+      "team1_name": "Colombia",
+      "team2_name": "Peru",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-10-06",
