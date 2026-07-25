@@ -2399,37 +2399,423 @@ function renderRecords(route) {
     update();
   }
 
-  function comparisonChart(first, second) {
-    const histories = [first.history, second.history].filter((history) => history.length > 1);
-    if (!histories.length) return `<div class="empty">A comparison line begins after a team has 30 matches.</div>`;
-    const width = 1000;
-    const height = 340;
-    const pad = { left: 58, right: 18, top: 24, bottom: 36 };
-    const time = (value) => {
-      const [year, month, day] = value.split("-").map(Number);
-      return year + Math.max(0, month - 1) / 12 + Math.max(0, day - 1) / 365;
-    };
-    const all = histories.flat();
-    const xs = all.map((point) => time(point.date));
-    const ys = all.map((point) => point.rating);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.floor((Math.min(...ys) - 20) / 50) * 50;
-    const maxY = Math.ceil((Math.max(...ys) + 20) / 50) * 50;
-    const x = (value) => pad.left + (value - minX) / Math.max(1, maxX - minX) * (width - pad.left - pad.right);
-    const y = (value) => height - pad.bottom - (value - minY) / Math.max(1, maxY - minY) * (height - pad.top - pad.bottom);
-    const points = (history) => history.map((point) => `${x(time(point.date)).toFixed(2)},${y(point.rating).toFixed(2)}`).join(" ");
-    const yTicks = Array.from({ length: 5 }, (_, index) => minY + (maxY - minY) * index / 4);
-    const xTicks = Array.from({ length: 5 }, (_, index) => minX + (maxX - minX) * index / 4);
-    return `<div class="chart-shell comparison-chart">
-      <div class="comparison-legend"><span><i class="comparison-a"></i>${escapeHTML(first.team.nation)}</span><span><i class="comparison-b"></i>${escapeHTML(second.team.nation)}</span></div>
-      <svg class="rating-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Rating histories for ${escapeHTML(first.team.nation)} and ${escapeHTML(second.team.nation)}" preserveAspectRatio="none">
-        ${yTicks.map((tick) => `<line class="grid" x1="${pad.left}" y1="${y(tick)}" x2="${width - pad.right}" y2="${y(tick)}"/><text x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${rating(tick)}</text>`).join("")}
-        ${xTicks.map((tick) => `<text x="${x(tick)}" y="${height - 10}" text-anchor="middle">${Math.round(tick)}</text>`).join("")}
-        ${first.history.length > 1 ? `<polyline class="comparison-line comparison-line-a" points="${points(first.history)}"/>` : ""}
-        ${second.history.length > 1 ? `<polyline class="comparison-line comparison-line-b" points="${points(second.history)}"/>` : ""}
-      </svg>
+  let ratingHistoryChartSequence = 0;
+  const ratingHistoryChartRegistry = new Map();
+  const activeRatingHistoryChartDisposers = new Set();
+  const chartDay = 24 * 60 * 60 * 1000;
+
+  const chartDateStamp = (value) => {
+    const stamp = Date.parse(`${value}T00:00:00Z`);
+    return Number.isFinite(stamp) ? stamp : null;
+  };
+
+  const chartPointAtOrBefore = (history, stamp) => {
+    let left = 0;
+    let right = history.length - 1;
+    let found = null;
+    while (left <= right) {
+      const middle = Math.floor((left + right) / 2);
+      if (history[middle].stamp <= stamp) {
+        found = history[middle];
+        left = middle + 1;
+      } else {
+        right = middle - 1;
+      }
+    }
+    return found;
+  };
+
+  const chartNiceStep = (raw) => {
+    if (!Number.isFinite(raw) || raw <= 0) return 50;
+    const magnitude = 10 ** Math.floor(Math.log10(raw));
+    const normalised = raw / magnitude;
+    const multiple = normalised <= 1 ? 1 : normalised <= 2 ? 2 : normalised <= 5 ? 5 : 10;
+    return multiple * magnitude;
+  };
+
+  function interactiveRatingChart(series, options = {}) {
+    const prepared = series.map((item, index) => ({
+      label: publicTeamName(item.label),
+      className: index === 0 ? "chart-series-a" : "chart-series-b",
+      history: (item.history || [])
+        .map((point) => ({
+          ...point,
+          rating: Number(point.rating),
+          stamp: chartDateStamp(point.date),
+        }))
+        .filter((point) => point.stamp != null && Number.isFinite(point.rating))
+        .sort((first, second) => first.stamp - second.stamp),
+    }));
+    const histories = prepared.map((item) => item.history).filter((history) => history.length);
+    if (!histories.some((history) => history.length > 1)) {
+      return `<div class="empty">A rating line begins after a team has 30 matches.</div>`;
+    }
+    const firstYear = Math.min(...histories.map((history) => Number(history[0].date.slice(0, 4))));
+    const lastYear = Math.max(...histories.map((history) => Number(history.at(-1).date.slice(0, 4))));
+    const id = `rating-history-chart-${++ratingHistoryChartSequence}`;
+    ratingHistoryChartRegistry.set(id, {
+      series: prepared,
+      firstYear,
+      lastYear,
+      ariaLabel: options.ariaLabel || "Rating history",
+    });
+    const legend = prepared.length > 1
+      ? `<div class="comparison-legend">${prepared.map((item) => `<span><i class="${item.className}"></i>${escapeHTML(item.label)}</span>`).join("")}</div>`
+      : "";
+    return `<div class="chart-shell interactive-chart ${escapeHTML(options.className || "")}" id="${id}" data-rating-history-chart>
+      ${legend}
+      <div class="chart-controls">
+        <form class="chart-year-form" data-chart-year-form>
+          <label><span>From year</span><input type="number" inputmode="numeric" min="${firstYear}" max="${lastYear}" step="1" value="${firstYear}" data-chart-from></label>
+          <label><span>To year</span><input type="number" inputmode="numeric" min="${firstYear}" max="${lastYear}" step="1" value="${lastYear}" data-chart-to></label>
+          <button class="button button-quiet" type="submit">Apply years</button>
+        </form>
+        <div class="chart-navigation" role="group" aria-label="Move and zoom through rating history">
+          <button class="button button-quiet" type="button" data-chart-earlier aria-label="Show an earlier period">← Earlier</button>
+          <button class="button button-quiet" type="button" data-chart-zoom-in aria-label="Zoom in to a shorter period">＋ Zoom in</button>
+          <button class="button button-quiet" type="button" data-chart-zoom-out aria-label="Zoom out to a longer period">− Zoom out</button>
+          <button class="button button-quiet" type="button" data-chart-later aria-label="Show a later period">Later →</button>
+          <button class="button button-quiet" type="button" data-chart-all>All years</button>
+        </div>
+      </div>
+      <div class="chart-status">
+        <span id="${id}-range" data-chart-range aria-live="polite">Showing ${yearNumber(firstYear)}–${yearNumber(lastYear)}</span>
+        <span class="chart-error" data-chart-error role="alert"></span>
+      </div>
+      <p class="chart-help" id="${id}-help">Hover over the graph to inspect a date. Tap or click to keep a selection; use the arrow keys when the graph is focused.</p>
+      <div class="chart-stage">
+        <svg class="rating-chart" role="img" tabindex="0" aria-label="${escapeHTML(options.ariaLabel || "Rating history")}" aria-describedby="${id}-range ${id}-help" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="chart-inspector" data-chart-inspector aria-live="polite">
+        <div class="chart-inspector-copy">
+          <strong data-chart-inspector-date>Choose a date on the graph</strong>
+          <span data-chart-inspector-note>Exact rating values will appear here.</span>
+        </div>
+        <div class="chart-inspector-values" data-chart-inspector-values></div>
+        <button class="button button-quiet chart-clear" type="button" data-chart-clear hidden>Clear selection</button>
+      </div>
+      ${options.summary || ""}
     </div>`;
+  }
+
+  function initialiseRatingHistoryChart(shell) {
+    const config = ratingHistoryChartRegistry.get(shell.id);
+    if (!config) return;
+    ratingHistoryChartRegistry.delete(shell.id);
+    const svg = shell.querySelector(".rating-chart");
+    const fromInput = shell.querySelector("[data-chart-from]");
+    const toInput = shell.querySelector("[data-chart-to]");
+    const rangeStatus = shell.querySelector("[data-chart-range]");
+    const error = shell.querySelector("[data-chart-error]");
+    const inspectorDate = shell.querySelector("[data-chart-inspector-date]");
+    const inspectorNote = shell.querySelector("[data-chart-inspector-note]");
+    const inspectorValues = shell.querySelector("[data-chart-inspector-values]");
+    const clearButton = shell.querySelector("[data-chart-clear]");
+    const earlierButton = shell.querySelector("[data-chart-earlier]");
+    const laterButton = shell.querySelector("[data-chart-later]");
+    const zoomInButton = shell.querySelector("[data-chart-zoom-in]");
+    const zoomOutButton = shell.querySelector("[data-chart-zoom-out]");
+    const allButton = shell.querySelector("[data-chart-all]");
+    let fromYear = config.firstYear;
+    let toYear = config.lastYear;
+    let geometry = null;
+    let selectedStamp = null;
+    let pinned = false;
+    let lastDrawnWidth = 0;
+
+    const rangeStamps = () => ({
+      start: Date.UTC(fromYear, 0, 1),
+      end: Date.UTC(toYear, 11, 31),
+    });
+
+    const resetInspector = () => {
+      selectedStamp = null;
+      pinned = false;
+      const crosshair = svg.querySelector("[data-chart-crosshair]");
+      const markers = svg.querySelector("[data-chart-markers]");
+      if (crosshair) crosshair.hidden = true;
+      if (markers) markers.innerHTML = "";
+      inspectorDate.textContent = "Choose a date on the graph";
+      inspectorNote.textContent = "Exact rating values will appear here.";
+      inspectorValues.innerHTML = "";
+      clearButton.hidden = true;
+    };
+
+    const inspect = (rawStamp, keep = pinned) => {
+      if (!geometry) return;
+      const stamp = Math.max(geometry.start, Math.min(geometry.end, Math.round(rawStamp / chartDay) * chartDay));
+      selectedStamp = stamp;
+      pinned = keep;
+      const xPosition = geometry.x(stamp);
+      const crosshair = svg.querySelector("[data-chart-crosshair]");
+      const markers = svg.querySelector("[data-chart-markers]");
+      crosshair.hidden = false;
+      crosshair.setAttribute("x1", xPosition);
+      crosshair.setAttribute("x2", xPosition);
+      const selectedDate = new Date(stamp).toISOString().slice(0, 10);
+      inspectorDate.textContent = validDate(selectedDate);
+      inspectorNote.textContent = pinned
+        ? "Selection fixed. Tap or click another position to move it."
+        : "Rating at the end of this date.";
+      const values = config.series.map((item) => {
+        const point = chartPointAtOrBefore(item.history, stamp);
+        if (!point) {
+          return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Not yet eligible for a rating</small></span><strong>—</strong></span>`;
+        }
+        return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Last changed ${validDate(point.date)}</small></span><strong>${rating(point.rating)}</strong></span>`;
+      });
+      inspectorValues.innerHTML = values.join("");
+      markers.innerHTML = config.series.map((item) => {
+        const point = chartPointAtOrBefore(item.history, stamp);
+        return point
+          ? `<circle class="chart-marker ${item.className}" cx="${xPosition}" cy="${geometry.y(point.rating)}" r="5"/>`
+          : "";
+      }).join("");
+      clearButton.hidden = false;
+    };
+
+    const draw = () => {
+      const bounds = svg.getBoundingClientRect();
+      const width = Math.max(280, Math.round(bounds.width || shell.clientWidth || 1000));
+      const height = Math.max(280, Math.round(bounds.height || 360));
+      lastDrawnWidth = width;
+      const compact = width < 600;
+      const pad = {
+        left: compact ? 48 : 62,
+        right: compact ? 12 : 20,
+        top: 20,
+        bottom: 38,
+      };
+      const { start, end } = rangeStamps();
+      const plotWidth = width - pad.left - pad.right;
+      const plotHeight = height - pad.top - pad.bottom;
+      const x = (stamp) => pad.left + (stamp - start) / Math.max(chartDay, end - start) * plotWidth;
+      const samples = config.series.flatMap((item) => {
+        const before = chartPointAtOrBefore(item.history, start);
+        const within = item.history.filter((point) => point.stamp > start && point.stamp <= end);
+        return before ? [before, ...within] : within;
+      });
+      const ratings = samples.map((point) => point.rating);
+      const rawMin = Math.min(...ratings);
+      const rawMax = Math.max(...ratings);
+      const rawSpan = Math.max(40, rawMax - rawMin);
+      const yStep = chartNiceStep(rawSpan / 4);
+      let minY = Math.floor((rawMin - yStep * 0.45) / yStep) * yStep;
+      let maxY = Math.ceil((rawMax + yStep * 0.45) / yStep) * yStep;
+      if (maxY <= minY) maxY = minY + yStep;
+      const y = (value) => height - pad.bottom - (value - minY) / (maxY - minY) * plotHeight;
+      const yTicks = [];
+      for (let tick = minY; tick <= maxY + yStep / 2; tick += yStep) yTicks.push(tick);
+      const yearSpan = toYear - fromYear;
+      const xTickCount = Math.min(yearSpan + 1, compact ? 4 : width < 850 ? 5 : 6);
+      const xTicks = xTickCount <= 1
+        ? [fromYear]
+        : [...new Set(Array.from({ length: xTickCount }, (_, index) => (
+          Math.round(fromYear + yearSpan * index / (xTickCount - 1))
+        )))];
+      const stepPath = (history) => {
+        let current = chartPointAtOrBefore(history, start);
+        let path = current ? `M ${x(start).toFixed(2)} ${y(current.rating).toFixed(2)}` : "";
+        history.filter((point) => point.stamp > start && point.stamp <= end).forEach((point) => {
+          if (current) {
+            path += ` H ${x(point.stamp).toFixed(2)} V ${y(point.rating).toFixed(2)}`;
+          } else {
+            path = `M ${x(point.stamp).toFixed(2)} ${y(point.rating).toFixed(2)}`;
+          }
+          current = point;
+        });
+        if (current) path += ` H ${x(end).toFixed(2)}`;
+        return path;
+      };
+      const clipId = `${shell.id}-clip`;
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = `
+        <title>${escapeHTML(config.ariaLabel)}</title>
+        <desc>Step chart of ratings after eligible matches. Use the year controls to zoom or move through time, then hover, tap or use the keyboard to inspect exact values.</desc>
+        <defs><clipPath id="${clipId}"><rect x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${plotHeight}"/></clipPath></defs>
+        <g aria-hidden="true">
+          ${yTicks.map((tick) => `<line class="grid" x1="${pad.left}" y1="${y(tick)}" x2="${width - pad.right}" y2="${y(tick)}"/><text x="${pad.left - 8}" y="${y(tick) + 4}" text-anchor="end">${rating(tick)}</text>`).join("")}
+          ${xTicks.map((year) => `<text x="${x(Date.UTC(year, 6, 2))}" y="${height - 10}" text-anchor="middle">${yearNumber(year)}</text>`).join("")}
+          <g clip-path="url(#${clipId})">
+            ${config.series.map((item) => {
+              const path = stepPath(item.history);
+              return path ? `<path class="rating-history-line ${item.className}" d="${path}"/>` : "";
+            }).join("")}
+            <line class="chart-crosshair" data-chart-crosshair x1="0" y1="${pad.top}" x2="0" y2="${height - pad.bottom}" hidden/>
+            <g data-chart-markers></g>
+          </g>
+          <rect class="chart-hit-area" x="${pad.left}" y="${pad.top}" width="${plotWidth}" height="${plotHeight}" data-chart-hit-area/>
+        </g>`;
+      geometry = { start, end, x, y, width, pad };
+      if (selectedStamp == null) {
+        resetInspector();
+      } else {
+        inspect(selectedStamp, pinned);
+      }
+      rangeStatus.textContent = `Showing ${yearNumber(fromYear)}–${yearNumber(toYear)}`;
+      fromInput.value = fromYear;
+      toInput.value = toYear;
+      const fullRange = fromYear === config.firstYear && toYear === config.lastYear;
+      earlierButton.disabled = fromYear <= config.firstYear;
+      laterButton.disabled = toYear >= config.lastYear;
+      zoomInButton.disabled = fromYear === toYear;
+      zoomOutButton.disabled = fullRange;
+      allButton.disabled = fullRange;
+    };
+
+    const setRange = (nextFrom, nextTo) => {
+      fromYear = Math.max(config.firstYear, Math.min(config.lastYear, Math.round(nextFrom)));
+      toYear = Math.max(fromYear, Math.min(config.lastYear, Math.round(nextTo)));
+      error.textContent = "";
+      resetInspector();
+      draw();
+    };
+
+    const applyYears = () => {
+      const nextFrom = Number(fromInput.value);
+      const nextTo = Number(toInput.value);
+      if (!Number.isInteger(nextFrom) || !Number.isInteger(nextTo)) {
+        error.textContent = "Enter complete four-digit years.";
+        return;
+      }
+      if (nextFrom < config.firstYear || nextFrom > config.lastYear || nextTo < config.firstYear || nextTo > config.lastYear) {
+        error.textContent = `Choose years from ${yearNumber(config.firstYear)} to ${yearNumber(config.lastYear)}.`;
+        return;
+      }
+      if (nextFrom > nextTo) {
+        error.textContent = "From year cannot be after To year.";
+        return;
+      }
+      setRange(nextFrom, nextTo);
+    };
+
+    const zoom = (direction) => {
+      const totalYears = config.lastYear - config.firstYear + 1;
+      const visibleYears = toYear - fromYear + 1;
+      const targetYears = direction < 0
+        ? Math.max(1, Math.ceil(visibleYears / 2))
+        : Math.min(totalYears, visibleYears * 2);
+      const centre = (fromYear + toYear) / 2;
+      let nextFrom = Math.round(centre - (targetYears - 1) / 2);
+      let nextTo = nextFrom + targetYears - 1;
+      if (nextFrom < config.firstYear) {
+        nextFrom = config.firstYear;
+        nextTo = nextFrom + targetYears - 1;
+      }
+      if (nextTo > config.lastYear) {
+        nextTo = config.lastYear;
+        nextFrom = nextTo - targetYears + 1;
+      }
+      setRange(nextFrom, nextTo);
+    };
+
+    const move = (direction) => {
+      const span = toYear - fromYear;
+      const distance = Math.max(1, Math.round((span + 1) / 2));
+      let nextFrom = fromYear + direction * distance;
+      let nextTo = toYear + direction * distance;
+      if (nextFrom < config.firstYear) {
+        nextFrom = config.firstYear;
+        nextTo = nextFrom + span;
+      }
+      if (nextTo > config.lastYear) {
+        nextTo = config.lastYear;
+        nextFrom = nextTo - span;
+      }
+      setRange(nextFrom, nextTo);
+    };
+
+    const stampFromClientX = (clientX) => {
+      const bounds = svg.getBoundingClientRect();
+      const viewX = (clientX - bounds.left) / Math.max(1, bounds.width) * geometry.width;
+      const clampedX = Math.max(geometry.pad.left, Math.min(geometry.width - geometry.pad.right, viewX));
+      return geometry.start + (clampedX - geometry.pad.left) / (geometry.width - geometry.pad.left - geometry.pad.right) * (geometry.end - geometry.start);
+    };
+
+    shell.querySelector("[data-chart-year-form]").addEventListener("submit", (event) => {
+      event.preventDefault();
+      applyYears();
+    });
+    earlierButton.addEventListener("click", () => move(-1));
+    laterButton.addEventListener("click", () => move(1));
+    zoomInButton.addEventListener("click", () => zoom(-1));
+    zoomOutButton.addEventListener("click", () => zoom(1));
+    allButton.addEventListener("click", () => setRange(config.firstYear, config.lastYear));
+    clearButton.addEventListener("click", resetInspector);
+    svg.addEventListener("pointermove", (event) => {
+      if ((!event.pointerType || event.pointerType === "mouse") && !pinned) inspect(stampFromClientX(event.clientX), false);
+    });
+    svg.addEventListener("pointerleave", () => {
+      if (!pinned) resetInspector();
+    });
+    svg.addEventListener("click", (event) => {
+      if (event.detail === 0) return;
+      inspect(stampFromClientX(event.clientX), true);
+    });
+    svg.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End", "Escape"].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === "Escape") {
+        resetInspector();
+        return;
+      }
+      const { start, end } = rangeStamps();
+      const stamps = [...new Set([
+        start,
+        ...config.series.flatMap((item) => item.history
+          .filter((point) => point.stamp >= start && point.stamp <= end)
+          .map((point) => point.stamp)),
+        end,
+      ])].sort((first, second) => first - second);
+      let index = selectedStamp == null
+        ? (event.key === "ArrowLeft" || event.key === "End" ? stamps.length - 1 : 0)
+        : stamps.reduce((best, stamp, candidate) => (
+          Math.abs(stamp - selectedStamp) < Math.abs(stamps[best] - selectedStamp) ? candidate : best
+        ), 0);
+      if (event.key === "Home") index = 0;
+      if (event.key === "End") index = stamps.length - 1;
+      if (event.key === "ArrowLeft" && selectedStamp != null) index = Math.max(0, index - 1);
+      if (event.key === "ArrowRight" && selectedStamp != null) index = Math.min(stamps.length - 1, index + 1);
+      inspect(stamps[index], true);
+    });
+
+    draw();
+    let resizeObserver = null;
+    let resizeHandler = null;
+    if (typeof ResizeObserver === "function") {
+      resizeObserver = new ResizeObserver((entries) => {
+        const nextWidth = Math.round(entries[0]?.contentRect.width || 0);
+        if (nextWidth && Math.abs(nextWidth - lastDrawnWidth) > 2) draw();
+      });
+      resizeObserver.observe(svg);
+    } else {
+      resizeHandler = () => draw();
+      window.addEventListener("resize", resizeHandler);
+    }
+    const dispose = () => {
+      resizeObserver?.disconnect();
+      if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+      activeRatingHistoryChartDisposers.delete(dispose);
+    };
+    activeRatingHistoryChartDisposers.add(dispose);
+  }
+
+  function initialiseRatingHistoryCharts(root) {
+    root.querySelectorAll("[data-rating-history-chart]").forEach(initialiseRatingHistoryChart);
+  }
+
+  function disposeRatingHistoryCharts() {
+    [...activeRatingHistoryChartDisposers].forEach((dispose) => dispose());
+  }
+
+  function comparisonChart(first, second) {
+    return interactiveRatingChart([
+      { label: first.team.nation, history: first.history },
+      { label: second.team.nation, history: second.history },
+    ], {
+      className: "comparison-chart",
+      ariaLabel: `Rating histories for ${first.team.nation} and ${second.team.nation}`,
+    });
   }
 
   async function renderCompare(route) {
@@ -2452,6 +2838,7 @@ function renderRecords(route) {
       </div>`;
     const output = document.getElementById("comparison-output");
     const draw = async () => {
+      disposeRatingHistoryCharts();
       codeA = document.getElementById("compare-a").value;
       codeB = document.getElementById("compare-b").value;
       if (codeA === codeB) {
@@ -2482,6 +2869,7 @@ function renderRecords(route) {
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${number(meetings.length)} recorded meetings</p><h2>Head to head</h2></div><strong>${escapeHTML(a.nation)}: ${head.W} wins · ${head.D} draws · ${head.L} losses · goals ${head.gf}–${head.ga}</strong></div>
           ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td>${validDate(match.date)}</td><td>${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td>${venueHTML(match.site)}</td><td>${formHTML([match.result])}</td><td>${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No recorded meetings.</div>`}
         </section>`;
+      initialiseRatingHistoryCharts(output);
     };
     document.getElementById("compare-a").addEventListener("change", draw);
     document.getElementById("compare-b").addEventListener("change", draw);
@@ -2918,41 +3306,14 @@ function renderRecords(route) {
 
   function ratingChart(history, nation) {
     if (!history || history.length < 2) return `<div class="empty">A rating line begins after 30 matches.</div>`;
-    const width = 1000;
-    const height = 330;
-    const pad = { left: 58, right: 18, top: 20, bottom: 36 };
-    const time = (date) => {
-      const [y, m, d] = date.split("-").map(Number);
-      return y + Math.max(0, m - 1) / 12 + Math.max(0, d - 1) / 365;
-    };
-    const xs = history.map((point) => time(point.date));
-    const ys = history.map((point) => point.rating);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const rawMin = Math.min(...ys);
-    const rawMax = Math.max(...ys);
-    const minY = Math.floor((rawMin - 20) / 50) * 50;
-    const maxY = Math.ceil((rawMax + 20) / 50) * 50;
-    const x = (value) => pad.left + (value - minX) / Math.max(1, maxX - minX) * (width - pad.left - pad.right);
-    const y = (value) => height - pad.bottom - (value - minY) / Math.max(1, maxY - minY) * (height - pad.top - pad.bottom);
-    const coordinates = history.map((point, index) => `${x(xs[index]).toFixed(2)},${y(point.rating).toFixed(2)}`);
-    const line = coordinates.join(" ");
-    const area = `${x(minX)},${height - pad.bottom} ${line} ${x(maxX)},${height - pad.bottom}`;
-    const yTicks = Array.from({ length: 5 }, (_, index) => minY + (maxY - minY) * index / 4);
-    const xTicks = Array.from({ length: 5 }, (_, index) => minX + (maxX - minX) * index / 4);
     const last = history[history.length - 1];
     const peak = history.reduce((best, point) => point.rating > best.rating ? point : best, history[0]);
-    return `<div class="chart-shell">
-      <svg class="rating-chart" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="chart-title chart-desc" preserveAspectRatio="none">
-        <title id="chart-title">${escapeHTML(nation)} rating history</title><desc id="chart-desc">Rating after each match from ${validDate(history[0].date)} to ${validDate(last.date)}. Peak ${rating(peak.rating)} on ${validDate(peak.date)}.</desc>
-        <defs><linearGradient id="rating-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--coral)"/><stop offset="1" stop-color="var(--coral)" stop-opacity="0"/></linearGradient></defs>
-        ${yTicks.map((tick) => `<line class="grid" x1="${pad.left}" y1="${y(tick)}" x2="${width - pad.right}" y2="${y(tick)}"/><text x="${pad.left - 10}" y="${y(tick) + 4}" text-anchor="end">${rating(tick)}</text>`).join("")}
-        ${xTicks.map((tick) => `<text x="${x(tick)}" y="${height - 10}" text-anchor="middle">${Math.round(tick)}</text>`).join("")}
-        <polygon class="area" points="${area}"/><polyline class="line" points="${line}"/>
-        <circle cx="${x(xs[xs.length - 1])}" cy="${y(last.rating)}" r="5" fill="var(--coral)"><title>${validDate(last.date)} · ${rating(last.rating)}</title></circle>
-      </svg>
-      <div class="chart-summary"><span>First eligible: ${validDate(history[0].date)} · ${rating(history[0].rating)}</span><span>Peak: ${validDate(peak.date)} · ${rating(peak.rating)}</span><span>Latest appearance: ${validDate(last.date)} · ${rating(last.rating)}</span></div>
-    </div>`;
+    return interactiveRatingChart([
+      { label: nation, history },
+    ], {
+      ariaLabel: `${nation} rating history`,
+      summary: `<div class="chart-summary"><span>First eligible: ${validDate(history[0].date)} · ${rating(history[0].rating)}</span><span>Peak: ${validDate(peak.date)} · ${rating(peak.rating)}</span><span>Latest appearance: ${validDate(last.date)} · ${rating(last.rating)}</span></div>`,
+    });
   }
 
   async function renderTeam(code, query = new URLSearchParams()) {
@@ -3003,6 +3364,7 @@ const lineageNote = lineageNames.length > 1
         <nav class="context-actions team-context-actions" aria-label="Team tools"><a class="button button-quiet" href="#/compare?a=${encodeURIComponent(team.code)}">Compare this team</a><a class="button button-quiet" href="#/predict?a=${encodeURIComponent(team.code)}">Predict a matchup</a><a class="button button-quiet" href="#/rankings">Current rankings</a></nav><section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, displayName)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${cutoff ? "Matches through selected date" : "Complete match history"}</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="team-more" class="button">Show more</button><button id="team-all" class="button button-quiet">Show all</button></div></div></section>
       </div>`;
+    initialiseRatingHistoryCharts(content);
     let shown = 100;
     const update = () => {
       const matches = availableMatches.slice(0, shown);
@@ -3334,6 +3696,7 @@ function renderFAQ() {
   }
 
   async function route() {
+    disposeRatingHistoryCharts();
     const current = parseRoute();
     setActiveNav(current.section);
     try {

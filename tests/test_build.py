@@ -435,6 +435,104 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('.max = to || summary.meta.results_through;', javascript)
         self.assertIn('.min = from || "1872-01-01";', javascript)
 
+    def test_team_and_comparison_rating_charts_are_interactive(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "function interactiveRatingChart",
+            "function initialiseRatingHistoryChart",
+            "function comparisonChart",
+            "function ratingChart",
+            "chartPointAtOrBefore",
+            "data-chart-from",
+            "data-chart-to",
+            "data-chart-earlier",
+            "data-chart-later",
+            "data-chart-zoom-in",
+            "data-chart-zoom-out",
+            "data-chart-all",
+            "data-chart-inspector-values",
+            'svg.addEventListener("pointermove"',
+            'svg.addEventListener("click"',
+            '"ArrowLeft", "ArrowRight", "Home", "End", "Escape"',
+            "new ResizeObserver",
+            'preserveAspectRatio="xMidYMid meet"',
+            "initialiseRatingHistoryCharts(output)",
+            "initialiseRatingHistoryCharts(content)",
+        ):
+            self.assertIn(phrase, javascript)
+        self.assertNotIn('preserveAspectRatio="none"', javascript)
+        for phrase in (
+            "--chart-a:",
+            "--chart-b:",
+            "--chart-cursor:",
+            "--chart-marker-fill:",
+            ".chart-controls",
+            ".chart-navigation",
+            ".chart-inspector",
+            ".rating-history-line.chart-series-a",
+            ".rating-history-line.chart-series-b",
+            ".chart-marker.chart-series-a",
+            ".chart-marker.chart-series-b",
+            "stroke-dasharray: 8 5",
+            "touch-action: pan-y",
+            "@media (prefers-color-scheme: dark)",
+            "@media (max-width: 720px)",
+        ):
+            self.assertIn(phrase, stylesheet)
+        light_css, dark_css = stylesheet.split(
+            "@media (prefers-color-scheme: dark)",
+            maxsplit=1,
+        )
+        dark_css = dark_css.split("\n}\n\n* {", maxsplit=1)[0]
+
+        def variables(block: str) -> dict[str, str]:
+            values = {}
+            for line in block.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("--") and ":" in stripped:
+                    name, value = stripped.rstrip(";").split(":", maxsplit=1)
+                    values[name] = value.strip()
+            return values
+
+        def luminance(colour: str) -> float:
+            channels = [
+                int(colour[index:index + 2], 16) / 255
+                for index in (1, 3, 5)
+            ]
+            linear = [
+                value / 12.92
+                if value <= 0.04045
+                else ((value + 0.055) / 1.055) ** 2.4
+                for value in channels
+            ]
+            return (
+                0.2126 * linear[0]
+                + 0.7152 * linear[1]
+                + 0.0722 * linear[2]
+            )
+
+        def contrast(first: str, second: str) -> float:
+            brighter, darker = sorted(
+                (luminance(first), luminance(second)),
+                reverse=True,
+            )
+            return (brighter + 0.05) / (darker + 0.05)
+
+        for palette in (variables(light_css), variables(dark_css)):
+            for line_colour in ("--chart-a", "--chart-b"):
+                self.assertGreaterEqual(
+                    contrast(
+                        palette[line_colour],
+                        palette["--surface-subtle"],
+                    ),
+                    4.5,
+                )
+
     def test_historical_predictor_score_grid_and_rating_effects(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         stylesheet = (ROOT / "public" / "assets" / "styles.css").read_text(encoding="utf-8")
