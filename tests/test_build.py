@@ -469,16 +469,26 @@ class StaticBuildTests(unittest.TestCase):
         for phrase in (
             "--chart-a:",
             "--chart-b:",
+            "--chart-c:",
+            "--chart-d:",
+            "--chart-e:",
+            "--chart-f:",
+            "--chart-g:",
+            "--chart-h:",
+            "--chart-i:",
+            "--chart-j:",
             "--chart-cursor:",
             "--chart-marker-fill:",
             ".chart-controls",
             ".chart-navigation",
             ".chart-inspector",
-            ".rating-history-line.chart-series-a",
-            ".rating-history-line.chart-series-b",
-            ".chart-marker.chart-series-a",
-            ".chart-marker.chart-series-b",
-            "stroke-dasharray: 8 5",
+            ".chart-series-a",
+            ".chart-series-j",
+            ".rating-history-line",
+            ".chart-marker",
+            "stroke-dasharray: var(--series-dash)",
+            ".rating-history-line.is-focused",
+            ".rating-history-line.is-dimmed",
             "touch-action: pan-y",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
@@ -524,7 +534,18 @@ class StaticBuildTests(unittest.TestCase):
             return (brighter + 0.05) / (darker + 0.05)
 
         for palette in (variables(light_css), variables(dark_css)):
-            for line_colour in ("--chart-a", "--chart-b"):
+            for line_colour in (
+                "--chart-a",
+                "--chart-b",
+                "--chart-c",
+                "--chart-d",
+                "--chart-e",
+                "--chart-f",
+                "--chart-g",
+                "--chart-h",
+                "--chart-i",
+                "--chart-j",
+            ):
                 self.assertGreaterEqual(
                     contrast(
                         palette[line_colour],
@@ -532,6 +553,79 @@ class StaticBuildTests(unittest.TestCase):
                     ),
                     4.5,
                 )
+
+    def test_multi_team_comparison_includes_historical_teams(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        comparison_data = self.data / "comparison"
+        expected_codes = {team["code"] for team in self.summary["teams"]}
+        actual_codes = {path.stem for path in comparison_data.glob("*.json")}
+        self.assertEqual(actual_codes, expected_codes)
+
+        east_germany = json.loads(
+            (comparison_data / "DD.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(set(east_germany), {"code", "history"})
+        self.assertEqual(east_germany["code"], "DD")
+        self.assertTrue(east_germany["history"])
+        self.assertLess(east_germany["history"][-1]["date"], "1991-01-01")
+        self.assertTrue(
+            all(
+                set(point) == {"date", "rating", "historical_name"}
+                for point in east_germany["history"]
+            )
+        )
+
+        germany = json.loads(
+            (comparison_data / "DE.json").read_text(encoding="utf-8")
+        )
+        self.assertTrue(
+            any(
+                point["date"].startswith("1985")
+                and point["historical_name"] == "West Germany"
+                for point in germany["history"]
+            )
+        )
+        historical_names_1985 = {
+            point["historical_name"]
+            for path in comparison_data.glob("*.json")
+            for point in json.loads(path.read_text(encoding="utf-8"))["history"]
+            if point["date"].startswith("1985")
+        }
+        self.assertIn("Czechoslovakia", historical_names_1985)
+        self.assertLess(
+            (comparison_data / "ES.json").stat().st_size,
+            (self.data / "teams" / "ES.json").stat().st_size,
+        )
+
+        for phrase in (
+            "const MAX_COMPARISON_TEAMS = 10",
+            "const allTeams = summary.teams",
+            'route.query.get("teams")',
+            'route.query.get("pair")',
+            "data/comparison/",
+            'id="comparison-add-toggle"',
+            'id="comparison-new-team"',
+            'id="comparison-pair-picker"',
+            "Historical or currently unranked",
+            "No longer active",
+            "point.historical_name || item.label",
+            "const chartSeriesClass",
+        ):
+            self.assertIn(phrase, javascript)
+        for phrase in (
+            ".comparison-team-list",
+            ".comparison-add-panel",
+            ".comparison-summary-table",
+            ".comparison-pair-picker",
+            ".chart-legend-item",
+            ".chart-series-j",
+        ):
+            self.assertIn(phrase, stylesheet)
 
     def test_historical_predictor_score_grid_and_rating_effects(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
@@ -1255,8 +1349,8 @@ class StaticBuildTests(unittest.TestCase):
             "search_names:",
             "Final snapshot:",
             "Pre-tournament snapshot:",
-            "Current-team comparison",
-            "const preferredA = currentA",
+            "Current and historical teams",
+            "const allTeams = summary.teams",
             'class="context-actions team-context-actions"',
             "summary.validation.nested.matches",
         ):

@@ -233,7 +233,7 @@ const filteredEmptyState = (subject) => (
       matches: "Search international football results and pre-match forecasts from 1872 onward.",
       fixtures: "Upcoming senior internationals with current ratings and match probabilities.",
       records: "Team peaks, number-one records, highest-rated matches, largest upsets and tournament rating gains.",
-      compare: "Compare two national teams' ratings, movement, histories and head-to-head results.",
+      compare: "Compare up to ten current or historical national teams, then inspect any selected head-to-head pairing.",
       predict: "Predict historical or current matchups with W/D/L, exact-score and rating-impact tables.",
       methodology: "Detailed, reproducible methodology for the Network Football Elo model.",
       faq: "Clear answers about Network Football Elo ratings, forecasts, tournaments, records, data and methodology.",
@@ -2432,11 +2432,13 @@ function renderRecords(route) {
     const multiple = normalised <= 1 ? 1 : normalised <= 2 ? 2 : normalised <= 5 ? 5 : 10;
     return multiple * magnitude;
   };
+  const chartSeriesClass = (index) => `chart-series-${"abcdefghij"[index] || "a"}`;
 
   function interactiveRatingChart(series, options = {}) {
     const prepared = series.map((item, index) => ({
       label: publicTeamName(item.label),
-      className: index === 0 ? "chart-series-a" : "chart-series-b",
+      className: chartSeriesClass(index),
+      active: item.active !== false,
       history: (item.history || [])
         .map((point) => ({
           ...point,
@@ -2451,16 +2453,24 @@ function renderRecords(route) {
       return `<div class="empty">A rating line begins after a team has 30 matches.</div>`;
     }
     const firstYear = Math.min(...histories.map((history) => Number(history[0].date.slice(0, 4))));
-    const lastYear = Math.max(...histories.map((history) => Number(history.at(-1).date.slice(0, 4))));
+    const latestStamp = Math.max(
+      ...histories.map((history) => history.at(-1).stamp),
+      chartDateStamp(options.latestDate) || Number.NEGATIVE_INFINITY,
+    );
+    const lastYear = Math.max(
+      ...histories.map((history) => Number(history.at(-1).date.slice(0, 4))),
+      new Date(latestStamp).getUTCFullYear(),
+    );
     const id = `rating-history-chart-${++ratingHistoryChartSequence}`;
     ratingHistoryChartRegistry.set(id, {
       series: prepared,
       firstYear,
       lastYear,
+      latestStamp,
       ariaLabel: options.ariaLabel || "Rating history",
     });
     const legend = prepared.length > 1
-      ? `<div class="comparison-legend">${prepared.map((item) => `<span><i class="${item.className}"></i>${escapeHTML(item.label)}</span>`).join("")}</div>`
+      ? `<div class="comparison-legend" aria-label="Chart teams">${prepared.map((item, index) => `<button type="button" class="chart-legend-item" data-chart-focus-series="${index}" aria-pressed="false"><svg viewBox="0 0 28 8" aria-hidden="true"><line class="chart-legend-line ${item.className}" x1="1" y1="4" x2="27" y2="4"/></svg><span>${escapeHTML(item.label)}</span>${item.active ? "" : `<small>historical</small>`}</button>`).join("")}<button type="button" class="button button-quiet chart-show-all" data-chart-show-all hidden>Show all teams</button></div>`
       : "";
     return `<div class="chart-shell interactive-chart ${escapeHTML(options.className || "")}" id="${id}" data-rating-history-chart>
       ${legend}
@@ -2516,16 +2526,21 @@ function renderRecords(route) {
     const zoomInButton = shell.querySelector("[data-chart-zoom-in]");
     const zoomOutButton = shell.querySelector("[data-chart-zoom-out]");
     const allButton = shell.querySelector("[data-chart-all]");
+    const legendButtons = [...shell.querySelectorAll("[data-chart-focus-series]")];
+    const showAllTeamsButton = shell.querySelector("[data-chart-show-all]");
     let fromYear = config.firstYear;
     let toYear = config.lastYear;
     let geometry = null;
     let selectedStamp = null;
     let pinned = false;
+    let focusedSeries = null;
     let lastDrawnWidth = 0;
 
     const rangeStamps = () => ({
       start: Date.UTC(fromYear, 0, 1),
-      end: Date.UTC(toYear, 11, 31),
+      end: toYear === config.lastYear
+        ? config.latestStamp
+        : Date.UTC(toYear, 11, 31),
     });
 
     const resetInspector = () => {
@@ -2557,18 +2572,46 @@ function renderRecords(route) {
       inspectorNote.textContent = pinned
         ? "Selection fixed. Tap or click another position to move it."
         : "Rating at the end of this date.";
-      const values = config.series.map((item) => {
+      const inspected = config.series.map((item, index) => {
         const point = chartPointAtOrBefore(item.history, stamp);
+        const ended = Boolean(
+          point
+          && !item.active
+          && stamp > item.history.at(-1).stamp
+        );
+        return { item, index, point, ended };
+      }).sort((first, second) => (
+        Number(Boolean(second.point)) - Number(Boolean(first.point))
+        || (second.point?.rating ?? Number.NEGATIVE_INFINITY)
+          - (first.point?.rating ?? Number.NEGATIVE_INFINITY)
+        || first.index - second.index
+      ));
+      const values = inspected.map(({ item, point, ended }) => {
         if (!point) {
           return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Not yet eligible for a rating</small></span><strong>—</strong></span>`;
         }
-        return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Last changed ${validDate(point.date)}</small></span><strong>${rating(point.rating)}</strong></span>`;
+        const displayLabel = publicTeamName(point.historical_name || item.label);
+        const lineage = displayLabel === item.label
+          ? ""
+          : `${item.label} history · `;
+        const note = ended
+          ? `${lineage}No longer active · final change ${validDate(point.date)}`
+          : `${lineage}Last changed ${validDate(point.date)}`;
+        return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(displayLabel)}</b><small>${escapeHTML(note)}</small></span><strong>${rating(point.rating)}</strong></span>`;
       });
       inspectorValues.innerHTML = values.join("");
-      markers.innerHTML = config.series.map((item) => {
+      markers.innerHTML = config.series.map((item, index) => {
         const point = chartPointAtOrBefore(item.history, stamp);
-        return point
-          ? `<circle class="chart-marker ${item.className}" cx="${xPosition}" cy="${geometry.y(point.rating)}" r="5"/>`
+        const ended = Boolean(
+          point
+          && !item.active
+          && stamp > item.history.at(-1).stamp
+        );
+        const focusClass = focusedSeries == null
+          ? ""
+          : index === focusedSeries ? " is-focused" : " is-dimmed";
+        return point && !ended
+          ? `<circle class="chart-marker ${item.className}${focusClass}" cx="${xPosition}" cy="${geometry.y(point.rating)}" r="5"/>`
           : "";
       }).join("");
       clearButton.hidden = false;
@@ -2591,8 +2634,11 @@ function renderRecords(route) {
       const plotHeight = height - pad.top - pad.bottom;
       const x = (stamp) => pad.left + (stamp - start) / Math.max(chartDay, end - start) * plotWidth;
       const samples = config.series.flatMap((item) => {
+        const finalStamp = item.history.at(-1).stamp;
+        if (!item.active && finalStamp < start) return [];
+        const seriesEnd = item.active ? end : Math.min(end, finalStamp);
         const before = chartPointAtOrBefore(item.history, start);
-        const within = item.history.filter((point) => point.stamp > start && point.stamp <= end);
+        const within = item.history.filter((point) => point.stamp > start && point.stamp <= seriesEnd);
         return before ? [before, ...within] : within;
       });
       const ratings = samples.map((point) => point.rating);
@@ -2613,10 +2659,13 @@ function renderRecords(route) {
         : [...new Set(Array.from({ length: xTickCount }, (_, index) => (
           Math.round(fromYear + yearSpan * index / (xTickCount - 1))
         )))];
-      const stepPath = (history) => {
-        let current = chartPointAtOrBefore(history, start);
+      const stepPath = (item) => {
+        const finalStamp = item.history.at(-1).stamp;
+        const seriesEnd = item.active ? end : Math.min(end, finalStamp);
+        if (seriesEnd < start) return "";
+        let current = chartPointAtOrBefore(item.history, start);
         let path = current ? `M ${x(start).toFixed(2)} ${y(current.rating).toFixed(2)}` : "";
-        history.filter((point) => point.stamp > start && point.stamp <= end).forEach((point) => {
+        item.history.filter((point) => point.stamp > start && point.stamp <= seriesEnd).forEach((point) => {
           if (current) {
             path += ` H ${x(point.stamp).toFixed(2)} V ${y(point.rating).toFixed(2)}`;
           } else {
@@ -2624,7 +2673,7 @@ function renderRecords(route) {
           }
           current = point;
         });
-        if (current) path += ` H ${x(end).toFixed(2)}`;
+        if (current) path += ` H ${x(seriesEnd).toFixed(2)}`;
         return path;
       };
       const clipId = `${shell.id}-clip`;
@@ -2637,9 +2686,12 @@ function renderRecords(route) {
           ${yTicks.map((tick) => `<line class="grid" x1="${pad.left}" y1="${y(tick)}" x2="${width - pad.right}" y2="${y(tick)}"/><text x="${pad.left - 8}" y="${y(tick) + 4}" text-anchor="end">${rating(tick)}</text>`).join("")}
           ${xTicks.map((year) => `<text x="${x(Date.UTC(year, 6, 2))}" y="${height - 10}" text-anchor="middle">${yearNumber(year)}</text>`).join("")}
           <g clip-path="url(#${clipId})">
-            ${config.series.map((item) => {
-              const path = stepPath(item.history);
-              return path ? `<path class="rating-history-line ${item.className}" d="${path}"/>` : "";
+            ${config.series.map((item, index) => {
+              const path = stepPath(item);
+              const focusClass = focusedSeries == null
+                ? ""
+                : index === focusedSeries ? " is-focused" : " is-dimmed";
+              return path ? `<path class="rating-history-line ${item.className}${focusClass}" d="${path}"/>` : "";
             }).join("")}
             <line class="chart-crosshair" data-chart-crosshair x1="0" y1="${pad.top}" x2="0" y2="${height - pad.bottom}" hidden/>
             <g data-chart-markers></g>
@@ -2652,7 +2704,9 @@ function renderRecords(route) {
       } else {
         inspect(selectedStamp, pinned);
       }
-      rangeStatus.textContent = `Showing ${yearNumber(fromYear)}–${yearNumber(toYear)}`;
+      rangeStatus.textContent = focusedSeries == null
+        ? `Showing ${yearNumber(fromYear)}–${yearNumber(toYear)}`
+        : `Showing ${yearNumber(fromYear)}–${yearNumber(toYear)} · highlighting ${config.series[focusedSeries].label}`;
       fromInput.value = fromYear;
       toInput.value = toYear;
       const fullRange = fromYear === config.firstYear && toYear === config.lastYear;
@@ -2741,6 +2795,23 @@ function renderRecords(route) {
     zoomInButton.addEventListener("click", () => zoom(-1));
     zoomOutButton.addEventListener("click", () => zoom(1));
     allButton.addEventListener("click", () => setRange(config.firstYear, config.lastYear));
+    const focusOnSeries = (index) => {
+      focusedSeries = focusedSeries === index ? null : index;
+      legendButtons.forEach((button, buttonIndex) => {
+        button.setAttribute("aria-pressed", String(buttonIndex === focusedSeries));
+      });
+      if (showAllTeamsButton) showAllTeamsButton.hidden = focusedSeries == null;
+      draw();
+    };
+    legendButtons.forEach((button, index) => {
+      button.addEventListener("click", () => focusOnSeries(index));
+    });
+    showAllTeamsButton?.addEventListener("click", () => {
+      focusedSeries = null;
+      legendButtons.forEach((button) => button.setAttribute("aria-pressed", "false"));
+      showAllTeamsButton.hidden = true;
+      draw();
+    });
     clearButton.addEventListener("click", resetInspector);
     svg.addEventListener("pointermove", (event) => {
       if ((!event.pointerType || event.pointerType === "mouse") && !pinned) inspect(stampFromClientX(event.clientX), false);
@@ -2808,51 +2879,226 @@ function renderRecords(route) {
     [...activeRatingHistoryChartDisposers].forEach((dispose) => dispose());
   }
 
-  function comparisonChart(first, second) {
-    return interactiveRatingChart([
-      { label: first.team.nation, history: first.history },
-      { label: second.team.nation, history: second.history },
-    ], {
+  const MAX_COMPARISON_TEAMS = 10;
+
+  function comparisonChart(pages, teams) {
+    return interactiveRatingChart(teams.map((team, index) => ({
+      label: team.nation,
+      history: pages[index].history,
+      active: Boolean(team.rank),
+    })), {
       className: "comparison-chart",
-      ariaLabel: `Rating histories for ${first.team.nation} and ${second.team.nation}`,
+      latestDate: teams.some((team) => team.rank)
+        ? summary.meta.results_through
+        : "",
+      ariaLabel: `Rating histories for ${teams.map((team) => team.nation).join(", ")}`,
     });
   }
 
   async function renderCompare(route) {
     setTitle("Compare teams");
-    const teams = summary.current;
-    const validCodes = new Set(teams.map((team) => team.code));
-    let codeA = validCodes.has(route.query.get("a")) ? route.query.get("a") : teams[0].code;
-    let codeB = validCodes.has(route.query.get("b")) && route.query.get("b") !== codeA ? route.query.get("b") : teams.find((team) => team.code !== codeA).code;
-    if (codeA === codeB) codeB = teams.find((team) => team.code !== codeA).code;
-    const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
+    const allTeams = summary.teams;
+    const currentTeams = summary.current;
+    const teamByCode = new Map(allTeams.map((team) => [team.code, team]));
+    const validCodes = new Set(teamByCode.keys());
+    const uniqueValidCodes = (values) => [...new Set(values)]
+      .filter((code) => validCodes.has(code))
+      .slice(0, MAX_COMPARISON_TEAMS);
+    const requestedTeams = uniqueValidCodes(
+      (route.query.get("teams") || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    );
+    if (!requestedTeams.length) {
+      requestedTeams.push(...uniqueValidCodes([
+        route.query.get("a"),
+        route.query.get("b"),
+      ].filter(Boolean)));
+    }
+    currentTeams.forEach((team) => {
+      if (requestedTeams.length < 2 && !requestedTeams.includes(team.code)) {
+        requestedTeams.push(team.code);
+      }
+    });
+    let selectedCodes = requestedTeams.slice(0, MAX_COMPARISON_TEAMS);
+    let pairCodes = uniqueValidCodes(
+      (route.query.get("pair") || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ).filter((code) => selectedCodes.includes(code)).slice(0, 2);
+    let addingTeam = false;
+    let drawVersion = 0;
+    let pairVersion = 0;
+    let comparisonPages = new Map();
+    const resultsYear = Number(summary.meta.results_through.slice(0, 4));
+
+    const ensurePair = () => {
+      pairCodes = [...new Set([
+        ...pairCodes.filter((code) => selectedCodes.includes(code)),
+        ...selectedCodes,
+      ])].slice(0, 2);
+    };
+    ensurePair();
+
+    const comparisonStatus = (team) => {
+      if (team.rank) return `Current world no. ${number(team.rank)}`;
+      return resultsYear - Number(team.last_year) > 4
+        ? `Historical · last active ${yearNumber(team.last_year)}`
+        : `Currently unranked · last active ${yearNumber(team.last_year)}`;
+    };
+    const comparisonRatingLabel = (team) => {
+      if (team.rank) return "Current rating";
+      return resultsYear - Number(team.last_year) > 4
+        ? "Final rating"
+        : "Latest rating";
+    };
+    const optionGroups = (selectedCode = "", placeholder = false) => {
+      const blocked = new Set(selectedCodes.filter((code) => code !== selectedCode));
+      const option = (team) => {
+        const context = team.rank
+          ? `No. ${number(team.rank)} · ${rating(team.rating)}`
+          : `last active ${yearNumber(team.last_year)} · ${rating(team.rating)}`;
+        return `<option value="${escapeHTML(team.code)}" ${team.code === selectedCode ? "selected" : ""} ${blocked.has(team.code) ? "disabled" : ""}>${escapeHTML(team.nation)} · ${context}</option>`;
+      };
+      return `${placeholder ? `<option value="" selected>Choose a team…</option>` : ""}
+        <optgroup label="Currently ranked">${currentTeams.map(option).join("")}</optgroup>
+        <optgroup label="Historical or currently unranked">${allTeams.filter((team) => !team.rank).map(option).join("")}</optgroup>`;
+    };
+    const writeURL = () => {
+      replaceRouteQuery("compare", {
+        teams: selectedCodes.join(","),
+        pair: pairCodes.join(","),
+      });
+    };
+
     content.innerHTML = `
       <div class="page comparison-page">
-        <header class="page-heading"><div><p class="eyebrow">Current-team comparison</p><h1>Compare teams</h1></div><p class="lede">Compare currently eligible teams by rating, twelve-month movement, all-time peak, rating history and head-to-head results.</p></header>
-        <div class="comparison-picker">
-          <div class="team-picker"><label for="compare-a">First team</label><select id="compare-a">${options(codeA)}</select></div>
-          <button class="button button-quiet comparison-swap" id="compare-swap" type="button" aria-label="Swap teams">⇄ Swap</button>
-          <div class="team-picker"><label for="compare-b">Second team</label><select id="compare-b">${options(codeB)}</select></div>
-        </div>
+        <header class="page-heading"><div><p class="eyebrow">Current and historical teams</p><h1>Compare teams</h1></div><p class="lede">Compare between two and ten national teams across their complete rating histories, then inspect any selected pair’s head-to-head record.</p></header>
+        <section class="comparison-selection" aria-labelledby="comparison-selection-title">
+          <div class="section-heading compact-heading"><div><p class="eyebrow">2–10 teams</p><h2 id="comparison-selection-title">Teams in this comparison</h2></div><span class="muted small" id="comparison-team-count"></span></div>
+          <div id="comparison-picker"></div>
+        </section>
         <div id="comparison-output"></div>
       </div>`;
+    const picker = document.getElementById("comparison-picker");
     const output = document.getElementById("comparison-output");
-    const draw = async () => {
-      disposeRatingHistoryCharts();
-      codeA = document.getElementById("compare-a").value;
-      codeB = document.getElementById("compare-b").value;
-      if (codeA === codeB) {
-        output.innerHTML = `<div class="error-panel"><h2>Choose two different teams</h2></div>`;
-        return;
-      }
-      replaceRouteQuery("compare", { a: codeA, b: codeB });
-      output.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading both team histories…</p></div>`;
-      const [first, second] = await Promise.all([
-        getJSON(`data/teams/${encodeURIComponent(codeA)}.json`),
-        getJSON(`data/teams/${encodeURIComponent(codeB)}.json`),
-      ]);
-      const a = first.team;
-      const b = second.team;
+
+    const renderPicker = () => {
+      document.getElementById("comparison-team-count").textContent = `${number(selectedCodes.length)} of ${MAX_COMPARISON_TEAMS} selected`;
+      picker.innerHTML = `
+        <div class="comparison-team-list">
+          ${selectedCodes.map((code, index) => {
+            const team = teamByCode.get(code);
+            return `<div class="comparison-team-row">
+              <i class="comparison-series-swatch ${chartSeriesClass(index)}" aria-hidden="true"></i>
+              <label><span>Team ${index + 1}</span><select data-comparison-team="${index}" aria-label="Team ${index + 1}">${optionGroups(code)}</select></label>
+              ${selectedCodes.length > 2 ? `<button class="button button-quiet comparison-remove" type="button" data-comparison-remove="${index}" aria-label="Remove ${escapeHTML(team.nation)}">Remove</button>` : ""}
+            </div>`;
+          }).join("")}
+        </div>
+        <div class="comparison-add-area">
+          <button class="button button-quiet" id="comparison-add-toggle" type="button" ${selectedCodes.length >= MAX_COMPARISON_TEAMS ? "disabled" : ""}>＋ Add another team <span>${selectedCodes.length}/${MAX_COMPARISON_TEAMS}</span></button>
+          ${addingTeam && selectedCodes.length < MAX_COMPARISON_TEAMS ? `<div class="comparison-add-panel">
+            <label for="comparison-new-team"><span>Current or historical team</span><select id="comparison-new-team">${optionGroups("", true)}</select></label>
+            <button class="button button-dark" id="comparison-add-confirm" type="button" disabled>Add selected team</button>
+            <button class="button button-quiet" id="comparison-add-cancel" type="button">Cancel</button>
+          </div>` : ""}
+        </div>`;
+      picker.querySelectorAll("[data-comparison-team]").forEach((select) => {
+        select.addEventListener("change", () => {
+          const index = Number(select.dataset.comparisonTeam);
+          const previous = selectedCodes[index];
+          const replacement = select.value;
+          if (!validCodes.has(replacement) || selectedCodes.some((code, candidate) => code === replacement && candidate !== index)) return;
+          selectedCodes[index] = replacement;
+          pairCodes = pairCodes.map((code) => code === previous ? replacement : code);
+          ensurePair();
+          addingTeam = false;
+          renderPicker();
+          void refreshComparison();
+        });
+      });
+      picker.querySelectorAll("[data-comparison-remove]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (selectedCodes.length <= 2) return;
+          const [removed] = selectedCodes.splice(Number(button.dataset.comparisonRemove), 1);
+          pairCodes = pairCodes.filter((code) => code !== removed);
+          ensurePair();
+          addingTeam = false;
+          renderPicker();
+          void refreshComparison();
+        });
+      });
+      document.getElementById("comparison-add-toggle")?.addEventListener("click", () => {
+        addingTeam = true;
+        renderPicker();
+        document.getElementById("comparison-new-team")?.focus();
+      });
+      const newTeam = document.getElementById("comparison-new-team");
+      const confirm = document.getElementById("comparison-add-confirm");
+      newTeam?.addEventListener("change", () => {
+        confirm.disabled = !validCodes.has(newTeam.value) || selectedCodes.includes(newTeam.value);
+      });
+      confirm?.addEventListener("click", () => {
+        if (!validCodes.has(newTeam.value) || selectedCodes.includes(newTeam.value) || selectedCodes.length >= MAX_COMPARISON_TEAMS) return;
+        selectedCodes.push(newTeam.value);
+        addingTeam = false;
+        renderPicker();
+        void refreshComparison();
+      });
+      document.getElementById("comparison-add-cancel")?.addEventListener("click", () => {
+        addingTeam = false;
+        renderPicker();
+      });
+    };
+
+    const pairOptions = (selected, blocked) => selectedCodes.map((code) => {
+      const team = teamByCode.get(code);
+      return `<option value="${escapeHTML(code)}" ${code === selected ? "selected" : ""} ${code === blocked ? "disabled" : ""}>${escapeHTML(team.nation)}</option>`;
+    }).join("");
+
+    const renderPairControls = () => {
+      const pairPicker = document.getElementById("comparison-pair-picker");
+      if (!pairPicker) return;
+      pairPicker.innerHTML = `
+        <div class="team-picker"><label for="comparison-pair-a">First team</label><select id="comparison-pair-a">${pairOptions(pairCodes[0], pairCodes[1])}</select></div>
+        <button class="button button-quiet comparison-swap" id="comparison-pair-swap" type="button" aria-label="Swap head-to-head perspective">⇄ Swap</button>
+        <div class="team-picker"><label for="comparison-pair-b">Second team</label><select id="comparison-pair-b">${pairOptions(pairCodes[1], pairCodes[0])}</select></div>`;
+      document.getElementById("comparison-pair-a").addEventListener("change", (event) => {
+        pairCodes[0] = event.target.value;
+        ensurePair();
+        writeURL();
+        renderPairControls();
+        void renderHeadToHead();
+      });
+      document.getElementById("comparison-pair-b").addEventListener("change", (event) => {
+        pairCodes[1] = event.target.value;
+        ensurePair();
+        writeURL();
+        renderPairControls();
+        void renderHeadToHead();
+      });
+      document.getElementById("comparison-pair-swap").addEventListener("click", () => {
+        [pairCodes[0], pairCodes[1]] = [pairCodes[1], pairCodes[0]];
+        writeURL();
+        renderPairControls();
+        void renderHeadToHead();
+      });
+    };
+
+    const renderHeadToHead = async () => {
+      const version = ++pairVersion;
+      const headOutput = document.getElementById("comparison-head-to-head");
+      if (!headOutput) return;
+      const codeA = pairCodes[0];
+      const codeB = pairCodes[1];
+      const a = teamByCode.get(codeA);
+      const b = teamByCode.get(codeB);
+      headOutput.innerHTML = `<div class="loading-shell compact-loading" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ${escapeHTML(a.nation)} and ${escapeHTML(b.nation)}…</p></div>`;
+      const first = await getJSON(`data/teams/${encodeURIComponent(codeA)}.json`);
+      if (version !== pairVersion || !document.getElementById("comparison-head-to-head")) return;
       const meetings = first.matches.filter((match) => match.opponent_code === codeB);
       const head = meetings.reduce((row, match) => {
         row[match.result] += 1;
@@ -2860,26 +3106,78 @@ function renderRecords(route) {
         row.ga += match.ga;
         return row;
       }, { W: 0, D: 0, L: 0, gf: 0, ga: 0 });
+      const bothCurrent = Boolean(a.rank && b.rank);
+      const commonDate = [codeA, codeB]
+        .map((code) => comparisonPages.get(code)?.history.at(-1)?.date)
+        .filter(Boolean)
+        .sort()[0] || summary.meta.results_through;
+      const predictionLink = bothCurrent
+        ? `#/predict?a=${encodeURIComponent(codeA)}&b=${encodeURIComponent(codeB)}`
+        : predictURL({
+          date: commonDate,
+          first: codeA,
+          second: codeB,
+          venue: 0,
+          matchClass: "competitive",
+        });
+      headOutput.innerHTML = `
+        <div class="comparison-head-summary">
+          <strong>${escapeHTML(a.nation)}: ${head.W} wins · ${head.D} draws · ${head.L} losses · goals ${head.gf}–${head.ga}</strong>
+          <a class="button button-dark" href="${predictionLink}">${bothCurrent ? "Open current prediction" : `Open historical prediction at ${validDate(commonDate)}`} →</a>
+        </div>
+        ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td data-label="Date">${validDate(match.date)}</td><td data-label="Match">${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td data-label="Venue">${venueHTML(match.site)}</td><td data-label="Result">${formHTML([match.result])}</td><td data-label="Competition">${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty"><h3>No recorded meetings</h3><p>${escapeHTML(a.nation)} and ${escapeHTML(b.nation)} have not met in the results database.</p></div>`}`;
+    };
+
+    const drawComparison = async () => {
+      const version = ++drawVersion;
+      pairVersion += 1;
+      disposeRatingHistoryCharts();
+      ensurePair();
+      writeURL();
+      output.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading ${number(selectedCodes.length)} rating histories…</p></div>`;
+      const codes = [...selectedCodes];
+      const pages = await Promise.all(codes.map((code) => (
+        getJSON(`data/comparison/${encodeURIComponent(code)}.json`)
+      )));
+      if (version !== drawVersion) return;
+      comparisonPages = new Map(pages.map((page) => [page.code, page]));
+      const teams = codes.map((code) => teamByCode.get(code));
       output.innerHTML = `
-        <section class="comparison-cards">
-          ${[a, b].map((team) => `<article><p class="eyebrow">${teamLink(team.code, team.nation)}</p><strong>${rating(team.rating)}</strong><dl><div><dt>World rank</dt><dd>${team.rank ? `No. ${number(team.rank)}` : "—"}</dd></div><div><dt>12-month movement</dt><dd>${movementHTML(team)}</dd></div><div><dt>All-time peak</dt><dd>${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</dd></div><div><dt>Overall record</dt><dd>${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</dd></div></dl></article>`).join("")}
+        <section class="section comparison-summary-section">
+          <div class="section-heading"><div><p class="eyebrow">${number(teams.length)} selected teams</p><h2>Comparison summary</h2></div></div>
+          <div class="table-shell comparison-summary-table"><table><thead><tr><th>Team</th><th>Status</th><th class="numeric">Rating</th><th>12-month movement</th><th>All-time peak</th><th>Overall record</th></tr></thead><tbody>
+            ${teams.map((team, index) => `<tr>
+              <td data-label="Team"><span class="comparison-team-name"><i class="comparison-series-swatch ${chartSeriesClass(index)}" aria-hidden="true"></i>${teamLink(team.code, team.nation)}</span></td>
+              <td data-label="Status">${comparisonStatus(team)}</td>
+              <td class="numeric" data-label="${comparisonRatingLabel(team)}"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">${comparisonRatingLabel(team)}</span></td>
+              <td data-label="12-month movement">${team.rank ? movementHTML(team) : "—"}</td>
+              <td data-label="All-time peak">${team.peak ? `${rating(team.peak.rating)}<span class="rating-sub">${validDate(team.peak.date)}</span>` : "—"}</td>
+              <td data-label="Overall record">${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</td>
+            </tr>`).join("")}
+          </tbody></table></div>
         </section>
-        <div class="comparison-actions"><a class="button button-dark" href="#/predict?a=${encodeURIComponent(codeA)}&b=${encodeURIComponent(codeB)}">Open probabilities, score grid and rating effects →</a></div>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">After every eligible match</p><h2>Rating histories</h2></div></div>${comparisonChart(first, second)}</section>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">${number(meetings.length)} recorded meetings</p><h2>Head to head</h2></div><strong>${escapeHTML(a.nation)}: ${head.W} wins · ${head.D} draws · ${head.L} losses · goals ${head.gf}–${head.ga}</strong></div>
-          ${meetings.length ? `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell comparison-meetings"><table><thead><tr><th>Date</th><th>Match</th><th>H/A/N</th><th>Result</th><th>Competition</th></tr></thead><tbody>${meetings.map((match) => `<tr><td>${validDate(match.date)}</td><td>${escapeHTML(match.team_name)} <span class="score">${match.gf}–${match.ga}</span> ${teamLink(match.opponent_code, match.opponent, match.date)}</td><td>${venueHTML(match.site)}</td><td>${formHTML([match.result])}</td><td>${escapeHTML(match.tournament)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No recorded meetings.</div>`}
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">After every eligible match</p><h2>Rating histories</h2></div><p class="muted small">Select a team in the legend to highlight its line.</p></div>${comparisonChart(pages, teams)}</section>
+        <section class="section comparison-head-section">
+          <div class="section-heading"><div><p class="eyebrow">Choose any two selected teams</p><h2>Head to head</h2></div></div>
+          <div class="comparison-pair-picker" id="comparison-pair-picker"></div>
+          <div id="comparison-head-to-head"></div>
         </section>`;
       initialiseRatingHistoryCharts(output);
+      renderPairControls();
+      await renderHeadToHead();
     };
-    document.getElementById("compare-a").addEventListener("change", draw);
-    document.getElementById("compare-b").addEventListener("change", draw);
-    document.getElementById("compare-swap").addEventListener("click", () => {
-      const first = document.getElementById("compare-a");
-      const second = document.getElementById("compare-b");
-      [first.value, second.value] = [second.value, first.value];
-      draw();
-    });
-    await draw();
+    const refreshComparison = async () => {
+      try {
+        await drawComparison();
+      } catch (error) {
+        console.error(error);
+        output.innerHTML = `<div class="error-panel" role="alert"><h2>The comparison could not be loaded.</h2><p>${escapeHTML(error.message)}</p><button class="button button-dark" type="button" id="comparison-retry">Retry</button></div>`;
+        document.getElementById("comparison-retry")?.addEventListener("click", () => { void refreshComparison(); });
+      }
+    };
+
+    renderPicker();
+    await refreshComparison();
   }
 
   const modelValueForYear = (year, values) => {
