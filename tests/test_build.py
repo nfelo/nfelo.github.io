@@ -262,6 +262,9 @@ class StaticBuildTests(unittest.TestCase):
                 / "friendly-ratio-full-sample.json"
             ).read_text(encoding="utf-8")
         )
+
+        # Frozen methodology choices remain exact. Live source corrections
+        # must never silently change the published rating model.
         self.assertEqual(
             summary["meta"]["methodology_version"],
             "2026-07-23-evidence-backed-friendly-0.78621",
@@ -278,9 +281,23 @@ class StaticBuildTests(unittest.TestCase):
                 "competitive": "1.061356232973",
             },
         )
+
         replay = summary["validation"]["retrospective"]
         expected = research["deployed_python_replay_cross_check"]
         self.assertEqual(replay["matches"], expected["matches"])
+
+        # These are aggregate diagnostics derived from a live historical
+        # source. Tiny upstream corrections and platform floating-point
+        # differences are acceptable; a material model change is not.
+        metric_tolerances = {
+            "log_loss": 0.000005,
+            "network_only_log_loss": 0.000005,
+            "brier": 0.000005,
+            "rps": 0.000005,
+            # Accuracy moves in whole-match increments. Permit at most
+            # two changed classifications in the 46,801-match audit.
+            "accuracy": 2.5 / replay["matches"],
+        }
         for actual_key, expected_key in (
             ("log_loss", "final_layer_log_loss"),
             ("network_only_log_loss", "network_only_log_loss"),
@@ -291,41 +308,72 @@ class StaticBuildTests(unittest.TestCase):
             self.assertAlmostEqual(
                 replay[actual_key],
                 expected[expected_key],
-                places=12,
+                delta=metric_tolerances[actual_key],
             )
-        calibration = (
-            summary["parameters"]
-            ["forecast_layer"]["calibration"]
-        )
-        expected_calibration = expected["calibration_2026"]
-        for key in (
-            "training_first_year",
-            "training_last_year",
-            "training_matches",
-        ):
-            self.assertEqual(
-                calibration[key],
-                expected_calibration[key],
-            )
-        for key in (
-            "draw_log_tilt",
-            "friendly_temperature",
-            "competitive_temperature",
-        ):
-            self.assertAlmostEqual(
-                calibration[key],
-                expected_calibration[key],
-                places=12,
-            )
-        # The bounded optimiser can settle a few final floating-point
-        # increments apart across CPU/libm builds on this very flat minimum.
-        # Forecast metrics above remain exact at published precision.
-        self.assertAlmostEqual(
-            calibration["nfelo_weight"],
-            expected_calibration["nfelo_weight"],
-            delta=0.000002,
+
+        # The fitted score layer must continue to improve log loss over
+        # the public-rating-only probabilities on the audit replay.
+        self.assertLess(
+            replay["log_loss"],
+            replay["network_only_log_loss"],
         )
 
+        forecast_layer = summary["parameters"]["forecast_layer"]
+        calibration = forecast_layer["calibration"]
+        calibration_year = int(calibration["year"])
+        window_years = int(
+            forecast_layer["calibration_window_years"]
+        )
+
+        # This is the causal rolling-recalibration contract. A calibration
+        # for year Y may use completed results through Y-1, never year Y.
+        # When the calendar advances, the newest completed year therefore
+        # enters the fit automatically and the oldest year drops out.
+        self.assertEqual(
+            calibration["training_last_year"],
+            calibration_year - 1,
+        )
+        self.assertEqual(
+            calibration["training_first_year"],
+            calibration_year - window_years,
+        )
+        self.assertGreaterEqual(
+            calibration["training_matches"],
+            500,
+        )
+        self.assertGreaterEqual(
+            calibration_year,
+            int(summary["meta"]["results_through"][:4]),
+        )
+
+        parameter_bounds = {
+            "draw_log_tilt": (-0.35, 0.35),
+            "friendly_temperature": (0.75, 1.30),
+            "competitive_temperature": (0.75, 1.30),
+            "nfelo_weight": (0.0, 1.0),
+        }
+        for key, (lower, upper) in parameter_bounds.items():
+            value = float(calibration[key])
+            self.assertTrue(math.isfinite(value))
+            self.assertGreaterEqual(value, lower)
+            self.assertLessEqual(value, upper)
+
+        # While 2026 remains the active calibration, keep a tight guard
+        # around its audited coefficients. From 2027 onward the rolling
+        # fit is intentionally allowed to move as newer results enter.
+        if calibration_year == 2026:
+            expected_calibration = expected["calibration_2026"]
+            for key in (
+                "draw_log_tilt",
+                "friendly_temperature",
+                "competitive_temperature",
+                "nfelo_weight",
+            ):
+                self.assertAlmostEqual(
+                    calibration[key],
+                    expected_calibration[key],
+                    delta=0.00005,
+                )
     def test_faq_page_is_complete_and_discoverable(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
