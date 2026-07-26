@@ -93,7 +93,14 @@ class StaticBuildTests(unittest.TestCase):
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-26-inactivity-as-of-drift",
+            "2026-07-26-global-as-of-consistency",
+        )
+        self.assertGreaterEqual(
+            meta["rankings_as_of"],
+            meta["results_through"],
+        )
+        self.assertTrue(
+            math.isfinite(self.state["margin_environment"])
         )
         self.assertAlmostEqual(
             self.summary["parameters"]["network"]["friendly_information_ratio"],
@@ -154,7 +161,102 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('if (perspective === match.b)', javascript)
         self.assertIn('matchTable(hydrated, document.getElementById("match-team").value)', javascript)
         self.assertIn('aria-label="Ranking date calendar"', javascript)
-        self.assertIn('document.getElementById("history-next").disabled = chosen >= index.last;', javascript)
+        self.assertIn(
+            "chosen >= (index.last_matchday || index.last)",
+            javascript,
+        )
+
+    def test_global_as_of_release_closes_all_audited_consistency_gaps(self) -> None:
+        history_index = json.loads(
+            (
+                self.data
+                / "rankings-history"
+                / "index.json"
+            ).read_text(encoding="utf-8")
+        )
+        latest = json.loads(
+            (
+                self.data
+                / "rankings-history"
+                / f'{history_index["last"][:4]}.json'
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            history_index["last"],
+            self.summary["meta"]["rankings_as_of"],
+        )
+        self.assertEqual(
+            history_index["last_matchday"],
+            self.summary["meta"]["results_through"],
+        )
+        self.assertEqual(
+            len(history_index["codes"]),
+            self.summary["meta"]["teams"],
+        )
+        self.assertTrue(latest["global_snapshots"])
+        self.assertEqual(
+            latest["global_snapshots"][-1][0],
+            history_index["last"],
+        )
+
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        builder = (
+            ROOT / "scripts" / "build_site.py"
+        ).read_text(encoding="utf-8")
+        methodology = javascript
+        for phrase in (
+            "historicalRankingFromPayload",
+            "global_snapshots",
+            "currentState.margin_environment",
+            "The selected-date ratings and latent means are exact global snapshots.",
+            "Historical rows also omit archived pairwise covariance.",
+            "summary.meta.rankings_as_of",
+            "Uncertainty drift or eligibility change",
+            "&date=${encodeURIComponent(cutoff)}",
+            "Why does NFELO include territories and some teams outside FIFA?",
+            "Nᵢ = (Σⱼwᵢⱼ)² / Σⱼwᵢⱼ²",
+            "G(0) = ${number(p.goal_margin.draw, 10)}",
+        ):
+            self.assertIn(phrase, methodology)
+        self.assertNotIn(
+            "const environment = useCurrent ? 1.1",
+            javascript,
+        )
+        for phrase in (
+            "combined_mean =",
+            "combined_se =",
+            "2.0 * float(covariance[i * count + j])",
+            "def build_number_one_chronology",
+        ):
+            self.assertIn(phrase, builder)
+        reunion = next(
+            team
+            for team in self.summary["teams"]
+            if team["code"] == "RE"
+        )
+        self.assertEqual(reunion["nation"], "Réunion")
+
+        fixtures = json.loads(
+            (self.data / "fixtures.json").read_text(
+                encoding="utf-8"
+            )
+        )["fixtures"]
+        self.assertTrue(fixtures)
+        self.assertTrue(all(
+            "combined_mean" in fixture
+            and "combined_se" in fixture
+            for fixture in fixtures
+        ))
+        self.assertTrue(any(
+            abs(
+                float(fixture["combined_rating"])
+                - float(fixture["rating1"])
+                - float(fixture["rating2"])
+            ) > 0.01
+            for fixture in fixtures
+        ))
 
     def test_public_readme_avoids_internal_setup_language(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
@@ -278,7 +380,7 @@ class StaticBuildTests(unittest.TestCase):
         # must never silently change the published rating model.
         self.assertEqual(
             summary["meta"]["methodology_version"],
-            "2026-07-26-inactivity-as-of-drift",
+            "2026-07-26-global-as-of-consistency",
         )
         self.assertEqual(
             summary["parameters"]["network"]
@@ -391,7 +493,7 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 29)
+        self.assertEqual(javascript.count('question: "'), 30)
         self.assertNotIn(
             "What do the Tournaments and Best tournaments pages show?",
             javascript,
@@ -491,7 +593,10 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("From date cannot be after To date.", javascript)
         self.assertIn("To date cannot be before From date.", javascript)
         self.assertIn("from > to", javascript)
-        self.assertIn('.max = to || summary.meta.results_through;', javascript)
+        self.assertIn(
+            "summary.meta.rankings_as_of",
+            javascript,
+        )
         self.assertIn('.min = from || "1872-01-01";', javascript)
 
     def test_team_and_comparison_rating_charts_are_interactive(self) -> None:
@@ -912,7 +1017,7 @@ class StaticBuildTests(unittest.TestCase):
 
         current = self.summary["current"]
         self.assertTrue(all(
-            team["rating_date"] == self.summary["meta"]["results_through"]
+            team["rating_date"] == self.summary["meta"]["rankings_as_of"]
             for team in current
         ))
         self.assertTrue(all(
@@ -928,8 +1033,9 @@ class StaticBuildTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         for phrase in (
             "const projectTeamRating = (team, asOfDate)",
-            ".map((team) => projectTeamRating(team, chosen))",
-            "summary.current.map((team) => projectTeamRating(team, dateValue))",
+            "historicalRankingFromPayload",
+            "payload.global_snapshots",
+            "currentRankingForDate(currentState, dateValue)",
         ):
             self.assertIn(phrase, javascript)
         self.assertIn("first_variance = projected_variance(", builder)
@@ -1739,7 +1845,7 @@ class StaticBuildTests(unittest.TestCase):
             "def model_verification_fingerprint",
             "def normalise_historical_public_names",
             "def attach_lineage_names",
-            'output.summary["number_one_summary"].sort(',
+            "def build_number_one_chronology",
             "Public label normalisation changed model verification data.",
         ):
             self.assertIn(marker, builder)

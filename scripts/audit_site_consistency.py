@@ -28,7 +28,15 @@ def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def close(first: Any, second: Any, tolerance: float = 1e-6) -> bool:
+CONFIDENCE_Z = 1.6448536269514715
+
+
+def model_day(value: str) -> int:
+    year, month, day = (int(part) for part in value.split("-"))
+    return year * 400 + month * 32 + day
+
+
+def close(first: Any, second: Any, tolerance: float = 1e-4) -> bool:
     if first is None or second is None:
         return first is second
     return math.isclose(
@@ -64,12 +72,58 @@ def historical_snapshot(
     for event in payload.get("events", []):
         if event["date"] <= chosen:
             state[event["code"]] = dict(event)
+    snapshot = payload.get("global_opening")
+    for candidate in payload.get("global_snapshots", []):
+        if candidate[0] <= chosen:
+            snapshot = candidate
+    assert snapshot is not None, (
+        chosen,
+        "missing global ranking snapshot",
+    )
+    codes = index["codes"]
     chosen_year = int(chosen[:4])
-    ranked = [
-        team
-        for team in state.values()
-        if chosen_year - int(team["date"][:4]) <= 4
-    ]
+    drift = float(index["drift_sd"])
+    ranked = []
+    for team_index, latent_mean, marginal_variance in snapshot[2]:
+        code = codes[int(team_index)]
+        event = state.get(code)
+        if (
+            event is None
+            or chosen_year - int(event["date"][:4]) > 4
+        ):
+            continue
+        elapsed = max(
+            0.0,
+            (
+                model_day(chosen)
+                - model_day(event["date"])
+            )
+            / 400.0,
+        )
+        variance = (
+            float(marginal_variance)
+            + drift**2 * elapsed
+        )
+        standard_error = math.sqrt(max(0.0, variance))
+        public_mean = (
+            2000.0
+            + float(event["reliability"])
+            * (
+                float(latent_mean)
+                - float(snapshot[1])
+            )
+        )
+        ranked.append({
+            **event,
+            "rating": (
+                public_mean
+                - CONFIDENCE_Z * standard_error
+            ),
+            "mean": public_mean,
+            "se": standard_error,
+            "latent": 1500.0 + float(latent_mean),
+            "rating_date": chosen,
+        })
     ranked.sort(
         key=lambda team: (
             -float(team["rating"]),
@@ -103,6 +157,7 @@ def main() -> None:
         / "index.json"
     )
     fixtures = load_json(public / "data" / "fixtures.json")
+    state = load_json(public / "data" / "state.json")
 
     all_teams = summary["teams"]
     team_codes = [team["code"] for team in all_teams]
@@ -114,7 +169,7 @@ def main() -> None:
     assert current_codes <= set(by_code)
 
     history_cache: dict[str, dict[str, Any]] = {}
-    latest_date = summary["meta"]["results_through"]
+    latest_date = summary["meta"]["rankings_as_of"]
     latest = historical_snapshot(
         public,
         history_index,
@@ -129,12 +184,9 @@ def main() -> None:
         for team in summary["current"]
     }
 
-    # Current Rankings and the latest History view use the same
-    # eligibility rule, so membership must agree. Their displayed
-    # rating values are intentionally not compared: History stores
-    # each matchday's contemporary reference context, while Current
-    # Rankings recomputes the final state in the current reference
-    # context.
+    # Current Rankings and the latest History view are two routes into
+    # the same global as-of state. Membership, order and public values
+    # must all agree at public-data precision.
     assert set(latest_by_code) == set(current_by_code), {
         "history_only": sorted(
             set(latest_by_code) - set(current_by_code)
@@ -179,9 +231,42 @@ def main() -> None:
             ),
         )
     ], "Latest History is not sorted by rating and historical name."
+    assert [
+        team["code"] for team in latest
+    ] == [
+        team["code"] for team in summary["current"]
+    ], "Current Rankings and latest History disagree on rank order."
+    for code, historical in latest_by_code.items():
+        current = current_by_code[code]
+        for key in ("rating", "mean", "se", "latent"):
+            assert close(
+                historical[key],
+                current[key],
+            ), (code, "current-history", key)
 
-    # Every latest History row must be the same stored matchday
-    # point exposed on that team's dynamic page.
+    # Every recorded No. 1 spell must agree with the top row of the same
+    # date's History table, including changes caused by drift or eligibility.
+    for spell in summary.get("number_ones", []):
+        ranking = historical_snapshot(
+            public,
+            history_index,
+            spell["from"],
+            history_cache,
+        )
+        assert ranking, spell
+        assert ranking[0]["code"] == spell["code"], (
+            spell["from"],
+            spell["code"],
+            ranking[0]["code"],
+        )
+        assert close(
+            ranking[0]["rating"],
+            spell["rating"],
+        ), (spell["from"], spell["code"], "entry rating")
+
+    # Team pages intentionally chart own-match points. Their latest metadata
+    # still supplies the selected-date name, form, breadth and match count,
+    # while global strength values can move through connected third teams.
     latest_team_pages: dict[str, dict[str, Any]] = {}
     for code, historical in latest_by_code.items():
         page_path = (
@@ -210,11 +295,13 @@ def main() -> None:
             "matches",
             "form",
         ):
-            if key in ("rating", "mean", "se", "latent", "reliability"):
+            if key == "reliability":
                 assert close(
                     historical.get(key),
                     point.get(key),
                 ), (code, "history", key)
+            elif key in ("rating", "mean", "se", "latent"):
+                continue
             else:
                 assert historical.get(key) == point.get(key), (
                     code,
@@ -326,16 +413,96 @@ def main() -> None:
             assert all(row[key] in by_code for key in code_keys)
             assert row["date"] <= latest_date
 
+    state_index = {
+        code: position
+        for position, code in enumerate(state["codes"])
+    }
+    count = len(state["codes"])
     for fixture in fixtures.get("fixtures", []):
         first = by_code[fixture["team1_code"]]
         second = by_code[fixture["team2_code"]]
         assert fixture["team1_name"] == first["nation"]
         assert fixture["team2_name"] == second["nation"]
-        assert close(fixture["rating1"], first["rating"])
-        assert close(fixture["rating2"], second["rating"])
+        i = state_index[fixture["team1_code"]]
+        j = state_index[fixture["team2_code"]]
+        fixture_day = model_day(fixture["date"])
+        fixture_year = int(fixture["date"][:4])
+        reference_indices = [
+            state_index[code]
+            for code, team in by_code.items()
+            if (
+                int(team["matches"]) >= 30
+                and fixture_year - int(team["last_year"]) <= 8
+            )
+        ]
+        elite_indices = sorted(
+            reference_indices,
+            key=lambda position: float(state["means"][position]),
+            reverse=True,
+        )[:10]
+        baseline = sum(
+            float(state["means"][position])
+            for position in elite_indices
+        ) / len(elite_indices)
+        first_mean = (
+            2000.0
+            + float(first["reliability"])
+            * (float(state["means"][i]) - baseline)
+        )
+        second_mean = (
+            2000.0
+            + float(second["reliability"])
+            * (float(state["means"][j]) - baseline)
+        )
+        first_variance = (
+            float(state["covariance"][i * count + i])
+            + float(summary["parameters"]["network"]["drift_sd"]) ** 2
+            * max(
+                0.0,
+                (
+                    fixture_day
+                    - int(state["last_day"][i])
+                )
+                / 400.0,
+            )
+        )
+        second_variance = (
+            float(state["covariance"][j * count + j])
+            + float(summary["parameters"]["network"]["drift_sd"]) ** 2
+            * max(
+                0.0,
+                (
+                    fixture_day
+                    - int(state["last_day"][j])
+                )
+                / 400.0,
+            )
+        )
+        expected_first = (
+            first_mean
+            - CONFIDENCE_Z * math.sqrt(first_variance)
+        )
+        expected_second = (
+            second_mean
+            - CONFIDENCE_Z * math.sqrt(second_variance)
+        )
+        assert close(fixture["rating1"], expected_first)
+        assert close(fixture["rating2"], expected_second)
+        pair_variance = max(
+            0.0,
+            first_variance
+            + second_variance
+            + 2.0
+            * float(state["covariance"][i * count + j]),
+        )
+        expected_combined = (
+            first_mean
+            + second_mean
+            - CONFIDENCE_Z * math.sqrt(pair_variance)
+        )
         assert close(
             fixture["combined_rating"],
-            float(first["rating"]) + float(second["rating"]),
+            expected_combined,
         )
 
     catalog_codes = {
@@ -401,7 +568,7 @@ def main() -> None:
     for marker in (
         "summary.current",
         "summary.best_tournaments",
-        "year - Number(team.date.slice(0, 4)) <= 4",
+        "historicalRankingFromPayload",
         "loadHistoricalSnapshot",
         'getJSON("data/tournaments/index.json")',
         'getJSON("data/fixtures.json")',

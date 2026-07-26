@@ -204,6 +204,13 @@ The marginal uncertainty deliberately preserves common-mode network
 uncertainty. No manual era penalty, British-team cap or result override is
 used.
 
+Historical rankings are reconstructed from compact global end-of-day network
+snapshots, not by carrying each team’s own last-match point forward. This is
+necessary because a full-covariance update can move a connected non-participant.
+The release audit requires Current Rankings and the latest History table to
+have the same membership, order and public values, and checks every No. 1 spell
+against the top History row on its entry date.
+
 ### Historical regression result
 
 Against the rollback baseline on the same 52,310-match source snapshot:
@@ -215,8 +222,8 @@ Against the rollback baseline on the same 52,310-match source snapshot:
 - mean absolute peak movement was 0.373 points; and
 - maximum peak movement was 3.872 points.
 
-The leading peaks remained Spain 2010, Brazil 1999, England 1912, Hungary 1955
-and France 2001. Only one pre-First World War British nation appeared in the
+The leading peaks remained Brazil 1999, Spain 2010, England 1912, Hungary 1955
+and Germany 2014. Only one pre-First World War British nation appeared in the
 top 20. Persistent tests check both the public-rating formula and these
 historical guardrails.
 

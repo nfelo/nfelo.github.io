@@ -407,8 +407,8 @@ class PublicCopyTests(unittest.TestCase):
         normalized = " ".join(javascript.split())
         self.assertIn(
             (
-                "beforeDate ? event.date < dateValue "
-                ": event.date <= dateValue"
+                "beforeDate ? value < chosen "
+                ": value <= chosen"
             ),
             normalized,
         )

@@ -267,12 +267,26 @@ def joint_gaussian_update(
 
 
 @dataclass(slots=True)
+class RankingSnapshot:
+    """Compact global state needed to reconstruct one public ranking date."""
+
+    date: str
+    day: int
+    year: int
+    baseline: float
+    indices: np.ndarray
+    means: np.ndarray
+    variances: np.ndarray
+
+
+@dataclass(slots=True)
 class ReplayOutput:
     summary: dict[str, Any]
     state: dict[str, Any]
     matches: list[dict[str, Any]]
     team_pages: dict[str, dict[str, Any]]
     prediction_contexts: list[dict[str, Any]]
+    ranking_snapshots: list[RankingSnapshot]
 
 
 class NetworkEloReplay:
@@ -288,6 +302,7 @@ class NetworkEloReplay:
         self.team_names = read_dictionary(source / "en.teams.tsv", skip_locations=True)
         # WFER retains the obsolete label “Eastern Samoa”; use the current team name.
         self.team_names["AS"] = "American Samoa"
+        self.team_names["RE"] = "Réunion"
         self.tournament_names = read_dictionary(source / "en.tournaments.tsv")
         supplemental_tournaments = source / "supplemental_tournaments.json"
         if supplemental_tournaments.exists():
@@ -338,6 +353,7 @@ class NetworkEloReplay:
         self.high_matches: list[dict[str, Any]] = []
         self.match_rows: list[dict[str, Any]] = []
         self.prediction_contexts: list[dict[str, Any]] = []
+        self.ranking_snapshots: list[RankingSnapshot] = []
         self.margin_window: deque[tuple[int, float]] = deque()
         self.margin_excess_sum = 0.0
         self.validation_totals = {
@@ -524,6 +540,57 @@ class NetworkEloReplay:
             "combined": combined,
         }
 
+    def capture_ranking_snapshot(
+        self,
+        date_text: str,
+        day: int,
+        year: int,
+    ) -> None:
+        """Store the global marginal state behind a public as-of ranking.
+
+        A full-covariance update can move teams that did not play on the date,
+        so a collection of per-team last-match points is not a global ranking.
+        The compact snapshot keeps only the baseline, posterior mean and
+        marginal variance required by the public-rating formula. Historical
+        pairwise covariance remains deliberately outside the static archive.
+        """
+        reference = self.reference_context(year)
+        if reference is None:
+            return
+        indices = np.asarray(
+            [
+                index
+                for index in range(self.count)
+                if (
+                    self.games[index] >= MINIMUM_RECORD_MATCHES
+                    and year - int(self.last_year[index]) <= 4
+                )
+            ],
+            dtype=np.int16,
+        )
+        snapshot = RankingSnapshot(
+            date=date_text,
+            day=day,
+            year=year,
+            baseline=float(reference[0]),
+            indices=indices,
+            means=self.mean[indices].astype(np.float64, copy=True),
+            variances=self.covariance[indices, indices].astype(
+                np.float64,
+                copy=True,
+            ),
+        )
+        # Incomplete source dates can occur more than once. The public view of
+        # that imprecise date is the final sequential state, not an arbitrary
+        # earlier row with the same displayed date.
+        if (
+            self.ranking_snapshots
+            and self.ranking_snapshots[-1].date == date_text
+        ):
+            self.ranking_snapshots[-1] = snapshot
+        else:
+            self.ranking_snapshots.append(snapshot)
+
     def update_stats(self, i: int, j: int, match: Match) -> None:
         for index, gf, ga in ((i, match.score1, match.score2), (j, match.score2, match.score1)):
             stats = self.stats[index]
@@ -569,6 +636,7 @@ class NetworkEloReplay:
 
     def replay(self) -> ReplayOutput:
         start = 0
+        previous_calendar_year: int | None = None
         while start < len(self.matches):
             first_match = self.matches[start]
             complete_date = first_match.month > 0 and first_match.day_of_month > 0
@@ -583,6 +651,14 @@ class NetworkEloReplay:
                     end += 1
             day_matches = self.matches[start:end]
             year = first_match.year
+            if previous_calendar_year is not None and year > previous_calendar_year:
+                for boundary_year in range(previous_calendar_year + 1, year + 1):
+                    boundary_date = f"{boundary_year:04d}-01-01"
+                    self.capture_ranking_snapshot(
+                        boundary_date,
+                        model_day(boundary_date),
+                        boundary_year,
+                    )
             while self.margin_window and self.margin_window[0][0] < year - 20:
                 _, excess = self.margin_window.popleft()
                 self.margin_excess_sum -= excess
@@ -841,6 +917,12 @@ class NetworkEloReplay:
                 "context": self.forecast_layer.historical_context(),
                 "margin_environment": post_margin_environment,
             })
+            self.capture_ranking_snapshot(
+                first_match.date_text,
+                first_match.day,
+                year,
+            )
+            previous_calendar_year = year
             start = end
 
         self.covariance[:] = 0.5 * (self.covariance + self.covariance.T)
@@ -848,9 +930,11 @@ class NetworkEloReplay:
 
     def finish(self) -> ReplayOutput:
         last_match = self.matches[-1]
-        current_year = last_match.year
-        current_day = last_match.day
-        self.forecast_layer.ensure_calibration_year(max(current_year, date.today().year))
+        today_text = date.today().isoformat()
+        public_date = max(last_match.date_text, today_text)
+        current_year = int(public_date[:4])
+        current_day = model_day(public_date)
+        self.forecast_layer.ensure_calibration_year(current_year)
         reference = self.reference_context(current_year)
         if reference is None:
             raise RuntimeError("No current elite reference pool")
@@ -869,8 +953,8 @@ class NetworkEloReplay:
             )
             stats = self.stats[index]
             latest_appearance = (
-                self.histories[index][-1]["date"]
-                if self.histories[index]
+                self.team_matches[index][-1]["date"]
+                if self.team_matches[index]
                 else last_match.date_text
             )
             item = {
@@ -892,7 +976,7 @@ class NetworkEloReplay:
                 "last_year": int(self.last_year[index]),
                 "last_match_date": latest_appearance,
                 "rating_date": (
-                    last_match.date_text if recent else latest_appearance
+                    public_date if recent else latest_appearance
                 ),
                 "peak": self.peaks.get(team),
             }
@@ -971,8 +1055,9 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-26-inactivity-as-of-drift",
+                "methodology_version": "2026-07-26-global-as-of-consistency",
                 "results_through": last_match.date_text,
+                "rankings_as_of": public_date,
                 "matches": len(self.matches),
                 "teams": self.count,
                 "minimum_record_matches": MINIMUM_RECORD_MATCHES,
@@ -1001,6 +1086,9 @@ class NetworkEloReplay:
                     "three": G_THREE,
                     "tail": G_TAIL,
                     "environment_power": MARGIN_ENVIRONMENT_POWER,
+                    "lookback_years": 20,
+                    "prior_decisive_matches": 20,
+                    "prior_excess_goals": 1.10,
                 },
                 "debut": {"offset": NEWCOMER_OFFSET, "pool_slope": ACTIVE_POOL_SLOPE},
                 "network": {
@@ -1061,17 +1149,21 @@ class NetworkEloReplay:
         }
         forecast_state = self.forecast_layer.export()
         state = {
-            "year": current_year,
+            "year": last_match.year,
             "baseline": baseline,
             "codes": self.teams,
             "means": self.mean.tolist(),
             "covariance": self.covariance.reshape(-1).tolist(),
             "last_day": self.last_day.tolist(),
-            "as_of_day": current_day,
+            "as_of_day": last_match.day,
             "as_of_date": last_match.date_text,
-            "scale": calibration_scale(current_year),
-            "home": home_advantage(current_year),
-            "draw": draw_probability(current_year),
+            "scale": calibration_scale(last_match.year),
+            "home": home_advantage(last_match.year),
+            "draw": draw_probability(last_match.year),
+            "margin_environment": (
+                (20.0 * 1.10 + self.margin_excess_sum)
+                / (20.0 + len(self.margin_window))
+            ),
             "friendly_temperature": FRIENDLY_TEMPERATURE,
             "competitive_temperature": COMPETITIVE_TEMPERATURE,
             "nodes": QUADRATURE_NODES.tolist(),
@@ -1083,8 +1175,18 @@ class NetworkEloReplay:
             raise RuntimeError("Non-finite posterior means")
         if float(np.min(np.diag(self.covariance))) < -1e-6:
             raise RuntimeError("Negative posterior variance")
+        self.capture_ranking_snapshot(
+            public_date,
+            current_day,
+            current_year,
+        )
         return ReplayOutput(
-            summary, state, self.match_rows, team_pages, self.prediction_contexts
+            summary,
+            state,
+            self.match_rows,
+            team_pages,
+            self.prediction_contexts,
+            self.ranking_snapshots,
         )
 
 

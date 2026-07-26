@@ -15,11 +15,11 @@ import unicodedata
 from typing import Any
 
 from model import (
+    CONFIDENCE_Z,
     calibration_scale,
     home_advantage,
     logistic10,
     model_day,
-    projected_public_record,
     projected_variance,
     run_replay,
     three_way_probabilities,
@@ -721,6 +721,60 @@ def build_fixtures(
         )
         first_team = current[first]
         second_team = current[second]
+        reference_indices = [
+            position
+            for position, code in enumerate(state["codes"])
+            if (
+                int(current[code]["matches"]) >= 30
+                and year - int(current[code]["last_year"]) <= 8
+            )
+        ]
+        elite_indices = sorted(
+            reference_indices,
+            key=lambda position: float(state["means"][position]),
+            reverse=True,
+        )[:10]
+        if len(elite_indices) < 2:
+            continue
+        fixture_baseline = sum(
+            float(state["means"][position])
+            for position in elite_indices
+        ) / len(elite_indices)
+        first_mean = (
+            2000.0
+            + float(first_team["reliability"])
+            * (
+                float(state["means"][i])
+                - fixture_baseline
+            )
+        )
+        second_mean = (
+            2000.0
+            + float(second_team["reliability"])
+            * (
+                float(state["means"][j])
+                - fixture_baseline
+            )
+        )
+        first_rating = (
+            first_mean
+            - CONFIDENCE_Z * first_variance**0.5
+        )
+        second_rating = (
+            second_mean
+            - CONFIDENCE_Z * second_variance**0.5
+        )
+        pair_variance = max(
+            0.0,
+            first_variance
+            + second_variance
+            + 2.0 * float(covariance[i * count + j]),
+        )
+        combined_mean = (
+            first_mean
+            + second_mean
+        )
+        combined_se = pair_variance**0.5
         fixtures.append(
             {
                 **fixture,
@@ -728,9 +782,14 @@ def build_fixtures(
                 "class": "friendly" if friendly else "competitive",
                 "team1_name": first_team["nation"],
                 "team2_name": second_team["nation"],
-                "rating1": first_team["rating"],
-                "rating2": second_team["rating"],
-                "combined_rating": first_team["rating"] + second_team["rating"],
+                "rating1": first_rating,
+                "rating2": second_rating,
+                "combined_mean": combined_mean,
+                "combined_se": combined_se,
+                "combined_rating": (
+                    combined_mean
+                    - CONFIDENCE_Z * combined_se
+                ),
                 "probabilities": probabilities.tolist(),
             }
         )
@@ -813,37 +872,106 @@ def update_prospective_ledger(
             handle.write("\n")
 
 
-def build_ranking_movements(output: Any) -> None:
-    """Attach calendar-year rating and rank movement to each current team."""
-    results_day = date.fromisoformat(output.summary["meta"]["results_through"])
-    try:
-        comparison_day = results_day.replace(year=results_day.year - 1)
-    except ValueError:
-        comparison_day = results_day.replace(
-            year=results_day.year - 1, month=2, day=28
-        )
-    try:
-        active_cutoff = comparison_day.replace(year=comparison_day.year - 4)
-    except ValueError:
-        active_cutoff = comparison_day.replace(
-            year=comparison_day.year - 4, month=2, day=28
-        )
+def global_public_ranking(
+    output: Any,
+    as_of_date: str,
+    *,
+    before_date: bool = False,
+) -> list[dict[str, Any]]:
+    """Reconstruct the public table from one global network snapshot."""
+    comparator = (
+        (lambda value: value < as_of_date)
+        if before_date
+        else (lambda value: value <= as_of_date)
+    )
+    snapshot = None
+    for candidate in output.ranking_snapshots:
+        if comparator(candidate.date):
+            snapshot = candidate
+        elif candidate.date > as_of_date:
+            break
+    if snapshot is None:
+        return []
 
-    past: dict[str, dict[str, Any]] = {}
+    metadata: dict[str, dict[str, Any]] = {}
     for code, page in output.team_pages.items():
-        points = [
-            point for point in page["history"]
-            if point["date"] <= comparison_day.isoformat()
-        ]
-        if not points:
+        for point in page["history"]:
+            if comparator(point["date"]):
+                metadata[code] = point
+            elif point["date"] > as_of_date:
+                break
+
+    codes = output.state["codes"]
+    selected_year = int(as_of_date[:4])
+    selected_day = model_day(as_of_date)
+    ranked: list[dict[str, Any]] = []
+    for index_value, latent_mean, variance in zip(
+        snapshot.indices,
+        snapshot.means,
+        snapshot.variances,
+    ):
+        code = codes[int(index_value)]
+        point = metadata.get(code)
+        if point is None:
             continue
-        point = projected_public_record(
-            points[-1],
+        if selected_year - int(point["date"][:4]) > 4:
+            continue
+        reliability = float(point["reliability"])
+        public_mean = (
+            2000.0
+            + reliability
+            * (float(latent_mean) - float(snapshot.baseline))
+        )
+        projected = projected_variance(
+            float(variance),
+            model_day(str(point["date"])),
+            selected_day,
+        )
+        standard_error = projected**0.5
+        ranked.append({
+            **point,
+            "code": code,
+            "nation": point["historical_name"],
+            "rating": (
+                public_mean
+                - CONFIDENCE_Z * standard_error
+            ),
+            "mean": public_mean,
+            "se": standard_error,
+            "latent": 1500.0 + float(latent_mean),
+            "rating_date": as_of_date,
+            "snapshot_date": snapshot.date,
+        })
+
+    ranked.sort(
+        key=lambda team: (
+            -float(team["rating"]),
+            team["nation"],
+        )
+    )
+    for rank, team in enumerate(ranked, start=1):
+        team["rank"] = rank
+    return ranked
+
+
+def build_ranking_movements(output: Any) -> None:
+    """Attach calendar-year movement from globally consistent rankings."""
+    rankings_day = date.fromisoformat(
+        output.summary["meta"]["rankings_as_of"]
+    )
+    try:
+        comparison_day = rankings_day.replace(year=rankings_day.year - 1)
+    except ValueError:
+        comparison_day = rankings_day.replace(
+            year=rankings_day.year - 1, month=2, day=28
+        )
+    past = {
+        team["code"]: team
+        for team in global_public_ranking(
+            output,
             comparison_day.isoformat(),
         )
-        if point["matches"] < 30 or point["date"] < active_cutoff.isoformat():
-            continue
-        past[code] = point
+    }
 
     past_ranks = {
         code: rank
@@ -1683,117 +1811,202 @@ def build_best_tournament_records(
     ))
     return records[:500]
 
-def build_historical_rankings(data: Path, output: Any) -> None:
-    """Write independently loadable end-of-day ranking events for each year."""
-    names = {team["code"]: team["nation"] for team in output.summary["teams"]}
-    preferred_historical_names = {"USSR": "Soviet Union"}
-    events_by_year: dict[int, list[dict[str, Any]]] = {}
-    for code, page in output.team_pages.items():
-        for point in page["history"]:
-            year = int(point["date"][:4])
-            events_by_year.setdefault(year, []).append(
-                {
-                    "id": point["id"], "date": point["date"], "code": code,
-                    "nation": preferred_historical_names.get(
-                        point.get("historical_name", names[code]),
-                        point.get("historical_name", names[code]),
-                    ),
-                    "rating": point["rating"],
-                    "mean": point["mean"], "se": point["se"],
-                    "latent": point["latent"],
-                    "reliability": point["reliability"],
-                    "score_state": point["score_state"],
-                    "matches": point["matches"], "form": point["form"],
-                }
+def serialise_global_snapshot(snapshot: Any) -> list[Any]:
+    return [
+        snapshot.date,
+        snapshot.baseline,
+        [
+            [int(index), float(mean), float(variance)]
+            for index, mean, variance in zip(
+                snapshot.indices,
+                snapshot.means,
+                snapshot.variances,
             )
+        ],
+    ]
 
-    matchdays_by_year: dict[int, set[str]] = {}
+
+def complete_public_date(value: str) -> date | None:
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def build_number_one_chronology(
+    output: Any,
+    events: list[dict[str, Any]],
+    names: dict[str, str],
+) -> None:
+    """Derive every leader spell from the same global daily ranking view."""
+    codes = output.state["codes"]
+    valid_snapshots = {
+        snapshot.date: snapshot
+        for snapshot in output.ranking_snapshots
+        if complete_public_date(snapshot.date) is not None
+        and len(snapshot.indices)
+    }
+    if not valid_snapshots:
+        output.summary["number_ones"] = []
+        output.summary["number_one_summary"] = []
+        return
+
+    matches_by_day: dict[str, list[dict[str, Any]]] = {}
+    matches_by_day_team: dict[
+        tuple[str, str],
+        list[dict[str, Any]],
+    ] = {}
     for match in output.matches:
-        year = int(match["year"])
-        matchdays_by_year.setdefault(year, set()).add(match["date"])
+        if complete_public_date(match["date"]) is None:
+            continue
+        matches_by_day.setdefault(match["date"], []).append(match)
+        matches_by_day_team.setdefault(
+            (match["date"], match["a"]),
+            [],
+        ).append(match)
+        matches_by_day_team.setdefault(
+            (match["date"], match["b"]),
+            [],
+        ).append(match)
 
-    matches_by_day_team: dict[tuple[str, str], list[dict[str, Any]]] = {}
-    for match in output.matches:
-        matches_by_day_team.setdefault((match["date"], match["a"]), []).append(match)
-        matches_by_day_team.setdefault((match["date"], match["b"]), []).append(match)
-
-    first_date, last_date = output.matches[0]["date"], output.matches[-1]["date"]
-    contexts_by_year: dict[int, list[dict[str, Any]]] = {}
-    for item in output.prediction_contexts:
-        contexts_by_year.setdefault(int(item["date"][:4]), []).append(item)
-    opening_context: dict[str, Any] | None = None
-    opening: dict[str, dict[str, Any]] = {}
+    ordered_events = sorted(
+        events,
+        key=lambda row: (
+            row["date"],
+            row["id"],
+            row["code"],
+        ),
+    )
+    metadata: dict[str, dict[str, Any]] = {}
+    event_position = 0
+    first_day = date.fromisoformat(min(valid_snapshots))
+    last_day = date.fromisoformat(
+        output.summary["meta"]["rankings_as_of"]
+    )
+    current_snapshot = None
+    previous_ratings: dict[str, float] = {}
     number_ones: list[dict[str, Any]] = []
-    years = []
-    for year in range(int(first_date[:4]), int(last_date[:4]) + 1):
-        rows = sorted(events_by_year.get(year, []), key=lambda row: (row["date"], row["id"], row["code"]))
-        filename = f"{year}.json"
-        year_contexts = contexts_by_year.get(year, [])
-        write_json(data / "rankings-history" / filename, {
-            "year": year, "opening": list(opening.values()), "events": rows,
-            "matchdays": sorted(matchdays_by_year.get(year, set())),
-            "opening_prediction_context": opening_context,
-            "prediction_contexts": year_contexts,
-        })
-        if year_contexts:
-            opening_context = year_contexts[-1]
-        years.append({"year": year, "file": filename, "events": len(rows)})
-        daily_rows: dict[str, list[dict[str, Any]]] = {}
-        for row in rows:
-            daily_rows.setdefault(row["date"], []).append(row)
-        for day, day_rows in daily_rows.items():
-            ratings_before = {
-                code: row["rating"] for code, row in opening.items()
-            }
-            for row in day_rows:
-                opening[row["code"]] = {
-                    key: value for key, value in row.items() if key != "id"
-                }
-            eligible = [row for row in opening.values() if row["matches"] >= 30]
-            if not eligible:
+    cursor = first_day
+    while cursor <= last_day:
+        day = cursor.isoformat()
+        while (
+            event_position < len(ordered_events)
+            and ordered_events[event_position]["date"] <= day
+        ):
+            event = ordered_events[event_position]
+            metadata[event["code"]] = event
+            event_position += 1
+        if day in valid_snapshots:
+            current_snapshot = valid_snapshots[day]
+        if current_snapshot is None:
+            cursor += timedelta(days=1)
+            continue
+
+        selected_year = cursor.year
+        selected_day = model_day(day)
+        ratings: dict[str, float] = {}
+        labels: dict[str, str] = {}
+        for index_value, latent_mean, variance in zip(
+            current_snapshot.indices,
+            current_snapshot.means,
+            current_snapshot.variances,
+        ):
+            code = codes[int(index_value)]
+            point = metadata.get(code)
+            if (
+                point is None
+                or selected_year - int(point["date"][:4]) > 4
+            ):
                 continue
-            leader = max(eligible, key=lambda row: (row["rating"], row["code"]))
+            public_mean = (
+                2000.0
+                + float(point["reliability"])
+                * (
+                    float(latent_mean)
+                    - float(current_snapshot.baseline)
+                )
+            )
+            variance_at_day = projected_variance(
+                float(variance),
+                model_day(str(point["date"])),
+                selected_day,
+            )
+            ratings[code] = (
+                public_mean
+                - CONFIDENCE_Z * variance_at_day**0.5
+            )
+            labels[code] = str(point["nation"])
+
+        if ratings:
+            leader_code = max(
+                ratings,
+                key=lambda code: (
+                    ratings[code],
+                    code,
+                ),
+            )
+            leader_name = labels[leader_code]
             previous = number_ones[-1] if number_ones else None
-            changed_team = previous is None or previous["code"] != leader["code"]
-            changed_name = previous is not None and previous["nation"] != leader["nation"]
+            changed_team = (
+                previous is None
+                or previous["code"] != leader_code
+            )
+            changed_name = (
+                previous is not None
+                and previous["nation"] != leader_name
+            )
             if changed_team or changed_name:
                 if previous is not None:
                     previous["to"] = (
-                        date.fromisoformat(day) - timedelta(days=1)
+                        cursor - timedelta(days=1)
                     ).isoformat()
                 incoming_matches = matches_by_day_team.get(
-                    (day, leader["code"]), []
+                    (day, leader_code),
+                    [],
                 )
                 outgoing_matches = (
-                    matches_by_day_team.get((day, previous["code"]), [])
+                    matches_by_day_team.get(
+                        (day, previous["code"]),
+                        [],
+                    )
                     if previous is not None and changed_team
                     else []
                 )
-                incoming_before = ratings_before.get(leader["code"])
+                incoming_before = previous_ratings.get(leader_code)
                 incoming_gain = (
                     float("inf")
                     if incoming_before is None
-                    else leader["rating"] - incoming_before
+                    else ratings[leader_code] - incoming_before
                 )
                 outgoing_drop = float("-inf")
-                if previous is not None and previous["code"] in ratings_before:
-                    outgoing_after = opening.get(previous["code"])
-                    if outgoing_after is not None:
-                        outgoing_drop = (
-                            ratings_before[previous["code"]]
-                            - outgoing_after["rating"]
-                        )
-                # Attribute the change to the result that contributed most to
-                # reversing the gap: the incoming team's rise or the outgoing
-                # leader's fall. This avoids crediting an incoming team that
-                # actually lost while the previous No. 1 fell even further.
-                if outgoing_matches and outgoing_drop > incoming_gain:
+                if (
+                    previous is not None
+                    and previous["code"] in previous_ratings
+                    and previous["code"] in ratings
+                ):
+                    outgoing_drop = (
+                        previous_ratings[previous["code"]]
+                        - ratings[previous["code"]]
+                    )
+                if (
+                    outgoing_matches
+                    and outgoing_drop > incoming_gain
+                ):
                     trigger_matches = outgoing_matches
                 elif incoming_matches:
                     trigger_matches = incoming_matches
-                else:
+                elif outgoing_matches:
                     trigger_matches = outgoing_matches
-                trigger_matches = sorted(trigger_matches, key=lambda row: row["id"])
+                else:
+                    # A full-covariance update can change the leader through
+                    # results involving connected third teams. In that case
+                    # the complete jointly applied matchday is the honest
+                    # trigger rather than an invented single match.
+                    trigger_matches = matches_by_day.get(day, [])
+                trigger_matches = sorted(
+                    trigger_matches,
+                    key=lambda row: row["id"],
+                )
                 trigger_rows = [{
                     "id": trigger["id"],
                     "team1_code": trigger["a"],
@@ -1805,21 +2018,37 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                     "competition": trigger["t"],
                 } for trigger in trigger_matches]
                 number_ones.append({
-                    "code": leader["code"],
-                    "nation": leader["nation"],
+                    "code": leader_code,
+                    "nation": leader_name,
                     "from": day,
                     "to": None,
-                    "rating": leader["rating"],
-                    "displaced_code": previous["code"] if changed_team and previous else None,
-                    "displaced": previous["nation"] if changed_team and previous else None,
+                    "rating": ratings[leader_code],
+                    "displaced_code": (
+                        previous["code"]
+                        if changed_team and previous
+                        else None
+                    ),
+                    "displaced": (
+                        previous["nation"]
+                        if changed_team and previous
+                        else None
+                    ),
+                    "reason": (
+                        "Joint matchday update"
+                        if trigger_rows
+                        else "Uncertainty drift or eligibility change"
+                    ),
                     "matches": trigger_rows,
-                    "match": trigger_rows[0] if len(trigger_rows) == 1 else None,
+                    "match": (
+                        trigger_rows[0]
+                        if len(trigger_rows) == 1
+                        else None
+                    ),
                 })
+            previous_ratings = ratings
+        cursor += timedelta(days=1)
 
-    number_one_as_of = max(
-        date.today(),
-        date.fromisoformat(last_date),
-    ).isoformat()
+    number_one_as_of = last_day.isoformat()
     for spell in number_ones:
         effective_end = spell["to"] or number_one_as_of
         spell["days"] = (
@@ -1827,7 +2056,9 @@ def build_historical_rankings(data: Path, output: Any) -> None:
             - date.fromisoformat(spell["from"])
         ).days + 1
     output.summary["number_ones"] = list(reversed(number_ones))
+
     number_one_summary: dict[str, dict[str, Any]] = {}
+    names_at_number_one: dict[str, list[str]] = {}
     for spell in number_ones:
         row = number_one_summary.setdefault(spell["code"], {
             "code": spell["code"],
@@ -1846,43 +2077,156 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         row["current"] = row["current"] or spell["to"] is None
         row["spells"] += 1
         row["days"] += spell["days"]
-    output.summary["number_one_summary"] = sorted(
-        number_one_summary.values(),
-        key=lambda row: (-row["days"], row["first"], row["nation"]),
-    )
+        if spell["nation"] not in names_at_number_one.setdefault(
+            spell["code"],
+            [],
+        ):
+            names_at_number_one[spell["code"]].append(spell["nation"])
 
-    names_at_number_one: dict[str, list[str]] = {}
-    for spell in number_ones:
-        code = spell["code"]
-        name = str(spell["nation"])
-        if name not in names_at_number_one.setdefault(code, []):
-            names_at_number_one[code].append(name)
-
-    for row in output.summary["number_one_summary"]:
+    for row in number_one_summary.values():
         spell_names = names_at_number_one.get(
             row["code"],
             [row["nation"]],
         )
         current_name = names[row["code"]]
-        if current_name in spell_names:
-            primary_name = current_name
-        else:
-            primary_name = spell_names[-1]
-        row["nation"] = primary_name
+        row["nation"] = (
+            current_name
+            if current_name in spell_names
+            else spell_names[-1]
+        )
         row["included_names"] = [
             name
             for name in spell_names
-            if name != primary_name
+            if name != row["nation"]
         ]
-
-    output.summary["number_one_summary"].sort(
+    output.summary["number_one_summary"] = sorted(
+        number_one_summary.values(),
         key=lambda row: (
             -row["days"],
             row["first"],
             row["nation"],
-        )
+        ),
     )
 
+
+def build_historical_rankings(data: Path, output: Any) -> None:
+    """Write global as-of snapshots plus team metadata events by year."""
+    names = {
+        team["code"]: team["nation"]
+        for team in output.summary["teams"]
+    }
+    preferred_historical_names = {"USSR": "Soviet Union"}
+    events_by_year: dict[int, list[dict[str, Any]]] = {}
+    all_events: list[dict[str, Any]] = []
+    for code, page in output.team_pages.items():
+        for point in page["history"]:
+            event = {
+                "id": point["id"],
+                "date": point["date"],
+                "code": code,
+                "nation": preferred_historical_names.get(
+                    point.get("historical_name", names[code]),
+                    point.get("historical_name", names[code]),
+                ),
+                # The per-team values remain for backwards compatibility and
+                # team-page charts. History rankings use global_snapshots.
+                "rating": point["rating"],
+                "mean": point["mean"],
+                "se": point["se"],
+                "latent": point["latent"],
+                "reliability": point["reliability"],
+                "score_state": point["score_state"],
+                "matches": point["matches"],
+                "form": point["form"],
+            }
+            events_by_year.setdefault(
+                int(point["date"][:4]),
+                [],
+            ).append(event)
+            all_events.append(event)
+
+    matchdays_by_year: dict[int, set[str]] = {}
+    for match in output.matches:
+        matchdays_by_year.setdefault(
+            int(match["year"]),
+            set(),
+        ).add(match["date"])
+    contexts_by_year: dict[int, list[dict[str, Any]]] = {}
+    for item in output.prediction_contexts:
+        contexts_by_year.setdefault(
+            int(item["date"][:4]),
+            [],
+        ).append(item)
+    snapshots_by_year: dict[int, list[Any]] = {}
+    for snapshot in output.ranking_snapshots:
+        snapshots_by_year.setdefault(
+            int(snapshot.date[:4]),
+            [],
+        ).append(snapshot)
+
+    first_date = output.matches[0]["date"]
+    last_match_date = output.matches[-1]["date"]
+    rankings_as_of = output.summary["meta"]["rankings_as_of"]
+    opening_context: dict[str, Any] | None = None
+    opening: dict[str, dict[str, Any]] = {}
+    opening_global: list[Any] | None = None
+    years = []
+    for year in range(
+        int(first_date[:4]),
+        int(rankings_as_of[:4]) + 1,
+    ):
+        rows = sorted(
+            events_by_year.get(year, []),
+            key=lambda row: (
+                row["date"],
+                row["id"],
+                row["code"],
+            ),
+        )
+        year_snapshots = sorted(
+            snapshots_by_year.get(year, []),
+            key=lambda snapshot: snapshot.date,
+        )
+        serialised_snapshots = [
+            serialise_global_snapshot(snapshot)
+            for snapshot in year_snapshots
+        ]
+        filename = f"{year}.json"
+        year_contexts = contexts_by_year.get(year, [])
+        write_json(data / "rankings-history" / filename, {
+            "year": year,
+            "opening": list(opening.values()),
+            "events": rows,
+            "global_opening": opening_global,
+            "global_snapshots": serialised_snapshots,
+            "matchdays": sorted(
+                matchdays_by_year.get(year, set())
+            ),
+            "opening_prediction_context": opening_context,
+            "prediction_contexts": year_contexts,
+        })
+        if year_contexts:
+            opening_context = year_contexts[-1]
+        for row in rows:
+            opening[row["code"]] = {
+                key: value
+                for key, value in row.items()
+                if key != "id"
+            }
+        if serialised_snapshots:
+            opening_global = serialised_snapshots[-1]
+        years.append({
+            "year": year,
+            "file": filename,
+            "events": len(rows),
+            "snapshots": len(serialised_snapshots),
+        })
+
+    build_number_one_chronology(
+        output,
+        all_events,
+        names,
+    )
     tournament_catalog = build_tournament_catalog(output.matches)
     output.summary["best_tournaments"] = build_best_tournament_records(
         tournament_catalog,
@@ -1891,7 +2235,15 @@ def build_historical_rankings(data: Path, output: Any) -> None:
 
     write_json(data / "rankings-history" / "index.json", {
         "first": first_date,
-        "last": last_date,
+        "last": rankings_as_of,
+        "last_matchday": last_match_date,
+        "codes": output.state["codes"],
+        "drift_sd": output.summary["parameters"]["network"]["drift_sd"],
+        "snapshot_schema": [
+            "date",
+            "elite_baseline",
+            ["team_index", "latent_mean", "marginal_variance"],
+        ],
         "years": years,
     })
     write_json(

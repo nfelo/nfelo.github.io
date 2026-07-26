@@ -15,7 +15,7 @@ evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.
 
-**Current methodology version:** `2026-07-26-inactivity-as-of-drift`.
+**Current methodology version:** `2026-07-26-global-as-of-consistency`.
 
 Tournament snapshots use the same published rating immediately before and
 after each completed edition. Tournament rating change and Best tournaments
@@ -46,6 +46,13 @@ M_i  = 2000 + rho_i × (mu_i - B)
 NR_i = M_i - 1.6448536269514715 × sqrt(Sigma_ii)
 ```
 
+After every complete matchday, a compact global snapshot stores the network
+mean and marginal variance for every eligible team. This matters because the
+full covariance update can move a connected team even when that team did not
+play. Current Rankings and the latest History view are reconstructed from the
+same global state and checked for identical membership, order and displayed
+values.
+
 For a ranking or prediction date after a team's latest appearance, the model
 projects its marginal variance forward without changing its latent mean:
 
@@ -54,9 +61,10 @@ Sigma_ii(as of t) = Sigma_ii(last match) + 19.750212594949737² × Delta t
 ```
 
 This gradually lowers the cautious public rating while a recently active team
-is inactive and widens future-match uncertainty. The projection is read-only:
-completed matchday ratings, historical peaks and the fitted replay are not
-rewritten.
+is inactive and widens future-match uncertainty. Ranking eligibility means an
+appearance in the selected calendar year or one of the preceding four calendar
+years. The projection is read-only: completed matchday ratings, historical
+peaks and the fitted replay are not rewritten.
 
 The marginal variance `Sigma_ii` is retained deliberately. Cancelling uncertainty
 shared with a contemporaneous elite reference can make a small, inward-looking
@@ -92,6 +100,13 @@ only as far as it can without changing the network model's most likely W/D/L
 outcome. The exact-score table is then raked so its win, draw and loss regions
 sum to the displayed final probabilities; omitted scorelines above 5–5 remain
 in the reported tail mass.
+
+Completed matches retain the exact pre-match probability vector. The arbitrary
+historical calculator reconstructs the exact selected-date marginal states, but
+the static archive does not retain every historical off-diagonal covariance;
+those W/D/L values are therefore labelled as approximations. Its rating-effect
+table is an isolated one-match scenario that holds the elite reference,
+opponent breadth and other same-date results fixed.
 
 The 0.78621 friendly multiplier applies to the opponent-network update before
 the joint matchday calculation. It scales both gradient and curvature, so a
@@ -218,6 +233,10 @@ python -m http.server 8000 --directory public
 ## Data and limitations
 
 Historical rows and labels are based on [World Football Elo Ratings](https://eloratings.net/).
+The ledger follows recorded senior international histories rather than FIFA
+membership alone, so it includes some territories, regional selections and
+defunct teams. Inclusion is a data-scope decision, not a statement about
+political status or eligibility for a particular competition.
 Recent results also use the CC0 `international_results` dataset and OpenFootball's
 public-domain World Cup data. Future fixtures use the World Football Elo schedule
 plus TheSportsDB. Duplicate events are merged; conflicting scores stop publication.
