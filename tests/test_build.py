@@ -1502,6 +1502,37 @@ class StaticBuildTests(unittest.TestCase):
             check=True,
         )
 
+    def test_primary_names_have_responsive_type_hierarchy(self) -> None:
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("/* Primary-name hierarchy */", stylesheet)
+        for selector in (
+            ".comparison-team-row select",
+            ".comparison-add-panel select",
+            ".team-picker select",
+            ".comparison-pair-picker select",
+            ".comparison-team-name",
+            '.comparison-meetings td[data-label="Match"]',
+            ".bar-row a",
+            ".chart-inspector-value b",
+            ".home-explore-links b",
+            ".table-shell .team-link",
+        ):
+            self.assertIn(selector, stylesheet)
+
+        primary_block = stylesheet.split(
+            "/* Primary-name hierarchy */",
+            1,
+        )[1]
+        self.assertIn("font-size: 17px;", primary_block)
+        self.assertIn("font-size: 16px;", primary_block)
+        self.assertIn("font-size: 15px;", primary_block)
+        self.assertIn("text-transform: none;", primary_block)
+        self.assertIn("@media (min-width: 721px)", primary_block)
+        self.assertIn("@media (max-width: 720px)", primary_block)
+
     def test_browser_application_replaces_initial_loading_shell(self) -> None:
         public = ROOT / "public"
         html = (public / "index.html").read_text(

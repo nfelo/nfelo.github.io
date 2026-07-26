@@ -1014,3 +1014,62 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   outline: 3px solid var(--gold);
   outline-offset: 2px;
 }
+
+/* Primary-name hierarchy */
+.comparison-team-row select,
+.comparison-add-panel select {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.team-picker select,
+.comparison-pair-picker select {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.comparison-team-name {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.comparison-meetings td[data-label="Match"] {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.bar-row a {
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.chart-inspector-value b {
+  font-size: 14px;
+}
+
+.home-explore-links b {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+@media (min-width: 721px) {
+  .table-shell .team-link {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 720px) {
+  .team-picker select,
+  .comparison-pair-picker select {
+    font-size: 16px;
+  }
+
+  .comparison-team-name {
+    font-size: 17px;
+  }
+}
