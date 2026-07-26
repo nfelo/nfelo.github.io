@@ -15,7 +15,7 @@ evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.
 
-**Current methodology version:** `2026-07-23-evidence-backed-friendly-0.78621`.
+**Current methodology version:** `2026-07-26-inactivity-as-of-drift`.
 
 Tournament snapshots use the same published rating immediately before and
 after each completed edition. Tournament rating change and Best tournaments
@@ -45,6 +45,18 @@ strength of the ten strongest eligible active teams, the published rating is:
 M_i  = 2000 + rho_i × (mu_i - B)
 NR_i = M_i - 1.6448536269514715 × sqrt(Sigma_ii)
 ```
+
+For a ranking or prediction date after a team's latest appearance, the model
+projects its marginal variance forward without changing its latent mean:
+
+```text
+Sigma_ii(as of t) = Sigma_ii(last match) + 19.750212594949737² × Delta t
+```
+
+This gradually lowers the cautious public rating while a recently active team
+is inactive and widens future-match uncertainty. The projection is read-only:
+completed matchday ratings, historical peaks and the fitted replay are not
+rewritten.
 
 The marginal variance `Sigma_ii` is retained deliberately. Cancelling uncertainty
 shared with a contemporaneous elite reference can make a small, inward-looking

@@ -18,6 +18,9 @@ from model import (
     calibration_scale,
     home_advantage,
     logistic10,
+    model_day,
+    projected_public_record,
+    projected_variance,
     run_replay,
     three_way_probabilities,
 )
@@ -670,14 +673,25 @@ def build_fixtures(
             continue
         i, j = index[first], index[second]
         year = int(str(fixture["date"])[:4])
+        forecast_day = model_day(str(fixture["date"]))
         scale = calibration_scale(year)
         difference = scale * (float(state["means"][i]) - float(state["means"][j]))
         difference += home_advantage(year) * int(fixture.get("home_sign", 0))
+        first_variance = projected_variance(
+            covariance[i * count + i],
+            int(state["last_day"][i]),
+            forecast_day,
+        )
+        second_variance = projected_variance(
+            covariance[j * count + j],
+            int(state["last_day"][j]),
+            forecast_day,
+        )
         variance = max(
             0.0,
             float(
-                covariance[i * count + i]
-                + covariance[j * count + j]
+                first_variance
+                + second_variance
                 - 2.0 * covariance[i * count + j]
             ),
         )
@@ -696,10 +710,6 @@ def build_fixtures(
             year,
             friendly=friendly,
         )
-        year_value, month_value, day_value = (
-            int(value) for value in str(fixture["date"]).split("-")
-        )
-        forecast_day = year_value * 400 + month_value * 32 + day_value
         probabilities = forecast_from_snapshot(
             snapshot=state["forecast_layer"],
             first=i,
@@ -827,7 +837,10 @@ def build_ranking_movements(output: Any) -> None:
         ]
         if not points:
             continue
-        point = points[-1]
+        point = projected_public_record(
+            points[-1],
+            comparison_day.isoformat(),
+        )
         if point["matches"] < 30 or point["date"] < active_cutoff.isoformat():
             continue
         past[code] = point

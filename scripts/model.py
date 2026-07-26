@@ -133,6 +133,45 @@ def draw_probability(year: int) -> float:
     return 0.05 + 0.40 / (1.0 + math.exp(-logit))
 
 
+def model_day(date_text: str) -> int:
+    """Convert an ISO date to the model's fixed 400-day year clock."""
+    year, month, day_of_month = (int(value) for value in date_text.split("-"))
+    return year * 400 + month * 32 + day_of_month
+
+
+def projected_variance(
+    variance: float,
+    last_day: int,
+    as_of_day: int,
+) -> float:
+    """Project one team's marginal variance without mutating replay state."""
+    base = max(0.0, float(variance))
+    if last_day < 0:
+        return base
+    elapsed = max(0.0, (as_of_day - last_day) / 400.0)
+    return base + DRIFT_SD**2 * elapsed
+
+
+def projected_public_record(
+    record: dict[str, Any],
+    as_of_date: str,
+) -> dict[str, Any]:
+    """Return a historical public record projected to an arbitrary date."""
+    projected = dict(record)
+    source_date = str(record.get("rating_date") or record["date"])
+    variance = projected_variance(
+        float(record["se"]) ** 2,
+        model_day(source_date),
+        model_day(as_of_date),
+    )
+    projected["se"] = math.sqrt(variance)
+    projected["rating"] = (
+        float(record["mean"]) - CONFIDENCE_Z * projected["se"]
+    )
+    projected["rating_date"] = as_of_date
+    return projected
+
+
 def logistic10(value: np.ndarray | float) -> np.ndarray | float:
     array = np.asarray(value, dtype=np.float64)
     result = 1.0 / (1.0 + np.power(10.0, -array / 400.0))
@@ -421,7 +460,11 @@ class NetworkEloReplay:
         return None if context is None else context[0]
 
     def record_values(
-        self, index: int, reference: tuple[float, tuple[int, ...]]
+        self,
+        index: int,
+        reference: tuple[float, tuple[int, ...]],
+        *,
+        as_of_day: int | None = None,
     ) -> dict[str, float]:
         """Return the single public NFELO rating used throughout the site.
 
@@ -437,7 +480,14 @@ class NetworkEloReplay:
         effective, reliability = self.breadth(index)
         deviation = float(self.mean[index]) - baseline
         adjusted_mean = 2000.0 + reliability * deviation
-        marginal_se = math.sqrt(max(0.0, float(self.covariance[index, index])))
+        variance = float(self.covariance[index, index])
+        if as_of_day is not None:
+            variance = projected_variance(
+                variance,
+                int(self.last_day[index]),
+                as_of_day,
+            )
+        marginal_se = math.sqrt(max(0.0, variance))
         rating = adjusted_mean - CONFIDENCE_Z * marginal_se
         return {
             "rating": rating,
@@ -797,7 +847,9 @@ class NetworkEloReplay:
         return self.finish()
 
     def finish(self) -> ReplayOutput:
-        current_year = self.matches[-1].year
+        last_match = self.matches[-1]
+        current_year = last_match.year
+        current_day = last_match.day
         self.forecast_layer.ensure_calibration_year(max(current_year, date.today().year))
         reference = self.reference_context(current_year)
         if reference is None:
@@ -809,8 +861,18 @@ class NetworkEloReplay:
         for index, team in enumerate(self.teams):
             if np.isnan(self.mean[index]):
                 continue
-            values = self.record_values(index, reference)
+            recent = current_year - int(self.last_year[index]) <= 4
+            values = self.record_values(
+                index,
+                reference,
+                as_of_day=current_day if recent else None,
+            )
             stats = self.stats[index]
+            latest_appearance = (
+                self.histories[index][-1]["date"]
+                if self.histories[index]
+                else last_match.date_text
+            )
             item = {
                 "nation": self.name(team),
                 "code": team,
@@ -828,12 +890,16 @@ class NetworkEloReplay:
                 "ga": stats["ga"],
                 "form": stats["last5"],
                 "last_year": int(self.last_year[index]),
+                "last_match_date": latest_appearance,
+                "rating_date": (
+                    last_match.date_text if recent else latest_appearance
+                ),
                 "peak": self.peaks.get(team),
             }
             all_teams.append(item)
             if (
                 self.games[index] >= MINIMUM_RECORD_MATCHES
-                and current_year - int(self.last_year[index]) <= 4
+                and recent
             ):
                 current.append(item)
 
@@ -879,7 +945,6 @@ class NetworkEloReplay:
                 "matches": list(reversed(self.team_matches[index])),
             }
 
-        last_match = self.matches[-1]
         source_hash = hashlib.sha256()
         for path in sorted((self.source / "elo_pages").glob("*.tsv")):
             source_hash.update(path.name.encode("utf-8"))
@@ -906,7 +971,7 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-23-evidence-backed-friendly-0.78621",
+                "methodology_version": "2026-07-26-inactivity-as-of-drift",
                 "results_through": last_match.date_text,
                 "matches": len(self.matches),
                 "teams": self.count,
@@ -1001,6 +1066,9 @@ class NetworkEloReplay:
             "codes": self.teams,
             "means": self.mean.tolist(),
             "covariance": self.covariance.reshape(-1).tolist(),
+            "last_day": self.last_day.tolist(),
+            "as_of_day": current_day,
+            "as_of_date": last_match.date_text,
             "scale": calibration_scale(current_year),
             "home": home_advantage(current_year),
             "draw": draw_probability(current_year),

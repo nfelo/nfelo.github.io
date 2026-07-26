@@ -142,6 +142,36 @@ const filteredEmptyState = (subject) => (
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   };
+  const modelDayNumber = (value) => {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return null;
+    return Number(match[1]) * 400 + Number(match[2]) * 32 + Number(match[3]);
+  };
+  const projectTeamRating = (team, asOfDate) => {
+    const sourceDate = team?.rating_date || team?.date;
+    const sourceDay = modelDayNumber(sourceDate);
+    const targetDay = modelDayNumber(asOfDate);
+    const standardError = Number(team?.se);
+    const mean = Number(team?.mean);
+    const drift = Number(summary?.parameters?.network?.drift_sd);
+    if (
+      sourceDay == null
+      || targetDay == null
+      || !Number.isFinite(standardError)
+      || !Number.isFinite(mean)
+      || !Number.isFinite(drift)
+    ) {
+      return { ...team };
+    }
+    const elapsed = Math.max(0, (targetDay - sourceDay) / 400);
+    const se = Math.sqrt(standardError * standardError + drift * drift * elapsed);
+    return {
+      ...team,
+      rating: mean - confidenceZ * se,
+      se,
+      rating_date: asOfDate,
+    };
+  };
   const previousISODate = (value) => {
     const parsed = new Date(`${value}T00:00:00Z`);
     if (
@@ -579,9 +609,10 @@ const filteredEmptyState = (subject) => (
   }
 
   async function loadHistoricalSnapshot(index, value) {
-    const chosen = value < index.first ? index.first : value > index.last ? index.last : value;
+    const chosen = value < index.first ? index.first : value;
+    const dataDate = chosen > index.last ? index.last : chosen;
     const dataYear = Math.min(
-      Number(chosen.slice(0, 4)),
+      Number(dataDate.slice(0, 4)),
       Number(index.last.slice(0, 4)),
     );
     const payload = await getJSON(`data/rankings-history/${dataYear}.json`);
@@ -589,11 +620,12 @@ const filteredEmptyState = (subject) => (
       payload.opening.map((team) => [team.code, { ...team }]),
     );
     payload.events.forEach((event) => {
-      if (event.date <= chosen) state.set(event.code, { ...event });
+      if (event.date <= dataDate) state.set(event.code, { ...event });
     });
     const year = Number(chosen.slice(0, 4));
     const ranked = [...state.values()]
       .filter((team) => year - Number(team.date.slice(0, 4)) <= 4)
+      .map((team) => projectTeamRating(team, chosen))
       .sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation));
     ranked.forEach((team, position) => {
       team.rank = position + 1;
@@ -3291,7 +3323,9 @@ function renderRecords(route) {
           teams.set(event.code, event);
         }
       });
-      const active = [...teams.values()].filter((team) => year - Number(team.date.slice(0, 4)) <= 4);
+      const active = [...teams.values()]
+        .filter((team) => year - Number(team.date.slice(0, 4)) <= 4)
+        .map((team) => projectTeamRating(team, dateValue));
       active.sort((a, b) => b.rating - a.rating || a.nation.localeCompare(b.nation));
       active.forEach((team, index) => { team.rank = index + 1; });
       let context = payload.opening_prediction_context;
@@ -3364,7 +3398,9 @@ function renderRecords(route) {
       const historical = useCurrent
         ? null
         : await historicalPayload(dateValue, preMatch);
-      const teams = useCurrent ? summary.current : historical.teams;
+      const teams = useCurrent
+        ? summary.current.map((team) => projectTeamRating(team, dateValue))
+        : historical.teams;
       if (teams.length < 2) {
         body.innerHTML = `<div class="empty"><h2>Not enough eligible teams</h2><p>Two teams must have reached 30 matches by this date.</p></div>`;
         return;
@@ -3429,15 +3465,17 @@ function renderRecords(route) {
         const scale = useCurrent ? currentState.scale : historicalScale(year);
         const homePoints = useCurrent ? currentState.home : historicalHome(year);
         const drawBase = useCurrent ? currentState.draw : historicalDraw(year);
+        const vi = first.se * first.se;
+        const vj = second.se * second.se;
         let variance;
         let cross = 0;
         if (useCurrent) {
           const i = currentIndex.get(first.code);
           const j = currentIndex.get(second.code);
           cross = cov(i, j);
-          variance = Math.max(0, cov(i, i) + cov(j, j) - 2 * cross);
+          variance = Math.max(0, vi + vj - 2 * cross);
         } else {
-          variance = Math.max(0, first.se * first.se + second.se * second.se);
+          variance = Math.max(0, vi + vj);
         }
         const difference = scale * (first.latent - second.latent) + homePoints * home;
         const expected = logistic(difference);
@@ -3527,8 +3565,6 @@ function renderRecords(route) {
         ), 0);
         document.getElementById("score-grid").innerHTML = `<div class="table-hint" aria-hidden="true">Swipe to see every scoreline →</div><div class="table-shell score-grid"><table><thead><tr><th>${escapeHTML(first.nation)} ↓ · ${escapeHTML(second.nation)} →</th>${[0,1,2,3,4,5].map((goal) => `<th class="numeric">${goal}</th>`).join("")}</tr></thead><tbody>${[0,1,2,3,4,5].map((goalsA) => `<tr><th class="numeric">${goalsA}</th>${[0,1,2,3,4,5].map((goalsB) => `<td class="numeric ${goalsA > goalsB ? "score-win" : goalsA < goalsB ? "score-loss" : "score-draw"}">${percent(rakedCell(goalsA, goalsB))}</td>`).join("")}</tr>`).join("")}</tbody></table></div><p class="muted small">The scoreline probabilities are reconciled to the final W/D/L forecast. The 36 cells show 0–0 through 5–5; the remaining ${percent(Math.max(0, 1 - displayedMass))} covers scorelines involving six or more goals.</p>`;
 
-        const vi = first.se * first.se;
-        const vj = second.se * second.se;
         const environment = useCurrent ? 1.1 : historical.context?.margin_environment ?? 1.1;
         const beta = Math.log(10) * scale / 400;
         const quality = summary.parameters.network.quality_scale;
@@ -3770,7 +3806,7 @@ function buildFAQItems() {
 },
 {
   question: "Why can an inactive team remain highly ranked?",
-  answer: "Ratings measure estimated strength, not recent activity alone. Inactivity gradually increases uncertainty, which lowers the cautious rating shown on the site, but a strong team does not immediately become weak simply because it has not played recently."
+  answer: "Ratings measure estimated strength, not recent activity alone. After every completed matchday, NFELO projects each recently active team’s uncertainty forward to the ranking or prediction date. That gradually lowers the cautious public rating without pretending the team’s underlying ability suddenly collapsed. Historical matchday ratings and peaks stay fixed."
 },
 {
   question: "Can ratings from different eras be compared directly?",
@@ -3883,6 +3919,7 @@ function renderFAQ() {
           <ol>
             <li><b>Start before the matches.</b> Every match sharing a complete date is predicted before any result from that date enters the model.</li>
             <li><b>Estimate underlying strength.</b> Results connect teams through opponents and shared opponents. The model also records how uncertain those estimates are.</li>
+            <li><b>Let old evidence age.</b> If a recently active team does not play, its underlying estimate is left alone but uncertainty grows to the requested ranking or prediction date. The cautious public rating therefore falls gradually rather than staying frozen.</li>
             <li><b>Forecast the match.</b> Underlying strength, venue, football era and uncertainty produce an initial win/draw/loss forecast.</li>
             <li><b>Add scoring tendencies.</b> A hidden attack and defence layer asks whether each team has recently scored or conceded more than its strength alone would suggest. It refines the probabilities without overturning the network's most likely outcome.</li>
             <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes exactly ${p.network.friendly_information_ratio_exact} times the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
@@ -3892,7 +3929,7 @@ function renderFAQ() {
         </div>
 
         <h2>1. Latent strength and uncertainty</h2>
-        <p>Team strengths form a joint Gaussian approximation <code>r ~ N(μ,Σ)</code>. The full covariance matrix is essential: it records how evidence about one team is connected to every other team. Before a participant's next date, its diagonal variance receives Brownian drift:</p>
+        <p>Team strengths form a joint Gaussian approximation <code>r ~ N(μ,Σ)</code>. The full covariance matrix is essential: it records how evidence about one team is connected to every other team. On every requested as-of date, and again before a participant's next matchday, its diagonal variance receives Brownian drift:</p>
         <div class="formula">Σᵢᵢ ← Σᵢᵢ + ${number(p.network.drift_sd, 10)}² Δt</div>
         <p>A debutant starts with standard deviation <b>${rating(p.network.prior_sd)}</b> and a mean relative to the active international pool:</p>
         <div class="formula">μnew = median(active established pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>

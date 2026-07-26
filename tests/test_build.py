@@ -23,7 +23,13 @@ from forecast_layer import (  # noqa: E402
     raked_score_matrix,
 )
 from fetch_sources import fetch_world_table  # noqa: E402
-from model import joint_gaussian_update, three_way_probabilities  # noqa: E402
+from model import (  # noqa: E402
+    CONFIDENCE_Z,
+    joint_gaussian_update,
+    projected_public_record,
+    projected_variance,
+    three_way_probabilities,
+)
 from open_results import merge_record, venue_country  # noqa: E402
 
 
@@ -76,13 +82,18 @@ class StaticBuildTests(unittest.TestCase):
         self.assertEqual(count, meta["teams"])
         self.assertEqual(len(self.state["means"]), count)
         self.assertEqual(len(self.state["covariance"]), count * count)
+        self.assertEqual(len(self.state["last_day"]), count)
+        self.assertEqual(
+            self.state["as_of_date"],
+            meta["results_through"],
+        )
         self.assertTrue(all(math.isfinite(value) for value in self.state["means"]))
         covariance = np.asarray(self.state["covariance"], dtype=np.float64).reshape(count, count)
         self.assertTrue(np.allclose(covariance, covariance.T, atol=1e-8))
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-23-evidence-backed-friendly-0.78621",
+            "2026-07-26-inactivity-as-of-drift",
         )
         self.assertAlmostEqual(
             self.summary["parameters"]["network"]["friendly_information_ratio"],
@@ -267,7 +278,7 @@ class StaticBuildTests(unittest.TestCase):
         # must never silently change the published rating model.
         self.assertEqual(
             summary["meta"]["methodology_version"],
-            "2026-07-23-evidence-backed-friendly-0.78621",
+            "2026-07-26-inactivity-as-of-drift",
         )
         self.assertEqual(
             summary["parameters"]["network"]
@@ -813,9 +824,12 @@ class StaticBuildTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn(
             (
-                "marginal_se = math.sqrt(max(0.0, "
-                "float(self.covariance[index, index])))"
+                "variance = projected_variance("
             ),
+            model,
+        )
+        self.assertIn(
+            "as_of_day=current_day if recent else None",
             model,
         )
         self.assertIn(
@@ -872,6 +886,54 @@ class StaticBuildTests(unittest.TestCase):
         }
         self.assertTrue({"ES", "BR"} <= top_ten)
         self.assertIn("EN", top_twenty)
+
+    def test_inactivity_is_projected_without_rewriting_matchdays(self) -> None:
+        base_variance = 2_500.0
+        one_year = projected_variance(base_variance, 1000, 1400)
+        two_years = projected_variance(base_variance, 1000, 1800)
+        self.assertGreater(one_year, base_variance)
+        self.assertGreater(two_years, one_year)
+        self.assertEqual(
+            projected_variance(base_variance, 1000, 900),
+            base_variance,
+        )
+
+        original = {
+            "date": "2020-01-01",
+            "mean": 1900.0,
+            "se": 50.0,
+            "rating": 1900.0 - CONFIDENCE_Z * 50.0,
+        }
+        projected = projected_public_record(original, "2022-01-01")
+        self.assertEqual(original["se"], 50.0)
+        self.assertGreater(projected["se"], original["se"])
+        self.assertLess(projected["rating"], original["rating"])
+        self.assertEqual(projected["rating_date"], "2022-01-01")
+
+        current = self.summary["current"]
+        self.assertTrue(all(
+            team["rating_date"] == self.summary["meta"]["results_through"]
+            for team in current
+        ))
+        self.assertTrue(all(
+            team["last_match_date"] <= team["rating_date"]
+            for team in current
+        ))
+
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        builder = (
+            ROOT / "scripts" / "build_site.py"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "const projectTeamRating = (team, asOfDate)",
+            ".map((team) => projectTeamRating(team, chosen))",
+            "summary.current.map((team) => projectTeamRating(team, dateValue))",
+        ):
+            self.assertIn(phrase, javascript)
+        self.assertIn("first_variance = projected_variance(", builder)
+        self.assertIn('int(state["last_day"][i])', builder)
 
     def test_upcoming_fixtures_are_sorted_and_probabilistic(self) -> None:
         fixtures = self.fixtures["fixtures"]
