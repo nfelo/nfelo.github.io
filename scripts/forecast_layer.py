@@ -19,6 +19,22 @@ from scipy.optimize import minimize, minimize_scalar
 
 EPSILON = 1e-15
 MAX_POISSON_GOALS = 40
+CALIBRATION_DECIMALS = 6
+
+
+def canonical_calibration_value(value: float) -> float:
+    """Place a fitted coefficient on the public, reproducible decimal grid.
+
+    SciPy's optimiser can finish a few ten-millionths apart on different CPU
+    math libraries even when its inputs and objective are identical.  Six
+    decimal places are far finer than any displayed probability, while making
+    those platform-only last-bit differences immaterial to the published
+    forecast layer.
+    """
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise ValueError("Calibration value must be finite")
+    return float(f"{numeric:.{CALIBRATION_DECIMALS}f}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,8 +214,10 @@ def fit_calibration(
         bounds=((-0.35, 0.35), (0.75, 1.30), (0.75, 1.30)),
         options={"maxiter": 32, "xtol": 1e-7, "ftol": 1e-12},
     )
+    if not math.isfinite(float(fitted.fun)):
+        raise RuntimeError(f"Forecast calibration failed: {fitted.message}")
     draw_log_tilt, friendly_temperature, competitive_temperature = (
-        float(value) for value in fitted.x
+        canonical_calibration_value(value) for value in fitted.x
     )
     calibrated = calibrated_score_probabilities(
         score,
@@ -220,15 +238,16 @@ def fit_calibration(
     # Powell can report its iteration cap after returning a valid finite point;
     # the audited fitting protocol accepts that point.  A non-finite objective
     # or a failed one-dimensional pool fit still stops publication.
-    if not math.isfinite(float(fitted.fun)) or not weight_fit.success:
+    if not weight_fit.success:
         raise RuntimeError(
             f"Forecast calibration failed: {fitted.message}; {weight_fit.message}"
         )
+    nfelo_weight = canonical_calibration_value(weight_fit.x)
     values = (
         draw_log_tilt,
         friendly_temperature,
         competitive_temperature,
-        float(weight_fit.x),
+        nfelo_weight,
     )
     if not all(math.isfinite(value) for value in values):
         raise RuntimeError("Forecast calibration produced a non-finite value")
@@ -236,7 +255,7 @@ def fit_calibration(
         draw_log_tilt=draw_log_tilt,
         friendly_temperature=friendly_temperature,
         competitive_temperature=competitive_temperature,
-        nfelo_weight=float(weight_fit.x),
+        nfelo_weight=nfelo_weight,
         training_first_year=first_year,
         training_last_year=last_year,
         training_matches=len(selected),
@@ -516,6 +535,7 @@ class ForecastLayer:
         return {
             "active_from_year": self.active_from_year,
             "calibration_window_years": self.calibration_window_years,
+            "calibration_precision_decimals": CALIBRATION_DECIMALS,
             "goal_environment_years": self.goal_environment_years,
             "goal_prior_matches": self.goal_prior_matches,
             "goal_prior_per_team": self.goal_prior_per_team,
@@ -553,6 +573,7 @@ class ForecastLayer:
             for key in (
                 "active_from_year",
                 "calibration_window_years",
+                "calibration_precision_decimals",
                 "goal_environment_years",
                 "goal_prior_matches",
                 "goal_prior_per_team",

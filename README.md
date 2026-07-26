@@ -93,7 +93,9 @@ The network forecast integrates uncertainty in the strength difference and
 uses separate friendly and competitive probability temperatures. A parallel
 team-specific attack/defence model produces a score-based W/D/L vector. Annual
 draw calibration, probability powers and the pool weight are fitted using only
-the preceding eight complete calendar years.
+the preceding eight complete calendar years. Before use, the four fitted
+coefficients are placed on a fixed six-decimal publication grid. This removes
+platform-level optimiser jitter without changing any displayed probability.
 
 The score correction is boundary-gated: NFELO moves toward the pooled forecast
 only as far as it can without changing the network model's most likely W/D/L
@@ -199,7 +201,8 @@ fail, the last good site remains online.
 
 Routine updates do not refit core rating or score-state structure. At each
 January boundary, only the declared forecast calibration is refitted from the
-preceding eight complete years. Every rebuild applies the tournament
+preceding eight complete years, then canonicalised to six decimal places.
+Every rebuild applies the tournament
 classifier to new source codes; unresolved events remain competitive until
 positive friendly evidence is recorded. The standalone audit command can be
 run whenever a classification review report is needed.

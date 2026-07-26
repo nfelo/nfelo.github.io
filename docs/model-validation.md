@@ -164,6 +164,11 @@ power 0.910657, competitive calibration power
 1.070155 and network pool weight
 0.547518.
 
+The four fitted values are canonicalised to six decimal places before they are
+used or published. This grid is far below the site's displayed probability
+precision and prevents different CPU math libraries from turning an identical
+fit into a different final digit.
+
 These constants and calibrations use information extending beyond parts of the
 replay window. The figures diagnose the published chronology and verify the
 implementation; they are not nested out-of-sample estimates and do not replace

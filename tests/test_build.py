@@ -18,6 +18,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
 from forecast_layer import (  # noqa: E402
+    CALIBRATION_DECIMALS,
+    canonical_calibration_value,
     outcome_preserving_pool,
     poisson_wdl,
     raked_score_matrix,
@@ -470,6 +472,11 @@ class StaticBuildTests(unittest.TestCase):
             self.assertTrue(math.isfinite(value))
             self.assertGreaterEqual(value, lower)
             self.assertLessEqual(value, upper)
+            self.assertEqual(value, canonical_calibration_value(value))
+        self.assertEqual(
+            forecast_layer["calibration_precision_decimals"],
+            CALIBRATION_DECIMALS,
+        )
 
         # While 2026 remains the active calibration, keep a tight guard
         # around its audited coefficients. From 2027 onward the rolling
@@ -487,6 +494,72 @@ class StaticBuildTests(unittest.TestCase):
                     expected_calibration[key],
                     delta=0.00005,
                 )
+
+    def test_calibration_grid_absorbs_observed_platform_jitter(self) -> None:
+        self.assertEqual(CALIBRATION_DECIMALS, 6)
+        self.assertEqual(
+            canonical_calibration_value(0.54751830),
+            canonical_calibration_value(0.54751843),
+        )
+        self.assertEqual(
+            canonical_calibration_value(0.54751843),
+            0.547518,
+        )
+        with self.assertRaises(ValueError):
+            canonical_calibration_value(float("nan"))
+
+    def test_standalone_404_uses_the_current_light_and_dark_theme(self) -> None:
+        source = (ROOT / "config" / "404.html").read_text(encoding="utf-8")
+        built = (ROOT / "public" / "404.html").read_text(encoding="utf-8")
+        self.assertEqual(built, source)
+        for phrase in (
+            'media="(prefers-color-scheme: light)"',
+            'media="(prefers-color-scheme: dark)"',
+            "@media (prefers-color-scheme: dark)",
+            "color-scheme: dark",
+            "background: #fbf5ff",
+            "background: #160d1c",
+            "a:focus-visible",
+            "@media (max-width: 480px)",
+        ):
+            self.assertIn(phrase, source)
+        for legacy_colour in ("#10252b", "#f4f1e8", "#fffdf7", "#0b1f26"):
+            self.assertNotIn(legacy_colour, source)
+
+        def luminance(colour: str) -> float:
+            channels = [
+                int(colour[index:index + 2], 16) / 255.0
+                for index in (1, 3, 5)
+            ]
+            linear = [
+                value / 12.92
+                if value <= 0.04045
+                else ((value + 0.055) / 1.055) ** 2.4
+                for value in channels
+            ]
+            return (
+                0.2126 * linear[0]
+                + 0.7152 * linear[1]
+                + 0.0722 * linear[2]
+            )
+
+        def contrast(first: str, second: str) -> float:
+            lighter, darker = sorted(
+                (luminance(first), luminance(second)),
+                reverse=True,
+            )
+            return (lighter + 0.05) / (darker + 0.05)
+
+        for foreground, background in (
+            ("#2d1838", "#fffaff"),
+            ("#6d5875", "#fffaff"),
+            ("#fff7ff", "#2b103b"),
+            ("#fff7ff", "#24152c"),
+            ("#d7c3de", "#24152c"),
+            ("#fff7ff", "#855596"),
+        ):
+            self.assertGreaterEqual(contrast(foreground, background), 4.5)
+
     def test_faq_page_is_complete_and_discoverable(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
@@ -848,6 +921,8 @@ class StaticBuildTests(unittest.TestCase):
             "Why friendlies use ${p.network.friendly_information_ratio_exact}",
             "p.forecast_temperature_exact.friendly",
             "p.forecast_temperature_exact.competitive",
+            "calibration_precision_decimals",
+            "platform-level optimiser jitter",
         ):
             self.assertIn(phrase, javascript)
         self.assertIn("applyForecastLayer", javascript)
