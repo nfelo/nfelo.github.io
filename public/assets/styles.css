@@ -464,6 +464,9 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   gap: 8px;
   margin-top: 14px;
 }
+.score-profile-details .venue-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .venue-detail-grid > div {
   min-width: 0;
   padding: 11px 12px;
@@ -896,6 +899,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .venue-highlight:last-child { grid-column: 1 / -1; }
   .venue-highlight strong { font-size: 20px; }
   .venue-detail-grid { grid-template-columns: 1fr; }
+  .score-profile-details .venue-detail-grid { grid-template-columns: 1fr; }
   .team-model-details { padding-right: 14px; padding-left: 14px; }
   .team-model-details summary > span { display: inline-grid; }
   .chart-summary { display: grid; gap: 5px; }

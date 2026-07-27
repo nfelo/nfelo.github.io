@@ -631,7 +631,7 @@ const filteredEmptyState = (subject) => (
             <div><dt>Latest result</dt><dd>${validDate(summary.meta.results_through)}</dd></div>
             <div><dt>Matches</dt><dd>${number(summary.meta.matches)}</dd></div>
             <div><dt>Teams</dt><dd>${number(summary.meta.teams)}</dd></div>
-            <div class="home-accuracy"><dt>Current-model accuracy</dt><dd>${precisePercent(summary.validation.retrospective.accuracy)}<small>log loss ${number(summary.validation.retrospective.log_loss, 6)}</small></dd></div>
+            <div class="home-accuracy"><dt>Current-model accuracy</dt><dd>${percent(summary.validation.retrospective.accuracy)}</dd></div>
           </dl>
         </section>
 
@@ -4037,17 +4037,15 @@ const lineageNote = lineageNames.length > 1
     const scorePanel = scoreProfile ? `
       <details class="team-model-details score-profile-details">
         <summary>
-          <span><b>Attack and defence forecast details</b><small>Forecast-only tendencies as of ${validDate(venueAsOfDate)}</small></span>
+          <span><b>Attack and defence</b><small>Forecast-only · ${validDate(venueAsOfDate)}</small></span>
         </summary>
         <div class="venue-detail-grid" aria-label="Attack and defence forecast tendencies">
           <div><span>Own expected goals</span><strong>${signedPercent(scoreProfile.attack_goal_change)}</strong></div>
           <div><span>Opponent expected goals</span><strong>${signedPercent(scoreProfile.opponent_goal_change)}</strong></div>
-          <div><span>Last matchday update</span><strong>${validDate(latestPoint.date)}</strong></div>
           <div><span>Attack residual</span><strong>${number(scoreProfile.attack, 4)}</strong></div>
           <div><span>Defence residual</span><strong>${number(scoreProfile.defence, 4)}</strong></div>
-          <div><span>Reversion half-life</span><strong>${number(Math.log(2) / scoreProfile.annual_decay, 1)} years</strong></div>
         </div>
-        <p>These values describe recent scoring above or below what strength, opposition and venue already predicted. They update after every completed matchday the team plays and fade toward neutral between appearances. They can refine forecast probabilities, but never alter the public rating or ranking. <a href="#/methodology?section=forecast">How the forecast layer works →</a></p>
+        <p>These values describe scoring above or below what strength, opposition and venue already predicted. They update after each completed matchday and gradually move toward neutral during inactivity. They refine forecast probabilities only, never the public rating or ranking. <a href="#/methodology?section=forecast">How the forecast layer works →</a></p>
       </details>` : "";
     setTitle(displayName);
     content.innerHTML = `
@@ -4084,23 +4082,23 @@ function buildFAQItems() {
   return [
     {
       question: "What is NFELO?",
-      answer: "NFELO is an independent rating and forecasting system for men’s international football. It uses results, opponents and shared opponents to connect national teams across countries, regions and eras."
+      answer: "NFELO is an independent rating and forecasting system for men’s international football. It uses results, opponents and shared opponents to connect national teams across countries, regions and eras. The same model powers the current rankings, historical tables, team records and match predictions throughout the site."
     },
     {
       question: "How is NFELO different from the World Football Elo Ratings?",
-      answer: "Both are Elo-style systems, but NFELO keeps track of uncertainty and the wider opponent network rather than updating only the two teams in isolation. It also keeps one public ranking while using separate attack and defence tendencies for match probabilities; team pages show those tendencies in an expandable section."
+      answer: "Both are Elo-style systems, but NFELO keeps track of uncertainty and the wider opponent network rather than updating only the two teams in isolation. It is more cautious when a team has faced a narrow group of opponents, and it does not give World Cup matches an automatic extra multiplier. One public rating is used for rankings, while separate attack and defence tendencies refine match probabilities in an expandable team-page section."
     },
     {
       question: "What does a team’s rating mean?",
-      answer: "It is NFELO’s cautious estimate of that team’s strength. A team with limited or weakly connected evidence is held back more than one supported by a broad range of opponents, so rating differences matter more than the absolute number."
+      answer: "It is NFELO’s cautious estimate of that team’s strength on the selected date. A team with limited or weakly connected evidence is held back more than one supported by a broad range of opponents. The gap between two ratings is more informative than treating either number as an absolute measure of quality."
     },
     {
       question: "How are the rankings calculated?",
-      answer: "Results move the estimates of teams throughout the connected opponent network. NFELO then allows for how broad and how certain each team’s evidence is before publishing one rating used across every ranking and record page."
+      answer: "Results move the estimates of teams throughout the connected opponent network, so a result can also affect teams linked through shared opponents. NFELO then allows for how broad and how certain each team’s evidence is before publishing one rating. That same rating is used on every ranking, history and record page."
     },
     {
       question: "What is the network element?",
-      answer: "Not every national team plays every other one. Shared opponents let NFELO compare teams from different regions and reduce the advantage of repeatedly playing within a small, closed group."
+      answer: "Not every national team plays every other one, and some regions are much more connected than others. Shared opponents let NFELO compare teams across those gaps and reduce the apparent advantage of repeatedly playing within a small, closed group. This is especially important for historical and lightly scheduled teams."
     },
     {
       question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
@@ -4108,31 +4106,31 @@ function buildFAQItems() {
     },
     {
       question: "Why is a friendly’s rating change not always 78.6% of a competitive match?",
-      answer: "The 78.6% applies to the information learned, not directly to the displayed points. The opponent, result, winning margin, uncertainty and other matches on the same date all affect the eventual rating movement."
+      answer: "The 78.6% applies to the information learned, not directly to the displayed points. The opponent, result, winning margin, uncertainty and other matches on the same date all affect the eventual rating movement. It is therefore a model weight, not a promise that two superficially similar matches will produce changes in a fixed ratio."
     },
     {
       question: "How is home advantage handled?",
-      answer: "A home forecast combines the worldwide home advantage for that era with cautious, changing estimates for the two countries involved. Team pages show the resulting extra home and away adjustments; neutral matches receive neither and do not update them."
+      answer: "A home forecast combines the worldwide home advantage for that era with cautious, changing estimates for the two countries involved. Team pages show how much those country profiles add when the team is home or away, along with a simple evidence label. These adjustments affect forecasts only; neutral matches receive neither and do not update them."
     },
     {
       question: "Why are a team’s home and away adjustments linked?",
-      answer: "The data cannot reliably separate a country’s extra benefit at home from its extra difficulty away. NFELO therefore uses one estimate, shown as equal and opposite home and away adjustments, because that version performed best on later results."
+      answer: "The historical data record the host first almost all the time, so they cannot reliably separate a country’s extra benefit at home from its extra difficulty away. NFELO therefore uses one shared estimate, displayed as equal and opposite home and away adjustments. That simpler version also forecast later results better than separate national home and away values."
     },
     {
       question: "What happens at a neutral venue?",
-      answer: "Neither the worldwide home advantage nor a country-specific adjustment is used. Separate country effects for neutral matches were tested but did not improve later forecasts."
+      answer: "Neither the worldwide home advantage nor a country-specific adjustment is used at a neutral venue. The match still updates team strength and scoring tendencies in the normal way, but it does not teach the country home-and-away profile. Separate national neutral-venue effects were tested and did not improve later forecasts."
     },
     {
       question: "When does a team’s home-and-away estimate change?",
-      answer: `It is updated after every non-neutral matchday the team plays. All matches on that date are predicted first, then the day’s evidence is learned together. Between appearances, the estimate gradually fades toward the worldwide average with a ${number(summary.parameters.venue_effects.half_life_years, 0)}-year half-life. Team pages label its evidence as limited, moderate or strong.`
+      answer: "It is updated after every non-neutral matchday the team plays. All matches on that date are predicted first, then the day’s evidence is learned together. Between appearances, the estimate gradually fades toward the worldwide average. Team pages label its evidence as limited, moderate or strong."
     },
     {
       question: "How does goal margin affect ratings?",
-      answer: "A larger win usually provides more information than a one-goal win, but each additional goal matters less than the previous one. The model also allows for the fact that typical scorelines have changed over football history."
+      answer: "A larger win usually provides more information than a one-goal win, but each additional goal matters less than the previous one. This prevents a single extreme score from overwhelming the wider evidence. The calculation also allows for the fact that typical scorelines have changed over football history."
     },
     {
       question: "How are new teams given a starting rating?",
-      answer: "A new team starts relative to the established international pool active around its debut, not at one universal number. Early estimates are deliberately uncertain and can adapt quickly as results accumulate."
+      answer: "A new team starts relative to the established international pool active around its debut, not at one universal number. The size of that active pool also matters, which avoids giving early entrants an automatic advantage. Initial estimates are deliberately uncertain and can adapt quickly as results accumulate."
     },
     {
       question: "How are match probabilities calculated?",
@@ -4140,7 +4138,7 @@ function buildFAQItems() {
     },
     {
       question: "Why can a lower-rated team be the forecast favourite?",
-      answer: "The public rating is deliberately cautious when evidence is narrow or uncertain. A match forecast uses the fuller strength and scoring information for that particular matchup, so the two can differ slightly without either being an error."
+      answer: "The public rating is deliberately cautious when evidence is narrow or uncertain. A match forecast uses the fuller strength estimate, venue and scoring tendencies for that particular matchup. A lower-rated team can therefore be a slight favourite in one match without either the ranking or forecast being an error."
     },
     {
       question: "Why keep the forecasting layer separate from the rankings?",
@@ -4148,71 +4146,71 @@ function buildFAQItems() {
     },
     {
       question: "Can the scoring layer reverse NFELO’s most likely result?",
-      answer: "No. It can improve the percentages, but it stops before changing whether the underlying network model favours a win, draw or loss."
+      answer: "No. It can improve how the probability is divided among the three outcomes, but it stops before changing whether the underlying network model favours a win, draw or loss. This preserves one stable match pick while still using team-specific scoring information."
     },
     {
       question: "What does a probability such as 45%–29%–26% mean?",
-      answer: "It means a 45% chance that the first-listed team wins, a 29% chance of a draw and a 26% chance that the second team wins. The first team is the most likely winner, but a draw or loss is still more likely in total."
+      answer: "It means a 45% chance that the first-listed team wins, a 29% chance of a draw and a 26% chance that the second team wins. The first team is the single most likely outcome, but a draw or loss is still more likely in total. Probabilities describe uncertainty; they are not a claim that the favourite should always win."
     },
     {
       question: "How is the methodology tested?",
-      answer: `The current formula is replayed over ${number(summary.validation.retrospective.matches)} pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}. Individual changes are also checked on later periods before adoption, and future fixtures are stored before their results are known.`
+      answer: `The current formula is replayed over ${number(summary.validation.retrospective.matches)} pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}. Historical benchmark tests use earlier periods to choose a model and later periods to score it, making comparison with simpler Elo methods and published WFER forecasts more meaningful. Future fixtures are also stored before their results are known.`
     },
     {
       question: "How accurate is the current NFELO formula?",
-      answer: `Across ${number(summary.validation.retrospective.matches)} historical pre-match forecasts, the current formula’s most likely win, draw or loss was correct ${precisePercent(summary.validation.retrospective.accuracy)} of the time, with log loss ${number(summary.validation.retrospective.log_loss, 6)}. This is a full-history replay of the final formula, not a promise about any single match.`
+      answer: `Across ${number(summary.validation.retrospective.matches)} historical pre-match forecasts, the current formula’s most likely win, draw or loss was correct ${percent(summary.validation.retrospective.accuracy)} of the time. That may sound modest, but international football has many close matchups and three possible outcomes. It is a full-history replay of the final formula, not a promise about any single match.`
     },
     {
       question: "What does better log loss mean in practice?",
-      answer: "Log loss judges all three probabilities rather than only the top choice. Lower is better: it rewards useful confidence and penalises a model that is too certain about an outcome that does not happen."
+      answer: "Log loss judges all three probabilities rather than only asking whether the top choice was correct. Lower is better: it rewards useful confidence and penalises a model that is too certain about an outcome that does not happen. For example, a confidently wrong forecast is treated as worse than a cautious one in an evenly matched game."
     },
     {
       question: "How are extra time and penalty shootouts treated?",
-      answer: "A match that remains level after its recorded playing period counts as a draw for ratings and win/draw/loss forecasts. A shootout decides who advances, but it does not turn that draw into a normal match win."
+      answer: "A match that remains level after its recorded playing period counts as a draw for ratings and win/draw/loss forecasts. A shootout decides who advances, but it does not turn that draw into a normal match win. This keeps the model focused on football played rather than the separate shootout procedure."
     },
     {
       question: "Can I view rankings from a previous date?",
-      answer: "Yes. The History page reconstructs the latest completed matchday on or before any selected date and uses names appropriate to that time, such as West Germany, the Soviet Union and Czechoslovakia."
+      answer: "Yes. The History page accepts a typed date or calendar selection and reconstructs the latest completed matchday on or before it. It also uses names appropriate to that time, such as West Germany, the Soviet Union and Czechoslovakia, and historical team links open at the same date."
     },
     {
       question: "How often is the site updated?",
-      answer: "The site checks results and fixtures three times each day. It rebuilds the complete history only after the new data pass validation; if a check fails, the last verified site stays online."
+      answer: "The site checks results and fixtures three times each day, timed around the main international match windows. It rebuilds the complete history only after the new data pass validation. If a source is incomplete or a check fails, the last verified site stays online unchanged."
     },
     {
       question: "Why can the two teams’ ratings move by different amounts?",
-      answer: "NFELO is not a two-team, zero-sum table. A result affects the wider opponent network, while the two teams can also have different levels of uncertainty and opponent coverage."
+      answer: "NFELO is not a two-team, zero-sum table in which every point gained must be lost by the opponent. A result affects the wider opponent network, while the two teams can also have different levels of uncertainty and opponent coverage. Their published ratings can therefore move by different amounts."
     },
     {
       question: "Why can an inactive team remain highly ranked?",
-      answer: "A period without matches does not prove that a team suddenly became weak. Instead, uncertainty grows and gradually lowers its cautious public rating, while historical ratings and peaks remain as they were at the time."
+      answer: "A period without matches does not prove that a team suddenly became weak, so its estimated strength is not simply erased. Instead, uncertainty grows and gradually lowers its cautious public rating. This deals with long gaps such as wartime inactivity or irregular schedules without rewriting historical ratings and peaks."
     },
     {
       question: "Can ratings from different eras be compared directly?",
-      answer: "They can be compared on NFELO’s historical scale, with adjustments for era, schedule breadth and uncertainty. They are still estimates, not proof of what two teams separated by a century would do in a real match."
+      answer: "They can be compared on NFELO’s historical scale, with adjustments for era, schedule breadth and uncertainty. The network and cautious rating are designed to avoid automatically placing the earliest teams above everyone who followed. Cross-era values are still estimates, not proof of what two teams separated by a century would do in a real match."
     },
     {
       question: "Why does NFELO include territories and some teams outside FIFA?",
-      answer: "The site follows the senior international histories available in its sources rather than FIFA membership alone. Territories and historical teams use the same match-count, activity and evidence rules as everyone else; inclusion is not a political statement."
+      answer: "The site follows the senior international histories available in its sources rather than FIFA membership alone. Territories and historical teams use the same match-count, activity and evidence rules as everyone else, and an inactive team may appear only in historical views. Inclusion is a data decision, not a statement about political status or competition eligibility."
     },
     {
       question: "How are several matches played on the same date handled?",
-      answer: "Every match on a known date is predicted before any result from that date is learned. The results are then learned together, so source order cannot give one same-day match advance knowledge of another."
+      answer: "Every match on a known date is predicted before any result from that date is learned. The results are then learned together, so source order cannot give one same-day match advance knowledge of another. The same rule is used for team strength, country venue profiles and attack and defence tendencies."
     },
     {
       question: "Why does NFELO publish only one ranking?",
-      answer: "The internal strength estimate is useful for forecasting but can flatter teams from small, isolated historical groups. The published rating adds caution for uncertainty and limited opponent breadth, producing one consistent ranking across the site."
+      answer: "The fuller strength estimate is useful for forecasting but can flatter teams from small, isolated historical groups. The published rating adds caution for uncertainty and limited opponent breadth, producing one consistent ranking across the site. Attack and defence values remain supporting forecast information rather than becoming competing rankings."
     },
     {
       question: "Why might an older report show a different accuracy or log loss?",
-      answer: `Older reports describe earlier versions or narrower tests. The public site and README now use one current-formula replay: log loss ${number(summary.validation.retrospective.log_loss, 6)} and top-result accuracy ${precisePercent(summary.validation.retrospective.accuracy)} across ${number(summary.validation.retrospective.matches)} forecasts. Archived research remains available for reproducibility.`
+      answer: `Older reports describe earlier versions or narrower tests. The current headline is ${percent(summary.validation.retrospective.accuracy)} top-result accuracy across ${number(summary.validation.retrospective.matches)} forecasts. Exact technical scoring is kept in the Methodology page, while archived research remains available for reproducibility.`
     },
     {
       question: "Why might a recent result or fixture be missing?",
-      answer: "NFELO depends on external data feeds and publishes only data that pass its checks. A match can appear late when a source has not updated, a team name cannot be matched safely or sources disagree."
+      answer: "NFELO depends on external data feeds and publishes only data that pass its checks. A match can appear late when a source has not updated, a team name cannot be matched safely or sources disagree about details. The update fails closed in those cases, so uncertain data do not replace the last verified site."
     },
     {
       question: "What should I do if I find incorrect data?",
-      answer: "If NFELO differs from a reliable published result, report the teams, date, score, competition and venue through the project’s GitHub repository.",
+      answer: "If NFELO differs from a reliable published result, report the teams, date, score, competition and venue through the project’s GitHub repository. A link to the supporting source is particularly helpful, as it allows the correction to be checked without weakening the automated validation rules.",
       link: "https://github.com/nfelo/nfelo.github.io",
       linkLabel: "Open the NFELO GitHub repository →"
     }
@@ -4291,6 +4289,7 @@ function renderFAQ() {
     const f = p.forecast_layer;
     const v = p.venue_effects;
     const replay = summary.validation.retrospective;
+    const benchmark = summary.validation.nested;
     content.innerHTML = `
       <article class="page page-narrow prose methodology-page">
         <p class="eyebrow">Model · evidence · limitations</p>
@@ -4405,10 +4404,17 @@ function renderFAQ() {
 
         <section class="method-section" aria-labelledby="method-validation">
           <h2 id="method-validation" tabindex="-1">Evidence and forecast accuracy</h2>
-          <p>The public site reports one consistent result for the formula it currently runs. It replays that complete formula over every stored pre-match forecast from 1960 through ${validDate(replay.cutoff)}. Lower log loss means better use of all three probabilities; top-choice accuracy counts only whether the most likely win, draw or loss happened.</p>
+          <p>The first row is the exact result for the formula the site currently runs, replayed over every stored pre-match forecast from 1960 through ${validDate(replay.cutoff)}. Lower log loss means better use of all three probabilities; top-choice accuracy counts only whether the most likely win, draw or loss happened.</p>
           <div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div>
-          <div class="table-shell parameter-table"><table><thead><tr><th>Formula tested</th><th class="numeric">Forecasts</th><th class="numeric">Log loss</th><th class="numeric">Top W/D/L correct</th></tr></thead><tbody><tr><td><b>Current deployed NFELO formula</b></td><td class="numeric">${number(replay.matches)}</td><td class="numeric"><b>${number(replay.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(replay.accuracy)}</b></td></tr></tbody></table></div>
-          <p>This is a retrospective full-history replay of the final formula, so it is a transparent implementation score rather than a promise of future performance. Formula changes are selected with earlier data and checked on later periods before adoption; identified future fixtures are also stored before their results are known for genuinely prospective evaluation. Older benchmark values remain in the research archive, but are not mixed into the public current-model headline.</p>
+          <div class="table-shell parameter-table"><table><thead><tr><th>Model</th><th>Test basis</th><th class="numeric">Forecasts</th><th class="numeric">Log loss</th><th class="numeric">Top W/D/L correct</th></tr></thead><tbody>
+            <tr><td><b>Current deployed NFELO formula</b></td><td>Final-formula replay</td><td class="numeric">${number(replay.matches)}</td><td class="numeric"><b>${number(replay.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(replay.accuracy)}</b></td></tr>
+            <tr><td>Earlier NFELO network benchmark</td><td>Five-block historical holdout</td><td class="numeric">${number(benchmark.matches)}</td><td class="numeric">${number(benchmark.log_loss, 6)}</td><td class="numeric">${precisePercent(benchmark.accuracy)}</td></tr>
+            <tr><td>Best tested scalar Elo</td><td>Same historical holdout</td><td class="numeric">${number(benchmark.matches)}</td><td class="numeric">${number(benchmark.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(benchmark.best_scalar_elo_accuracy)}</td></tr>
+            <tr><td>G-Elo comparison</td><td>Same historical holdout</td><td class="numeric">${number(benchmark.matches)}</td><td class="numeric">${number(benchmark.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(benchmark.g_elo_accuracy)}</td></tr>
+            <tr><td>Published World Football Elo forecast</td><td>Same historical holdout</td><td class="numeric">${number(benchmark.matches)}</td><td class="numeric">${number(benchmark.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(benchmark.published_wfe_accuracy)}</td></tr>
+          </tbody></table></div>
+          <p>The four holdout rows form the like-for-like comparison: model choices used earlier periods and were scored on later ones. The current-formula row instead applies today’s final constants throughout history, so it verifies the deployed implementation but should not be read as a clean head-to-head improvement over those older benchmark rows.</p>
+          <p>Formula changes are selected with earlier data and checked on later periods before adoption. Identified future fixtures are also stored before their results are known, building a genuinely prospective record alongside the historical tests.</p>
         </section>
 
         <section class="method-section" aria-labelledby="method-limits">
@@ -4460,7 +4466,7 @@ function renderFAQ() {
           <h2>Teams covered</h2>
           <p>The source ledger covers senior international histories rather than FIFA membership alone, so it includes some territories, regional selections and defunct teams. Every listed team is subject to the same match-count, activity, opponent-breadth and uncertainty rules. Inclusion is a data-scope decision, not a statement about political status or competition eligibility.</p>
           <h2>Current accuracy figure</h2>
-          <p>The public site and README use one result for the currently deployed formula: ${number(summary.validation.retrospective.matches)} historical pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}, log loss ${number(summary.validation.retrospective.log_loss, 6)} and most-likely W/D/L accuracy ${precisePercent(summary.validation.retrospective.accuracy)}. This is a retrospective full-history replay. Older formula comparisons remain available in the research archive rather than being mixed into the current headline.</p>
+          <p>Across ${number(summary.validation.retrospective.matches)} historical pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}, the current formula’s most likely win, draw or loss was correct ${percent(summary.validation.retrospective.accuracy)} of the time. This is a retrospective full-history replay, not a promise about one future match. <a href="#/methodology?section=validation">See the exact technical result →</a></p>
           <h2>Prospective record</h2>
           <p>For every identified future fixture and methodology version, the first published probability vector is appended to an immutable repository ledger. Later results can therefore be scored against a forecast that was genuinely recorded beforehand rather than reconstructed with hindsight.</p>
           <h2>What the model does not know</h2>

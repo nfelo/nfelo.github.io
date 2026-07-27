@@ -224,12 +224,12 @@ across eras rather than publishing a curve that did not generalise.
 
 ## Current formula accuracy
 
-The public site and this README use one score for the complete formula currently
-deployed:
+Across the complete replay, the current formula’s most likely win, draw or loss
+was correct 59.2% of the time:
 
-| Formula | Forecasts | Three-way log loss | Most-likely W/D/L correct |
-| --- | ---: | ---: | ---: |
-| Current NFELO formula | 46,801 | **0.878333** | **59.170%** |
+| Formula | Forecasts | Most-likely W/D/L correct |
+| --- | ---: | ---: |
+| Current NFELO formula | 46,801 | **59.2%** |
 
 This is a retrospective replay of all stored pre-match forecasts from 1960
 through 11 July 2026. It is an implementation score for the final formula, not
@@ -237,6 +237,10 @@ a promise about an individual future match. Candidate changes are selected
 with earlier data and checked on later periods before adoption. The first
 published probabilities for identified future fixtures are also stored before
 results are known, providing a growing genuinely prospective record.
+
+The [Methodology validation section](https://nfelo.github.io/#/methodology?section=validation)
+gives the exact unrounded accuracy and log-loss score, where that technical
+probability measure is explained.
 
 Older comparisons and component studies remain in `docs/` and `research/` for
 reproducibility, but their figures describe earlier formulas or narrower tests

@@ -273,8 +273,13 @@ class StaticBuildTests(unittest.TestCase):
         self.assertNotIn("codex", readme)
         self.assertNotIn("bake-off", readme)
         self.assertIn("current formula accuracy", normalised_readme)
-        self.assertIn("0.878333", readme)
-        self.assertIn("59.170%", readme)
+        self.assertIn("59.2%", readme)
+        self.assertNotIn("0.878333", readme)
+        self.assertNotIn("59.170%", readme)
+        self.assertIn(
+            "methodology validation section",
+            normalised_readme,
+        )
         self.assertNotIn("0.884219", readme)
         self.assertIn(
             "older comparisons and component studies remain",
@@ -516,19 +521,28 @@ class StaticBuildTests(unittest.TestCase):
             "compactVenueProfileHTML",
             "projectScoreProfile",
             "score-profile-details",
-            "Attack and defence forecast details",
+            "<b>Attack and defence</b>",
             "Own expected goals",
             "Opponent expected goals",
+            "Attack residual",
+            "Defence residual",
             "after every non-neutral matchday",
-            "after every completed matchday",
+            "after each completed matchday",
         ):
             self.assertIn(phrase, javascript)
+        score_panel = javascript.split(
+            'const scorePanel = scoreProfile ? `',
+            1,
+        )[1].split('` : "";', 1)[0]
+        self.assertNotIn("Last matchday update", score_panel)
+        self.assertNotIn("Reversion half-life", score_panel)
         for phrase in (
             ".venue-profile",
             ".venue-profile-highlights",
             ".venue-highlight",
             ".venue-profile-details",
             ".team-model-details",
+            ".score-profile-details .venue-detail-grid",
         ):
             self.assertIn(phrase, stylesheet)
         self.assertNotIn(".venue-profile-metrics", stylesheet)
@@ -1171,6 +1185,12 @@ class StaticBuildTests(unittest.TestCase):
             "summary.validation.retrospective",
             "number(replay.log_loss, 6)",
             "precisePercent(replay.accuracy)",
+            "Earlier NFELO network benchmark",
+            "Best tested scalar Elo",
+            "G-Elo comparison",
+            "Published World Football Elo forecast",
+            "number(benchmark.published_wfe_log_loss, 6)",
+            "Five-block historical holdout",
             "The published rating",
             "Constant, stepped and smoothly changing friendly weights",
             "calibration_precision_decimals",
@@ -1186,10 +1206,6 @@ class StaticBuildTests(unittest.TestCase):
             "Previous full replay",
             "Country venue study:",
             "release improved",
-            "NFELO network benchmark",
-            "Published World Football Elo forecast",
-            "Best tested scalar Elo",
-            "G-Elo comparison",
             "0.884219",
         ):
             self.assertNotIn(patch_note_phrase, methodology)
@@ -1239,9 +1255,13 @@ class StaticBuildTests(unittest.TestCase):
             "updated after every non-neutral matchday",
             "Team pages show these tendencies in an expandable section.",
             "summary.validation.retrospective.accuracy",
-            "summary.validation.retrospective.log_loss",
+            "percent(summary.validation.retrospective.accuracy)",
         ):
             self.assertIn(phrase, faq)
+        self.assertNotIn(
+            "summary.validation.retrospective.log_loss",
+            faq,
+        )
         for stale_public_metric in (
             "summary.validation.nested",
             "0.8842",
@@ -1296,21 +1316,60 @@ class StaticBuildTests(unittest.TestCase):
             "ratingForecastExplanation()",
             "Current-model accuracy",
             "Current deployed NFELO formula",
-            "precisePercent(summary.validation.retrospective.accuracy)",
-            "number(summary.validation.retrospective.log_loss, 6)",
+            "percent(summary.validation.retrospective.accuracy)",
+            "number(replay.log_loss, 6)",
             "yearNumber(f.calibration.year)",
             "yearNumber(f.calibration.training_first_year)",
             "yearNumber(f.calibration.training_last_year)",
         ):
             self.assertIn(phrase, javascript)
-        for old_public_comparison in (
+        home = javascript.split(
+            "async function renderHome()",
+            1,
+        )[1].split("function renderRankings", 1)[0]
+        faq = javascript.split(
+            "function buildFAQItems()",
+            1,
+        )[1].split("function faqSearchTokens", 1)[0]
+        about = javascript.split(
+            "function renderAbout()",
+            1,
+        )[1].split("function renderNotFound", 1)[0]
+        methodology = javascript.split(
+            "function renderMethodology(query",
+            1,
+        )[1].split("function renderAbout", 1)[0]
+        for public_summary in (home, faq, about):
+            self.assertIn(
+                "percent(summary.validation.retrospective.accuracy)",
+                public_summary,
+            )
+            self.assertNotIn(
+                "summary.validation.retrospective.log_loss",
+                public_summary,
+            )
+            self.assertNotIn(
+                "precisePercent(summary.validation.retrospective.accuracy)",
+                public_summary,
+            )
+        self.assertIn("number(replay.log_loss, 6)", methodology)
+        self.assertIn("precisePercent(replay.accuracy)", methodology)
+        for comparison in (
+            "Earlier NFELO network benchmark",
             "Best tested scalar Elo",
             "G-Elo comparison",
             "Published World Football Elo forecast",
-            "precisePercent(nested.published_wfe_accuracy)",
-            "Historical holdout accuracy",
+            "number(benchmark.log_loss, 6)",
+            "number(benchmark.best_scalar_elo_log_loss, 6)",
+            "number(benchmark.g_elo_log_loss, 6)",
+            "number(benchmark.published_wfe_log_loss, 6)",
         ):
-            self.assertNotIn(old_public_comparison, javascript)
+            self.assertIn(comparison, methodology)
+        self.assertNotIn(
+            "precisePercent(nested.published_wfe_accuracy)",
+            javascript,
+        )
+        self.assertNotIn("Historical holdout accuracy", javascript)
         self.assertNotIn("number(f.calibration.year)", javascript)
         self.assertNotIn("number(f.calibration.training_first_year)", javascript)
         self.assertNotIn("number(f.calibration.training_last_year)", javascript)
