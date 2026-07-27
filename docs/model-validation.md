@@ -57,6 +57,38 @@ The evidence did not support Dixon–Coles when log loss remained primary, a new
 global core fit, different competitive update ratios, or a retrospective
 replacement of the existing score-state release schedule.
 
+### Country-specific venue study
+
+The 27 July 2026 venue audit added a separate causal model-selection exercise.
+It ran 1,949 overlapping screening fits across 16 additive, swap-invariant
+structures, including global drift, country host only, away only, separate
+host/away, shared home dependence, neutral and non-home formulations.
+
+Formula and hyperparameter selection used matches through 2019. The 6,320
+matches from 2020 through 11 July 2026 were not inspected until the shared
+country-dependence structure, 60-point prior, 40-year half-life, unit result
+learning and zero neutral adjustment had been fixed.
+
+| End-to-end replay | Log loss |
+| --- | ---: |
+| Previous final layer | 0.880169 |
+| Selected country-profile final layer | **0.878333** |
+| Improvement | **0.001836** |
+
+The untouched 2020–2026 improvement was 0.001315. A paired year-block
+bootstrap put its 95% interval at 0.000208–0.002607, with 99.0% of resamples
+favouring the country model. Every one of the five main time blocks improved.
+
+The ledger lists the host first in 38,769 non-neutral rows and second in only
+one, so unrestricted country host and visitor effects are not cleanly
+identified. The adopted value is therefore split equally between hosting
+benefit and away disadvantage. Separate host/away states were tested and
+improved the baseline, but by less. Adding a country-specific neutral state or
+adding venue posterior variance to match variance weakened the stronger model.
+
+The full protocol, screening-family table, formulae and guardrails are in
+`research/home-advantage-2026-07-27/`.
+
 ### Tournament classification and friendly-information fit
 
 The friendly/competitive decision is separate from the source importance
@@ -87,6 +119,16 @@ and objective, but it is not a new nested out-of-period result. The original
 nested historical holdout remains the primary comparison against other rating
 systems.
 
+An additional temporal check tested 1,650 constant, step and smooth
+era-varying friendly ratios. Candidate families were selected on 2010–2019
+after fitting temperatures only through 2009, then confirmed on untouched
+2020–2026 matches. Every flexible family winner was worse than the deployed
+constant on confirmation; deterioration ranged from 0.000050 to 0.000565 log
+loss. A separate 170-profile venue-learning check found only 0.000022
+incremental gain for a smooth era trend over its best single constant, with a
+paired year-block interval crossing zero. The release therefore retains one
+`0.78621` friendly information ratio in both updates.
+
 ### Core ablations
 
 | Ablation | Log-loss difference | 95% paired interval |
@@ -107,11 +149,12 @@ For every complete date, NFELO:
 1. computes one pre-date debut prior;
 2. initialises all same-date debutants from that prior;
 3. applies participant drift and breadth decay once;
-4. forecasts all network and score-layer outcomes from the frozen state;
-5. applies one joint Gaussian precision update from all date observations;
-6. updates attack, defence and goal-environment states only after forecasts are
-   saved; and
-7. records one post-date ranking event per participant.
+4. projects participant country venue states to the date;
+5. forecasts all network and score-layer outcomes from the frozen state;
+6. applies one joint Gaussian precision update from all date observations;
+7. updates country venue, attack, defence and goal-environment states only
+   after forecasts are saved; and
+8. records one post-date ranking event per participant.
 
 Rows without a complete month/day stay sequential. Tests cover order
 invariance, equal same-date debut priors, covariance symmetry and positive
@@ -150,19 +193,19 @@ and constants, the Python replay produces:
 
 | Diagnostic | Value |
 | --- | ---: |
-| Final-layer log loss | 0.880172 |
-| Network-only log loss | 0.881519 |
-| Final-layer Brier score | 0.518268 |
-| Final-layer ranked probability score | 0.172481 |
-| Most-likely outcome correct | 59.086% |
+| Final-layer log loss | 0.878333 |
+| Network-only log loss | 0.879921 |
+| Final-layer Brier score | 0.517162 |
+| Final-layer ranked probability score | 0.171949 |
+| Most-likely outcome correct | 59.170% |
 | Matches | 46,801 |
 
 The annual calibration uses 7,922 matches from
 2018–2025 and
-produces draw log tilt 0.151031, friendly calibration
-power 0.910657, competitive calibration power
-1.070155 and network pool weight
-0.547518.
+produces draw log tilt 0.151744, friendly calibration
+power 0.905675, competitive calibration power
+1.067154 and network pool weight
+0.531124.
 
 The four fitted values are canonicalised to six decimal places before they are
 used or published. This grid is far below the site's displayed probability
@@ -216,9 +259,10 @@ The release audit requires Current Rankings and the latest History table to
 have the same membership, order and public values, and checks every No. 1 spell
 against the top History row on its entry date.
 
-### Historical regression result
+### Historical guardrails
 
-Against the rollback baseline on the same 52,310-match source snapshot:
+The preceding global-as-of consistency release was checked against its
+rollback baseline on the same 52,310-match source snapshot:
 
 - all 222 current teams kept exactly the same rank;
 - mean absolute current-rating movement was 0.036 points;
@@ -227,10 +271,10 @@ Against the rollback baseline on the same 52,310-match source snapshot:
 - mean absolute peak movement was 0.373 points; and
 - maximum peak movement was 3.872 points.
 
-The leading peaks remained Brazil 1999, Spain 2010, England 1912, Hungary 1955
-and Germany 2014. Only one pre-First World War British nation appeared in the
-top 20. Persistent tests check both the public-rating formula and these
-historical guardrails.
+Those checks remain in the suite. After the country-venue release, the leading
+peaks are Brazil 1999, Spain 2012, England 1912, Hungary 1955 and France 2001.
+Only one pre-First World War British nation appears in the top 20. Persistent
+tests check both the public-rating formula and these historical guardrails.
 
 ## Prospective evidence
 
@@ -248,6 +292,8 @@ complete released system without reconstructing probabilities with hindsight.
 The complete audit report is in
 `docs/methodology-audit-2026-07-19.md`. Executable audit programs and recorded
 results are under `research/methodology-audit-2026-07-19/`.
+The later country venue study is under
+`research/home-advantage-2026-07-27/`.
 
 Routine site builds execute the deployed replay and public regression suite.
 The research programs are retained for independent inspection; broad parameter

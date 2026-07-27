@@ -23,6 +23,7 @@ from tournament_classification import (
     runtime_is_friendly,
     validate_registry,
 )
+from venue_effects import VenueEffects
 
 
 KNOT_YEARS = (1900, 1930, 1960, 1990, 2020)
@@ -334,6 +335,10 @@ class NetworkEloReplay:
             (config / "forecast_layer.json").read_text(encoding="utf-8")
         )
         self.forecast_layer = ForecastLayer(self.count, forecast_configuration)
+        self.venue_effects = VenueEffects.from_path(
+            self.count,
+            config / "venue_effects.json",
+        )
 
         self.mean = np.full(self.count, np.nan, dtype=np.float64)
         self.covariance = np.zeros((self.count, self.count), dtype=np.float64)
@@ -677,6 +682,7 @@ class NetworkEloReplay:
             for index in participants:
                 self.add_drift(index, first_match.day)
                 self.decay_breadth(index, first_match.day)
+            self.venue_effects.advance_many(participants, first_match.day)
 
             reference = self.reference_context(year, tuple(participants))
             pending: list[dict[str, Any]] = []
@@ -700,6 +706,12 @@ class NetworkEloReplay:
                 scale = calibration_scale(match.year)
                 difference = scale * (float(self.mean[i]) - float(self.mean[j]))
                 difference += home_advantage(match.year) * match.home_sign
+                venue_correction = self.venue_effects.correction(
+                    i,
+                    j,
+                    match.home_sign,
+                )
+                difference += venue_correction
                 expected_score = float(logistic10(difference))
                 difference_variance = max(
                     0.0,
@@ -709,6 +721,12 @@ class NetworkEloReplay:
                         - 2.0 * self.covariance[i, j]
                     ),
                 )
+                venue_variance = self.venue_effects.predictive_variance(
+                    i,
+                    j,
+                    match.home_sign,
+                )
+                difference_variance += venue_variance
                 level = self.level(match.tournament)
                 friendly = self.is_friendly_match(match)
                 network_probabilities = three_way_probabilities(
@@ -724,6 +742,8 @@ class NetworkEloReplay:
                     "difference": difference, "expected": expected_score,
                     "variance": difference_variance, "level": level,
                     "friendly": friendly,
+                    "venue_correction": venue_correction,
+                    "venue_variance": venue_variance,
                     "network": network_probabilities,
                 })
                 score_rows.append({
@@ -763,6 +783,18 @@ class NetworkEloReplay:
                         "tournament": self.tournament_name(match.tournament),
                         **item["pre_pair"],
                     })
+
+            self.venue_effects.update_day(
+                {
+                    "first": item["i"],
+                    "second": item["j"],
+                    "home_sign": item["match"].home_sign,
+                    "result": item["match"].result,
+                    "expected": item["expected"],
+                    "friendly": item["friendly"],
+                }
+                for item in pending
+            )
 
             # Frozen gradients are combined with one joint Gaussian precision
             # update.  This is invariant to the source's within-date row order.
@@ -825,6 +857,8 @@ class NetworkEloReplay:
                     "class": "friendly" if item["friendly"] else "competitive",
                     "venue": self.name(match.venue) if match.venue else self.name(match.team1),
                     "home": match.home_sign,
+                    "global_home": home_advantage(match.year) * match.home_sign,
+                    "country_home": item["venue_correction"],
                     "p": item["probabilities"].tolist(),
                     "expected": item["expected"],
                     "pre_a": None if pre_first is None else pre_first["rating"],
@@ -891,6 +925,10 @@ class NetworkEloReplay:
                     "rating": post["rating"], "mean": post["mean"], "se": post["se"],
                     "latent": post["latent"], "reliability": post["reliability"],
                     "score_state": self.forecast_layer.historical_team_state(index),
+                    "venue_effect": self.venue_effects.record(
+                        index,
+                        match.day,
+                    ),
                     "matches": int(self.games[index]), "form": list(self.stats[index]["last5"]),
                     "opponent": opponent_name, "historical_name": self.name(historical_code),
                     "score": score_text,
@@ -979,6 +1017,10 @@ class NetworkEloReplay:
                     public_date if recent else latest_appearance
                 ),
                 "peak": self.peaks.get(team),
+                "venue_effect": self.venue_effects.record(
+                    index,
+                    model_day(public_date if recent else latest_appearance),
+                ),
             }
             all_teams.append(item)
             if (
@@ -1044,6 +1086,9 @@ class NetworkEloReplay:
         if evidence_path.exists():
             source_hash.update(evidence_path.name.encode("utf-8"))
             source_hash.update(evidence_path.read_bytes())
+        venue_path = self.config / "venue_effects.json"
+        source_hash.update(venue_path.name.encode("utf-8"))
+        source_hash.update(venue_path.read_bytes())
 
         retrospective = self.finish_validation_score(self.validation_totals["final"])
         retrospective_network = self.finish_validation_score(
@@ -1055,7 +1100,7 @@ class NetworkEloReplay:
         summary = {
             "meta": {
                 "model": "Network Football Elo — shared-opponent uncertainty model",
-                "methodology_version": "2026-07-26-global-as-of-consistency",
+                "methodology_version": "2026-07-27-country-home-dependence",
                 "results_through": last_match.date_text,
                 "rankings_as_of": public_date,
                 "matches": len(self.matches),
@@ -1120,6 +1165,24 @@ class NetworkEloReplay:
                     "competitive": f"{COMPETITIVE_TEMPERATURE:.12f}",
                 },
                 "forecast_layer": self.forecast_layer.public_parameters(),
+                "venue_effects": {
+                    "version": self.venue_effects.version,
+                    "prior_sd": self.venue_effects.prior_sd,
+                    "half_life_years": self.venue_effects.half_life_years,
+                    "home_share": self.venue_effects.home_share,
+                    "away_share": self.venue_effects.away_share,
+                    "friendly_learning_ratio": (
+                        self.venue_effects.friendly_learning_ratio
+                    ),
+                    "competitive_learning_ratio": (
+                        self.venue_effects.competitive_learning_ratio
+                    ),
+                    "neutral_effect": self.venue_effects.neutral_effect,
+                    "predictive_variance_scale": (
+                        self.venue_effects.predictive_variance_scale
+                    ),
+                    "selection_rule": self.venue_effects.selection_rule,
+                },
             },
             "validation": {
                 "primary_evidence": "nested_historical_holdout",
@@ -1145,6 +1208,7 @@ class NetworkEloReplay:
                     "cutoff": RETROSPECTIVE_CUTOFF,
                     "unknown_dates": "sequential",
                 },
+                "home_advantage_study": self.venue_effects.validation,
             },
         }
         forecast_state = self.forecast_layer.export()
@@ -1169,6 +1233,7 @@ class NetworkEloReplay:
             "nodes": QUADRATURE_NODES.tolist(),
             "weights": QUADRATURE_WEIGHTS.tolist(),
             "forecast_layer": forecast_state,
+            "venue_effects": self.venue_effects.export(current_day),
         }
 
         if not np.all(np.isfinite(self.mean[~np.isnan(self.mean)])):

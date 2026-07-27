@@ -15,7 +15,7 @@ evidence-adjusted network rating. A hidden attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
 gained from results.
 
-**Current methodology version:** `2026-07-26-global-as-of-consistency`.
+**Current methodology version:** `2026-07-27-country-home-dependence`.
 
 Tournament snapshots use the same published rating immediately before and
 after each completed edition. Tournament rating change and Best tournaments
@@ -27,7 +27,8 @@ find.
 The rating state is a full-covariance dynamic Gaussian opponent network. The
 base-10 Elo expectation remains the observation link, while the model also
 represents uncertainty shared through common opponents, era-specific home and
-draw conditions, an active-pool debut prior and goal-margin information.
+draw conditions, time-varying country venue profiles, an active-pool debut
+prior and goal-margin information.
 Competitive and unresolved results use information ratio 1.00; evidence-backed friendlies use 0.78621.
 
 Every match with a complete shared date is forecast from one frozen start-of-day
@@ -87,6 +88,44 @@ Q_ij = M_i + M_j
 Both participants need 30 prior matches. Every match instance is retained;
 repeat pairings are not collapsed.
 
+## Country-specific home and away profiles
+
+A non-neutral forecast combines the worldwide home baseline for the football
+era with one causal, time-varying value for each country:
+
+```text
+C_ij = h × (d_i + d_j) / 2
+delta = a(year) × (mu_i - mu_j) + H(year) × h + C_ij
+```
+
+Here `h` is `+1` when the first-listed team is home, `-1` when the
+second-listed team is home and `0` at a neutral venue. A positive `d_i`
+contributes `+d_i/2` when team `i` hosts and `-d_i/2` from its own
+perspective when it visits. Neutral matches receive no era or country venue
+adjustment and do not update the country venue state.
+
+Each `d_i` begins at zero with a 60-point prior standard deviation. Between
+appearances, its mean and posterior precision revert toward that prior with a
+40-year half-life. This allows genuine country differences to change through
+time without treating short runs or old conditions as permanent national
+traits. Non-neutral competitive results have learning ratio 1; evidence-backed
+friendlies use 0.78621. All matches on one complete date use frozen pre-date
+profiles before their venue evidence is combined.
+
+The source ledger lists the host first in 38,769 non-neutral rows and second in
+only one. Independent country host and visitor parameters are therefore not
+cleanly identifiable. The audit still tested host-only, away-only, separate
+host/away, neutral, non-home, global and combined structures. The strongest
+earlier-only selection was one shared country “home dependence” value divided
+equally between hosting and visiting. Adding a country-specific neutral term
+or adding venue-state posterior variance to match variance made forecasts
+worse.
+
+Team pages publish the selected-date dependence estimate, hosting and away
+components, neutral value, standard error, 95% interval, evidence count and
+reliability. These numbers affect match expectations, not the public ranking
+formula directly.
+
 ## Forecast probabilities
 
 The network forecast integrates uncertainty in the strength difference and
@@ -114,6 +153,11 @@ The 0.78621 friendly multiplier applies to the opponent-network update before
 the joint matchday calculation. It scales both gradient and curvature, so a
 friendly's displayed point movement is not mechanically 78.6% of an otherwise
 similar competitive match.
+
+The same friendly ratio is used when the separate country venue state learns,
+but its selected update uses result surprise rather than goal margin. This was
+chosen using earlier matches only; applying the main margin-weighted update to
+the venue state forecast later matches less accurately.
 
 ## Chronology and publication safeguards
 
@@ -160,6 +204,13 @@ These are reproducible full-sample constants for the fixed ledger and
 objective, not claims of equivalent population precision. Classification
 evidence, future results and prospective scoring can move the preferred value.
 
+An additional chronology-first study tested 1,650 constant, stepped and smooth
+era-varying friendly ratios. Every flexible family selected on 2010–2019
+worsened forecasts on untouched 2020–2026 matches. A separate 170-profile
+check of friendly learning in the country venue state found no reliable
+incremental era effect over one constant. NFELO therefore keeps `0.78621`
+across eras rather than publishing a curve that did not generalise.
+
 ## Validation: two different evidence classes
 
 The primary comparative result is the original five-block **nested historical
@@ -182,6 +233,26 @@ useful for checking date batching, the boundary gate and other mechanics, but
 it is not a second out-of-sample estimate and must not be compared as if it were
 the same experiment as the nested holdout.
 
+The country venue release has a separate temporal study. It executed 1,949
+overlapping screening fits across 16 formula structures and associated prior,
+half-life, learning and predictive-variance choices. Selection used matches
+through 2019. The final end-to-end replay was then scored on 6,320 untouched
+matches from 2020 through 11 July 2026.
+
+| Country venue comparison | Three-way log loss |
+| --- | ---: |
+| Previous final-layer replay | 0.880169 |
+| Selected country-profile replay | **0.878333** |
+| Improvement | **0.001836** |
+
+The untouched-period improvement was `0.001315`. A paired year-block bootstrap
+put its 95% interval at `0.000208` to `0.002607`, with 99.0% of resamples
+favouring the country-profile model. All five time blocks from 1960–1979
+through 2020–2026 improved. This supports adoption as an average forecast
+improvement; it does not establish that every country has a non-zero effect.
+The complete protocol, formula-family comparison and guardrails are in
+[`research/home-advantage-2026-07-27/`](research/home-advantage-2026-07-27/).
+
 First-published fixture probabilities are stored in
 `source/prospective_forecasts.jsonl` by methodology version, source hash,
 model-state hash and results-through date. That ledger supplies genuinely
@@ -199,7 +270,9 @@ It validates and stages external data, replays the complete history, runs the
 test suite and deploys only a verified static artifact. If input or model checks
 fail, the last good site remains online.
 
-Routine updates do not refit core rating or score-state structure. At each
+Routine updates do not refit core rating, country-venue or score-state
+structure. Country profiles continue to learn causally under the frozen
+60-point prior and 40-year half-life. At each
 January boundary, only the declared forecast calibration is refitted from the
 preceding eight complete years, then canonicalised to six decimal places.
 Every rebuild applies the tournament
@@ -226,6 +299,7 @@ python -m http.server 8000 --directory public
 - `scripts/ledger.py` — identity mapping, deduplication and source ordering.
 - `scripts/tournament_classification.py` — evidence registry, future-code rules and audit.
 - `scripts/model.py` — date-batched opponent-network replay and public rating.
+- `scripts/venue_effects.py` — causal time-varying country venue state.
 - `scripts/forecast_layer.py` — hidden score state, annual calibration and gate.
 - `scripts/build_site.py` — static data, history, records and fixture generation.
 - `scripts/fetch_sources.py` — guarded multi-source updater.

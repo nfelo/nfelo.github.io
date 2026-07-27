@@ -659,6 +659,19 @@ def build_fixtures(
     index = {code: position for position, code in enumerate(state["codes"])}
     count = len(state["codes"])
     covariance = state["covariance"]
+    venue_state = state["venue_effects"]
+
+    def projected_venue_mean(position: int, forecast_day: int) -> float:
+        previous = int(venue_state["last_day"][position])
+        elapsed = (
+            0.0
+            if previous < 0
+            else max(0.0, (forecast_day - previous) / 400.0)
+        )
+        retention = 0.5 ** (
+            elapsed / float(venue_state["half_life_years"])
+        )
+        return float(venue_state["means"][position]) * retention
     current = {team["code"]: team for team in output.summary["teams"]}
     fixtures = []
     results_through = str(output.summary["meta"]["results_through"])
@@ -676,7 +689,17 @@ def build_fixtures(
         forecast_day = model_day(str(fixture["date"]))
         scale = calibration_scale(year)
         difference = scale * (float(state["means"][i]) - float(state["means"][j]))
-        difference += home_advantage(year) * int(fixture.get("home_sign", 0))
+        home_sign = int(fixture.get("home_sign", 0))
+        global_home = home_advantage(year) * home_sign
+        country_home = 0.0
+        if home_sign:
+            country_home = home_sign * (
+                float(venue_state["home_share"])
+                * projected_venue_mean(i, forecast_day)
+                + float(venue_state["away_share"])
+                * projected_venue_mean(j, forecast_day)
+            )
+        difference += global_home + country_home
         first_variance = projected_variance(
             covariance[i * count + i],
             int(state["last_day"][i]),
@@ -790,6 +813,9 @@ def build_fixtures(
                     combined_mean
                     - CONFIDENCE_Z * combined_se
                 ),
+                "global_home_adjustment": global_home,
+                "country_home_adjustment": country_home,
+                "total_home_adjustment": global_home + country_home,
                 "probabilities": probabilities.tolist(),
             }
         )
@@ -2136,6 +2162,7 @@ def build_historical_rankings(data: Path, output: Any) -> None:
                 "latent": point["latent"],
                 "reliability": point["reliability"],
                 "score_state": point["score_state"],
+                "venue_effect": point["venue_effect"],
                 "matches": point["matches"],
                 "form": point["form"],
             }

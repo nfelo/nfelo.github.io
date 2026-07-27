@@ -136,6 +136,11 @@ const filteredEmptyState = (subject) => (
     maximumFractionDigits: 1,
     useGrouping: false,
   });
+  const signedRating = (value) => (
+    value == null
+      ? "—"
+      : `${Number(value) >= 0 ? "+" : "−"}${rating(Math.abs(Number(value)))}`
+  );
   const percent = (value) => `${number(value * 100, 1)}%`;
   const precisePercent = (value) => `${number(value * 100, 3)}%`;
   const todayISO = () => {
@@ -147,6 +152,64 @@ const filteredEmptyState = (subject) => (
     if (!match) return null;
     return Number(match[1]) * 400 + Number(match[2]) * 32 + Number(match[3]);
   };
+  const projectVenueProfile = (profile, targetDay) => {
+    if (!profile || targetDay == null) return null;
+    const parameters = summary?.parameters?.venue_effects;
+    const prior = Number(parameters?.prior_sd);
+    const halfLife = Number(parameters?.half_life_years);
+    const sourceDay = Number(profile.as_of_day);
+    const dependence = Number(profile.dependence);
+    const standardError = Number(profile.se);
+    if (
+      !Number.isFinite(prior)
+      || !Number.isFinite(halfLife)
+      || !Number.isFinite(sourceDay)
+      || !Number.isFinite(dependence)
+      || !Number.isFinite(standardError)
+    ) {
+      return null;
+    }
+    const elapsed = Math.max(0, (targetDay - sourceDay) / 400);
+    const retention = Math.pow(0.5, elapsed / halfLife);
+    const variance = Math.max(
+      0,
+      prior * prior
+      - (prior * prior - standardError * standardError)
+        * retention * retention,
+    );
+    const projected = dependence * retention;
+    const homeShare = Number(parameters.home_share);
+    const awayShare = Number(parameters.away_share);
+    return {
+      dependence: projected,
+      se: Math.sqrt(variance),
+      hosting_adjustment: homeShare * projected,
+      away_adjustment: -awayShare * projected,
+      away_disadvantage: awayShare * projected,
+      neutral: Number(parameters.neutral_effect),
+      reliability: Math.max(
+        0,
+        Math.min(1, 1 - variance / (prior * prior)),
+      ),
+      matches: Number(profile.matches) || 0,
+      as_of_day: targetDay,
+    };
+  };
+  const venueProfileFromState = (state, index, targetDay) => {
+    const venue = state?.venue_effects;
+    if (!venue || index == null) return null;
+    return projectVenueProfile({
+      dependence: Number(venue.means[index]),
+      se: Math.sqrt(Math.max(0, Number(venue.variances[index]))),
+      matches: Number(venue.matches[index]),
+      as_of_day: Number(venue.last_day[index]),
+    }, targetDay);
+  };
+  const compactVenueProfileHTML = (profile) => (
+    profile
+      ? `<span class="venue-summary"><b>${signedRating(profile.dependence)}</b><small>host ${signedRating(profile.hosting_adjustment)} · away ${signedRating(profile.away_adjustment)}</small></span>`
+      : "—"
+  );
   const projectTeamRating = (team, asOfDate) => {
     const sourceDate = team?.rating_date || team?.date;
     const sourceDay = modelDayNumber(sourceDate);
@@ -429,7 +492,7 @@ const filteredEmptyState = (subject) => (
   }
 
   function ratingForecastExplanation() {
-    return `<div class="callout forecast-explanation"><b>Why can the lower-rated team be the forecast favourite?</b> The public rating is deliberately reduced for limited opponent breadth and uncertainty so rankings remain cautious and comparable across eras. Match probabilities use the model's underlying strength estimate, its uncertainty and team-specific attack and defence tendencies. The two outputs therefore answer related but different questions. <a href="#/methodology">How ratings and forecasts fit together →</a></div>`;
+    return `<div class="callout forecast-explanation"><b>Why can the lower-rated team be the forecast favourite?</b> The public rating is deliberately reduced for limited opponent breadth and uncertainty so rankings remain cautious and comparable across eras. Match probabilities use the model's underlying strength estimate, its uncertainty, the two countries’ time-varying home/away profiles and team-specific attack and defence tendencies. The two outputs therefore answer related but different questions. <a href="#/methodology">How ratings and forecasts fit together →</a></div>`;
   }
 
   function poissonWDL(lambdaA, lambdaB) {
@@ -1420,7 +1483,7 @@ function defaultMajorTournamentFamily(families) {
     const latest = index.decades[index.decades.length - 1].decade;
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">International results since 1872</p><h1>Matches</h1></div><p class="lede">Browse the complete match history. Probabilities and ratings are calculated using only information available before each match.<span class="page-action-hint">Tap or click a probability bar for the full prediction.</span></p></header>
+        <header class="page-heading"><div><p class="eyebrow">International results since 1872</p><h1>Matches</h1></div><p class="lede">Browse the complete match history. Probabilities and ratings are calculated using only information available before each match. A home forecast combines the era-wide baseline with both countries’ venue profiles; neutral matches receive neither adjustment.<span class="page-action-hint">Tap or click a probability bar for the full prediction and venue breakdown.</span></p></header>
         ${ratingForecastExplanation()}
         <div class="toolbar">
           <div class="field"><label for="match-decade">Era</label><select id="match-decade"><option value="all">All ${number(summary.meta.matches)} matches</option>${index.decades.slice().reverse().map((item) => `<option value="${item.decade}">${item.decade}s · ${number(item.count)}</option>`).join("")}</select></div>
@@ -2532,7 +2595,7 @@ function renderRecords(route) {
       : "Team or competition…";
     content.innerHTML = `
       <div class="page">
-        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Validated fixtures from multiple public schedules, paired with probabilities from the current model. Individual ratings are projected to the match date; Combined uses the same joint-uncertainty score as completed Matches and Records. W and L are from the perspective of the first-listed team.<span class="page-action-hint">Tap or click a probability bar for the full prediction.</span></p></header>
+        <header class="page-heading"><div><p class="eyebrow">Scheduled senior internationals</p><h1>Upcoming matches</h1></div><p class="lede">Validated fixtures from multiple public schedules, paired with probabilities from the current model. Individual ratings and country venue profiles are projected to the match date; Combined uses the same joint-uncertainty score as completed Matches and Records. W and L are from the perspective of the first-listed team.<span class="page-action-hint">Tap or click a probability bar for the full prediction and venue breakdown.</span></p></header>
         <div class="record-note"><strong>${number(fixtures.length)}</strong><div><b>Known future pairings.</b> Placeholder knockout matches remain hidden until both teams are identified. Feed checked ${validTimestamp(payload.checked_at)}.</div></div>
         <div class="toolbar"><div class="field field-grow"><label for="fixture-search">Team or competition</label><input id="fixture-search" type="search" placeholder="${escapeHTML(fixtureSearchPlaceholder)}" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="fixture-competition">Competition</label><select id="fixture-competition"><option value="">All competitions</option>${competitions.map((name) => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("")}</select></div></div>
         <p id="fixture-count" class="muted small"></p>
@@ -3336,12 +3399,13 @@ function renderRecords(route) {
       output.innerHTML = `
         <section class="section comparison-summary-section">
           <div class="section-heading"><div><p class="eyebrow">${number(teams.length)} selected teams</p><h2>Comparison summary</h2></div></div>
-          <div class="table-shell comparison-summary-table"><table><thead><tr><th>Team</th><th>Status</th><th class="numeric">Rating</th><th>12-month movement</th><th>All-time peak</th><th>Overall record</th></tr></thead><tbody>
+          <div class="table-shell comparison-summary-table"><table><thead><tr><th>Team</th><th>Status</th><th class="numeric">Rating</th><th>12-month movement</th><th>Home dependence</th><th>All-time peak</th><th>Overall record</th></tr></thead><tbody>
             ${teams.map((team, index) => `<tr>
               <td data-label="Team"><span class="comparison-team-name"><i class="comparison-series-swatch ${chartSeriesClass(index)}" aria-hidden="true"></i>${teamLink(team.code, team.nation)}</span></td>
               <td data-label="Status">${comparisonStatus(team)}</td>
               <td class="numeric" data-label="${comparisonRatingLabel(team)}"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">${comparisonRatingLabel(team)}</span></td>
               <td data-label="12-month movement">${team.rank ? movementHTML(team) : "—"}</td>
+              <td data-label="Home dependence">${compactVenueProfileHTML(team.venue_effect)}</td>
               <td data-label="All-time peak">${team.peak ? `${rating(team.peak.rating)}<span class="rating-sub">${validDate(team.peak.date)}</span>` : "—"}</td>
               <td data-label="Overall record">${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</td>
             </tr>`).join("")}
@@ -3619,17 +3683,49 @@ function renderRecords(route) {
         const drawBase = useCurrent ? currentState.draw : historicalDraw(year);
         const vi = first.se * first.se;
         const vj = second.se * second.se;
+        const i = currentIndex.get(first.code);
+        const j = currentIndex.get(second.code);
         let variance;
         let cross = 0;
         if (useCurrent) {
-          const i = currentIndex.get(first.code);
-          const j = currentIndex.get(second.code);
           cross = cov(i, j);
           variance = Math.max(0, vi + vj - 2 * cross);
         } else {
           variance = Math.max(0, vi + vj);
         }
-        const difference = scale * (first.latent - second.latent) + homePoints * home;
+        const firstVenue = useCurrent
+          ? venueProfileFromState(currentState, i, dayNumber)
+          : projectVenueProfile(first.venue_effect, dayNumber);
+        const secondVenue = useCurrent
+          ? venueProfileFromState(currentState, j, dayNumber)
+          : projectVenueProfile(second.venue_effect, dayNumber);
+        const venueParameters = summary.parameters.venue_effects;
+        let globalVenue = homePoints * home;
+        let countryVenue = home === 0 ? 0 : home * (
+          Number(venueParameters.home_share)
+            * Number(firstVenue?.dependence || 0)
+          + Number(venueParameters.away_share)
+            * Number(secondVenue?.dependence || 0)
+        );
+        if (
+          linkedMatch
+          && linkedMatch.date === dateValue
+          && linkedMatch.a === first.code
+          && linkedMatch.b === second.code
+          && Number(linkedMatch.home) === home
+        ) {
+          globalVenue = Number(
+            linkedMatch.global_home ?? globalVenue,
+          );
+          countryVenue = Number(
+            linkedMatch.country_home ?? countryVenue,
+          );
+        }
+        const difference = (
+          scale * (first.latent - second.latent)
+          + globalVenue
+          + countryVenue
+        );
         const expected = logistic(difference);
         const network = [0, 0, 0];
         currentState.nodes.forEach((node, index) => {
@@ -3649,8 +3745,6 @@ function renderRecords(route) {
         let firstScore;
         let secondScore;
         if (useCurrent) {
-          const i = currentIndex.get(first.code);
-          const j = currentIndex.get(second.code);
           firstScore = { release: layer.release, attack: layer.attack[i], defence: layer.defence[i], last_day: layer.last_day[i] };
           secondScore = { release: layer.release, attack: layer.attack[j], defence: layer.defence[j], last_day: layer.last_day[j] };
         } else {
@@ -3696,7 +3790,7 @@ function renderRecords(route) {
         }
         const labels = [`${first.nation} win`, "Draw", `${second.nation} win`];
         const maximum = Math.max(...probabilities);
-        document.getElementById("forecast").innerHTML = `<section class="forecast" aria-live="polite"><div class="forecast-title"><div><p class="eyebrow">Match forecast · ${validDate(dateValue)}</p><h2>${escapeHTML(first.nation)} v ${escapeHTML(second.nation)}</h2></div><span>${friendly ? "friendly" : "competitive"} · ${home === 0 ? "neutral" : home === 1 ? `${escapeHTML(first.nation)} home` : `${escapeHTML(second.nation)} home`}</span></div><div class="forecast-bars">${probabilities.map((value, index) => `<div class="forecast-outcome ${value === maximum ? "is-top" : ""}"><span>${escapeHTML(labels[index])}</span><strong>${percent(value)}</strong></div>`).join("")}</div><div class="forecast-meta"><span>${escapeHTML(first.nation)} <b>No. ${first.rank} · ${rating(first.rating)}</b></span><span>${escapeHTML(second.nation)} <b>No. ${second.rank} · ${rating(second.rating)}</b></span><span>Expected goals <b>${number(lambdaA, 2)}–${number(lambdaB, 2)}</b></span></div></section>`;
+        document.getElementById("forecast").innerHTML = `<section class="forecast" aria-live="polite"><div class="forecast-title"><div><p class="eyebrow">Match forecast · ${validDate(dateValue)}</p><h2>${escapeHTML(first.nation)} v ${escapeHTML(second.nation)}</h2></div><span>${friendly ? "friendly" : "competitive"} · ${home === 0 ? "neutral" : home === 1 ? `${escapeHTML(first.nation)} home` : `${escapeHTML(second.nation)} home`}</span></div><div class="forecast-bars">${probabilities.map((value, index) => `<div class="forecast-outcome ${value === maximum ? "is-top" : ""}"><span>${escapeHTML(labels[index])}</span><strong>${percent(value)}</strong></div>`).join("")}</div><div class="forecast-meta"><span>${escapeHTML(first.nation)} <b>No. ${first.rank} · ${rating(first.rating)}</b></span><span>${escapeHTML(second.nation)} <b>No. ${second.rank} · ${rating(second.rating)}</b></span><span>Expected goals <b>${number(lambdaA, 2)}–${number(lambdaB, 2)}</b></span><span>Team-one venue adjustment <b>${signedRating(globalVenue + countryVenue)}</b>${home === 0 ? " · neutral" : ` · era ${signedRating(globalVenue)}, countries ${signedRating(countryVenue)}`}</span></div></section>`;
 
         const massesA = poissonMasses(lambdaA, 40);
         const massesB = poissonMasses(lambdaB, 40);
@@ -3840,6 +3934,42 @@ const lineageNote = lineageNames.length > 1
       return stats;
     }, { matches: 0, gf: 0, ga: 0, W: 0, D: 0, L: 0 });
     const historicalPeak = history.length ? history.reduce((best, point) => point.rating > best.rating ? point : best, history[0]) : null;
+    const venueAsOfDate = (
+      cutoff
+      || team.rating_date
+      || summary.meta.rankings_as_of
+    );
+    const venueProfile = projectVenueProfile(
+      cutoff
+        ? latestPoint?.venue_effect
+        : team.venue_effect,
+      modelDayNumber(venueAsOfDate),
+    );
+    const venueInterval = venueProfile
+      ? [
+        venueProfile.dependence - 1.96 * venueProfile.se,
+        venueProfile.dependence + 1.96 * venueProfile.se,
+      ]
+      : null;
+    const venuePanel = venueProfile ? `
+      <section class="venue-profile" aria-labelledby="venue-profile-title">
+        <div class="venue-profile-copy">
+          <p class="eyebrow">Venue model · ${validDate(venueAsOfDate)}</p>
+          <h2 id="venue-profile-title">Home and away profile</h2>
+          <p>This country estimate changes through time and is shrunk toward the worldwide era baseline when evidence is limited or old. Positive dependence means a larger boost at home and a larger penalty away; negative values mean results have depended less on home conditions.</p>
+          <p class="venue-profile-formula">For a home match, the model adds the era baseline plus half of each participant’s dependence. Neutral matches receive no country venue adjustment. <a href="#/methodology">Full method and validation →</a></p>
+        </div>
+        <div class="venue-profile-metrics">
+          <div class="venue-metric venue-metric-primary"><span>Home dependence</span><strong>${signedRating(venueProfile.dependence)}</strong><small>Elo-point estimate</small></div>
+          <div class="venue-metric"><span>When hosting</span><strong>${signedRating(venueProfile.hosting_adjustment)}</strong><small>Team’s expected-score gap</small></div>
+          <div class="venue-metric"><span>When away</span><strong>${signedRating(venueProfile.away_adjustment)}</strong><small>Team’s expected-score gap</small></div>
+          <div class="venue-metric"><span>At neutral venue</span><strong>${signedRating(venueProfile.neutral)}</strong><small>Country adjustment</small></div>
+          <div class="venue-metric"><span>Standard error</span><strong>±${rating(venueProfile.se)}</strong><small>Estimate uncertainty</small></div>
+          <div class="venue-metric"><span>95% interval</span><strong>${signedRating(venueInterval[0])} to ${signedRating(venueInterval[1])}</strong><small>Dependence estimate</small></div>
+          <div class="venue-metric"><span>Evidence</span><strong>${number(venueProfile.matches)}</strong><small>Non-neutral appearances</small></div>
+          <div class="venue-metric"><span>Reliability</span><strong>${percent(venueProfile.reliability)}</strong><small>Relative to the 60-point prior</small></div>
+        </div>
+      </section>` : "";
     setTitle(displayName);
     content.innerHTML = `
       <div class="page">
@@ -3851,6 +3981,7 @@ const lineageNote = lineageNames.length > 1
         <div class="team-stats">
           <div><span>Matches</span><strong>${number(cutoff ? historicalStats.matches : team.matches)}</strong></div><div><span>Record</span><strong>${cutoff ? `${historicalStats.W}–${historicalStats.D}–${historicalStats.L}` : `${team.wins}–${team.draws}–${team.losses}`}</strong></div><div><span>Goals</span><strong>${cutoff ? `${historicalStats.gf}–${historicalStats.ga}` : `${team.gf}–${team.ga}`}</strong></div><div><span title="Effective variety of recent opponents; higher values mean broader evidence.">${cutoff ? "Latest match" : "Opponent breadth"}</span><strong>${cutoff ? (availableMatches.length ? validDate(availableMatches[0].date) : "—") : number(team.breadth, 1)}</strong></div><div><span>${cutoff ? "Peak by date" : "All-time peak"}</span><strong>${rating(cutoff ? historicalPeak?.rating : team.peak?.rating)}</strong></div>
         </div>
+        ${venuePanel}
         <nav class="context-actions team-context-actions" aria-label="Team tools"><a class="button button-quiet" href="#/compare?a=${encodeURIComponent(team.code)}">Compare this team</a><a class="button button-quiet" href="#/predict?a=${encodeURIComponent(team.code)}${cutoff ? `&date=${encodeURIComponent(cutoff)}` : ""}">Predict a matchup</a><a class="button button-quiet" href="#/rankings">Current rankings</a></nav><section class="section"><div class="section-heading"><div><p class="eyebrow">Rating after each match</p><h2>Rating history${cutoff ? ` to ${validDate(cutoff)}` : ""}</h2></div></div>${ratingChart(history, displayName)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">${cutoff ? "Matches through selected date" : "Complete match history"}</p><h2>Matches</h2></div><a class="button button-quiet" href="#/matches?team=${encodeURIComponent(team.code)}">Open in explorer →</a></div><div id="team-matches"></div><div class="pagination"><span id="team-count" class="muted small" aria-live="polite"></span><div class="pagination-actions"><button id="team-more" class="button">Show more</button><button id="team-all" class="button button-quiet">Show all</button></div></div></section>
       </div>`;
@@ -3893,7 +4024,7 @@ function buildFAQItems() {
   },
   {
     question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
-    answer: "Not in the traditional Elo sense. Competitive and unresolved matches use the full information weight. Evidence-backed friendlies use about 78.6% of that weight. Friendly and competitive forecasts also have separate probability calibration."
+    answer: "Not in the traditional Elo sense. Competitive and unresolved matches use the full information weight. Evidence-backed friendlies use about 78.6% of that weight. Friendly and competitive forecasts also have separate probability calibration. NFELO tested stepped and smooth friendly weights by era, but every flexible family selected on 2010–2019 forecast the untouched 2020–2026 block worse than the single coefficient, so no era curve was adopted."
   },
   {
     question: "Why is a friendly’s rating change not always 78.6% of a competitive match?",
@@ -3901,7 +4032,19 @@ function buildFAQItems() {
   },
   {
     question: "How is home advantage handled?",
-    answer: "The model includes a home adjustment when one team is genuinely playing at home. Matches at neutral venues receive no home advantage. The adjustment was estimated from historical results rather than copied from the traditional 100-point Elo convention."
+    answer: `A genuine home match combines the era-wide home baseline with a separate, time-varying estimate for each country. Half of the host’s home-dependence value and half of the visitor’s value are added to the home team’s expected-score gap. The country values are learned only from earlier non-neutral matches, use a ${number(summary.parameters.venue_effects.prior_sd, 0)}-point prior and move halfway back toward zero every ${number(summary.parameters.venue_effects.half_life_years, 0)} years without evidence. Team pages show the complete current or historical profile.`
+  },
+  {
+    question: "Why is there one home-dependence value rather than separate home and away numbers?",
+    answer: "Almost every non-neutral source row lists the host first. That makes a country’s extra hosting benefit and its extra disadvantage when visiting difficult to identify independently: both affect the same result in opposite team perspectives. The audit tested separate host, away and combined formulations. One shared country value, divided equally between hosting and away effects, forecast later results better and was more statistically identifiable. The displayed hosting and away figures are therefore opposite halves of the same estimate, not two independently fitted claims."
+  },
+  {
+    question: "Do countries receive an extra adjustment at neutral venues?",
+    answer: "No. Neutral-only, home-plus-neutral, away-plus-neutral and shared non-home formulations were tested. Adding a country-specific neutral effect did not improve the selected model and generally weakened the stronger home-and-away result. A neutral match therefore receives zero era-wide home advantage and zero country venue adjustment."
+  },
+  {
+    question: "How certain are the country venue profiles?",
+    answer: "They are deliberately conservative estimates rather than permanent labels. Every team page shows the standard error, a 95% interval, the number of non-neutral appearances and reliability relative to the prior. Teams with little, old or noisy evidence remain close to the worldwide baseline; all estimates drift gradually back toward it when a country stops playing."
   },
   {
     question: "How does goal margin affect ratings?",
@@ -4067,8 +4210,10 @@ function renderFAQ() {
     setTitle("Methodology");
     const p = summary.parameters;
     const f = p.forecast_layer;
+    const v = p.venue_effects;
     const nested = summary.validation.nested;
     const replay = summary.validation.retrospective;
+    const venueStudy = summary.validation.home_advantage_study;
     content.innerHTML = `
       <article class="page page-narrow prose">
         <p class="eyebrow">Exact model · evidence · limitations</p><h1>Methodology</h1>
@@ -4080,6 +4225,7 @@ function renderFAQ() {
             <li><b>Start before the matches.</b> Every match sharing a complete date is predicted before any result from that date enters the model.</li>
             <li><b>Estimate underlying strength.</b> Results connect teams through opponents and shared opponents. The model also records how uncertain those estimates are.</li>
             <li><b>Let old evidence age.</b> If a recently active team does not play, its underlying estimate is left alone but uncertainty grows to the requested ranking or prediction date. The cautious public rating therefore falls gradually rather than staying frozen.</li>
+            <li><b>Adjust for where it is played.</b> A home match combines the worldwide baseline for that era with the two countries’ time-varying home/away profiles. A neutral match receives neither adjustment.</li>
             <li><b>Forecast the match.</b> Underlying strength, venue, football era and uncertainty produce an initial win/draw/loss forecast.</li>
             <li><b>Add scoring tendencies.</b> A hidden attack and defence layer asks whether each team has recently scored or conceded more than its strength alone would suggest. It refines the probabilities without overturning the network's most likely outcome.</li>
             <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes exactly ${p.network.friendly_information_ratio_exact} times the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
@@ -4095,9 +4241,17 @@ function renderFAQ() {
         <div class="formula">μnew = median(active established pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>
         <p><code>A</code> contains teams that appeared in the selected calendar year or one of the preceding four calendar years. The median uses teams with at least 30 matches when five or more are available, otherwise teams with at least 10. All teams debuting on the same known date receive the same pre-date pool prior. Incomplete historical dates are kept in their source sequence rather than treating every unknown day as simultaneous.</p>
 
-        <h2>2. Expected result and football era</h2>
-        <div class="formula">δ = a(y)(μ₁ − μ₂) + H(y)h<br>E = 1 / [1 + 10^(−δ/400)]</div>
-        <p><code>h</code> is +1 for team one's home advantage, −1 for team two's and 0 at a neutral venue. <code>E</code> is expected fractional score. Era values are smoothly interpolated; gap scale is interpolated in log space, draw rate in a bounded-logit coordinate and home advantage linearly.</p>
+        <h2>2. Expected result, era and country venue profile</h2>
+        <div class="formula">C₁₂ = h(d₁+d₂)/2<br>δ = a(y)(μ₁ − μ₂) + H(y)h + C₁₂<br>E = 1 / [1 + 10^(−δ/400)]</div>
+        <p><code>h</code> is +1 when team one is at home, −1 when team two is at home and 0 at a neutral venue. <code>H(y)</code> is the worldwide home baseline for the football era. <code>dᵢ</code> is country <code>i</code>’s time-varying home-dependence estimate. A positive value contributes <code>+dᵢ/2</code> when the team hosts and <code>−dᵢ/2</code> to that team’s perspective when it visits. At a neutral venue, both <code>H(y)h</code> and <code>C₁₂</code> are exactly zero. <code>E</code> is expected fractional score.</p>
+        <p>The two halves are one shared estimate, not independently fitted home and away claims. In the audited ledger, the host is listed first in ${number(venueStudy.home_team_listed_first)} non-neutral rows, second in only ${number(venueStudy.home_team_listed_second)}, and ${number(venueStudy.neutral_matches)} matches are neutral. That ordering makes separate country hosting and visitor parameters weakly identifiable. Separate host, away, host-plus-away, neutral and non-home structures were nevertheless tested; the shared dependence term forecast later results best.</p>
+        <h3>How a country profile changes through time</h3>
+        <p>Each country starts at zero with prior standard deviation <b>${rating(v.prior_sd)}</b>. Between matchdays, the estimate and its uncertainty follow a mean-reverting process with a <b>${number(v.half_life_years)}-year half-life</b>:</p>
+        <div class="formula">r = 2^(−Δt/${number(v.half_life_years)})<br>dᵢ(t) = r dᵢ(t₀)<br>Vᵢ(t) = ${rating(v.prior_sd)}² − [${rating(v.prior_sd)}²−Vᵢ(t₀)]r²</div>
+        <p>Old evidence therefore fades toward the worldwide era baseline rather than becoming a permanent national label. Before any result from a date is learned, every match on that date uses the same projected profiles. For a non-neutral match, let <code>zᵢ=h/2</code>, <code>b=ln(10)/400</code> and <code>q</code> be <b>${number(v.friendly_learning_ratio, 5)}</b> for a friendly or 1 for a competitive match. The diagonal country-state update is:</p>
+        <div class="formula">gᵢ = qbzᵢ(S−E)<br>cᵢ = qb²zᵢ²E(1−E)<br>Vᵢ′ = 1 / (1/Vᵢ + Σcᵢ)<br>dᵢ′ = dᵢ + Vᵢ′Σgᵢ</div>
+        <p>Sums combine all of a country’s matches on the date. Neutral matches have no country feature and do not update this state. Goal margin and the main network’s quality scale are deliberately absent: earlier-only selection preferred unit result learning, with only the established friendly information discount. The estimate is already shrunk by its posterior; adding its remaining variance to match variance was also tested and made log loss worse, so <b>${number(v.predictive_variance_scale, 1)}</b> of that variance is added to forecasts. Team pages still publish the standard error, 95% interval, evidence count and reliability.</p>
+        <p>Era values are smoothly interpolated; gap scale is interpolated in log space, draw rate in a bounded-logit coordinate and worldwide home advantage linearly.</p>
         <div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
 
         <h2>3. Network W/D/L forecast</h2>
@@ -4143,16 +4297,31 @@ function renderFAQ() {
 
         <h2 id="validation">7. Forecast validation</h2>
         <h3>Primary evidence: nested historical holdout</h3>
-        <div class="table-hint" aria-hidden="true">Swipe to compare every method →</div><div class="table-shell parameter-table"><table><thead><tr><th>Method tested</th><th class="numeric">Log loss</th><th class="numeric">Most-likely W/D/L correct</th></tr></thead><tbody><tr><td><b>NFELO full-covariance network</b></td><td class="numeric"><b>${number(nested.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(nested.accuracy)}</b></td></tr><tr><td>Best tested scalar Elo</td><td class="numeric">${number(nested.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.best_scalar_elo_accuracy)}</td></tr><tr><td>G-Elo comparison</td><td class="numeric">${number(nested.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.g_elo_accuracy)}</td></tr><tr><td>Published World Football Elo forecast</td><td class="numeric">${number(nested.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.published_wfe_accuracy)}</td></tr></tbody></table></div>
+        <div class="table-hint" aria-hidden="true">Swipe to compare every method →</div><div class="table-shell parameter-table"><table><thead><tr><th>Method tested</th><th class="numeric">Log loss</th><th class="numeric">Most-likely W/D/L correct</th></tr></thead><tbody><tr><td><b>Original NFELO full-covariance network benchmark</b></td><td class="numeric"><b>${number(nested.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(nested.accuracy)}</b></td></tr><tr><td>Best tested scalar Elo</td><td class="numeric">${number(nested.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.best_scalar_elo_accuracy)}</td></tr><tr><td>G-Elo comparison</td><td class="numeric">${number(nested.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.g_elo_accuracy)}</td></tr><tr><td>Published World Football Elo forecast</td><td class="numeric">${number(nested.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.published_wfe_accuracy)}</td></tr></tbody></table></div>
         <p>The five-block rolling evaluation contains ${number(nested.matches)} predictions from 1960 onward. Choices were made using earlier periods and scored on later periods. NFELO selected the most likely W/D/L outcome ${precisePercent(nested.accuracy)} of the time, versus ${precisePercent(nested.published_wfe_accuracy)} for published WFER—a difference of ${number((nested.accuracy - nested.published_wfe_accuracy) * 100, 3)} percentage points. The attack/defence layer preserves the network's top choice, so it can improve the probability vector but cannot change this accuracy figure. Log loss is primary because it evaluates all three probabilities and penalises unjustified confidence. Lower is better.</p>
         <p>These are the methods included in the recorded comparison, not a claim to cover every football forecasting method. The original fitter programs and frozen derived evaluation dataset were not retained, so the aggregate comparison cannot currently be reconstructed bit-for-bit.</p>
 
+        <h3>Country venue study: earlier-only selection and later holdout</h3>
+        <p>The country venue release has its own reproducible study and is not retrospectively inserted into the older nested benchmark above. The audit ran <b>${number(venueStudy.screening_fits)}</b> overlapping screening fits across <b>${number(venueStudy.candidate_structures)}</b> structures: global drift, country host only, away only, separate host and away, shared home dependence, country neutral, shared non-home and combinations with a global residual. It varied prior strength, temporal half-life, friendly learning, full network/margin learning and whether posterior venue variance entered the forecast. Hyperparameters were chosen using matches through 2019; ${number(venueStudy.untouched_matches)} matches from ${yearNumber(venueStudy.untouched_first_year)} through 11 July 2026 were left untouched until the final test.</p>
+        <div class="table-hint" aria-hidden="true">Swipe to compare candidate families →</div><div class="table-shell parameter-table"><table><thead><tr><th>Screening family</th><th class="numeric">All-period log-loss improvement</th><th class="numeric">2020–2026 improvement</th></tr></thead><tbody>
+          <tr><td>Time-varying global home residual only</td><td class="numeric">0.000238</td><td class="numeric negative">−0.000098</td></tr>
+          <tr><td>Country host only</td><td class="numeric">0.000876</td><td class="numeric">0.001081</td></tr>
+          <tr><td>Country away only</td><td class="numeric">0.000829</td><td class="numeric">0.000752</td></tr>
+          <tr><td>Separate country host + away</td><td class="numeric">0.001230</td><td class="numeric">0.001357</td></tr>
+          <tr><td>Shared country dependence + neutral</td><td class="numeric">0.001237</td><td class="numeric">0.000892</td></tr>
+          <tr><td><b>Selected shared country dependence</b></td><td class="numeric"><b>0.001662</b></td><td class="numeric"><b>0.001410</b></td></tr>
+        </tbody></table></div>
+        <p>Positive values mean lower, better log loss than the era-only home baseline. The screening stage held the existing network state fixed so many candidates could be compared consistently. The selected specification was then replayed through the complete strength network and hidden score layer.</p>
+        <div class="metric-grid"><div><span>Previous full replay</span><strong>${number(venueStudy.baseline_final_log_loss, 6)}</strong></div><div><span>Country-profile full replay</span><strong>${number(venueStudy.selected_final_log_loss, 6)}</strong></div><div><span>Full-replay improvement</span><strong>${number(venueStudy.final_log_loss_improvement, 6)}</strong></div><div><span>Untouched 2020–2026 improvement</span><strong>${number(venueStudy.untouched_log_loss_improvement, 6)}</strong></div></div>
+        <p>The end-to-end release improved all five time blocks: 1960–1979, 1980–1999, 2000–2009, 2010–2019 and 2020–2026. A paired year-block bootstrap put the overall improvement between <b>${number(venueStudy.bootstrap_ci95_improvement_low, 6)}</b> and <b>${number(venueStudy.bootstrap_ci95_improvement_high, 6)}</b> at 95%; the untouched-period interval was <b>${number(venueStudy.untouched_bootstrap_ci95_improvement_low, 6)}</b> to <b>${number(venueStudy.untouched_bootstrap_ci95_improvement_high, 6)}</b>, with ${percent(venueStudy.untouched_probability_better)} of resamples favouring the country model. This is evidence of a useful average forecasting improvement, not proof that every individual country estimate is non-zero.</p>
+
         <h3>Secondary evidence: retrospective replay</h3>
         <div class="metric-grid"><div><span>Final layer log loss</span><strong>${number(replay.log_loss, 4)}</strong></div><div><span>Network-only log loss</span><strong>${number(replay.network_only_log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(replay.brier, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(replay.accuracy)}</strong></div></div>
-        <p>This ${number(replay.matches)}-match diagnostic replays final constants through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
+        <p>This ${number(replay.matches)}-match diagnostic replays the current final constants, including country venue profiles, through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
 
         <h3>Why friendlies use ${p.network.friendly_information_ratio_exact}</h3>
         <p>Tournament importance and match class are separate. Only evidence-backed exhibitions, preparation matches and friendly tournaments receive the friendly weight; uncertain or unknown competitions remain competitive. The model uses information ratio <b>${p.network.friendly_information_ratio_exact}</b>, friendly network temperature <b>${p.forecast_temperature_exact.friendly}</b> and competitive network temperature <b>${p.forecast_temperature_exact.competitive}</b>. These values come from a ${number(52312)}-match full-sample fit scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The fit is retrospective and does not replace the nested historical holdout.</p>
+        <p>A separate chronology-first check tested <b>1,650</b> constant, stepped and smooth era-varying friendly ratios. Families were selected on 2010–2019 after fitting probability temperatures only through 2009, then tested on untouched 2020–2026 matches. Every flexible family winner was worse than the single coefficient on confirmation. A further 170-profile check in the country venue update found only a 0.000022 incremental era gain over its best constant, with a paired year-block interval crossing zero. The simpler fixed ratio was therefore retained in both updates.</p>
 
         <h2>8. Reproducibility and limitations</h2>
         <p>The repository records a methodology version, source hash and first-published prospective forecast for every identified future fixture. Historical validation must be labelled as nested holdout, retrospective replay or prospective. Routine data refreshes rebuild history but do not refit the structural constants; annual probability calibration follows its declared prior-years-only rule.</p>
@@ -4175,19 +4344,19 @@ function renderFAQ() {
           <h2>Data sources</h2>
           <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. The <a href="https://github.com/nfelo/nfelo.github.io" rel="external">source code and build history are available on GitHub</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
-          <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen state, then all of that date's evidence is learned jointly. Rating parameters and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings.</p>
+          <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen strength, scoring and country-venue states, then all of that date's evidence is learned. Rating parameters, the 40-year venue half-life and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings or the country-venue formula.</p>
           <h2>One rating across the whole site</h2>
           <p>Current and historical rankings, tournament snapshots, nation peaks and every record table all use the same evidence-adjusted NFELO formula. History is reconstructed from compact global network snapshots, so a connected team’s rating can reflect other teams’ results even when it did not play that day. The latest History table and Current Rankings are checked for identical membership, order and displayed values on every build.</p>
           <h2>Teams covered</h2>
           <p>The source ledger covers senior international histories rather than FIFA membership alone, so it includes some territories, regional selections and defunct teams. Every listed team is subject to the same match-count, activity, opponent-breadth and uncertainty rules. Inclusion is a data-scope decision, not a statement about political status or competition eligibility.</p>
           <h2>Validation labels</h2>
-          <p>The primary comparative result is the original nested historical holdout: NFELO network log loss ${number(summary.validation.nested.log_loss, 4)} against ${number(summary.validation.nested.published_wfe_log_loss, 4)} for published WFER. The lower ${number(summary.validation.retrospective.log_loss, 4)} figure is explicitly a retrospective replay with final constants, not another out-of-sample result.</p>
+          <p>The primary broad model comparison remains the original nested historical holdout: NFELO network log loss ${number(summary.validation.nested.log_loss, 4)} against ${number(summary.validation.nested.published_wfe_log_loss, 4)} for published WFER. The later country-venue study selected its formula using data through 2019 and then improved log loss by ${number(summary.validation.home_advantage_study.untouched_log_loss_improvement, 6)} over ${number(summary.validation.home_advantage_study.untouched_matches)} untouched 2020–2026 matches. The current ${number(summary.validation.retrospective.log_loss, 4)} figure is still labelled as a retrospective full replay, not another broad nested comparison.</p>
           <h2>Prospective record</h2>
           <p>For every identified future fixture and methodology version, the first published probability vector is appended to an immutable repository ledger. Later results can therefore be scored against a forecast that was genuinely recorded beforehand rather than reconstructed with hindsight.</p>
           <h2>What the model does not know</h2>
           <p>It does not use line-ups, player availability, injuries, red cards, travel, rest, tactical matchups, weather or betting markets. Its probabilities describe the historical-information model, not certainty and not a recommendation to wager.</p>
           <h2>Quality checks</h2>
-          <p>Every update checks the source format, row count, dates, scores, team names, probability sums, date-order invariance, covariance validity, score-grid reconciliation and historical peak guardrails. The site is published only after the complete rebuild and automated test suite pass.</p>
+          <p>Every update checks the source format, row count, dates, scores, team names, probability sums, date-order and team-order invariance, covariance validity, venue-state bounds, neutral-site behaviour, score-grid reconciliation and historical peak guardrails. The site is published only after the complete rebuild and automated test suite pass.</p>
         </article>
       </div>`;
   }

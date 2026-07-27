@@ -27,6 +27,9 @@ struct Parameters {
     double drift_sd = 19.750212594949737;
     double quality = 1.7440260583320362;
     double friendly_ratio = 1.0;
+    std::vector<int> friendly_ratio_years;
+    std::vector<double> friendly_ratio_values;
+    bool friendly_ratio_step = false;
     double competitive_temperature = 1.0635626456560392;
     double friendly_temperature = 0.9697407083655329;
     bool constant_observation = false;
@@ -111,6 +114,26 @@ double model_home(int year, const Parameters& parameters) {
 
 double model_draw(int year, const Parameters& parameters) {
     return parameters.constant_observation ? parameters.constant_draw : draw_probability(year);
+}
+
+double model_friendly_ratio(int year, const Parameters& parameters) {
+    if (parameters.friendly_ratio_years.empty()) return parameters.friendly_ratio;
+    const auto& years = parameters.friendly_ratio_years;
+    const auto& values = parameters.friendly_ratio_values;
+    if (parameters.friendly_ratio_step) {
+        auto right = std::upper_bound(years.begin(), years.end(), year);
+        std::size_t index = right == years.begin() ? 0 : std::size_t(right - years.begin() - 1);
+        return values[std::min(index, values.size() - 1)];
+    }
+    if (year <= years.front()) return values.front();
+    if (year >= years.back()) return values.back();
+    auto right_iterator = std::upper_bound(years.begin(), years.end(), year);
+    std::size_t right = std::size_t(right_iterator - years.begin());
+    std::size_t left = right - 1;
+    double fraction = double(year - years[left]) / double(years[right] - years[left]);
+    double log_value = std::log(values[left])
+        + fraction * (std::log(values[right]) - std::log(values[left]));
+    return std::exp(log_value);
 }
 
 inline double logistic10(double value) { return 1.0 / (1.0 + std::pow(10.0, -value / 400.0)); }
@@ -290,7 +313,7 @@ public:
     void update(const Match& match, double environment) {
         auto forecast = predict(match);
         double weight = par.quality * margin_weight(match.margin(), environment, par) *
-                        (match.friendly ? par.friendly_ratio : 1.0);
+                        (match.friendly ? model_friendly_ratio(match.year, par) : 1.0);
         double beta = std::log(10.0) * model_scale(match.year, par) / 400.0;
         double information = std::max(1e-8, forecast.expected * (1.0 - forecast.expected));
         double curvature = weight * beta * beta * information;
@@ -337,7 +360,7 @@ public:
             const auto& match = matches[k];
             auto forecast = predict(match);
             double weight = par.quality * margin_weight(match.margin(), environment, par) *
-                            (match.friendly ? par.friendly_ratio : 1.0);
+                            (match.friendly ? model_friendly_ratio(match.year, par) : 1.0);
             double beta = std::log(10.0) * model_scale(match.year, par) / 400.0;
             double information = std::max(1e-8, forecast.expected * (1.0 - forecast.expected));
             observations.push_back({match.a, match.b, weight * beta * beta * information});
@@ -405,6 +428,20 @@ Parameters parse_parameters(int argc, char** argv, std::string& input) {
     if (argc < 2) throw std::runtime_error("usage: network_eval MATCHES.tsv [options]");
     input = argv[1];
     Parameters p;
+    auto parse_int_list = [](const std::string& text) {
+        std::vector<int> result;
+        std::istringstream stream(text);
+        std::string item;
+        while (std::getline(stream, item, ',')) result.push_back(std::stoi(item));
+        return result;
+    };
+    auto parse_double_list = [](const std::string& text) {
+        std::vector<double> result;
+        std::istringstream stream(text);
+        std::string item;
+        while (std::getline(stream, item, ',')) result.push_back(std::stod(item));
+        return result;
+    };
     for (int i = 2; i < argc; ++i) {
         std::string key = argv[i];
         auto value = [&]() -> std::string {
@@ -415,6 +452,9 @@ Parameters parse_parameters(int argc, char** argv, std::string& input) {
         else if (key == "--drift") p.drift_sd = std::stod(value());
         else if (key == "--quality") p.quality = std::stod(value());
         else if (key == "--friendly-ratio") p.friendly_ratio = std::stod(value());
+        else if (key == "--friendly-ratio-years") p.friendly_ratio_years = parse_int_list(value());
+        else if (key == "--friendly-ratio-values") p.friendly_ratio_values = parse_double_list(value());
+        else if (key == "--friendly-ratio-step") p.friendly_ratio_step = true;
         else if (key == "--friendly-temperature") p.friendly_temperature = std::stod(value());
         else if (key == "--competitive-temperature") p.competitive_temperature = std::stod(value());
         else if (key == "--constant-scale") { p.constant_observation = true; p.constant_scale = std::stod(value()); }
@@ -433,6 +473,29 @@ Parameters parse_parameters(int argc, char** argv, std::string& input) {
         else if (key == "--day-debut") p.day_debut = true;
         else if (key == "--fit-temperatures") p.fit_temperatures = true;
         else throw std::runtime_error("unknown option " + key);
+    }
+    if (p.friendly_ratio_years.size() != p.friendly_ratio_values.size()) {
+        throw std::runtime_error("friendly ratio years and values must have equal lengths");
+    }
+    if (!p.friendly_ratio_years.empty()) {
+        if (p.friendly_ratio_years.size() < 2) {
+            throw std::runtime_error("friendly era model requires at least two points");
+        }
+        if (!std::is_sorted(p.friendly_ratio_years.begin(), p.friendly_ratio_years.end())
+            || std::adjacent_find(
+                p.friendly_ratio_years.begin(),
+                p.friendly_ratio_years.end(),
+                std::greater_equal<int>()
+            ) != p.friendly_ratio_years.end()) {
+            throw std::runtime_error("friendly ratio years must be strictly increasing");
+        }
+        if (std::any_of(
+                p.friendly_ratio_values.begin(),
+                p.friendly_ratio_values.end(),
+                [](double value) { return !(value > 0.0) || !std::isfinite(value); }
+            )) {
+            throw std::runtime_error("friendly ratio values must be finite and positive");
+        }
     }
     return p;
 }

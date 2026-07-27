@@ -4,25 +4,90 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="/">
-    <meta name="theme-color" content="#0b1f26">
+    <meta name="theme-color" content="#2b103b">
     <meta name="description" content="Gabon ratings, results and historical record.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://nfelo.github.io/team/GA/">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon-2026.ico" sizes="16x16 32x32 48x48">
+    <link rel="icon" href="favicon-2026.svg" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-2026.png">
+    <link rel="manifest" href="site.webmanifest?v=20260723">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Gabon · Network Football Elo">
+    <meta property="og:title" content="Gabon &middot; Network Football Elo">
     <meta property="og:description" content="Gabon ratings, results and historical record.">
     <meta property="og:url" content="https://nfelo.github.io/team/GA/">
     <meta property="og:image" content="https://nfelo.github.io/social-card.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Gabon · Network Football Elo">
+    <meta name="twitter:title" content="Gabon &middot; Network Football Elo">
     <meta name="twitter:description" content="Gabon ratings, results and historical record.">
     <meta name="twitter:image" content="https://nfelo.github.io/social-card.png">
-    <title>Gabon · Network Football Elo</title>
-    <link rel="stylesheet" href="assets/styles.css?v=77d48b9db8ed">
-    <script src="assets/app.js?v=aba5bb29e63e" defer></script>
+    <title>Gabon &middot; Network Football Elo</title>
+    <link rel="stylesheet" href="assets/styles.css?v=88eebf5af544">
+    <script>
+      window.__nfeloBoot = window.__nfeloBoot || {
+        started: false,
+        ready: false,
+        failed: false,
+      };
+      window.__nfeloShowBootError = (message) => {
+        const target = document.getElementById("content");
+        if (!target || !target.querySelector(".loading-shell")) return;
+        target.innerHTML = (
+          `<div class="error-panel" role="alert">
+            <p class="eyebrow">Browser startup problem</p>
+            <h2>The ratings application did not start.</h2>
+            <p>`
+          + message
+          + `</p>
+            <button class="button button-dark" type="button"
+              onclick="location.reload()">Reload page</button>
+          </div>`
+        );
+      };
+      window.addEventListener("DOMContentLoaded", () => {
+        window.setTimeout(() => {
+          if (window.__nfeloBoot.started) return;
+          const fallback = document.createElement("script");
+          fallback.src = (
+            "assets/" + "app.js"
+            + "?fallback=" + Date.now()
+          );
+          fallback.onerror = () => (
+            window.__nfeloShowBootError(
+              "The application script could not be loaded."
+            )
+          );
+          document.head.appendChild(fallback);
+        }, 1500);
+        window.setTimeout(() => {
+          if (
+            !window.__nfeloBoot.ready
+            && !window.__nfeloBoot.failed
+          ) {
+            window.__nfeloShowBootError(
+              "The application loaded but did not finish starting."
+            );
+          }
+        }, 10000);
+      });
+    </script>
+    <script
+      src="assets/app.js?v=cdc692e1a037"
+      defer
+      onerror="window.__nfeloShowBootError(
+        'The application script could not be loaded.'
+      )">
+    </script>
+    <script>
+      window.goatcounter = { no_onload: true };
+    </script>
+    <script
+      data-goatcounter="https://nfelo.goatcounter.com/count"
+      async
+      src="https://gc.zgo.at/count.js">
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -35,11 +100,13 @@
       <nav id="site-nav" class="site-nav" aria-label="Main navigation">
         <a href="#/rankings">Rankings</a>
         <a href="#/history">History</a>
+        <a href="#/tournaments">Tournaments</a>
         <a href="#/matches">Matches</a>
         <a href="#/fixtures">Upcoming</a>
         <a href="#/records">Records</a>
+        <a href="#/compare">Compare</a>
         <a href="#/predict">Predict</a>
-        <a href="#/methodology">Method</a>
+        <a href="#/methodology">Methodology</a>
         <a href="#/faq">FAQ</a>
         <a href="#/about">About</a>
       </nav>
@@ -52,6 +119,16 @@
     </main>
     <footer class="site-footer">
       <p>Independent analysis using historical results and future fixtures from <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>, plus current public data from <a href="https://github.com/martj42/international_results" rel="external">international_results</a>, <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball</a> and <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a>.</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+          <a href="#/rankings">Rankings</a>
+          <a href="#/history">History</a>
+          <a href="#/tournaments">Tournaments</a>
+          <a href="#/records">Records</a>
+          <a href="#/methodology">Methodology</a>
+          <a href="#/faq">FAQ</a>
+          <a href="#/about">About</a>
+          <a href="https://github.com/nfelo/nfelo.github.io" rel="external">GitHub</a>
+        </nav>
       <p>Not affiliated with eloratings.net or FIFA. Ratings are estimates, not betting advice.</p>
     </footer>
     <noscript>This site needs JavaScript to search and explore the generated static data.</noscript>

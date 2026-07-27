@@ -1,0 +1,172 @@
+{
+  "study_date": "2026-07-27",
+  "ledger_matches": 52316,
+  "scored_matches": 46801,
+  "audit_cutoff": "2026-07-11",
+  "screening_fits": 1949,
+  "structures": 16,
+  "venue_order_counts": {
+    "host_listed_first": 38769,
+    "host_listed_second": 1,
+    "neutral": 13546
+  },
+  "selected": {
+    "structure": "shared_country_home_dependence",
+    "prior_sd": 60.0,
+    "half_life_years": 40.0,
+    "competitive_learning_ratio": 1.0,
+    "friendly_learning_ratio": 0.78621,
+    "home_share": 0.5,
+    "away_share": 0.5,
+    "neutral_effect": 0.0,
+    "predictive_variance_scale": 0.0
+  },
+  "screening_log_loss_improvement": {
+    "overall": 0.0016620603351776,
+    "untouched_2020_2026": 0.0014101159456463,
+    "bootstrap_all_ci95": [
+      0.0010634353064183,
+      0.0022899519273218
+    ],
+    "bootstrap_untouched_ci95": [
+      0.0001064337669277,
+      0.0029102719429607
+    ]
+  },
+  "best_screening_member_by_family": {
+    "dynamic_global_residual": {
+      "overall": 0.000238,
+      "untouched_2020_2026": -0.000098
+    },
+    "country_host_only": {
+      "overall": 0.000876,
+      "untouched_2020_2026": 0.001081
+    },
+    "country_away_only": {
+      "overall": 0.000829,
+      "untouched_2020_2026": 0.000752
+    },
+    "separate_country_host_and_away": {
+      "overall": 0.001230,
+      "untouched_2020_2026": 0.001357
+    },
+    "global_plus_separate_host_and_away": {
+      "overall": 0.001291,
+      "untouched_2020_2026": 0.001176
+    },
+    "shared_dependence_plus_neutral": {
+      "overall": 0.001237,
+      "untouched_2020_2026": 0.000892
+    },
+    "shared_nonhome_dependence": {
+      "overall": 0.001583,
+      "untouched_2020_2026": 0.001196
+    },
+    "global_plus_shared_dependence": {
+      "overall": 0.001612,
+      "untouched_2020_2026": 0.001371
+    },
+    "selected_shared_dependence": {
+      "overall": 0.0016620603351776,
+      "untouched_2020_2026": 0.0014101159456463
+    }
+  },
+  "local_half_life_sensitivity_at_prior_60": {
+    "40_years": 0.00166206,
+    "50_years": 0.00166583,
+    "60_years": 0.00166476,
+    "selection_note": "40 years won the declared through-2019 selection; the marginally better full-period 50-year value was not substituted after inspecting later results"
+  },
+  "friendly_information_by_era": {
+    "decision": "retain one 0.78621 ratio in both the main network and country venue update",
+    "main_network": {
+      "candidate_curves": 1650,
+      "selection_period": "2010-2019",
+      "untouched_confirmation_period": "2020-2026-07-11",
+      "deployed_constant_confirmation_log_loss": 0.856773428698,
+      "all_flexible_family_winners_worse_on_confirmation": true,
+      "smallest_confirmation_deterioration": 0.00005013924,
+      "largest_confirmation_deterioration": 0.00056519943
+    },
+    "country_venue_update": {
+      "candidate_profiles": 170,
+      "best_smooth_confirmation_improvement_vs_deployed": 0.000070050425,
+      "best_constant_confirmation_improvement_vs_deployed": 0.00004797263,
+      "incremental_smooth_improvement_vs_best_constant": 0.000022077795,
+      "paired_year_bootstrap_candidate_minus_best_constant_ci95": [
+        -0.000070051153,
+        0.000041397814
+      ],
+      "interval_includes_zero": true
+    }
+  },
+  "end_to_end": {
+    "baseline": {
+      "log_loss": 0.88016905,
+      "network_log_loss": 0.8815194,
+      "brier": 0.51826591,
+      "rps": 0.17248005,
+      "accuracy": 0.59084208
+    },
+    "selected": {
+      "log_loss": 0.87833346,
+      "network_log_loss": 0.87992071,
+      "brier": 0.51716153,
+      "rps": 0.17194856,
+      "accuracy": 0.59169676,
+      "calibration_2026": {
+        "draw_log_tilt": 0.151744,
+        "friendly_temperature": 0.905675,
+        "competitive_temperature": 1.067154,
+        "nfelo_weight": 0.531124
+      }
+    },
+    "log_loss_improvement": 0.00183559,
+    "network_log_loss_improvement": 0.00159869,
+    "untouched_2020_2026_improvement": 0.00131545,
+    "bootstrap_all_ci95_improvement": [
+      0.00125554,
+      0.00244679
+    ],
+    "bootstrap_untouched_ci95_improvement": [
+      0.00020757,
+      0.00260743
+    ],
+    "bootstrap_untouched_probability_better": 0.99024,
+    "fold_log_loss_improvement": {
+      "1960-1979": 0.00142003,
+      "1980-1999": 0.00192593,
+      "2000-2009": 0.00283765,
+      "2010-2019": 0.00143123,
+      "2020-2026": 0.00131545
+    },
+    "fold_matches": {
+      "1960-1979": 8346,
+      "1980-1999": 12881,
+      "2000-2009": 9520,
+      "2010-2019": 9734,
+      "2020-2026": 6320
+    },
+    "segment_log_loss_improvement": {
+      "home": 0.002533,
+      "neutral": -0.000046,
+      "friendly": 0.001323,
+      "competitive": 0.002172
+    }
+  },
+  "ranking_guardrails": {
+    "current_top_two": [
+      "Spain",
+      "Argentina"
+    ],
+    "england_current_rank": 6,
+    "leading_peaks": [
+      "Brazil 1999",
+      "Spain 2012",
+      "England 1912",
+      "Hungary 1955",
+      "France 2001"
+    ],
+    "pre_wwi_british_nations_in_top_20": 1
+  }
+}

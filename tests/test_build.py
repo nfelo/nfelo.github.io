@@ -33,6 +33,7 @@ from model import (  # noqa: E402
     three_way_probabilities,
 )
 from open_results import merge_record, venue_country  # noqa: E402
+from venue_effects import VenueEffects  # noqa: E402
 
 
 class _HTMLCheck(HTMLParser):
@@ -95,7 +96,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertGreaterEqual(float(np.linalg.eigvalsh(covariance).min()), -1e-5)
         self.assertEqual(
             meta["methodology_version"],
-            "2026-07-26-global-as-of-consistency",
+            "2026-07-27-country-home-dependence",
         )
         self.assertGreaterEqual(
             meta["rankings_as_of"],
@@ -109,6 +110,11 @@ class StaticBuildTests(unittest.TestCase):
             0.78621,
             places=10,
         )
+        venue = self.state["venue_effects"]
+        for field in ("means", "variances", "last_day", "matches"):
+            self.assertEqual(len(venue[field]), count)
+        self.assertTrue(all(math.isfinite(value) for value in venue["means"]))
+        self.assertTrue(all(value >= 0 for value in venue["variances"]))
 
     def test_rankings_and_records_are_sorted(self) -> None:
         ratings = [team["rating"] for team in self.summary["current"]]
@@ -300,6 +306,206 @@ class StaticBuildTests(unittest.TestCase):
         self.assertAlmostEqual(float(first[2]), float(second[0]), places=12)
         self.assertAlmostEqual(float(first.sum()), 1.0, places=12)
 
+    def test_country_venue_state_is_causal_swap_invariant_and_neutral_safe(self) -> None:
+        configuration = json.loads(
+            (ROOT / "config" / "venue_effects.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        first = VenueEffects(3, configuration)
+        first.mean[:] = (40.0, -20.0, 10.0)
+        first.variance[:] = (900.0, 1_225.0, 1_600.0)
+        first.last_day[:] = 10_000
+
+        correction = first.correction(0, 1, 1)
+        swapped = first.correction(1, 0, -1)
+        self.assertAlmostEqual(correction, 10.0, places=12)
+        self.assertAlmostEqual(correction, -swapped, places=12)
+        self.assertEqual(first.correction(0, 1, 0), 0.0)
+        self.assertEqual(first.predictive_variance(0, 1, 1), 0.0)
+
+        neutral_before = (
+            first.mean.copy(),
+            first.variance.copy(),
+            first.matches.copy(),
+        )
+        first.update_day([{
+            "first": 0,
+            "second": 1,
+            "home_sign": 0,
+            "result": 1.0,
+            "expected": 0.25,
+            "friendly": False,
+        }])
+        self.assertTrue(np.array_equal(first.mean, neutral_before[0]))
+        self.assertTrue(np.array_equal(first.variance, neutral_before[1]))
+        self.assertTrue(np.array_equal(first.matches, neutral_before[2]))
+
+        observations = [
+            {
+                "first": 0,
+                "second": 1,
+                "home_sign": 1,
+                "result": 1.0,
+                "expected": 0.55,
+                "friendly": False,
+            },
+            {
+                "first": 2,
+                "second": 0,
+                "home_sign": 1,
+                "result": 0.0,
+                "expected": 0.61,
+                "friendly": True,
+            },
+        ]
+        ordered = VenueEffects(3, configuration)
+        reversed_order = VenueEffects(3, configuration)
+        ordered.advance_many((0, 1, 2), 12_000)
+        reversed_order.advance_many((0, 1, 2), 12_000)
+        ordered.update_day(observations)
+        reversed_order.update_day(list(reversed(observations)))
+        self.assertTrue(
+            np.allclose(ordered.mean, reversed_order.mean, atol=1e-14)
+        )
+        self.assertTrue(
+            np.allclose(
+                ordered.variance,
+                reversed_order.variance,
+                atol=1e-14,
+            )
+        )
+        self.assertTrue(
+            np.array_equal(ordered.matches, reversed_order.matches)
+        )
+
+        decay = VenueEffects(1, configuration)
+        decay.mean[0] = 40.0
+        decay.variance[0] = 900.0
+        decay.last_day[0] = 8_000
+        projected = decay.record(0, 8_000 + 40 * 400)
+        self.assertAlmostEqual(projected["dependence"], 20.0, places=10)
+        self.assertGreater(projected["se"], 30.0)
+        self.assertLess(projected["se"], 60.0)
+
+    def test_country_venue_release_data_ui_and_guardrails(self) -> None:
+        parameters = self.summary["parameters"]["venue_effects"]
+        study = self.summary["validation"]["home_advantage_study"]
+        self.assertEqual(parameters["prior_sd"], 60.0)
+        self.assertEqual(parameters["half_life_years"], 40.0)
+        self.assertEqual(parameters["home_share"], 0.5)
+        self.assertEqual(parameters["away_share"], 0.5)
+        self.assertEqual(parameters["neutral_effect"], 0.0)
+        self.assertEqual(parameters["predictive_variance_scale"], 0.0)
+        self.assertEqual(study["matches"], 46_801)
+        self.assertEqual(study["untouched_matches"], 6_320)
+        self.assertGreater(study["final_log_loss_improvement"], 0.001)
+        self.assertGreater(
+            study["untouched_log_loss_improvement"],
+            0.001,
+        )
+        self.assertTrue(study["all_five_time_blocks_improved"])
+
+        for code in ("BO", "DE", "ES"):
+            page = json.loads(
+                (
+                    self.data
+                    / "teams"
+                    / f"{code}.json"
+                ).read_text(encoding="utf-8")
+            )
+            profile = page["team"]["venue_effect"]
+            for field in (
+                "dependence",
+                "se",
+                "hosting_adjustment",
+                "away_adjustment",
+                "away_disadvantage",
+                "neutral",
+                "reliability",
+                "matches",
+                "as_of_day",
+            ):
+                self.assertIn(field, profile)
+            self.assertAlmostEqual(
+                profile["hosting_adjustment"],
+                -profile["away_adjustment"],
+                places=7,
+            )
+            self.assertEqual(profile["neutral"], 0.0)
+            self.assertTrue(
+                any("venue_effect" in point for point in page["history"])
+            )
+
+        latest_matches = json.loads(
+            (
+                self.data
+                / "matches"
+                / "2020.json"
+            ).read_text(encoding="utf-8")
+        )["matches"]
+        self.assertTrue(all(
+            "global_home" in match
+            and "country_home" in match
+            for match in latest_matches
+        ))
+        self.assertTrue(all(
+            match["country_home"] == 0.0
+            for match in latest_matches
+            if match["home"] == 0
+        ))
+        for fixture in self.fixtures["fixtures"]:
+            self.assertAlmostEqual(
+                fixture["total_home_adjustment"],
+                fixture["global_home_adjustment"]
+                + fixture["country_home_adjustment"],
+                places=7,
+            )
+
+        early_british = {
+            "England",
+            "Scotland",
+            "Wales",
+            "Northern Ireland",
+        }
+        top_ten_early_british = [
+            peak
+            for peak in self.summary["peaks"][:10]
+            if peak["nation"] in early_british
+            and peak["date"] < "1914-01-01"
+        ]
+        self.assertLessEqual(len(top_ten_early_british), 1)
+        self.assertEqual(self.summary["current"][0]["nation"], "Spain")
+
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Home and away profile",
+            "Team-one venue adjustment",
+            "Country venue study: earlier-only selection and later holdout",
+            "Why is there one home-dependence value",
+            "Do countries receive an extra adjustment at neutral venues?",
+            "projectVenueProfile",
+            "compactVenueProfileHTML",
+        ):
+            self.assertIn(phrase, javascript)
+        for phrase in (
+            ".venue-profile",
+            ".venue-profile-metrics",
+            ".venue-metric-primary",
+        ):
+            self.assertIn(phrase, stylesheet)
+        self.assertIn("Country-specific home and away profiles", readme)
+        self.assertIn(
+            "research/home-advantage-2026-07-27/",
+            readme,
+        )
+
     def test_score_layer_is_swap_invariant_and_preserves_the_network_pick(self) -> None:
         first = poisson_wdl(1.91, 0.83)
         second = poisson_wdl(0.83, 1.91)
@@ -374,7 +580,8 @@ class StaticBuildTests(unittest.TestCase):
             (
                 ROOT
                 / "research"
-                / "friendly-ratio-full-sample.json"
+                / "home-advantage-2026-07-27"
+                / "results.json"
             ).read_text(encoding="utf-8")
         )
 
@@ -382,7 +589,7 @@ class StaticBuildTests(unittest.TestCase):
         # must never silently change the published rating model.
         self.assertEqual(
             summary["meta"]["methodology_version"],
-            "2026-07-26-global-as-of-consistency",
+            "2026-07-27-country-home-dependence",
         )
         self.assertEqual(
             summary["parameters"]["network"]
@@ -398,8 +605,8 @@ class StaticBuildTests(unittest.TestCase):
         )
 
         replay = summary["validation"]["retrospective"]
-        expected = research["deployed_python_replay_cross_check"]
-        self.assertEqual(replay["matches"], expected["matches"])
+        expected = research["end_to_end"]["selected"]
+        self.assertEqual(replay["matches"], research["scored_matches"])
 
         # These are aggregate diagnostics derived from a live historical
         # source. Tiny upstream corrections and platform floating-point
@@ -414,10 +621,10 @@ class StaticBuildTests(unittest.TestCase):
             "accuracy": 2.5 / replay["matches"],
         }
         for actual_key, expected_key in (
-            ("log_loss", "final_layer_log_loss"),
-            ("network_only_log_loss", "network_only_log_loss"),
-            ("brier", "final_layer_brier"),
-            ("rps", "final_layer_rps"),
+            ("log_loss", "log_loss"),
+            ("network_only_log_loss", "network_log_loss"),
+            ("brier", "brier"),
+            ("rps", "rps"),
             ("accuracy", "accuracy"),
         ):
             self.assertAlmostEqual(
@@ -431,6 +638,10 @@ class StaticBuildTests(unittest.TestCase):
         self.assertLess(
             replay["log_loss"],
             replay["network_only_log_loss"],
+        )
+        self.assertLess(
+            replay["log_loss"],
+            research["end_to_end"]["baseline"]["log_loss"],
         )
 
         forecast_layer = summary["parameters"]["forecast_layer"]
@@ -566,7 +777,7 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 30)
+        self.assertEqual(javascript.count('question: "'), 33)
         self.assertNotIn(
             "What do the Tournaments and Best tournaments pages show?",
             javascript,
@@ -579,6 +790,11 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn(
             "Why is a friendly’s rating change not always "
             "78.6% of a competitive match?",
+            javascript,
+        )
+        self.assertIn(
+            "every flexible family selected on 2010–2019 forecast "
+            "the untouched 2020–2026 block worse",
             javascript,
         )
         self.assertIn("Expand all", javascript)
@@ -919,6 +1135,8 @@ class StaticBuildTests(unittest.TestCase):
             "Public rating and match forecast",
             "marginal posterior uncertainty",
             "Why friendlies use ${p.network.friendly_information_ratio_exact}",
+            "1,650",
+            "incremental era gain",
             "p.forecast_temperature_exact.friendly",
             "p.forecast_temperature_exact.competitive",
             "calibration_precision_decimals",
@@ -1785,7 +2003,7 @@ class StaticBuildTests(unittest.TestCase):
         self.assertEqual(
             javascript.count(
                 "Tap or click a probability bar "
-                "for the full prediction."
+                "for the full prediction and venue breakdown."
             ),
             2,
         )

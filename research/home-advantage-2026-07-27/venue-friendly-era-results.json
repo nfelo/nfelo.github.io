@@ -1,0 +1,5484 @@
+{
+  "candidate_count": 170,
+  "date": "2026-07-27",
+  "deployed_constant": {
+    "confirmation_2020_2026": {
+      "accuracy": 0.605379746835443,
+      "brier": 0.5031805648102928,
+      "log_loss": 0.8552966267187112,
+      "matches": 6320,
+      "rps": 0.16540331634253597
+    },
+    "key": "constant|smooth|1872,2020|0.786210,0.786210",
+    "profile": {
+      "family": "constant",
+      "step": false,
+      "values": [
+        0.78621,
+        0.78621
+      ],
+      "years": [
+        1872,
+        2020
+      ]
+    },
+    "selection_2010_2019": {
+      "accuracy": 0.5892747072118348,
+      "brier": 0.5210197312961612,
+      "log_loss": 0.884571710960623,
+      "matches": 9734,
+      "rps": 0.17324740177783474
+    }
+  },
+  "family_winners": {
+    "constant": {
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00021512549003356699,
+          "ci95_low": -0.0003157497078484844,
+          "mean_candidate_minus_baseline": -4.7972630219142234e-05,
+          "probability_candidate_better": 0.61391,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00012920287820366956,
+          "ci95_low": -0.00022062817529145253,
+          "mean_candidate_minus_baseline": -4.903213244256205e-05,
+          "probability_candidate_better": 0.71197,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031505084925181,
+        "log_loss": 0.8552486540884919,
+        "matches": 6320,
+        "rps": 0.16539475257618744
+      },
+      "confirmation_improvement_vs_constant": 4.7972630219272894e-05,
+      "key": "constant|smooth|1872,2020|0.400000,0.400000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.4,
+          0.4
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209885426878762,
+        "log_loss": 0.8845226788281804,
+        "matches": 9734,
+        "rps": 0.17323264036436223
+      },
+      "selection_improvement_vs_constant": 4.903213244267235e-05
+    },
+    "smooth_trend": {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 4.1397813747797834e-05,
+          "ci95_low": -7.00511533906245e-05,
+          "mean_candidate_minus_baseline": -2.2077794857925836e-05,
+          "probability_candidate_better": 0.77847,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 1.977259104067836e-05,
+          "ci95_low": -3.262919028055804e-05,
+          "mean_candidate_minus_baseline": -5.143289505661659e-06,
+          "probability_candidate_better": 0.6343,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00015774108958180956,
+          "ci95_low": -0.00027940028656644084,
+          "mean_candidate_minus_baseline": -7.005042507706804e-05,
+          "probability_candidate_better": 0.72155,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00010308604280885646,
+          "ci95_low": -0.00020564420930452813,
+          "mean_candidate_minus_baseline": -5.4175421948223725e-05,
+          "probability_candidate_better": 0.75779,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031343792607015,
+        "log_loss": 0.8552265762936341,
+        "matches": 6320,
+        "rps": 0.16538747975665902
+      },
+      "confirmation_improvement_vs_constant": 7.005042507712833e-05,
+      "key": "smooth_trend|smooth|1900,2020|1.200000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209827968530812,
+        "log_loss": 0.8845175355386746,
+        "matches": 9734,
+        "rps": 0.17323091318763978
+      },
+      "selection_improvement_vs_constant": 5.4175421948410296e-05
+    },
+    "three_era_step_1980_2010": {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00011581492017804137,
+          "ci95_low": -6.286224371499386e-05,
+          "mean_candidate_minus_baseline": 2.064247552394475e-05,
+          "probability_candidate_better": 0.32059,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 7.838662988328345e-05,
+          "ci95_low": -0.00011075308461248466,
+          "mean_candidate_minus_baseline": -1.6956789097386315e-05,
+          "probability_candidate_better": 0.63421,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00025034427380519347,
+          "ci95_low": -0.0002635792109713364,
+          "mean_candidate_minus_baseline": -2.7330154695197442e-05,
+          "probability_candidate_better": 0.55989,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.0001619274807398085,
+          "ci95_low": -0.0002832844517859647,
+          "mean_candidate_minus_baseline": -6.598892153994837e-05,
+          "probability_candidate_better": 0.72247,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031592258695471,
+        "log_loss": 0.8552692965640158,
+        "matches": 6320,
+        "rps": 0.16540103770251646
+      },
+      "confirmation_improvement_vs_constant": 2.733015469535971e-05,
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.970533,0.309243,0.452395",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.97053324,
+          0.30924304,
+          0.45239506
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209713263223308,
+        "log_loss": 0.884505722039083,
+        "matches": 9734,
+        "rps": 0.1732236715145775
+      },
+      "selection_improvement_vs_constant": 6.598892154008329e-05
+    },
+    "two_era_step_2010": {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "mean_candidate_minus_baseline": 0.0,
+          "probability_candidate_better": 0.0,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "mean_candidate_minus_baseline": 0.0,
+          "probability_candidate_better": 0.0,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00021512549003356699,
+          "ci95_low": -0.0003157497078484844,
+          "mean_candidate_minus_baseline": -4.7972630219142234e-05,
+          "probability_candidate_better": 0.61391,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00012920287820366956,
+          "ci95_low": -0.00022062817529145253,
+          "mean_candidate_minus_baseline": -4.903213244256205e-05,
+          "probability_candidate_better": 0.71197,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031505084925181,
+        "log_loss": 0.8552486540884919,
+        "matches": 6320,
+        "rps": 0.16539475257618744
+      },
+      "confirmation_improvement_vs_constant": 4.7972630219272894e-05,
+      "key": "two_era_step_2010|step|1872,2010|0.400000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209885426878762,
+        "log_loss": 0.8845226788281804,
+        "matches": 9734,
+        "rps": 0.17323264036436223
+      },
+      "selection_improvement_vs_constant": 4.903213244267235e-05
+    }
+  },
+  "results": [
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.503169503084555,
+        "log_loss": 0.8552802469608193,
+        "matches": 6320,
+        "rps": 0.16540756514689597
+      },
+      "key": "constant|smooth|1872,2020|0.200000,0.200000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.2,
+          0.2
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210185252772557,
+        "log_loss": 0.8845683021010812,
+        "matches": 9734,
+        "rps": 0.17324655886278
+      }
+    },
+    {
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00021512549003356699,
+          "ci95_low": -0.0003157497078484844,
+          "mean_candidate_minus_baseline": -4.7972630219142234e-05,
+          "probability_candidate_better": 0.61391,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00012920287820366956,
+          "ci95_low": -0.00022062817529145253,
+          "mean_candidate_minus_baseline": -4.903213244256205e-05,
+          "probability_candidate_better": 0.71197,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031505084925181,
+        "log_loss": 0.8552486540884919,
+        "matches": 6320,
+        "rps": 0.16539475257618744
+      },
+      "confirmation_improvement_vs_constant": 4.7972630219272894e-05,
+      "key": "constant|smooth|1872,2020|0.400000,0.400000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.4,
+          0.4
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209885426878762,
+        "log_loss": 0.8845226788281804,
+        "matches": 9734,
+        "rps": 0.17323264036436223
+      },
+      "selection_improvement_vs_constant": 4.903213244267235e-05
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031578968120264,
+        "log_loss": 0.8552601174020428,
+        "matches": 6320,
+        "rps": 0.16539508021477672
+      },
+      "key": "constant|smooth|1872,2020|0.600000,0.600000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.6,
+          0.6
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209941482832837,
+        "log_loss": 0.8845318937684215,
+        "matches": 9734,
+        "rps": 0.17323538038811911
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031805648102928,
+        "log_loss": 0.8552966267187112,
+        "matches": 6320,
+        "rps": 0.16540331634253597
+      },
+      "key": "constant|smooth|1872,2020|0.786210,0.786210",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.78621,
+          0.78621
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210197312961612,
+        "log_loss": 0.884571710960623,
+        "matches": 9734,
+        "rps": 0.17324740177783474
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031827075090117,
+        "log_loss": 0.8553000918094598,
+        "matches": 6320,
+        "rps": 0.16540416094853738
+      },
+      "key": "constant|smooth|1872,2020|0.800000,0.800000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          0.8,
+          0.8
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210222061795262,
+        "log_loss": 0.8845755472510652,
+        "matches": 9734,
+        "rps": 0.17324856039478517
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032194143614617,
+        "log_loss": 0.8553596166710421,
+        "matches": 6320,
+        "rps": 0.16541927900284006
+      },
+      "key": "constant|smooth|1872,2020|1.000000,1.000000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          1.0,
+          1.0
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210649477745752,
+        "log_loss": 0.8846416348556976,
+        "matches": 9734,
+        "rps": 0.1732685116028885
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032644298540428,
+        "log_loss": 0.8554328731212392,
+        "matches": 6320,
+        "rps": 0.16543866393135956
+      },
+      "key": "constant|smooth|1872,2020|1.200000,1.200000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          1.2,
+          1.2
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5211175220024866,
+        "log_loss": 0.884722696999667,
+        "matches": 9734,
+        "rps": 0.17329295159905078
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5033153330826408,
+        "log_loss": 0.855515928970721,
+        "matches": 6320,
+        "rps": 0.16546111529319543
+      },
+      "key": "constant|smooth|1872,2020|1.400000,1.400000",
+      "profile": {
+        "family": "constant",
+        "step": false,
+        "values": [
+          1.4,
+          1.4
+        ],
+        "years": [
+          1872,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5211767687133672,
+        "log_loss": 0.8848138972188132,
+        "matches": 9734,
+        "rps": 0.17332040054729486
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.503169503084555,
+        "log_loss": 0.8552802469608193,
+        "matches": 6320,
+        "rps": 0.16540756514689597
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210185252772557,
+        "log_loss": 0.8845683021010812,
+        "matches": 9734,
+        "rps": 0.17324655886278
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031595012807989,
+        "log_loss": 0.8552614964069792,
+        "matches": 6320,
+        "rps": 0.16539902351349822
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.520994275983544,
+        "log_loss": 0.8845302422420357,
+        "matches": 9734,
+        "rps": 0.17323500736983002
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031700013245364,
+        "log_loss": 0.8552770791561227,
+        "matches": 6320,
+        "rps": 0.16540091054663508
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.520993710677027,
+        "log_loss": 0.884528885241866,
+        "matches": 9734,
+        "rps": 0.17323445856384395
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031935084355368,
+        "log_loss": 0.8553145925835348,
+        "matches": 6320,
+        "rps": 0.16540947346395107
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5210075149946876,
+        "log_loss": 0.8845497839322791,
+        "matches": 9734,
+        "rps": 0.17324055836898705
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5032260436794219,
+        "log_loss": 0.855367394989675,
+        "matches": 6320,
+        "rps": 0.165422709884922
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210309929328724,
+        "log_loss": 0.8845856581497266,
+        "matches": 9734,
+        "rps": 0.17325111689245007
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.503265133779102,
+        "log_loss": 0.8554313393936137,
+        "matches": 6320,
+        "rps": 0.16543936975411716
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210613292135293,
+        "log_loss": 0.8846321492994239,
+        "matches": 9734,
+        "rps": 0.17326482429605894
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.50330911384135,
+        "log_loss": 0.8555036260362902,
+        "matches": 6320,
+        "rps": 0.16545860797892678
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.200000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.2,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.521096679490247,
+        "log_loss": 0.8846864061765127,
+        "matches": 9734,
+        "rps": 0.1732808244381152
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031607166906974,
+        "log_loss": 0.8552678814540661,
+        "matches": 6320,
+        "rps": 0.1654035356805625
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210096993556594,
+        "log_loss": 0.8845559068624803,
+        "matches": 9734,
+        "rps": 0.1732426490371356
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031505084925181,
+        "log_loss": 0.8552486540884919,
+        "matches": 6320,
+        "rps": 0.16539475257618744
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209885426878762,
+        "log_loss": 0.8845226788281804,
+        "matches": 9734,
+        "rps": 0.17323264036436223
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031625185086558,
+        "log_loss": 0.8552664857035933,
+        "matches": 6320,
+        "rps": 0.16539725790123072
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5209931929651722,
+        "log_loss": 0.8845293450398215,
+        "matches": 9734,
+        "rps": 0.17323460447806824
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031881601450721,
+        "log_loss": 0.8553072600110138,
+        "matches": 6320,
+        "rps": 0.1654067667387796
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210128813619078,
+        "log_loss": 0.8845592548774472,
+        "matches": 9734,
+        "rps": 0.17324350817154477
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5032230225114053,
+        "log_loss": 0.855363649555663,
+        "matches": 6320,
+        "rps": 0.1654210625616303
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5210423632869764,
+        "log_loss": 0.8846043002130088,
+        "matches": 9734,
+        "rps": 0.1732569084360457
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032644338652924,
+        "log_loss": 0.8554311898691473,
+        "matches": 6320,
+        "rps": 0.16543879514843118
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210785822535114,
+        "log_loss": 0.8846597614373172,
+        "matches": 9734,
+        "rps": 0.17327338594542327
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033106339145005,
+        "log_loss": 0.8555069272450256,
+        "matches": 6320,
+        "rps": 0.16545907005392216
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.400000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.4,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5211195839482041,
+        "log_loss": 0.8847226250314363,
+        "matches": 9734,
+        "rps": 0.173292035932679
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031549459622976,
+        "log_loss": 0.8552599952491895,
+        "matches": 6320,
+        "rps": 0.16540096886965147
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5210043736873567,
+        "log_loss": 0.8845487434207208,
+        "matches": 9734,
+        "rps": 0.17324035525147516
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031447992993602,
+        "log_loss": 0.8552407110225365,
+        "matches": 6320,
+        "rps": 0.1653921233699545
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209858006172748,
+        "log_loss": 0.8845195462347197,
+        "matches": 9734,
+        "rps": 0.17323163095561975
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031578968120264,
+        "log_loss": 0.8552601174020428,
+        "matches": 6320,
+        "rps": 0.16539508021477672
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209941482832837,
+        "log_loss": 0.8845318937684215,
+        "matches": 9734,
+        "rps": 0.17323538038811911
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031849648183006,
+        "log_loss": 0.8553030231919255,
+        "matches": 6320,
+        "rps": 0.16540522038627348
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210177858897249,
+        "log_loss": 0.8845678410065121,
+        "matches": 9734,
+        "rps": 0.1732461694980535
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5032213335975061,
+        "log_loss": 0.8553616902094329,
+        "matches": 6320,
+        "rps": 0.16542019904233884
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210511726721443,
+        "log_loss": 0.8846188381235177,
+        "matches": 9734,
+        "rps": 0.17326142019675894
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032642182975012,
+        "log_loss": 0.8554314723866007,
+        "matches": 6320,
+        "rps": 0.1654386086791501
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5210911357683576,
+        "log_loss": 0.884679994603391,
+        "matches": 9734,
+        "rps": 0.1732796616975471
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033118076095178,
+        "log_loss": 0.8555093327947525,
+        "matches": 6320,
+        "rps": 0.1654595281782047
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.600000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.6,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211356765362909,
+        "log_loss": 0.8847482339157281,
+        "matches": 9734,
+        "rps": 0.17329997086492843
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031505611081071,
+        "log_loss": 0.8552541141623774,
+        "matches": 6320,
+        "rps": 0.1653990578766557
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210005845051568,
+        "log_loss": 0.8845438353878252,
+        "matches": 9734,
+        "rps": 0.17323876566131
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031405650965033,
+        "log_loss": 0.855234914806268,
+        "matches": 6320,
+        "rps": 0.16539021298584852
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209842507598842,
+        "log_loss": 0.8845181219729659,
+        "matches": 9734,
+        "rps": 0.1732311530782574
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031545398385251,
+        "log_loss": 0.8552555674075919,
+        "matches": 6320,
+        "rps": 0.16539353540233423
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5209955338347743,
+        "log_loss": 0.8845349708453887,
+        "matches": 9734,
+        "rps": 0.17323632139742054
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031827075090117,
+        "log_loss": 0.8553000918094598,
+        "matches": 6320,
+        "rps": 0.16540416094853738
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210222061795262,
+        "log_loss": 0.8845755472510652,
+        "matches": 9734,
+        "rps": 0.17324856039478517
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032202146554215,
+        "log_loss": 0.8553604573759725,
+        "matches": 6320,
+        "rps": 0.16541965350868412
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.521058536976697,
+        "log_loss": 0.8846310210317876,
+        "matches": 9734,
+        "rps": 0.1732652064835657
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032641989522576,
+        "log_loss": 0.8554318927300485,
+        "matches": 6320,
+        "rps": 0.16543856612906752
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.521101286249336,
+        "log_loss": 0.8846964051566704,
+        "matches": 9734,
+        "rps": 0.17328476022693848
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033128158505754,
+        "log_loss": 0.8555113058535694,
+        "matches": 6320,
+        "rps": 0.16545996008265668
+      },
+      "key": "smooth_trend|smooth|1900,2020|0.800000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          0.8,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211484350798893,
+        "log_loss": 0.8847685960311052,
+        "matches": 9734,
+        "rps": 0.173306291107629
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031469961148961,
+        "log_loss": 0.8552493969109949,
+        "matches": 6320,
+        "rps": 0.1653975277738646
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209976738869336,
+        "log_loss": 0.8845401964122986,
+        "matches": 9734,
+        "rps": 0.1732375757014319
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031371886777728,
+        "log_loss": 0.8552303454728077,
+        "matches": 6320,
+        "rps": 0.16538871283039736
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209833317093435,
+        "log_loss": 0.8845175717683537,
+        "matches": 9734,
+        "rps": 0.1732309509599447
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031519095519693,
+        "log_loss": 0.8552520430534906,
+        "matches": 6320,
+        "rps": 0.16539234643051245
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209970766720636,
+        "log_loss": 0.8845381874122143,
+        "matches": 9734,
+        "rps": 0.17323730987109587
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031809830536327,
+        "log_loss": 0.85529788568403,
+        "matches": 6320,
+        "rps": 0.16540337067698632
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210262363640422,
+        "log_loss": 0.8845825494547704,
+        "matches": 9734,
+        "rps": 0.17325073745118896
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032194143614617,
+        "log_loss": 0.8553596166710421,
+        "matches": 6320,
+        "rps": 0.16541927900284006
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210649477745752,
+        "log_loss": 0.8846416348556976,
+        "matches": 9734,
+        "rps": 0.1732685116028885
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032642832371086,
+        "log_loss": 0.8554323701089434,
+        "matches": 6320,
+        "rps": 0.16543859476865752
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5211099293251913,
+        "log_loss": 0.884710398271585,
+        "matches": 9734,
+        "rps": 0.17328911599314759
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.503313721353383,
+        "log_loss": 0.8555130138307703,
+        "matches": 6320,
+        "rps": 0.16546036646088225
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.000000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.0,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5211591534925316,
+        "log_loss": 0.8847857262468666,
+        "matches": 9734,
+        "rps": 0.17331161799006972
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031439807984672,
+        "log_loss": 0.8552454484263217,
+        "matches": 6320,
+        "rps": 0.1653962492501167
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209953361168328,
+        "log_loss": 0.8845373725134802,
+        "matches": 9734,
+        "rps": 0.17323664431902616
+      }
+    },
+    {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 4.1397813747797834e-05,
+          "ci95_low": -7.00511533906245e-05,
+          "mean_candidate_minus_baseline": -2.2077794857925836e-05,
+          "probability_candidate_better": 0.77847,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 1.977259104067836e-05,
+          "ci95_low": -3.262919028055804e-05,
+          "mean_candidate_minus_baseline": -5.143289505661659e-06,
+          "probability_candidate_better": 0.6343,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00015774108958180956,
+          "ci95_low": -0.00027940028656644084,
+          "mean_candidate_minus_baseline": -7.005042507706804e-05,
+          "probability_candidate_better": 0.72155,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00010308604280885646,
+          "ci95_low": -0.00020564420930452813,
+          "mean_candidate_minus_baseline": -5.4175421948223725e-05,
+          "probability_candidate_better": 0.75779,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031343792607015,
+        "log_loss": 0.8552265762936341,
+        "matches": 6320,
+        "rps": 0.16538747975665902
+      },
+      "confirmation_improvement_vs_constant": 7.005042507712833e-05,
+      "key": "smooth_trend|smooth|1900,2020|1.200000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209827968530812,
+        "log_loss": 0.8845175355386746,
+        "matches": 9734,
+        "rps": 0.17323091318763978
+      },
+      "selection_improvement_vs_constant": 5.4175421948410296e-05
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031497548253708,
+        "log_loss": 0.8552491805713169,
+        "matches": 6320,
+        "rps": 0.16539138632278422
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209986757478484,
+        "log_loss": 0.8845414088399146,
+        "matches": 9734,
+        "rps": 0.17323830425513911
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031796038978505,
+        "log_loss": 0.8552961417455948,
+        "matches": 6320,
+        "rps": 0.1654027510714051
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210299538892584,
+        "log_loss": 0.8845889880295216,
+        "matches": 9734,
+        "rps": 0.17325274401033702
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.503218817523409,
+        "log_loss": 0.8553590196304195,
+        "matches": 6320,
+        "rps": 0.16541901033836337
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210706719918231,
+        "log_loss": 0.8846511111516802,
+        "matches": 9734,
+        "rps": 0.17327146855973097
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032644298540428,
+        "log_loss": 0.8554328731212392,
+        "matches": 6320,
+        "rps": 0.16543866393135956
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5211175220024866,
+        "log_loss": 0.884722696999667,
+        "matches": 9734,
+        "rps": 0.17329295159905078
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033145545856936,
+        "log_loss": 0.8555145390656698,
+        "matches": 6320,
+        "rps": 0.16546075050840195
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.200000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.2,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5901993014177112,
+        "brier": 0.5211684742824029,
+        "log_loss": 0.8848006316751891,
+        "matches": 9734,
+        "rps": 0.17331626126670466
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031413631000927,
+        "log_loss": 0.8552420493572824,
+        "matches": 6320,
+        "rps": 0.16539515042995112
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,0.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          0.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5209934029406943,
+        "log_loss": 0.8845351160684561,
+        "matches": 9734,
+        "rps": 0.17323589415551927
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031319749735175,
+        "log_loss": 0.855223372695234,
+        "matches": 6320,
+        "rps": 0.165386435102103
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,0.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          0.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209825169367974,
+        "log_loss": 0.8845178279079696,
+        "matches": 9734,
+        "rps": 0.17323098189653569
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031479369409484,
+        "log_loss": 0.855246781715307,
+        "matches": 6320,
+        "rps": 0.165390585986256
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,0.600000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          0.6
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210002869408451,
+        "log_loss": 0.8845445818795865,
+        "matches": 9734,
+        "rps": 0.17323928761773735
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031784671641389,
+        "log_loss": 0.8552947180327917,
+        "matches": 6320,
+        "rps": 0.16540224912020965
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,0.800000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          0.8
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210334161939066,
+        "log_loss": 0.8845949663882878,
+        "matches": 9734,
+        "rps": 0.17325461153073904
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032183615198232,
+        "log_loss": 0.8553585875612825,
+        "matches": 6320,
+        "rps": 0.16541881302553138
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,1.000000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          1.0
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210758732759609,
+        "log_loss": 0.8846597166198593,
+        "matches": 9734,
+        "rps": 0.17327415914682145
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032646169603622,
+        "log_loss": 0.8554333872073826,
+        "matches": 6320,
+        "rps": 0.16543875814660497
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,1.200000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          1.2
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.521124333396922,
+        "log_loss": 0.8847337298200372,
+        "matches": 9734,
+        "rps": 0.17329639861457108
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5033153330826408,
+        "log_loss": 0.855515928970721,
+        "matches": 6320,
+        "rps": 0.16546111529319543
+      },
+      "key": "smooth_trend|smooth|1900,2020|1.400000,1.400000",
+      "profile": {
+        "family": "smooth_trend",
+        "step": false,
+        "values": [
+          1.4,
+          1.4
+        ],
+        "years": [
+          1900,
+          2020
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5211767687133672,
+        "log_loss": 0.8848138972188132,
+        "matches": 9734,
+        "rps": 0.17332040054729486
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031516052171522,
+        "log_loss": 0.855236820626212,
+        "matches": 6320,
+        "rps": 0.16538524778630526
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.220406,1.044338,0.579466",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.22040605,
+          1.04433789,
+          0.57946571
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5210725195779882,
+        "log_loss": 0.8846394718097627,
+        "matches": 9734,
+        "rps": 0.17327407135117923
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031222933285239,
+        "log_loss": 0.8551817526341803,
+        "matches": 6320,
+        "rps": 0.16536979517510023
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.236409,1.160998,0.252053",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.23640914,
+          1.16099835,
+          0.25205294
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5211053443393951,
+        "log_loss": 0.8846840554636156,
+        "matches": 9734,
+        "rps": 0.17329031050976892
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031414975722518,
+        "log_loss": 0.855231449205775,
+        "matches": 6320,
+        "rps": 0.1653910861249722
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.242931,0.383952,0.203819",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.24293133,
+          0.38395189,
+          0.20381945
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5888637764536676,
+        "brier": 0.521004688818806,
+        "log_loss": 0.8845432250591803,
+        "matches": 9734,
+        "rps": 0.17324086139287098
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031267233795861,
+        "log_loss": 0.8551892747002477,
+        "matches": 6320,
+        "rps": 0.16537152200779845
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.260886,1.192844,0.306486",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.26088605,
+          1.19284433,
+          0.30648642
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5211088706828375,
+        "log_loss": 0.8846899488371609,
+        "matches": 9734,
+        "rps": 0.1732919228532091
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5032349677650837,
+        "log_loss": 0.8553744225693762,
+        "matches": 6320,
+        "rps": 0.16542151337006727
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.268526,1.361509,1.029959",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.26852642,
+          1.36150894,
+          1.02995853
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211510404354792,
+        "log_loss": 0.8847608613615799,
+        "matches": 9734,
+        "rps": 0.17331014078662685
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031607701828981,
+        "log_loss": 0.8552646290542463,
+        "matches": 6320,
+        "rps": 0.16539986243751167
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.270017,0.359212,0.435453",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.27001655,
+          0.35921206,
+          0.43545307
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209941740105809,
+        "log_loss": 0.8845310496601877,
+        "matches": 9734,
+        "rps": 0.17323514792195527
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5033196816683889,
+        "log_loss": 0.8555296301205854,
+        "matches": 6320,
+        "rps": 0.16547308027929383
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.289020,0.378722,1.280805",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.28902013,
+          0.37872224,
+          1.28080486
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210417329337235,
+        "log_loss": 0.8846133308445759,
+        "matches": 9734,
+        "rps": 0.17325343578187624
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5032387396789361,
+        "log_loss": 0.8553949583715612,
+        "matches": 6320,
+        "rps": 0.16543512136846206
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.299352,0.390915,0.943759",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.29935222,
+          0.39091506,
+          0.94375921
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210083377669325,
+        "log_loss": 0.8845584989096665,
+        "matches": 9734,
+        "rps": 0.17323976879550357
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5031351598924729,
+        "log_loss": 0.8552044406220127,
+        "matches": 6320,
+        "rps": 0.16537531251616422
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.317838,1.220535,0.401949",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.31783846,
+          1.22053496,
+          0.40194852
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5211097377126107,
+        "log_loss": 0.8846926750113193,
+        "matches": 9734,
+        "rps": 0.17329217105319186
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031671774124611,
+        "log_loss": 0.8552771022782293,
+        "matches": 6320,
+        "rps": 0.16540451811430795
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.317861,0.275323,0.401962",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.31786078,
+          0.27532303,
+          0.40196174
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209946537267388,
+        "log_loss": 0.8845339701416144,
+        "matches": 9734,
+        "rps": 0.1732349722332467
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031280032269582,
+        "log_loss": 0.8552077682516261,
+        "matches": 6320,
+        "rps": 0.16538267334239998
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.330435,0.512873,0.212932",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.3304349,
+          0.51287308,
+          0.21293185
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5210034557226368,
+        "log_loss": 0.884539732018191,
+        "matches": 9734,
+        "rps": 0.17324067052541883
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5032091065757871,
+        "log_loss": 0.8553304065569695,
+        "matches": 6320,
+        "rps": 0.16540911674326528
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.346136,1.368859,0.894414",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.34613584,
+          1.3688587,
+          0.89441434
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5211448667844041,
+        "log_loss": 0.8847505938491005,
+        "matches": 9734,
+        "rps": 0.1733076600473743
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031556915424855,
+        "log_loss": 0.8552577490311081,
+        "matches": 6320,
+        "rps": 0.16539827591780643
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.360874,0.335795,0.371936",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.36087351,
+          0.33579472,
+          0.37193629
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.520991011819306,
+        "log_loss": 0.884527095033866,
+        "matches": 9734,
+        "rps": 0.17323361314357869
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031643191627079,
+        "log_loss": 0.8552717785443925,
+        "matches": 6320,
+        "rps": 0.16540143440040875
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.364352,0.368560,0.491695",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.36435228,
+          0.36856012,
+          0.49169459
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5209887740039969,
+        "log_loss": 0.8845244872607009,
+        "matches": 9734,
+        "rps": 0.1732323399481658
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5032175903603785,
+        "log_loss": 0.85536049045582,
+        "matches": 6320,
+        "rps": 0.1654253859813438
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.364646,0.394584,0.845707",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.3646463,
+          0.39458428,
+          0.84570712
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209990288129555,
+        "log_loss": 0.8845439095829967,
+        "matches": 9734,
+        "rps": 0.17323582549093772
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031581072754077,
+        "log_loss": 0.8552613881304587,
+        "matches": 6320,
+        "rps": 0.16539855850997542
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.371190,0.374723,0.443859",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.3711897,
+          0.37472297,
+          0.44385924
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209888460871593,
+        "log_loss": 0.8845239308138636,
+        "matches": 9734,
+        "rps": 0.1732325562596432
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031575715247458,
+        "log_loss": 0.8552616229900863,
+        "matches": 6320,
+        "rps": 0.16539988469004616
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.379188,0.301312,0.346369",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.3791877,
+          0.30131173,
+          0.34636864
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209917482108674,
+        "log_loss": 0.8845289490027297,
+        "matches": 9734,
+        "rps": 0.17323383533207115
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6037974683544304,
+        "brier": 0.5032432886421047,
+        "log_loss": 0.8554045004887278,
+        "matches": 6320,
+        "rps": 0.1654393048402265
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.389969,0.265554,0.900983",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.38996895,
+          0.26555394,
+          0.90098281
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210038499546584,
+        "log_loss": 0.8845552486040377,
+        "matches": 9734,
+        "rps": 0.17323698024035472
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.503195731775139,
+        "log_loss": 0.8553087230934943,
+        "matches": 6320,
+        "rps": 0.1654032822595639
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.393023,1.324267,0.828662",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.39302297,
+          1.32426674,
+          0.82866214
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5211315347122094,
+        "log_loss": 0.8847305272660367,
+        "matches": 9734,
+        "rps": 0.173301484769496
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031314807823029,
+        "log_loss": 0.8552060058438629,
+        "matches": 6320,
+        "rps": 0.1653773439004132
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.412343,0.956831,0.433461",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.41234339,
+          0.95683065,
+          0.433461
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.521051328776103,
+        "log_loss": 0.8846086895935049,
+        "matches": 9734,
+        "rps": 0.17326403893119782
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031312645949755,
+        "log_loss": 0.8552119610211226,
+        "matches": 6320,
+        "rps": 0.16538163352795188
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.417317,0.659186,0.388068",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.41731697,
+          0.65918557,
+          0.3880675
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210062407412445,
+        "log_loss": 0.8845444165330587,
+        "matches": 9734,
+        "rps": 0.17324205253930752
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6037974683544304,
+        "brier": 0.5032372441193911,
+        "log_loss": 0.8553951350106566,
+        "matches": 6320,
+        "rps": 0.1654372044235397
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.425480,0.227531,0.846713",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.42547958,
+          0.22753059,
+          0.84671259
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210009804525786,
+        "log_loss": 0.88455165160533,
+        "matches": 9734,
+        "rps": 0.1732356246165503
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5031487538842819,
+        "log_loss": 0.8552327910988639,
+        "matches": 6320,
+        "rps": 0.16538358147205057
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.427761,1.102830,0.562386",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.42776118,
+          1.10282985,
+          0.56238609
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5210785386674147,
+        "log_loss": 0.8846498123750729,
+        "matches": 9734,
+        "rps": 0.17327685560735392
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031548523239481,
+        "log_loss": 0.8552581238470862,
+        "matches": 6320,
+        "rps": 0.16539943641025434
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.428008,0.276697,0.271694",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.42800752,
+          0.276697,
+          0.27169416
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209933747614226,
+        "log_loss": 0.884531675862914,
+        "matches": 9734,
+        "rps": 0.17323462313920257
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031598208569326,
+        "log_loss": 0.8552475400843286,
+        "matches": 6320,
+        "rps": 0.1653865075363559
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.465574,1.293183,0.602516",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.46557372,
+          1.29318315,
+          0.60251612
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5211197588226435,
+        "log_loss": 0.8847109452502034,
+        "matches": 9734,
+        "rps": 0.17329646888882477
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031452243413658,
+        "log_loss": 0.855234513886728,
+        "matches": 6320,
+        "rps": 0.16538662996875986
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.465623,0.760357,0.541719",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.465623,
+          0.76035678,
+          0.54171907
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5210164536362601,
+        "log_loss": 0.8845606886476384,
+        "matches": 9734,
+        "rps": 0.17324675177304139
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031766631226846,
+        "log_loss": 0.8552925186727655,
+        "matches": 6320,
+        "rps": 0.16540545640792845
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.488698,0.475954,0.663926",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.4886976,
+          0.47595447,
+          0.66392585
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.520989172412149,
+        "log_loss": 0.8845264034715037,
+        "matches": 9734,
+        "rps": 0.17323230768003903
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031376643221218,
+        "log_loss": 0.8552251093392708,
+        "matches": 6320,
+        "rps": 0.16538594841147397
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.489203,0.579891,0.421861",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.48920268,
+          0.57989052,
+          0.42186132
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209950588111422,
+        "log_loss": 0.8845301340960667,
+        "matches": 9734,
+        "rps": 0.1732363481857231
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031544718605897,
+        "log_loss": 0.8552587343247953,
+        "matches": 6320,
+        "rps": 0.16539991146070593
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.503951,0.256987,0.236735",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.50395065,
+          0.25698669,
+          0.23673481
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.52099265186556,
+        "log_loss": 0.8845315347998016,
+        "matches": 9734,
+        "rps": 0.1732341976413279
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031447407408461,
+        "log_loss": 0.855239654251633,
+        "matches": 6320,
+        "rps": 0.16539170450656843
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.506853,0.434476,0.390196",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.50685349,
+          0.43447571,
+          0.3901961
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209855202776129,
+        "log_loss": 0.8845184281839723,
+        "matches": 9734,
+        "rps": 0.17323131204757392
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031236148589774,
+        "log_loss": 0.8551936531857209,
+        "matches": 6320,
+        "rps": 0.16537414486386587
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.511056,0.936020,0.361487",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.51105647,
+          0.93601979,
+          0.36148712
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5210468216481557,
+        "log_loss": 0.8846022243355658,
+        "matches": 9734,
+        "rps": 0.17326193866614506
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5032306891532605,
+        "log_loss": 0.8553802716971827,
+        "matches": 6320,
+        "rps": 0.1654272545683976
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.514979,0.730653,1.023368",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.51497939,
+          0.73065256,
+          1.02336826
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210310768633978,
+        "log_loss": 0.8845900392656002,
+        "matches": 9734,
+        "rps": 0.1732515951286071
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031678040291693,
+        "log_loss": 0.8552806731986929,
+        "matches": 6320,
+        "rps": 0.16540507132420265
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.523243,0.275234,0.444984",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.52324301,
+          0.27523372,
+          0.44498432
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.520983975986512,
+        "log_loss": 0.8845207671705987,
+        "matches": 9734,
+        "rps": 0.17322958825235732
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6041139240506329,
+        "brier": 0.5032707912016944,
+        "log_loss": 0.8554513248608756,
+        "matches": 6320,
+        "rps": 0.16545078491683318
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.561849,0.373558,1.095494",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.56184892,
+          0.37355846,
+          1.0954941
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5210115116108207,
+        "log_loss": 0.8845688383387673,
+        "matches": 9734,
+        "rps": 0.17324005902808345
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5032016820426249,
+        "log_loss": 0.8553331910733145,
+        "matches": 6320,
+        "rps": 0.1654149323157082
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.570376,0.635270,0.865405",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.57037573,
+          0.63526951,
+          0.86540496
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210083677497086,
+        "log_loss": 0.8845559046741223,
+        "matches": 9734,
+        "rps": 0.1732411881068648
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.503120510570419,
+        "log_loss": 0.8551904058011207,
+        "matches": 6320,
+        "rps": 0.16537376994825648
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.582251,0.870858,0.332636",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.58225144,
+          0.87085777,
+          0.33263569
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210344593206622,
+        "log_loss": 0.8845847589305613,
+        "matches": 9734,
+        "rps": 0.17325597208640592
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032033704900134,
+        "log_loss": 0.8553267205373968,
+        "matches": 6320,
+        "rps": 0.16540900730176253
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.601793,1.180093,0.900503",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.60179304,
+          1.18009252,
+          0.90050348
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210988356405736,
+        "log_loss": 0.8846855615742871,
+        "matches": 9734,
+        "rps": 0.1732854268009035
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032474155868912,
+        "log_loss": 0.8554050187101413,
+        "matches": 6320,
+        "rps": 0.16543200666827146
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.608237,1.011748,1.124394",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.60823653,
+          1.01174848,
+          1.12439368
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210800113674801,
+        "log_loss": 0.8846621440479072,
+        "matches": 9734,
+        "rps": 0.17327515795140502
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031419194800748,
+        "log_loss": 0.8552246281059792,
+        "matches": 6320,
+        "rps": 0.16538184825415633
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.616000,1.013343,0.530024",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.61600006,
+          1.01334338,
+          0.53002382
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5888637764536676,
+        "brier": 0.5210566648652944,
+        "log_loss": 0.8846192470423713,
+        "matches": 9734,
+        "rps": 0.17326633012618167
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6058544303797468,
+        "brier": 0.5031515326117763,
+        "log_loss": 0.8552337079083969,
+        "matches": 6320,
+        "rps": 0.16538262183874428
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.616057,1.304769,0.537879",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.61605684,
+          1.30476886,
+          0.53787856
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5211202482356517,
+        "log_loss": 0.8847121323369176,
+        "matches": 9734,
+        "rps": 0.17329677858921308
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031185817431286,
+        "log_loss": 0.8551808042221324,
+        "matches": 6320,
+        "rps": 0.16536960539233164
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.619102,1.103944,0.264186",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.61910225,
+          1.10394447,
+          0.26418558
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210826142707282,
+        "log_loss": 0.8846540416805455,
+        "matches": 9734,
+        "rps": 0.173279208301216
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6037974683544304,
+        "brier": 0.5033402428700146,
+        "log_loss": 0.8555675708014678,
+        "matches": 6320,
+        "rps": 0.16548551047821417
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.619277,0.209960,1.293987",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.61927709,
+          0.20995957,
+          1.29398713
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5210378967707517,
+        "log_loss": 0.8846159790476227,
+        "matches": 9734,
+        "rps": 0.1732499915778799
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031169804539536,
+        "log_loss": 0.8551906135099986,
+        "matches": 6320,
+        "rps": 0.16537647118010101
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.677604,0.614429,0.200349",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.67760371,
+          0.61442923,
+          0.20034875
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5886583110745839,
+        "brier": 0.521001498225016,
+        "log_loss": 0.884538323772449,
+        "matches": 9734,
+        "rps": 0.17323987766933122
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031630148743326,
+        "log_loss": 0.8552751439219332,
+        "matches": 6320,
+        "rps": 0.1654040628086342
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.723432,0.236995,0.370124",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.72343239,
+          0.23699539,
+          0.37012447
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209801328191468,
+        "log_loss": 0.8845172777564516,
+        "matches": 9734,
+        "rps": 0.17322770607067986
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5033249304133326,
+        "log_loss": 0.8555423761672014,
+        "matches": 6320,
+        "rps": 0.16547568937795934
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.737267,0.427807,1.339958",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.73726666,
+          0.42780689,
+          1.33995845
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5210360738492682,
+        "log_loss": 0.8846099817255251,
+        "matches": 9734,
+        "rps": 0.17325039057780622
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031176985864737,
+        "log_loss": 0.8551926868036898,
+        "matches": 6320,
+        "rps": 0.16537710239335182
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.748578,0.600863,0.213074",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.74857763,
+          0.60086315,
+          0.21307444
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5885555783850421,
+        "brier": 0.5209978446121594,
+        "log_loss": 0.8845339149517956,
+        "matches": 9734,
+        "rps": 0.17323806843169132
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6039556962025316,
+        "brier": 0.5032149957584093,
+        "log_loss": 0.8553609106723654,
+        "matches": 6320,
+        "rps": 0.16542639932209618
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.772686,0.293238,0.799447",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.77268594,
+          0.29323849,
+          0.79944666
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.520983974832604,
+        "log_loss": 0.884527745772306,
+        "matches": 9734,
+        "rps": 0.17322809819595208
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031479952560753,
+        "log_loss": 0.8552470496817238,
+        "matches": 6320,
+        "rps": 0.16539292018461443
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.805606,0.468888,0.475496",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.80560556,
+          0.46888841,
+          0.4754955
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.52097847847541,
+        "log_loss": 0.8845113462044296,
+        "matches": 9734,
+        "rps": 0.17322777165267628
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031656456170946,
+        "log_loss": 0.8552776977122497,
+        "matches": 6320,
+        "rps": 0.16540201554198725
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.817660,0.405367,0.572020",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.81766047,
+          0.40536729,
+          0.57201984
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5896856379700021,
+        "brier": 0.5209759075915931,
+        "log_loss": 0.8845102958305232,
+        "matches": 9734,
+        "rps": 0.1732259175394222
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5033060593378501,
+        "log_loss": 0.8555027415713614,
+        "matches": 6320,
+        "rps": 0.16545844823933867
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.837778,1.184083,1.374761",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.83777819,
+          1.18408313,
+          1.37476088
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211320364084446,
+        "log_loss": 0.8847440097741628,
+        "matches": 9734,
+        "rps": 0.1732988819439235
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031847553279067,
+        "log_loss": 0.8552975508821099,
+        "matches": 6320,
+        "rps": 0.16540121353632026
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.868556,1.117395,0.808844",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.8685556,
+          1.11739542,
+          0.80884443
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210790233145431,
+        "log_loss": 0.884657632357984,
+        "matches": 9734,
+        "rps": 0.17327620448455033
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.503137054240431,
+        "log_loss": 0.8552280331207385,
+        "matches": 6320,
+        "rps": 0.16538707539820283
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.879725,0.526975,0.417968",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.87972453,
+          0.52697535,
+          0.41796764
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209818460440991,
+        "log_loss": 0.8845151827391072,
+        "matches": 9734,
+        "rps": 0.17322977547559426
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031286641423568,
+        "log_loss": 0.8552138101816489,
+        "matches": 6320,
+        "rps": 0.1653833292288875
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.884008,0.527791,0.329480",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.8840079,
+          0.52779135,
+          0.32947963
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5887610437641257,
+        "brier": 0.5209837393657917,
+        "log_loss": 0.884516887814566,
+        "matches": 9734,
+        "rps": 0.17323089789630008
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6042721518987342,
+        "brier": 0.5032207126105135,
+        "log_loss": 0.8553704467088348,
+        "matches": 6320,
+        "rps": 0.1654277493047022
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.938072,0.388113,0.888227",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.93807178,
+          0.38811299,
+          0.88822702
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209870081051754,
+        "log_loss": 0.8845329911291943,
+        "matches": 9734,
+        "rps": 0.17322965082966818
+      }
+    },
+    {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00011581492017804137,
+          "ci95_low": -6.286224371499386e-05,
+          "mean_candidate_minus_baseline": 2.064247552394475e-05,
+          "probability_candidate_better": 0.32059,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 7.838662988328345e-05,
+          "ci95_low": -0.00011075308461248466,
+          "mean_candidate_minus_baseline": -1.6956789097386315e-05,
+          "probability_candidate_better": 0.63421,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00025034427380519347,
+          "ci95_low": -0.0002635792109713364,
+          "mean_candidate_minus_baseline": -2.7330154695197442e-05,
+          "probability_candidate_better": 0.55989,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.0001619274807398085,
+          "ci95_low": -0.0002832844517859647,
+          "mean_candidate_minus_baseline": -6.598892153994837e-05,
+          "probability_candidate_better": 0.72247,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5031592258695471,
+        "log_loss": 0.8552692965640158,
+        "matches": 6320,
+        "rps": 0.16540103770251646
+      },
+      "confirmation_improvement_vs_constant": 2.733015469535971e-05,
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|0.970533,0.309243,0.452395",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          0.97053324,
+          0.30924304,
+          0.45239506
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209713263223308,
+        "log_loss": 0.884505722039083,
+        "matches": 9734,
+        "rps": 0.1732236715145775
+      },
+      "selection_improvement_vs_constant": 6.598892154008329e-05
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031414140214778,
+        "log_loss": 0.8552226536641248,
+        "matches": 6320,
+        "rps": 0.16538047732613093
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.088250,1.141572,0.511373",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.08825033,
+          1.14157243,
+          0.51137257
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210786365760482,
+        "log_loss": 0.8846546401801957,
+        "matches": 9734,
+        "rps": 0.1732769100585179
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031501488185934,
+        "log_loss": 0.855256783784137,
+        "matches": 6320,
+        "rps": 0.16539947059679092
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.153740,0.221666,0.203704",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.15373981,
+          0.22166628,
+          0.20370434
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209789525985105,
+        "log_loss": 0.8845182181430779,
+        "matches": 9734,
+        "rps": 0.17322753333558283
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031645555459595,
+        "log_loss": 0.8552713869995391,
+        "matches": 6320,
+        "rps": 0.16539645651818105
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.170497,0.766661,0.696865",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.17049683,
+          0.76666075,
+          0.69686524
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210106375718686,
+        "log_loss": 0.8845606368930162,
+        "matches": 9734,
+        "rps": 0.17324338422165758
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031283765616136,
+        "log_loss": 0.8552077499034457,
+        "matches": 6320,
+        "rps": 0.1653784513069893
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.170976,0.846800,0.436618",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.17097584,
+          0.84679965,
+          0.43661809
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210210254534189,
+        "log_loss": 0.8845714370238906,
+        "matches": 9734,
+        "rps": 0.17324929583629695
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031295328305087,
+        "log_loss": 0.8552176136343043,
+        "matches": 6320,
+        "rps": 0.1653848765778587
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.212759,0.478882,0.320440",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.21275947,
+          0.47888186,
+          0.32044042
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5209769834917113,
+        "log_loss": 0.8845106797027215,
+        "matches": 9734,
+        "rps": 0.1732275754400445
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031464144964645,
+        "log_loss": 0.8552362341796123,
+        "matches": 6320,
+        "rps": 0.16538530076223748
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.247653,0.966621,0.580140",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.24765287,
+          0.96662072,
+          0.5801403
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210422021112568,
+        "log_loss": 0.8846041438549732,
+        "matches": 9734,
+        "rps": 0.17325922703654897
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031174376547828,
+        "log_loss": 0.8551803532822077,
+        "matches": 6320,
+        "rps": 0.16536934230019665
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.247928,1.136066,0.246870",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.24792827,
+          1.13606613,
+          0.24687033
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210846786657203,
+        "log_loss": 0.8846615530774224,
+        "matches": 9734,
+        "rps": 0.1732801993836917
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031430725428544,
+        "log_loss": 0.855241623840719,
+        "matches": 6320,
+        "rps": 0.1653918065945112
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.338728,0.431382,0.430653",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.33872818,
+          0.43138198,
+          0.43065299
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5209715491307401,
+        "log_loss": 0.8845062166943166,
+        "matches": 9734,
+        "rps": 0.1732245459771253
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031325620623301,
+        "log_loss": 0.855225102259492,
+        "matches": 6320,
+        "rps": 0.16538835615355782
+      },
+      "key": "three_era_step_1980_2010|step|1872,1980,2010|1.371341,0.376954,0.251734",
+      "profile": {
+        "family": "three_era_step_1980_2010",
+        "step": true,
+        "values": [
+          1.37134107,
+          0.37695404,
+          0.25173428
+        ],
+        "years": [
+          1872,
+          1980,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5209736533121537,
+        "log_loss": 0.8845085688718807,
+        "matches": 9734,
+        "rps": 0.1732257744016547
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.503169503084555,
+        "log_loss": 0.8552802469608193,
+        "matches": 6320,
+        "rps": 0.16540756514689597
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210185252772557,
+        "log_loss": 0.8845683021010812,
+        "matches": 9734,
+        "rps": 0.17324655886278
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031815150729769,
+        "log_loss": 0.8552999080828071,
+        "matches": 6320,
+        "rps": 0.16541230203936544
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210086272626132,
+        "log_loss": 0.8845556833103305,
+        "matches": 9734,
+        "rps": 0.173241323887903
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5032046324257808,
+        "log_loss": 0.8553381087298718,
+        "matches": 6320,
+        "rps": 0.16542245240040024
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210073045731195,
+        "log_loss": 0.884556089684524,
+        "matches": 9734,
+        "rps": 0.17323992902516558
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6039556962025316,
+        "brier": 0.5032371157556279,
+        "log_loss": 0.8553918814886102,
+        "matches": 6320,
+        "rps": 0.1654371677794573
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.589171974522293,
+        "brier": 0.5210137085851019,
+        "log_loss": 0.8845682040438987,
+        "matches": 9734,
+        "rps": 0.17324199216285793
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6039556962025316,
+        "brier": 0.503277518796252,
+        "log_loss": 0.8554587777149243,
+        "matches": 6320,
+        "rps": 0.16545574339031632
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5888637764536676,
+        "brier": 0.5210270904289286,
+        "log_loss": 0.8845908697535944,
+        "matches": 9734,
+        "rps": 0.17324717632326103
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6036392405063291,
+        "brier": 0.5033246312858155,
+        "log_loss": 0.8555367619448996,
+        "matches": 6320,
+        "rps": 0.16547758995485373
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210467866669709,
+        "log_loss": 0.8846230667496997,
+        "matches": 9734,
+        "rps": 0.1732551831939232
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6042721518987342,
+        "brier": 0.5033774345803901,
+        "log_loss": 0.8556241309609434,
+        "matches": 6320,
+        "rps": 0.16550221185525543
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.200000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.2,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210722074040056,
+        "log_loss": 0.8846638917985996,
+        "matches": 9734,
+        "rps": 0.17326574774683398
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031365240851586,
+        "log_loss": 0.8552250944834229,
+        "matches": 6320,
+        "rps": 0.16538883779787875
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5888637764536676,
+        "brier": 0.5209967305294908,
+        "log_loss": 0.8845325546003341,
+        "matches": 9734,
+        "rps": 0.17323698562277218
+      }
+    },
+    {
+      "bootstrap_vs_best_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "mean_candidate_minus_baseline": 0.0,
+          "probability_candidate_better": 0.0,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.0,
+          "ci95_low": 0.0,
+          "mean_candidate_minus_baseline": 0.0,
+          "probability_candidate_better": 0.0,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "bootstrap_vs_deployed_constant": {
+        "confirmation_2020_2026": {
+          "ci95_high": 0.00021512549003356699,
+          "ci95_low": -0.0003157497078484844,
+          "mean_candidate_minus_baseline": -4.7972630219142234e-05,
+          "probability_candidate_better": 0.61391,
+          "samples": 100000,
+          "year_blocks": 7
+        },
+        "selection_2010_2019": {
+          "ci95_high": 0.00012920287820366956,
+          "ci95_low": -0.00022062817529145253,
+          "mean_candidate_minus_baseline": -4.903213244256205e-05,
+          "probability_candidate_better": 0.71197,
+          "samples": 100000,
+          "year_blocks": 10
+        }
+      },
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031505084925181,
+        "log_loss": 0.8552486540884919,
+        "matches": 6320,
+        "rps": 0.16539475257618744
+      },
+      "confirmation_improvement_vs_constant": 4.7972630219272894e-05,
+      "key": "two_era_step_2010|step|1872,2010|0.400000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5209885426878762,
+        "log_loss": 0.8845226788281804,
+        "matches": 9734,
+        "rps": 0.17323264036436223
+      },
+      "selection_improvement_vs_constant": 4.903213244267235e-05
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031748236077578,
+        "log_loss": 0.8552894096506481,
+        "matches": 6320,
+        "rps": 0.16540569069992483
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5209882684628132,
+        "log_loss": 0.88452480921306,
+        "matches": 9734,
+        "rps": 0.1732318289191872
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5032078993697142,
+        "log_loss": 0.8553446890375695,
+        "matches": 6320,
+        "rps": 0.16542088755500542
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5209951555872057,
+        "log_loss": 0.8845377800427424,
+        "matches": 9734,
+        "rps": 0.17323421362796285
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6042721518987342,
+        "brier": 0.5032484216798877,
+        "log_loss": 0.8554122721459919,
+        "matches": 6320,
+        "rps": 0.16543970380740952
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210085365679523,
+        "log_loss": 0.8845605617471826,
+        "matches": 9734,
+        "rps": 0.17323949506474068
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6041139240506329,
+        "brier": 0.5032952841563102,
+        "log_loss": 0.8554903018715311,
+        "matches": 6320,
+        "rps": 0.16546160164718166
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5895829052804602,
+        "brier": 0.5210278170052857,
+        "log_loss": 0.8845922414008393,
+        "matches": 9734,
+        "rps": 0.17324740677584774
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6044303797468354,
+        "brier": 0.5033475503020595,
+        "log_loss": 0.8555772152206017,
+        "matches": 6320,
+        "rps": 0.16548612618942102
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.400000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.4,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210524658215676,
+        "log_loss": 0.8846320065352189,
+        "matches": 9734,
+        "rps": 0.17325771087121936
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.503118385650693,
+        "log_loss": 0.8551926733357305,
+        "matches": 6320,
+        "rps": 0.16537724904856468
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5888637764536676,
+        "brier": 0.5210018924626624,
+        "log_loss": 0.8845384046316829,
+        "matches": 9734,
+        "rps": 0.17324004816974897
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031332609440116,
+        "log_loss": 0.8552182936532077,
+        "matches": 6320,
+        "rps": 0.1653837974785416
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5209943099226061,
+        "log_loss": 0.8845295219071289,
+        "matches": 9734,
+        "rps": 0.1732360609589164
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031578968120264,
+        "log_loss": 0.8552601174020428,
+        "matches": 6320,
+        "rps": 0.16539508021477672
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5209941482832837,
+        "log_loss": 0.8845318937684215,
+        "matches": 9734,
+        "rps": 0.17323538038811911
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5031908500904401,
+        "log_loss": 0.8553156933794097,
+        "matches": 6320,
+        "rps": 0.16541039559261075
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210007263710689,
+        "log_loss": 0.8845444652283192,
+        "matches": 9734,
+        "rps": 0.17323770150322854
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032309061472681,
+        "log_loss": 0.8553829732711211,
+        "matches": 6320,
+        "rps": 0.16542915363942204
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5210134370657651,
+        "log_loss": 0.8845663001286516,
+        "matches": 9734,
+        "rps": 0.17324275264957345
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.503277037039577,
+        "log_loss": 0.8554602345417024,
+        "matches": 6320,
+        "rps": 0.16545085549925462
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5903020341072529,
+        "brier": 0.5210317374504176,
+        "log_loss": 0.8845965647179951,
+        "matches": 9734,
+        "rps": 0.17325029104862844
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033283684525212,
+        "log_loss": 0.8555460202937714,
+        "matches": 6320,
+        "rps": 0.16547507720108612
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.600000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.6,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5903020341072529,
+        "brier": 0.5210551405184956,
+        "log_loss": 0.8846345139242411,
+        "matches": 9734,
+        "rps": 0.1732600990681093
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031108702705067,
+        "log_loss": 0.855176592033652,
+        "matches": 6320,
+        "rps": 0.16537079554651596
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5210246415135404,
+        "log_loss": 0.8845713126661079,
+        "matches": 9734,
+        "rps": 0.17325129905982128
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.604746835443038,
+        "brier": 0.5031259381484069,
+        "log_loss": 0.8552030742742336,
+        "matches": 6320,
+        "rps": 0.1653776223275652
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210170000626522,
+        "log_loss": 0.8845623714815676,
+        "matches": 9734,
+        "rps": 0.17324734843120915
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6045886075949367,
+        "brier": 0.5031503319615749,
+        "log_loss": 0.8552450006078142,
+        "matches": 6320,
+        "rps": 0.1653889616303166
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210163970625581,
+        "log_loss": 0.8845641064163229,
+        "matches": 9734,
+        "rps": 0.17324652880973423
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031827075090117,
+        "log_loss": 0.8553000918094598,
+        "matches": 6320,
+        "rps": 0.16540416094853738
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5210222061795262,
+        "log_loss": 0.8845755472510652,
+        "matches": 9734,
+        "rps": 0.17324856039478517
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032219279857189,
+        "log_loss": 0.8553664337795152,
+        "matches": 6320,
+        "rps": 0.16542266899239735
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5210338670803404,
+        "log_loss": 0.8845958296778635,
+        "matches": 9734,
+        "rps": 0.1732531929846426
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5032670269775825,
+        "log_loss": 0.8554424094167106,
+        "matches": 6320,
+        "rps": 0.16544401751759868
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5901993014177112,
+        "brier": 0.5210508769182192,
+        "log_loss": 0.8846241811083223,
+        "matches": 9734,
+        "rps": 0.1732602021646218
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033171790309129,
+        "log_loss": 0.8555266451192873,
+        "matches": 6320,
+        "rps": 0.16546780689594273
+      },
+      "key": "two_era_step_2010|step|1872,2010|0.800000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          0.8,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5901993014177112,
+        "brier": 0.521072783125836,
+        "log_loss": 0.8846599087422844,
+        "matches": 9734,
+        "rps": 0.17326938607547407
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031111946555578,
+        "log_loss": 0.85517263165732,
+        "matches": 6320,
+        "rps": 0.1653681536908962
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210592808489058,
+        "log_loss": 0.8846224694015473,
+        "matches": 9734,
+        "rps": 0.17326804059532463
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031259883576186,
+        "log_loss": 0.8551991643753423,
+        "matches": 6320,
+        "rps": 0.16537501822289688
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5889665091432094,
+        "brier": 0.5210511673326249,
+        "log_loss": 0.8846128158626075,
+        "matches": 9734,
+        "rps": 0.1732639252826076
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031497675363179,
+        "log_loss": 0.8552405444167218,
+        "matches": 6320,
+        "rps": 0.16538622043698123
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210497857410514,
+        "log_loss": 0.8846133782675059,
+        "matches": 9734,
+        "rps": 0.17326280074990735
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031812675586808,
+        "log_loss": 0.8552946305455562,
+        "matches": 6320,
+        "rps": 0.16540114738684764
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5210545535040635,
+        "log_loss": 0.8846232536294445,
+        "matches": 9734,
+        "rps": 0.1732644072119795
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032194143614617,
+        "log_loss": 0.8553596166710421,
+        "matches": 6320,
+        "rps": 0.16541927900284006
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5210649477745752,
+        "log_loss": 0.8846416348556976,
+        "matches": 9734,
+        "rps": 0.1732685116028885
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032632912312095,
+        "log_loss": 0.8554339707298696,
+        "matches": 6320,
+        "rps": 0.16544017180203105
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.521080497929478,
+        "log_loss": 0.8846677982422584,
+        "matches": 9734,
+        "rps": 0.1732749042283332
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033121122321029,
+        "log_loss": 0.8555163864039784,
+        "matches": 6320,
+        "rps": 0.1654634458775342
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.000000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.0,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211007791921378,
+        "log_loss": 0.884701092908602,
+        "matches": 9734,
+        "rps": 0.17328339591432707
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031174362475686,
+        "log_loss": 0.8551778741425384,
+        "matches": 6320,
+        "rps": 0.1653684078739733
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5211021616043597,
+        "log_loss": 0.8846862528805713,
+        "matches": 9734,
+        "rps": 0.1732885512830131
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5031316364438545,
+        "log_loss": 0.8552038935659297,
+        "matches": 6320,
+        "rps": 0.16537514295732245
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210933138847043,
+        "log_loss": 0.8846754721323841,
+        "matches": 9734,
+        "rps": 0.17328414255089764
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5031545496074264,
+        "log_loss": 0.8552442812023446,
+        "matches": 6320,
+        "rps": 0.1653860748954597
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210909460950331,
+        "log_loss": 0.8846745315032841,
+        "matches": 9734,
+        "rps": 0.17328260973410803
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031849766371487,
+        "log_loss": 0.8552970092102494,
+        "matches": 6320,
+        "rps": 0.16540062334158614
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5210945115328521,
+        "log_loss": 0.8846825828356231,
+        "matches": 9734,
+        "rps": 0.1732837094071104
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.5032218952599706,
+        "log_loss": 0.8553603604769305,
+        "matches": 6320,
+        "rps": 0.16541829401676086
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211035181806166,
+        "log_loss": 0.8846988658584063,
+        "matches": 9734,
+        "rps": 0.1732872225569376
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5032644298540428,
+        "log_loss": 0.8554328731212392,
+        "matches": 6320,
+        "rps": 0.16543866393135956
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5899938360386275,
+        "brier": 0.5211175220024866,
+        "log_loss": 0.884722696999667,
+        "matches": 9734,
+        "rps": 0.17329295159905078
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6050632911392405,
+        "brier": 0.5033118271874147,
+        "log_loss": 0.8555132964187933,
+        "matches": 6320,
+        "rps": 0.1654613695208209
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.200000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.2,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5898911033490857,
+        "brier": 0.5211361212203952,
+        "log_loss": 0.8847534598941537,
+        "matches": 9734,
+        "rps": 0.17330071782526138
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6052215189873418,
+        "brier": 0.503128219663822,
+        "log_loss": 0.8551902276384622,
+        "matches": 6320,
+        "rps": 0.16537090188111983
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,0.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          0.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5893774399013766,
+        "brier": 0.5211508486197989,
+        "log_loss": 0.8847589247288992,
+        "matches": 9734,
+        "rps": 0.17331168761292143
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.50314160474895,
+        "log_loss": 0.8552153349931317,
+        "matches": 6320,
+        "rps": 0.16537738923606063
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,0.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          0.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5211410992898184,
+        "log_loss": 0.8847467517866761,
+        "matches": 9734,
+        "rps": 0.17330690235988824
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.605379746835443,
+        "brier": 0.5031634807960286,
+        "log_loss": 0.8552544191880419,
+        "matches": 6320,
+        "rps": 0.16538795800586287
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,0.600000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          0.6
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5890692418327512,
+        "brier": 0.5211376184140702,
+        "log_loss": 0.884744105387447,
+        "matches": 9734,
+        "rps": 0.17330489695001847
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5031927037359112,
+        "log_loss": 0.855305547382563,
+        "matches": 6320,
+        "rps": 0.16540205522740006
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,0.800000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          0.8
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5892747072118348,
+        "brier": 0.5211398893217652,
+        "log_loss": 0.8847501830991692,
+        "matches": 9734,
+        "rps": 0.17330544162141567
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5032282948725973,
+        "log_loss": 0.8553670771677812,
+        "matches": 6320,
+        "rps": 0.16541920833278564
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,1.000000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          1.0
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5894801725909184,
+        "brier": 0.5211474458879684,
+        "log_loss": 0.8847642638177297,
+        "matches": 9734,
+        "rps": 0.17330832913315253
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6055379746835443,
+        "brier": 0.5032694132067109,
+        "log_loss": 0.8554376056756425,
+        "matches": 6320,
+        "rps": 0.16543901161169783
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,1.200000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          1.2
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5897883706595438,
+        "brier": 0.5211598664703767,
+        "log_loss": 0.8847856976364992,
+        "matches": 9734,
+        "rps": 0.17331337207311306
+      }
+    },
+    {
+      "confirmation_2020_2026": {
+        "accuracy": 0.6049050632911392,
+        "brier": 0.5033153330826408,
+        "log_loss": 0.855515928970721,
+        "matches": 6320,
+        "rps": 0.16546111529319543
+      },
+      "key": "two_era_step_2010|step|1872,2010|1.400000,1.400000",
+      "profile": {
+        "family": "two_era_step_2010",
+        "step": true,
+        "values": [
+          1.4,
+          1.4
+        ],
+        "years": [
+          1872,
+          2010
+        ]
+      },
+      "selection_2010_2019": {
+        "accuracy": 0.5900965687281693,
+        "brier": 0.5211767687133672,
+        "log_loss": 0.8848138972188132,
+        "matches": 9734,
+        "rps": 0.17332040054729486
+      }
+    }
+  ],
+  "selection_period": "2010-2019",
+  "study": "era-varying friendly learning in country venue effects",
+  "untouched_confirmation_period": "2020-2026-07-11"
+}

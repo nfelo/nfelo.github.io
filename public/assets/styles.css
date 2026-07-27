@@ -393,6 +393,63 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
 .team-stats > div { padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
 .team-stats span { display: block; color: var(--ink-soft); font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 .team-stats strong { display: block; margin-top: 7px; font-size: 22px; font-variant-numeric: tabular-nums; }
+.venue-profile {
+  display: grid;
+  grid-template-columns: minmax(250px, .72fr) minmax(0, 1.28fr);
+  gap: clamp(20px, 4vw, 42px);
+  margin-top: 18px;
+  padding: clamp(22px, 4vw, 34px);
+  background:
+    linear-gradient(135deg, var(--accent-soft), transparent 58%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-small);
+}
+.venue-profile-copy h2 { margin: 3px 0 10px; font-size: clamp(25px, 3vw, 34px); }
+.venue-profile-copy > p:not(.eyebrow) { margin: 0; color: var(--ink-soft); line-height: 1.55; }
+.venue-profile-copy .venue-profile-formula { margin-top: 13px; font-size: 13px; }
+.venue-profile-copy a { color: var(--link); font-weight: 800; text-decoration: none; }
+.venue-profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.venue-metric {
+  min-width: 0;
+  padding: 14px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.venue-metric span,
+.venue-metric small {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.3;
+}
+.venue-metric span {
+  min-height: 26px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.venue-metric strong {
+  display: block;
+  overflow-wrap: anywhere;
+  margin: 6px 0 3px;
+  font-size: clamp(19px, 2.2vw, 27px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+.venue-metric-primary {
+  color: var(--on-dark);
+  background: var(--navy-2);
+  border-color: transparent;
+}
+.venue-metric-primary span,
+.venue-metric-primary small { color: var(--on-dark-soft); }
 
 .chart-shell { position: relative; padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .chart-controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 18px; margin-bottom: 10px; }
@@ -505,6 +562,7 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .predictor { grid-template-columns: 1fr; }
   .versus { margin: -6px auto; }
   .team-stats { grid-template-columns: repeat(3, 1fr); }
+  .venue-profile { grid-template-columns: 1fr; }
   .home-intro, .home-dashboard, .home-support { grid-template-columns: 1fr; }
   .home-facts { grid-template-columns: repeat(4, 1fr); }
   .home-facts div { display: block; padding: 14px 10px; border-right: 1px solid var(--dark-line); }
@@ -595,8 +653,11 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   background: var(--accent-soft);
   border-radius: 12px;
 }
-.comparison-summary-table table { min-width: 940px; }
+.comparison-summary-table table { min-width: 1080px; }
 .comparison-team-name { display: inline-flex; gap: 9px; align-items: center; font-weight: 800; }
+.venue-summary { display: grid; gap: 2px; white-space: nowrap; }
+.venue-summary b { font-variant-numeric: tabular-nums; }
+.venue-summary small { color: var(--ink-soft); font-size: 10px; }
 .comparison-legend { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
 .chart-legend-item {
   display: inline-grid;
@@ -705,6 +766,10 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .team-rating { text-align: left; }
   .team-rating strong { font-size: 58px; }
   .team-stats { grid-template-columns: repeat(2, 1fr); }
+  .venue-profile { padding: 18px 14px; }
+  .venue-profile-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .venue-metric { padding: 12px; }
+  .venue-metric strong { font-size: 20px; }
   .chart-summary { display: grid; gap: 5px; }
   .pagination { flex-wrap: wrap; }
   .pagination > span { order: -1; width: 100%; text-align: center; }
