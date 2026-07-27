@@ -274,6 +274,8 @@ class StaticBuildTests(unittest.TestCase):
         self.assertNotIn("bake-off", readme)
         self.assertIn("current formula accuracy", normalised_readme)
         self.assertIn("59.2%", readme)
+        self.assertIn("across 46,801 stored pre-match forecasts", readme)
+        self.assertNotIn("| formula | forecasts |", readme)
         self.assertNotIn("0.878333", readme)
         self.assertNotIn("59.170%", readme)
         self.assertIn(
@@ -536,6 +538,17 @@ class StaticBuildTests(unittest.TestCase):
         )[1].split('` : "";', 1)[0]
         self.assertNotIn("Last matchday update", score_panel)
         self.assertNotIn("Reversion half-life", score_panel)
+        self.assertNotIn("validDate(venueAsOfDate)", score_panel)
+        self.assertNotIn("<small>", score_panel)
+        self.assertIn(
+            'Match adjustment${cutoff ? '
+            '` · ${validDate(venueAsOfDate)}` : ""}',
+            javascript,
+        )
+        self.assertNotIn(
+            "Match adjustment · ${validDate(venueAsOfDate)}",
+            javascript,
+        )
         for phrase in (
             ".venue-profile",
             ".venue-profile-highlights",
@@ -1256,8 +1269,15 @@ class StaticBuildTests(unittest.TestCase):
             "Team pages show these tendencies in an expandable section.",
             "summary.validation.retrospective.accuracy",
             "percent(summary.validation.retrospective.accuracy)",
+            "in technical comparisons, by log loss",
         ):
             self.assertIn(phrase, faq)
+        self.assertLess(
+            faq.index("in technical comparisons, by log loss"),
+            faq.index(
+                'question: "What does better log loss mean in practice?"'
+            ),
+        )
         self.assertNotIn(
             "summary.validation.retrospective.log_loss",
             faq,
@@ -1352,6 +1372,7 @@ class StaticBuildTests(unittest.TestCase):
                 "precisePercent(summary.validation.retrospective.accuracy)",
                 public_summary,
             )
+        self.assertNotIn("40-year venue half-life", about)
         self.assertIn("number(replay.log_loss, 6)", methodology)
         self.assertIn("precisePercent(replay.accuracy)", methodology)
         for comparison in (

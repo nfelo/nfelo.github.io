@@ -4012,7 +4012,7 @@ const lineageNote = lineageNames.length > 1
     const venuePanel = venueProfile ? `
       <section class="venue-profile" aria-labelledby="venue-profile-title">
         <div class="venue-profile-copy">
-          <p class="eyebrow">Match adjustment · ${validDate(venueAsOfDate)}</p>
+          <p class="eyebrow">Match adjustment${cutoff ? ` · ${validDate(venueAsOfDate)}` : ""}</p>
           <h2 id="venue-profile-title">Home and away</h2>
           <p><b>${escapeHTML(venueTendency)}</b> Forecast-only adjustment on top of the worldwide home advantage.</p>
         </div>
@@ -4037,7 +4037,7 @@ const lineageNote = lineageNames.length > 1
     const scorePanel = scoreProfile ? `
       <details class="team-model-details score-profile-details">
         <summary>
-          <span><b>Attack and defence</b><small>Forecast-only · ${validDate(venueAsOfDate)}</small></span>
+          <span><b>Attack and defence</b></span>
         </summary>
         <div class="venue-detail-grid" aria-label="Attack and defence forecast tendencies">
           <div><span>Own expected goals</span><strong>${signedPercent(scoreProfile.attack_goal_change)}</strong></div>
@@ -4154,7 +4154,7 @@ function buildFAQItems() {
     },
     {
       question: "How is the methodology tested?",
-      answer: `The current formula is replayed over ${number(summary.validation.retrospective.matches)} pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}. Historical benchmark tests use earlier periods to choose a model and later periods to score it, making comparison with simpler Elo methods and published WFER forecasts more meaningful. Future fixtures are also stored before their results are known.`
+      answer: `The current formula is replayed over ${number(summary.validation.retrospective.matches)} pre-match forecasts through ${validDate(summary.validation.retrospective.cutoff)}. It is judged both by how often its most likely win, draw or loss is correct and, in technical comparisons, by log loss, which scores all three probabilities. Historical benchmark tests use earlier periods to choose a model and later periods to score it, making comparison with simpler Elo methods and published WFER forecasts more meaningful. Future fixtures are also stored before their results are known.`
     },
     {
       question: "How accurate is the current NFELO formula?",
@@ -4460,7 +4460,7 @@ function renderFAQ() {
           <h2>Data sources</h2>
           <p>Historical results and team labels are based on <a href="https://eloratings.net/" rel="external">World Football Elo Ratings</a>. The <a href="https://github.com/nfelo/nfelo.github.io" rel="external">source code and build history are available on GitHub</a>. Recent results use the CC0-licensed <a href="https://github.com/martj42/international_results" rel="external">international_results dataset</a> and the public-domain <a href="https://github.com/openfootball/worldcup.json" rel="external">OpenFootball World Cup feed</a>. Future fixtures use World Football Elo Ratings' cross-confederation schedule, supplemented by <a href="https://www.thesportsdb.com/" rel="external">TheSportsDB</a> for richer competition details. Duplicate events are merged and conflicting scores stop publication.</p>
           <h2>Automatic updates</h2>
-          <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen strength, scoring and country-venue states, then all of that date's evidence is learned. Rating parameters, the 40-year venue half-life and forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings or the country-venue formula.</p>
+          <p>When new results arrive, the entire history is recalculated by complete matchday. Every match on a known date is forecast from the same frozen strength, scoring and country-venue states, then all of that date's evidence is learned. Rating parameters and the forecast-layer structure remain fixed during routine updates. Once each January, probability calibration is refitted from the preceding eight complete calendar years; this does not alter strength ratings or the country-venue formula.</p>
           <h2>One rating across the whole site</h2>
           <p>Current and historical rankings, tournament snapshots, nation peaks and every record table all use the same evidence-adjusted NFELO formula. History is reconstructed from compact global network snapshots, so a connected team’s rating can reflect other teams’ results even when it did not play that day. The latest History table and Current Rankings are checked for identical membership, order and displayed values on every build.</p>
           <h2>Teams covered</h2>

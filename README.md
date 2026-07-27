@@ -224,16 +224,10 @@ across eras rather than publishing a curve that did not generalise.
 
 ## Current formula accuracy
 
-Across the complete replay, the current formula’s most likely win, draw or loss
-was correct 59.2% of the time:
-
-| Formula | Forecasts | Most-likely W/D/L correct |
-| --- | ---: | ---: |
-| Current NFELO formula | 46,801 | **59.2%** |
-
-This is a retrospective replay of all stored pre-match forecasts from 1960
-through 11 July 2026. It is an implementation score for the final formula, not
-a promise about an individual future match. Candidate changes are selected
+Across 46,801 stored pre-match forecasts from 1960 through 11 July 2026, the
+current formula’s most likely win, draw or loss was correct 59.2% of the time.
+This retrospective replay is an implementation score for the final formula,
+not a promise about an individual future match. Candidate changes are selected
 with earlier data and checked on later periods before adoption. The first
 published probabilities for identified future fixtures are also stored before
 results are known, providing a growing genuinely prospective record.
