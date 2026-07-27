@@ -788,8 +788,8 @@ class StaticBuildTests(unittest.TestCase):
             'media="(prefers-color-scheme: dark)"',
             "@media (prefers-color-scheme: dark)",
             "color-scheme: dark",
-            "background: #fbf5ff",
-            "background: #160d1c",
+            "background: #fff6fc",
+            "background: #190d18",
             "a:focus-visible",
             "@media (max-width: 480px)",
         ):
@@ -822,12 +822,16 @@ class StaticBuildTests(unittest.TestCase):
             return (lighter + 0.05) / (darker + 0.05)
 
         for foreground, background in (
-            ("#2d1838", "#fffaff"),
-            ("#6d5875", "#fffaff"),
-            ("#fff7ff", "#2b103b"),
-            ("#fff7ff", "#24152c"),
-            ("#d7c3de", "#24152c"),
-            ("#fff7ff", "#855596"),
+            ("#321635", "#fffafd"),
+            ("#70576f", "#fffafd"),
+            ("#74317b", "#fffafd"),
+            ("#fff7fc", "#301032"),
+            ("#edd8e9", "#301032"),
+            ("#30102d", "#ff9ad9"),
+            ("#fff7fc", "#281523"),
+            ("#dfc5da", "#281523"),
+            ("#f0a8e6", "#281523"),
+            ("#fff7fc", "#87548e"),
         ):
             self.assertGreaterEqual(contrast(foreground, background), 4.5)
 
@@ -1334,7 +1338,7 @@ class StaticBuildTests(unittest.TestCase):
             "Why can the lower-rated team be the forecast favourite?",
             "Why can a lower-rated team be the forecast favourite?",
             "ratingForecastExplanation()",
-            "Current-model accuracy",
+            "Top-choice W/D/L accuracy",
             "Current deployed NFELO formula",
             "percent(summary.validation.retrospective.accuracy)",
             "number(replay.log_loss, 6)",
@@ -2154,6 +2158,157 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("text-transform: none;", primary_block)
         self.assertIn("@media (min-width: 721px)", primary_block)
         self.assertIn("@media (max-width: 720px)", primary_block)
+
+    def test_progressive_responsive_interface_keeps_every_ranking_field(self) -> None:
+        html = (
+            ROOT / "public" / "index.html"
+        ).read_text(encoding="utf-8")
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        stylesheet = (
+            ROOT / "public" / "assets" / "styles.css"
+        ).read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        main_navigation = html.split(
+            '<nav id="site-nav"',
+            1,
+        )[1].split("</nav>", 1)[0]
+        self.assertEqual(
+            main_navigation.count('class="nav-group"'),
+            2,
+        )
+        for label in ("Explore", "Forecasts"):
+            self.assertIn(f"<summary>{label}</summary>", main_navigation)
+        for route in (
+            "rankings",
+            "history",
+            "tournaments",
+            "matches",
+            "fixtures",
+            "records",
+            "compare",
+            "predict",
+            "methodology",
+            "faq",
+            "about",
+        ):
+            self.assertIn(f'href="#/{route}"', main_navigation)
+
+        for marker in (
+            "function closeNavigation",
+            'querySelectorAll(".nav-group[open]")',
+            '"contains-current"',
+            'class="ranking-cards"',
+            'class="ranking-card-details"',
+            "More ranking details",
+            'class="section analysis-disclosure"',
+            "Underlying strength estimate",
+            "Top-choice W/D/L accuracy",
+            "Tournament gains",
+            "Home/away effect",
+            "Start of selected year",
+        ):
+            self.assertIn(marker, javascript)
+        self.assertEqual(
+            javascript.count(
+                'class="section analysis-disclosure"',
+            ),
+            2,
+        )
+        self.assertNotIn(
+            'class="section analysis-disclosure" open',
+            javascript,
+        )
+        self.assertEqual(javascript.count('id="faq-expand"'), 1)
+        for obsolete in (
+            "Current-model accuracy",
+            "Estimate before uncertainty",
+            "Best tournaments",
+            "Home dependence",
+            ">Start of year<",
+        ):
+            self.assertNotIn(obsolete, javascript)
+        self.assertNotIn("Best tournaments", readme)
+
+        history = javascript.split(
+            "async function renderHistory",
+            1,
+        )[1].split(
+            "function tournamentRankingsTable",
+            1,
+        )[0]
+        self.assertNotIn("World Cup", history)
+        self.assertNotIn("pre-tournament", history.lower())
+        self.assertNotIn("post-tournament", history.lower())
+
+        current_rankings = javascript.split(
+            "function rankingsTable",
+            1,
+        )[1].split(
+            "function renderRankings",
+            1,
+        )[0]
+        for label in (
+            "12-month change",
+            "Underlying strength estimate",
+            "Matches",
+            "Recent form",
+            "All-time peak",
+        ):
+            self.assertIn(label, current_rankings)
+
+        historical_rankings = javascript.split(
+            "function historicalRankingsTable",
+            1,
+        )[1].split(
+            "async function renderHistory",
+            1,
+        )[0]
+        tournament_rankings = javascript.split(
+            "function tournamentRankingsTable",
+            1,
+        )[1].split(
+            "const MAJOR_TOURNAMENT_PRECEDENCE",
+            1,
+        )[0]
+        for block in (historical_rankings, tournament_rankings):
+            for label in (
+                "Underlying strength estimate",
+                "Matches",
+                "Recent form",
+                "Last match",
+            ):
+                self.assertIn(label, block)
+
+        for marker in (
+            "--font-display:",
+            "--focus:",
+            ".nav-submenu",
+            ".ranking-desktop",
+            ".ranking-cards",
+            ".ranking-card-details",
+            ".analysis-disclosure",
+            "@media (max-width: 900px)",
+            "@media (max-width: 720px)",
+        ):
+            self.assertIn(marker, stylesheet)
+        definitions = set(
+            re.findall(r"--([\w-]+)\s*:", stylesheet)
+        )
+        references = set(
+            re.findall(r"var\(--([\w-]+)", stylesheet)
+        )
+        self.assertEqual(references - definitions, set())
+        self.assertGreaterEqual(
+            stylesheet.count("--result-win: #2f7657;"),
+            2,
+        )
+        self.assertGreaterEqual(
+            stylesheet.count("--result-loss: #a93b55;"),
+            2,
+        )
 
     def test_browser_application_replaces_initial_loading_shell(self) -> None:
         public = ROOT / "public"

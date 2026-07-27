@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="/">
-    <meta name="theme-color" content="#2b103b">
+    <meta name="theme-color" content="#301032">
     <meta name="description" content="Vatican ratings, results and historical record.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://nfelo.github.io/team/VA/">
@@ -24,7 +24,7 @@
     <meta name="twitter:description" content="Vatican ratings, results and historical record.">
     <meta name="twitter:image" content="https://nfelo.github.io/social-card.png">
     <title>Vatican &middot; Network Football Elo</title>
-    <link rel="stylesheet" href="assets/styles.css?v=b80c851f98c2">
+    <link rel="stylesheet" href="assets/styles.css?v=6be8afb7b626">
     <script>
       window.__nfeloBoot = window.__nfeloBoot || {
         started: false,
@@ -74,7 +74,7 @@
       });
     </script>
     <script
-      src="assets/app.js?v=36dac6f203a5"
+      src="assets/app.js?v=be2f8ec8bc12"
       defer
       onerror="window.__nfeloShowBootError(
         'The application script could not be loaded.'
@@ -99,13 +99,23 @@
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
       <nav id="site-nav" class="site-nav" aria-label="Main navigation">
         <a href="#/rankings">Rankings</a>
-        <a href="#/history">History</a>
-        <a href="#/tournaments">Tournaments</a>
-        <a href="#/matches">Matches</a>
-        <a href="#/fixtures">Upcoming</a>
-        <a href="#/records">Records</a>
-        <a href="#/compare">Compare</a>
-        <a href="#/predict">Predict</a>
+        <details class="nav-group">
+          <summary>Explore</summary>
+          <div class="nav-submenu">
+            <a href="#/history">History</a>
+            <a href="#/tournaments">Tournaments</a>
+            <a href="#/matches">Matches</a>
+            <a href="#/records">Records</a>
+            <a href="#/compare">Compare</a>
+          </div>
+        </details>
+        <details class="nav-group">
+          <summary>Forecasts</summary>
+          <div class="nav-submenu">
+            <a href="#/fixtures">Upcoming matches</a>
+            <a href="#/predict">Match calculator</a>
+          </div>
+        </details>
         <a href="#/methodology">Methodology</a>
         <a href="#/faq">FAQ</a>
         <a href="#/about">About</a>

@@ -454,14 +454,29 @@ const filteredEmptyState = (subject) => (
     return { section: parts[0] || "home", value: parts[1] || "", query: new URLSearchParams(query) };
   }
 
+  function closeNavigation(focusMenu = false) {
+    const menuWasOpen = Boolean(nav?.classList.contains("is-open"));
+    nav?.classList.remove("is-open");
+    nav?.querySelectorAll(".nav-group[open]").forEach((group) => {
+      group.removeAttribute("open");
+    });
+    menuButton?.setAttribute("aria-expanded", "false");
+    if (focusMenu && menuWasOpen) menuButton?.focus();
+  }
+
   function setActiveNav(section) {
     nav?.querySelectorAll("a").forEach((link) => {
-      const target = link.getAttribute("href").replace("#/", "");
+      const target = link.getAttribute("href")?.replace("#/", "").split("?")[0];
       if (target === section) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
-    nav?.classList.remove("is-open");
-    menuButton?.setAttribute("aria-expanded", "false");
+    nav?.querySelectorAll(".nav-group").forEach((group) => {
+      group.classList.toggle(
+        "contains-current",
+        Boolean(group.querySelector('[aria-current="page"]')),
+      );
+    });
+    closeNavigation();
   }
 
   const isoDate = (value) => {
@@ -631,7 +646,7 @@ const filteredEmptyState = (subject) => (
             <div><dt>Latest result</dt><dd>${validDate(summary.meta.results_through)}</dd></div>
             <div><dt>Matches</dt><dd>${number(summary.meta.matches)}</dd></div>
             <div><dt>Teams</dt><dd>${number(summary.meta.teams)}</dd></div>
-            <div class="home-accuracy"><dt>Current-model accuracy</dt><dd>${percent(summary.validation.retrospective.accuracy)}</dd></div>
+            <div class="home-accuracy"><dt>Top-choice W/D/L accuracy</dt><dd>${percent(summary.validation.retrospective.accuracy)}</dd></div>
           </dl>
         </section>
 
@@ -698,10 +713,15 @@ const filteredEmptyState = (subject) => (
 
   function rankingsTable(items, showRank) {
     if (!items.length) return filteredEmptyState("teams");
-    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
+    const rankValue = (team, index) => (
+      showRank
+        ? team.display_rank ?? team.rank ?? index + 1
+        : index + 1
+    );
+    return `<div class="ranking-desktop"><div class="table-shell"><table class="ranking-table">
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric">12-month change</th><th class="numeric hide-mobile">Underlying strength estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">All-time peak</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr>
-        <td class="rank-cell numeric">${showRank ? team.display_rank ?? team.rank ?? index + 1 : index + 1}</td>
+        <td class="rank-cell numeric">${rankValue(team, index)}</td>
         <td>${teamLink(team.code, team.nation)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
         <td class="numeric">${movementHTML(team)}</td>
@@ -710,7 +730,28 @@ const filteredEmptyState = (subject) => (
         <td>${formHTML(team.form || [])}</td>
         <td class="hide-mobile">${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</td>
       </tr>`).join("")}</tbody>
-    </table></div>`;
+    </table></div></div>
+    <ol class="ranking-cards" aria-label="Rankings">
+      ${items.map((team, index) => `<li class="ranking-card">
+        <div class="ranking-card-heading">
+          <span class="ranking-card-rank">No. ${rankValue(team, index)}</span>
+          <div class="ranking-card-rating"><strong>${rating(team.rating)}</strong><small>uncertainty ${rating(team.se)}</small></div>
+        </div>
+        <div class="ranking-card-team">${teamLink(team.code, team.nation)}</div>
+        <div class="ranking-card-snapshot">
+          <div><span>12-month change</span>${movementHTML(team)}</div>
+          <div><span>Recent form</span>${formHTML(team.form || [])}</div>
+        </div>
+        <details class="ranking-card-details">
+          <summary>More ranking details</summary>
+          <dl>
+            <div><dt>Underlying strength estimate</dt><dd>${rating(team.mean)}</dd></div>
+            <div><dt>Matches</dt><dd>${number(team.matches)}</dd></div>
+            <div><dt>All-time peak</dt><dd>${team.peak ? `${rating(team.peak.rating)} · ${validDate(team.peak.date)}` : "—"}</dd></div>
+          </dl>
+        </details>
+      </li>`).join("")}
+    </ol>`;
   }
 
   function renderRankings(route) {
@@ -878,12 +919,32 @@ const filteredEmptyState = (subject) => (
 
   function historicalRankingsTable(items, selectedDate) {
     if (!items.length) return `<div class="empty"><h2>No eligible rankings yet</h2><p>Teams enter the table after their 30th recorded match.</p></div>`;
-    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+    return `<div class="ranking-desktop"><div class="table-shell"><table class="ranking-table">
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Underlying strength estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team, index) => `<tr><td class="rank-cell numeric">${team.rank ?? index + 1}</td><td>${teamLink(team.code, team.nation, selectedDate)}</td>
         <td class="numeric"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">uncertainty ${rating(team.se)}</span></td>
         <td class="numeric hide-mobile">${rating(team.mean)}</td><td class="numeric hide-mobile">${number(team.matches)}</td>
-        <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`).join("")}</tbody></table></div>`;
+        <td>${formHTML(team.form || [])}</td><td class="hide-mobile">${validDate(team.date)}</td></tr>`).join("")}</tbody></table></div></div>
+      <ol class="ranking-cards" aria-label="Historical rankings">
+        ${items.map((team, index) => `<li class="ranking-card">
+          <div class="ranking-card-heading">
+            <span class="ranking-card-rank">No. ${team.rank ?? index + 1}</span>
+            <div class="ranking-card-rating"><strong>${rating(team.rating)}</strong><small>uncertainty ${rating(team.se)}</small></div>
+          </div>
+          <div class="ranking-card-team">${teamLink(team.code, team.nation, selectedDate)}</div>
+          <div class="ranking-card-snapshot ranking-card-snapshot-single">
+            <div><span>Recent form</span>${formHTML(team.form || [])}</div>
+          </div>
+          <details class="ranking-card-details">
+            <summary>More ranking details</summary>
+            <dl>
+              <div><dt>Underlying strength estimate</dt><dd>${rating(team.mean)}</dd></div>
+              <div><dt>Matches</dt><dd>${number(team.matches)}</dd></div>
+              <div><dt>Last match</dt><dd>${validDate(team.date)}</dd></div>
+            </dl>
+          </details>
+        </li>`).join("")}
+      </ol>`;
   }
 
   async function renderHistory(route) {
@@ -897,7 +958,7 @@ const filteredEmptyState = (subject) => (
       <header class="page-heading"><div><p class="eyebrow">Rankings on any date</p><h1>Historical rankings</h1></div><p class="lede">Reconstructed with the current model after every match played on or before the selected date. These are present-day estimates of the past, not tables published at the time. <a href="#/tournaments">Compare tournament snapshots →</a></p></header>
       <div class="toolbar history-toolbar">
         <div class="history-date-actions"><div class="field history-date-field"><label for="history-date">Ranking date</label><div class="date-combo"><input id="history-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selected)}" aria-describedby="history-date-error"><button class="button" type="button" id="history-calendar-button" aria-label="Open calendar">Calendar</button><input id="history-calendar" class="native-date-proxy" type="date" min="${index.first}" max="${today}" value="${selected}" tabindex="-1" aria-hidden="true" aria-label="Ranking date calendar"></div><span id="history-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="history-apply">Apply date</button></div>
-        <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button" type="button" id="history-year-start">Start of year</button></div>
+        <div class="history-nav-actions"><button class="button" type="button" id="history-prev">← Previous matchday</button><button class="button" type="button" id="history-next">Next matchday →</button><button class="button button-quiet" type="button" id="history-year-start">Start of selected year</button></div>
       </div>
       <div class="record-note"><strong id="history-count">—</strong><div><b id="history-label">Eligible teams</b><br>At least 30 matches and an appearance in the selected year or preceding four calendar years.</div></div>
       <div class="toolbar compact-toolbar"><div class="field field-grow"><label for="history-search">Find a team</label><input id="history-search" type="search" placeholder="Search teams on this date…" value="${escapeHTML(route.query.get("q") || "")}"></div><div class="field"><label for="history-sort">Sort</label><select id="history-sort"><option value="rating">Rating</option><option value="matches">Matches played</option><option value="name">Name</option></select></div></div>
@@ -1040,8 +1101,8 @@ table.innerHTML = (!visible.length && query)
     if (!items.length) {
       return `<div class="empty"><h2>No participants</h2><p>No participating teams were recorded for this edition.</p></div>`;
     }
-    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell tournament-table"><table>
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Estimate before uncertainty</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+    return `<div class="ranking-desktop"><div class="table-shell tournament-table"><table class="ranking-table">
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Underlying strength estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team) => {
         const rankValue = team.rank == null ? "—" : team.rank;
         const ratingNote = team.rating == null
@@ -1056,7 +1117,33 @@ table.innerHTML = (!visible.length && query)
           <td>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</td>
           <td class="hide-mobile">${team.date ? validDate(team.date) : "—"}</td>
         </tr>`;
-      }).join("")}</tbody></table></div>`;
+      }).join("")}</tbody></table></div></div>
+      <ol class="ranking-cards" aria-label="Tournament rankings">
+        ${items.map((team) => {
+          const rankValue = team.rank == null ? "—" : team.rank;
+          const ratingNote = team.rating == null
+            ? "Not rated"
+            : `uncertainty ${rating(team.se)}`;
+          return `<li class="ranking-card">
+            <div class="ranking-card-heading">
+              <div class="ranking-card-rank">No. ${rankValue}${showMovement ? tournamentChangeHTML(team.tournament_rank_change, "rank") : ""}</div>
+              <div class="ranking-card-rating"><strong>${rating(team.rating)}</strong>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<small>${ratingNote}</small></div>
+            </div>
+            <div class="ranking-card-team">${teamLink(team.code, team.nation, selectedDate)}</div>
+            <div class="ranking-card-snapshot ranking-card-snapshot-single">
+              <div><span>Recent form</span>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</div>
+            </div>
+            <details class="ranking-card-details">
+              <summary>More ranking details</summary>
+              <dl>
+                <div><dt>Underlying strength estimate</dt><dd>${rating(team.mean)}</dd></div>
+                <div><dt>Matches</dt><dd>${team.matches == null ? "—" : number(team.matches)}</dd></div>
+                <div><dt>Last match</dt><dd>${team.date ? validDate(team.date) : "—"}</dd></div>
+              </dl>
+            </details>
+          </li>`;
+        }).join("")}
+      </ol>`;
   }
 
 
@@ -1891,7 +1978,7 @@ function defaultMajorTournamentFamily(families) {
 
   function peakTable(peaks) {
     return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Peak rating</th><th>Date</th><th>Peak-making result</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${peaks.map((peak, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.display_nation || peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">estimate before uncertainty ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
+      <td class="rank-cell numeric">${index + 1}</td><td>${teamLink(peak.code, peak.display_nation || peak.nation)}</td><td class="numeric"><span class="rating-main">${rating(peak.rating)}</span><span class="rating-sub">underlying strength ${rating(peak.mean)} · uncertainty ${rating(peak.se)}</span></td><td>${validDate(peak.date)}</td><td>${escapeHTML(peak.historical_name)} ${escapeHTML(peak.score)} ${escapeHTML(peak.opponent)}</td><td class="hide-mobile">${escapeHTML(peak.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -1920,7 +2007,7 @@ function defaultMajorTournamentFamily(families) {
 
   function matchRecordTable(matches) {
     return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th class="numeric">Rank</th><th>Date</th><th>Match</th><th class="numeric">Score</th><th class="numeric">Combined rating</th><th class="hide-mobile">Competition</th></tr></thead><tbody>${matches.map((match, index) => `<tr>
-      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined estimate before uncertainty ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
+      <td class="rank-cell numeric">${index + 1}</td><td>${validDate(match.date)}</td><td>${teamLink(match.code1, match.team1)} <span class="muted">v</span> ${teamLink(match.code2, match.team2)}</td><td class="numeric"><span class="score">${escapeHTML(match.score).replace("-", "–")}</span></td><td class="numeric"><span class="rating-main">${rating(match.combined)}</span><span class="rating-sub">combined underlying strength ${rating(match.combined_mean)} · uncertainty ${rating(match.combined_se)}</span></td><td class="hide-mobile">${escapeHTML(match.tournament)}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
 
@@ -2086,7 +2173,7 @@ function renderRecords(route) {
   content.innerHTML = `
     <div class="page">
       <header class="page-heading"><div><p class="eyebrow">Historical rating records</p><h1>Records</h1></div><p class="lede">Explore team peaks, No. 1 chronology and totals, highest-rated matches, largest upsets and the biggest tournament rating gains.</p></header>
-      <div class="record-tabs" role="tablist" aria-label="Record type"><button class="button button-dark" role="tab" aria-controls="record-table" data-record="peaks" aria-pressed="true" aria-selected="true" tabindex="0">Team peaks</button><button class="button" role="tab" aria-controls="record-table" data-record="numberones" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 chronology</button><button class="button" role="tab" aria-controls="record-table" data-record="numberonesummary" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 totals</button><button class="button" role="tab" aria-controls="record-table" data-record="matches" aria-pressed="false" aria-selected="false" tabindex="-1">Highest-rated matches</button><button class="button" role="tab" aria-controls="record-table" data-record="upsets" aria-pressed="false" aria-selected="false" tabindex="-1">Largest upsets</button><button class="button" role="tab" aria-controls="record-table" data-record="tournaments" aria-pressed="false" aria-selected="false" tabindex="-1">Best tournaments</button></div>
+      <div class="record-tabs" role="tablist" aria-label="Record type"><button class="button button-dark" role="tab" aria-controls="record-table" data-record="peaks" aria-pressed="true" aria-selected="true" tabindex="0">Team peaks</button><button class="button" role="tab" aria-controls="record-table" data-record="numberones" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 chronology</button><button class="button" role="tab" aria-controls="record-table" data-record="numberonesummary" aria-pressed="false" aria-selected="false" tabindex="-1">No. 1 totals</button><button class="button" role="tab" aria-controls="record-table" data-record="matches" aria-pressed="false" aria-selected="false" tabindex="-1">Highest-rated matches</button><button class="button" role="tab" aria-controls="record-table" data-record="upsets" aria-pressed="false" aria-selected="false" tabindex="-1">Largest upsets</button><button class="button" role="tab" aria-controls="record-table" data-record="tournaments" aria-pressed="false" aria-selected="false" tabindex="-1">Tournament gains</button></div>
 
       <div id="peak-filters" class="toolbar record-filters" hidden>
         <div class="field field-grow"><label for="peak-team-search">Find a team</label><input id="peak-team-search" type="search" placeholder="${escapeHTML(peakPlaceholder)}" value="${escapeHTML(route.query.get("peak") || "")}"></div>
@@ -3435,13 +3522,13 @@ function renderRecords(route) {
       output.innerHTML = `
         <section class="section comparison-summary-section">
           <div class="section-heading"><div><p class="eyebrow">${number(teams.length)} selected teams</p><h2>Comparison summary</h2></div></div>
-          <div class="table-shell comparison-summary-table"><table><thead><tr><th>Team</th><th>Status</th><th class="numeric">Rating</th><th>12-month movement</th><th>Home dependence</th><th>All-time peak</th><th>Overall record</th></tr></thead><tbody>
+          <div class="table-shell comparison-summary-table"><table><thead><tr><th>Team</th><th>Status</th><th class="numeric">Rating</th><th>12-month movement</th><th>Home/away effect</th><th>All-time peak</th><th>Overall record</th></tr></thead><tbody>
             ${teams.map((team, index) => `<tr>
               <td data-label="Team"><span class="comparison-team-name"><i class="comparison-series-swatch ${chartSeriesClass(index)}" aria-hidden="true"></i>${teamLink(team.code, team.nation)}</span></td>
               <td data-label="Status">${comparisonStatus(team)}</td>
               <td class="numeric" data-label="${comparisonRatingLabel(team)}"><span class="rating-main">${rating(team.rating)}</span><span class="rating-sub">${comparisonRatingLabel(team)}</span></td>
               <td data-label="12-month movement">${team.rank ? movementHTML(team) : "—"}</td>
-              <td data-label="Home dependence">${compactVenueProfileHTML(team.venue_effect)}</td>
+              <td data-label="Home/away effect">${compactVenueProfileHTML(team.venue_effect)}</td>
               <td data-label="All-time peak">${team.peak ? `${rating(team.peak.rating)}<span class="rating-sub">${validDate(team.peak.date)}</span>` : "—"}</td>
               <td data-label="Overall record">${number(team.wins)}–${number(team.draws)}–${number(team.losses)}</td>
             </tr>`).join("")}
@@ -3536,7 +3623,7 @@ function renderRecords(route) {
         : requested;
     content.innerHTML = `
       <div class="page predict-page">
-        <header class="page-heading"><div><p class="eyebrow">Historical and current match calculator</p><h1>Predict a match</h1></div><p class="lede">Choose any date and two teams ranked on that date. The calculator shows W/D/L probabilities, a 6×6 exact-score grid and projected rating effects for margins from five goals either way.</p></header>
+        <header class="page-heading"><div><p class="eyebrow">Historical and current match calculator</p><h1>Predict a match</h1></div><p class="lede">Choose any date and two teams ranked on that date. The main forecast shows W/D/L probabilities; exact scores and projected rating effects remain available in expandable tables.</p></header>
         ${ratingForecastExplanation()}
         <div class="toolbar history-toolbar predict-date-toolbar">
           <div class="history-date-actions"><div class="field history-date-field"><label for="predict-date">Prediction date</label><div class="date-combo"><input id="predict-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selectedDate)}" aria-describedby="predict-date-error"><button class="button" type="button" id="predict-calendar-button" aria-label="Open prediction-date calendar">Calendar</button><input id="predict-calendar" class="native-date-proxy" type="date" min="${historyIndex.first}" max="${maximumPredictionDate}" value="${selectedDate}" tabindex="-1" aria-hidden="true"></div><span id="predict-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="predict-apply">Apply date</button></div>
@@ -3677,8 +3764,14 @@ function renderRecords(route) {
         </div>
         ${!useCurrent && !preMatch ? `<div class="record-note"><strong>Historical forecast</strong><div><b>The selected-date ratings and latent means are exact global snapshots.</b> An arbitrary historical pairing is still an approximation because the static archive does not retain every old pairwise covariance. Open a completed match from Matches to see its exact stored pre-match W/D/L forecast.</div></div>` : ""}
         <div id="forecast"></div>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Reconciled score probabilities</p><h2>Exact-score grid</h2></div></div><div id="score-grid"></div></section>
-        <section class="section"><div class="section-heading"><div><p class="eyebrow">Projected post-match ratings</p><h2>Effect of each winning margin</h2></div></div><div class="record-note"><strong>Isolated scenario</strong><div>The table applies this one hypothetical result using the scoring environment on the selected date. It holds the elite reference, opponent breadth and every other same-date result fixed. Historical rows also omit archived pairwise covariance. These are useful isolated effects, not a promise of the exact rating published after a real jointly updated matchday.</div></div><div id="margin-grid"></div></section>`;
+        <details class="section analysis-disclosure">
+          <summary><span><span class="eyebrow">Reconciled score probabilities</span><b>Exact-score grid</b><small>Open the 6×6 table for scorelines from 0–0 to 5–5.</small></span></summary>
+          <div class="analysis-disclosure-body"><div id="score-grid"></div></div>
+        </details>
+        <details class="section analysis-disclosure">
+          <summary><span><span class="eyebrow">Projected post-match ratings</span><b>Effect of each winning margin</b><small>Open the table for draws and margins from five goals either way.</small></span></summary>
+          <div class="analysis-disclosure-body"><div class="record-note"><strong>Isolated scenario</strong><div>The table applies this one hypothetical result using the scoring environment on the selected date. It holds the elite reference, opponent breadth and every other same-date result fixed. Historical rows also omit archived pairwise covariance. These are useful isolated effects, not a promise of the exact rating published after a real jointly updated matchday.</div></div><div id="margin-grid"></div></div>
+        </details>`;
 
       const venueSelect = document.getElementById(
       "predict-venue"
@@ -4521,23 +4614,47 @@ function renderFAQ() {
     }
   }
 
+  nav?.querySelectorAll(".nav-group").forEach((group) => {
+    group.addEventListener("toggle", () => {
+      if (!group.open) return;
+      nav.querySelectorAll(".nav-group[open]").forEach((other) => {
+        if (other !== group) other.removeAttribute("open");
+      });
+    });
+  });
+  nav?.addEventListener?.("click", (event) => {
+    if (event.target.closest("a")) closeNavigation();
+  });
   menuButton?.addEventListener("click", () => {
-    const open = !nav?.classList.contains("is-open");
-    nav.classList.toggle("is-open", open);
-    menuButton.setAttribute("aria-expanded", String(open));
+    if (nav?.classList.contains("is-open")) {
+      closeNavigation();
+      return;
+    }
+    nav?.classList.add("is-open");
+    menuButton.setAttribute("aria-expanded", "true");
   });
   document.addEventListener("click", (event) => {
-    if (nav?.classList.contains("is-open") && !nav?.contains(event.target) && event.target !== menuButton) {
-      nav.classList.remove("is-open");
-      menuButton.setAttribute("aria-expanded", "false");
+    if (
+      !nav?.contains(event.target)
+      && event.target !== menuButton
+      && (
+        nav?.classList.contains("is-open")
+        || nav?.querySelector(".nav-group[open]")
+      )
+    ) {
+      closeNavigation();
     }
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && nav?.classList.contains("is-open")) {
-      nav.classList.remove("is-open");
-      menuButton.setAttribute("aria-expanded", "false");
-      menuButton.focus();
+    if (event.key !== "Escape") return;
+    if (nav?.classList.contains("is-open")) {
+      closeNavigation(true);
+      return;
     }
+    const openGroup = nav?.querySelector(".nav-group[open]");
+    if (!openGroup) return;
+    openGroup.removeAttribute("open");
+    openGroup.querySelector("summary")?.focus();
   });
   window.addEventListener("hashchange", route);
   route();

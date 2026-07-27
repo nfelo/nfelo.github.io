@@ -4,7 +4,7 @@
 site for senior men's international football. It covers results from 1872 to
 the present, current and historical rankings, tournament snapshots, every
 source match, team peaks, number-one chronology and totals, top match
-instances, largest upsets, Best tournaments, team comparison and a date-aware
+instances, largest upsets, tournament gains, team comparison and a date-aware
 probability calculator.
 
 ## What the model publishes
@@ -19,7 +19,7 @@ tendencies in an expandable technical section.
 **Current methodology version:** `2026-07-27-country-home-dependence`.
 
 Tournament snapshots use the same published rating immediately before and
-after each completed edition. Tournament rating change and Best tournaments
+after each completed edition. Tournament rating change and Tournament gains
 include only published movement from that edition’s matchdays, excluding annual
 recalibration and unrelated results. Tables use the team name active during the
 edition; selectors use joined lineage labels so successor names remain easy to
@@ -119,13 +119,13 @@ The source ledger lists the host first in 38,769 non-neutral rows and second in
 only one. Independent country host and visitor parameters are therefore not
 cleanly identifiable. The audit still tested host-only, away-only, separate
 host/away, neutral, non-home, global and combined structures. The strongest
-earlier-only selection was one shared country “home dependence” value divided
+earlier-only selection was one shared country venue-effect value divided
 equally between hosting and visiting. Adding a country-specific neutral term
 or adding venue-state posterior variance to match variance made forecasts
 worse.
 
 Team pages show the selected-date hosting and away effects plus a simple
-evidence label. The dependence estimate, neutral value, standard error, 95%
+evidence label. The venue-effect estimate, neutral value, standard error, 95%
 interval, evidence count and reliability remain available in an expandable
 technical section. These numbers affect match expectations, not the public
 ranking formula directly.
@@ -198,7 +198,7 @@ Every family previously placed in the fallback Other tournaments category has
 been reviewed. Seventy-two source codes represent invitationals, preparation
 events or friendly series; sixteen represent formal regional, federation or
 multi-sport competitions. Friendly families are excluded from both Tournaments
-and Best tournaments.
+and Tournament gains.
 
 Under this classification, the full 52,312-match replay jointly fitted:
 
