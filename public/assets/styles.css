@@ -73,7 +73,7 @@
   --radius: 22px;
   --content: min(1240px, calc(100vw - 40px));
   --font-body: "Aptos", Calibri, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-display: Corbel, Candara, "Aptos Display", "Segoe UI", sans-serif;
+  --font-display: Candara, Corbel, "Aptos Display", "Segoe UI", sans-serif;
   --font-numeric: "Aptos", Calibri, "Segoe UI", Arial, sans-serif;
   font-family: var(--font-body);
   color: var(--ink);
@@ -157,7 +157,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: auto; }
 body { margin: 0; min-width: 320px; background: var(--paper); }
 a { color: inherit; }
 button, input, select { font: inherit; }
@@ -202,11 +202,7 @@ button, select { cursor: pointer; }
 .brand strong, .brand small { display: block; }
 .brand strong { font-size: 17px; line-height: 1.05; }
 .brand small { margin-top: 3px; color: var(--mint); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
-.brand-mark { position: relative; display: grid; grid-template-columns: repeat(3, 7px); align-items: end; gap: 3px; width: 27px; height: 28px; }
-.brand-mark i { display: block; border-radius: 5px 5px 2px 2px; background: var(--lime); }
-.brand-mark i:nth-child(1) { height: 12px; opacity: .7; }
-.brand-mark i:nth-child(2) { height: 24px; }
-.brand-mark i:nth-child(3) { height: 18px; opacity: .85; }
+.brand-mark { display: block; width: 38px; height: 38px; flex: 0 0 auto; }
 
 .site-nav { display: flex; align-items: center; gap: 4px; }
 .site-nav a, .nav-group > summary { min-height: 42px; padding: 10px 13px; color: var(--on-dark-soft); border-radius: 11px; font-size: 14px; font-weight: 650; text-decoration: none; }
@@ -1549,11 +1545,13 @@ h3,
 h1 {
   font-weight: 600;
   letter-spacing: -0.026em;
+  line-height: 1.035;
 }
 
 h2 {
   font-weight: 600;
   letter-spacing: -0.018em;
+  line-height: 1.1;
 }
 
 h3 {
@@ -1563,6 +1561,29 @@ h3 {
 
 .lede {
   line-height: 1.62;
+}
+
+.page-heading {
+  position: relative;
+  padding-bottom: 18px;
+}
+
+.page-heading::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(180px, 42vw);
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--orchid),
+      var(--lime) 52%,
+      transparent
+    );
+  border-radius: 999px;
+  box-shadow: 0 0 12px var(--accent-soft-strong);
+  content: "";
 }
 
 .eyebrow {
@@ -1610,71 +1631,19 @@ h3 {
 }
 
 .brand-mark {
-  isolation: isolate;
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, 6px);
-  align-items: end;
-  justify-content: center;
-  gap: 3px;
   width: 38px;
   height: 38px;
-  padding: 7px 6px 6px;
-  overflow: visible;
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.22), transparent 32%),
-    linear-gradient(145deg, #7c2f70, #4a143f);
-  border: 1px solid rgba(255, 225, 246, 0.34);
-  border-radius: 14px 18px 14px 18px;
-  box-shadow:
-    0 7px 18px rgba(18, 3, 16, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transform: rotate(-1.5deg);
+  filter:
+    drop-shadow(0 7px 12px rgba(18, 3, 16, 0.24))
+    drop-shadow(0 0 7px rgba(255, 155, 213, 0.12));
+  transform: none;
 }
 
-.brand-mark::before {
-  position: absolute;
-  inset: 4px;
-  z-index: -1;
-  border: 1px solid rgba(255, 220, 244, 0.13);
-  border-radius: 11px 15px 11px 15px;
-  content: "";
-}
-
-.brand-mark::after {
-  position: absolute;
-  top: -3px;
-  right: -4px;
-  width: 10px;
-  height: 10px;
-  background: #ffd8ef;
-  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
-  filter: drop-shadow(0 0 5px rgba(255, 155, 213, 0.65));
-  content: "";
-}
-
-.brand-mark i {
-  position: relative;
-  z-index: 1;
-  width: 6px;
-  background: linear-gradient(180deg, #ffe0f2, #ff91cf);
-  border-radius: 999px 999px 4px 4px;
-  box-shadow: 0 0 8px rgba(255, 163, 217, 0.28);
-}
-
-.brand-mark i:nth-child(1) {
-  height: 13px;
-  opacity: 0.86;
-}
-
-.brand-mark i:nth-child(2) {
-  height: 24px;
-}
-
-.brand-mark i:nth-child(3) {
-  height: 18px;
-  background: linear-gradient(180deg, #f3ddff, #ce83e6);
-  opacity: 0.94;
+.brand:hover .brand-mark {
+  filter:
+    drop-shadow(0 8px 14px rgba(18, 3, 16, 0.27))
+    drop-shadow(0 0 9px rgba(255, 155, 213, 0.2));
+  transform: translateY(-1px);
 }
 
 .site-nav a,
@@ -1756,6 +1725,7 @@ h3 {
 
 .button {
   min-height: 44px;
+  padding-inline: 19px;
   border-radius: 14px;
   font-weight: 700;
   box-shadow: 0 2px 0 rgba(97, 36, 82, 0.04);
@@ -1766,6 +1736,10 @@ h3 {
     background-color 0.16s ease;
 }
 
+.button:not(.menu-button) {
+  border-radius: 999px;
+}
+
 .button:hover {
   box-shadow: 0 9px 24px rgba(112, 43, 96, 0.16);
 }
@@ -1773,6 +1747,17 @@ h3 {
 .button-primary {
   background: linear-gradient(135deg, #ffb2dc, var(--lime) 52%, #e1bdf7);
   box-shadow: 0 8px 22px rgba(226, 79, 168, 0.2);
+}
+
+.button-primary::before {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  margin-right: 3px;
+  background: color-mix(in srgb, var(--on-accent) 72%, transparent);
+  border-radius: 70% 30% 70% 30%;
+  content: "";
+  transform: rotate(45deg);
 }
 
 .button-dark {
@@ -1872,7 +1857,7 @@ th,
 .team-picker select,
 .chart-year-form input {
   min-height: 44px;
-  border-radius: 13px;
+  border-radius: 16px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -1938,6 +1923,31 @@ tbody tr:hover {
   border-radius: 6px 18px 18px 6px;
 }
 
+.chronology-cause {
+  display: inline-flex;
+  gap: 9px;
+  align-items: flex-start;
+  max-width: 32rem;
+  padding: 9px 11px;
+  color: var(--ink-soft);
+  background: var(--accent-soft);
+  border: 1px solid var(--petal-line);
+  border-radius: 8px 15px 15px 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.chronology-cause::before {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  margin-top: 4px;
+  background: linear-gradient(135deg, var(--orchid), var(--lime));
+  border-radius: 70% 30% 70% 30%;
+  content: "";
+  transform: rotate(45deg);
+}
+
 .faq-item,
 .method-details,
 .analysis-disclosure,
@@ -1963,6 +1973,18 @@ tbody tr:hover {
 .home-explore-links a {
   border: 1px solid var(--petal-line);
   border-radius: 12px 17px 12px 17px;
+}
+
+.compact-heading > a,
+.home-help-links a,
+.prose a {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--orchid) 72%,
+    transparent
+  );
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
 }
 
 .ranking-card {

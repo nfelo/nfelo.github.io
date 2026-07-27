@@ -222,7 +222,8 @@ class StaticBuildTests(unittest.TestCase):
             "The selected-date ratings and latent means are exact global snapshots.",
             "Historical rows also omit archived pairwise covariance.",
             "summary.meta.rankings_as_of",
-            "Uncertainty drift or eligibility change",
+            "No direct match: network effects, inactivity decay or "
+            "eligibility changed the order.",
             "&date=${encodeURIComponent(cutoff)}",
             "Why does NFELO include territories and some teams outside FIFA?",
             "Nᵢ = (Σⱼwᵢⱼ)² / Σⱼwᵢⱼ²",
@@ -892,9 +893,37 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn("function numberOneTable", javascript)
         self.assertIn("function numberOneSummaryTable", javascript)
         self.assertIn('data-record="numberonesummary"', javascript)
-        self.assertIn("Relevant change-date result(s)", javascript)
+        self.assertIn("Entry result or explanation", javascript)
         self.assertIn("Swipe horizontally to see all columns", javascript)
         self.assertTrue(all("match" in spell for spell in spells))
+        self.assertTrue(all("cause" in spell for spell in spells))
+        indirect_spells = []
+        for spell in spells:
+            involved = {
+                spell["code"],
+                spell.get("displaced_code"),
+            }
+            for match in spell.get("matches", []):
+                self.assertTrue(
+                    match["team1_code"] in involved
+                    or match["team2_code"] in involved,
+                    (
+                        spell["from"],
+                        spell["nation"],
+                        match["team1"],
+                        match["team2"],
+                    ),
+                )
+            if spell["cause"] in {"network", "drift"}:
+                indirect_spells.append(spell)
+                self.assertFalse(spell.get("matches"))
+                self.assertIn("No direct match:", spell["reason"])
+        self.assertTrue(indirect_spells)
+        self.assertIn(
+            "A result is shown only when it involved the incoming "
+            "or displaced leader",
+            javascript,
+        )
         summaries = self.summary["number_one_summary"]
         self.assertTrue(summaries)
         self.assertEqual(summaries, sorted(
@@ -910,6 +939,29 @@ class StaticBuildTests(unittest.TestCase):
             and isinstance(match["score2"], int)
             for match in change_matches
         ))
+
+    def test_internal_navigation_opens_at_top_and_supports_back(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        smoke = (
+            ROOT / "scripts" / "smoke_browser_boot.js"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            "function routeFromInternalHref",
+            "function navigateToInternalRoute",
+            "history.pushState(",
+            'scrollMode: "top"',
+            'window.addEventListener("popstate"',
+            'scrollMode: "restore"',
+            'history.scrollRestoration = "manual";',
+            "nfeloScrollY",
+        ):
+            self.assertIn(marker, javascript)
+        self.assertIn(
+            "new pages open at the top and Back restores the prior route",
+            smoke,
+        )
 
     def test_ranking_movement_comparison_and_number_one_filters(self) -> None:
         current = self.summary["current"]
@@ -2287,8 +2339,10 @@ class StaticBuildTests(unittest.TestCase):
             "--font-numeric:",
             "--focus:",
             'font-feature-settings: "lnum" 1, "tnum" 1;',
-            "Corbel, Candara",
-            ".brand-mark::after",
+            "Candara, Corbel",
+            ".brand:hover .brand-mark",
+            ".page-heading::after",
+            ".chronology-cause",
             "Refined rose-and-lavender presentation system",
             ".nav-submenu",
             ".ranking-desktop",
@@ -2609,16 +2663,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('rel="canonical"', html)
         self.assertIn('property="og:image"', html)
         self.assertIn(
-            'rel="icon" href="favicon-2026.svg?v=20260727"',
+            'rel="icon" href="favicon-2026.svg?v=20260728"',
             html,
         )
         self.assertIn(
             'rel="apple-touch-icon" sizes="180x180" '
-            'href="apple-touch-icon-2026.png?v=20260727"',
+            'href="apple-touch-icon-2026.png?v=20260728"',
             html,
         )
         self.assertIn(
-            'rel="manifest" href="site.webmanifest?v=20260727"',
+            'rel="manifest" href="site.webmanifest?v=20260728"',
             html,
         )
         self.assertRegex(html, r'assets/styles\.css\?v=[0-9a-f]{12}')
@@ -2635,8 +2689,8 @@ class StaticBuildTests(unittest.TestCase):
                 for icon in webmanifest["icons"]
             },
             {
-                "icon-192-2026.png?v=20260727",
-                "icon-512-2026.png?v=20260727",
+                "icon-192-2026.png?v=20260728",
+                "icon-512-2026.png?v=20260728",
             },
         )
         expected_png_sizes = {

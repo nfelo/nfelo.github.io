@@ -1998,37 +1998,71 @@ def build_number_one_chronology(
                     if previous is not None and changed_team
                     else []
                 )
-                incoming_before = previous_ratings.get(leader_code)
-                incoming_gain = (
-                    float("inf")
-                    if incoming_before is None
-                    else ratings[leader_code] - incoming_before
-                )
-                outgoing_drop = float("-inf")
-                if (
-                    previous is not None
-                    and previous["code"] in previous_ratings
-                    and previous["code"] in ratings
-                ):
-                    outgoing_drop = (
-                        previous_ratings[previous["code"]]
-                        - ratings[previous["code"]]
+                trigger_matches: list[dict[str, Any]] = []
+                if previous is None:
+                    cause = "initial"
+                    reason = (
+                        "Initial published No. 1; no team was displaced."
                     )
-                if (
-                    outgoing_matches
-                    and outgoing_drop > incoming_gain
-                ):
-                    trigger_matches = outgoing_matches
-                elif incoming_matches:
-                    trigger_matches = incoming_matches
-                elif outgoing_matches:
-                    trigger_matches = outgoing_matches
+                elif changed_name and not changed_team:
+                    cause = "name"
+                    reason = (
+                        "Historical name transition within the same "
+                        "rating lineage."
+                    )
                 else:
-                    # A full-covariance update can change the leader through
-                    # results involving connected third teams. In that case
-                    # the complete jointly applied matchday is the honest
-                    # trigger rather than an invented single match.
-                    trigger_matches = matches_by_day.get(day, [])
+                    incoming_before = previous_ratings.get(leader_code)
+                    incoming_gain = (
+                        float("inf")
+                        if incoming_before is None
+                        else ratings[leader_code] - incoming_before
+                    )
+                    outgoing_drop = float("-inf")
+                    if (
+                        previous["code"] in previous_ratings
+                        and previous["code"] in ratings
+                    ):
+                        outgoing_drop = (
+                            previous_ratings[previous["code"]]
+                            - ratings[previous["code"]]
+                        )
+                    if (
+                        outgoing_matches
+                        and outgoing_drop > incoming_gain
+                    ):
+                        cause = "direct-outgoing"
+                        reason = (
+                            "Result involving the displaced No. 1."
+                        )
+                        trigger_matches = outgoing_matches
+                    elif incoming_matches:
+                        cause = "direct-incoming"
+                        reason = (
+                            "Result involving the incoming No. 1."
+                        )
+                        trigger_matches = incoming_matches
+                    elif outgoing_matches:
+                        cause = "direct-outgoing"
+                        reason = (
+                            "Result involving the displaced No. 1."
+                        )
+                        trigger_matches = outgoing_matches
+                    elif matches_by_day.get(day):
+                        # Full covariance lets connected third-team results
+                        # change both leaders. Listing the entire matchday
+                        # would falsely imply that those fixtures were
+                        # individually selected as the cause.
+                        cause = "network"
+                        reason = (
+                            "No direct match: network effects or inactivity "
+                            "decay changed the order."
+                        )
+                    else:
+                        cause = "drift"
+                        reason = (
+                            "No direct match: inactivity decay or "
+                            "eligibility changed the order."
+                        )
                 trigger_matches = sorted(
                     trigger_matches,
                     key=lambda row: row["id"],
@@ -2059,11 +2093,8 @@ def build_number_one_chronology(
                         if changed_team and previous
                         else None
                     ),
-                    "reason": (
-                        "Joint matchday update"
-                        if trigger_rows
-                        else "Uncertainty drift or eligibility change"
-                    ),
+                    "cause": cause,
+                    "reason": reason,
                     "matches": trigger_rows,
                     "match": (
                         trigger_rows[0]

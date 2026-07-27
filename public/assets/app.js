@@ -398,10 +398,28 @@ const filteredEmptyState = (subject) => (
     const suffix = query.toString();
     return `${new URL(path ? `${path}/` : "", document.baseURI).pathname}${suffix ? `?${suffix}` : ""}`;
   };
+  const currentScrollY = () => (
+    Number.isFinite(Number(window.scrollY))
+      ? Math.max(0, Number(window.scrollY))
+      : 0
+  );
+  const routeHistoryState = (scrollY = currentScrollY()) => ({
+    ...(
+      history.state && typeof history.state === "object"
+        ? history.state
+        : {}
+    ),
+    nfeloRoute: true,
+    nfeloScrollY: scrollY,
+  });
   const replaceRouteQuery = (section, values) => {
     const query = new URLSearchParams();
     Object.entries(values).forEach(([key, value]) => { if (value !== "" && value != null) query.set(key, value); });
-    history.replaceState(null, "", cleanRouteURL(section, "", query));
+    history.replaceState(
+      routeHistoryState(),
+      "",
+      cleanRouteURL(section, "", query),
+    );
   };
 
   async function getJSON(path) {
@@ -452,6 +470,43 @@ const filteredEmptyState = (subject) => (
     const [path, query = ""] = raw.split("?");
     const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
     return { section: parts[0] || "home", value: parts[1] || "", query: new URLSearchParams(query) };
+  }
+
+  function routeFromInternalHref(href) {
+    if (!String(href || "").startsWith("#/")) return null;
+    const [path, query = ""] = String(href).slice(2).split("?");
+    const parts = path
+      .split("/")
+      .filter(Boolean)
+      .map(decodeURIComponent);
+    return {
+      section: parts[0] || "home",
+      value: parts[1] || "",
+      query: new URLSearchParams(query),
+    };
+  }
+
+  function navigateToInternalRoute(target) {
+    const destination = cleanRouteURL(
+      target.section,
+      target.value,
+      target.query,
+    );
+    const current = `${location.pathname}${location.search}`;
+    if (!location.hash && destination === current) {
+      route({ scrollMode: "top" });
+      return;
+    }
+    history.replaceState(routeHistoryState(), "");
+    history.pushState(
+      {
+        nfeloRoute: true,
+        nfeloScrollY: 0,
+      },
+      "",
+      destination,
+    );
+    route({ scrollMode: "top" });
   }
 
   function closeNavigation(focusMenu = false) {
@@ -1985,16 +2040,16 @@ function defaultMajorTournamentFamily(families) {
   function numberOneMatch(spell) {
     const matches = spell.matches || (spell.match ? [spell.match] : []);
     if (!matches.length) {
-      return escapeHTML(
+      return `<span class="chronology-cause chronology-cause-${escapeHTML(spell.cause || "indirect")}">${escapeHTML(
         spell.reason
-        || "Uncertainty drift or eligibility change",
-      );
+        || "No direct match: network effects, inactivity decay or eligibility changed the order.",
+      )}</span>`;
     }
     return matches.map((match) => `<span class="trigger-result">${teamLink(match.team1_code, match.team1, spell.from)} <span class="score">${number(match.score1)}–${number(match.score2)}</span> ${teamLink(match.team2_code, match.team2, spell.from)}<span class="rating-sub">${escapeHTML(match.competition)}</span></span>`).join("");
   }
 
   function numberOneTable(spells) {
-    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th>Team</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Relevant change-date result(s)</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
+    return `<div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell"><table><thead><tr><th>Team</th><th>From</th><th>Until</th><th class="numeric">Days</th><th class="numeric">Entry rating</th><th>Entry result or explanation</th><th>Displaced</th></tr></thead><tbody>${spells.map((spell) => `<tr>
       <td>${teamLink(spell.code, spell.nation, spell.from)}</td><td>${validDate(spell.from)}</td><td>${spell.to ? validDate(spell.to) : "<b>Current</b>"}</td><td class="numeric">${number(spell.days)}</td><td class="numeric"><span class="rating-main">${rating(spell.rating)}</span></td><td>${numberOneMatch(spell)}</td><td>${spell.displaced ? teamLink(spell.displaced_code, spell.displaced, spell.from) : "—"}</td>
     </tr>`).join("")}</tbody></table></div>`;
   }
@@ -2453,7 +2508,7 @@ function renderRecords(route) {
     ).innerHTML = view === "peaks"
       ? `<strong>Peak</strong><div><b>One maximum per canonical team lineage.</b> A peak reached under a former name shows that historical name first; a peak reached under the current name lists relevant former lineage names afterward.</div>`
       : view === "numberones"
-        ? `<strong>No. 1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. Historical names are retained, and every relevant result from the change date is shown.</div>`
+        ? `<strong>No. 1</strong><div><b>Every spell as NFELO world number one.</b> Leadership is determined jointly after all results on each date. A result is shown only when it involved the incoming or displaced leader; otherwise the table identifies the network, inactivity or eligibility effect without attaching unrelated matches.</div>`
         : view === "numberonesummary"
           ? `<strong>Total</strong><div><b>Number-one totals use only names from actual No. 1 spells.</b> Germany includes West Germany; the Soviet Union total does not include post-Soviet Russia.</div>`
           : view === "matches"
@@ -4575,7 +4630,10 @@ function renderFAQ() {
     content.innerHTML = `<div class="error-panel"><p class="eyebrow">404</p><h2>Page not found</h2><p>Return to a main section below.</p><div class="context-actions"><a class="button button-dark" href="#/rankings">Rankings</a><a class="button button-quiet" href="#/matches">Matches</a><a class="button button-quiet" href="#/">Home</a></div></div>`;
   }
 
-  async function route() {
+  async function route({
+    scrollMode = "preserve",
+    scrollY = null,
+  } = {}) {
     disposeRatingHistoryCharts();
     const current = parseRoute();
     setActiveNav(current.section);
@@ -4599,12 +4657,42 @@ function renderFAQ() {
         default: renderNotFound();
       }
       setRouteMetadata(current);
-      if (location.hash.startsWith("#/")) history.replaceState(null, "", cleanRouteURL(current.section, current.value, current.query));
+      if (location.hash.startsWith("#/")) {
+        history.replaceState(
+          routeHistoryState(
+            scrollMode === "top"
+              ? 0
+              : currentScrollY(),
+          ),
+          "",
+          cleanRouteURL(
+            current.section,
+            current.value,
+            current.query,
+          ),
+        );
+      }
       window.goatcounter?.count?.({
         path: location.pathname + location.search,
         title: document.title,
       });
       content.focus({ preventScroll: true });
+      const methodologyHandlesScroll = (
+        current.section === "methodology"
+        && current.query.has("section")
+      );
+      if (!methodologyHandlesScroll && scrollMode !== "preserve") {
+        const targetScroll = scrollMode === "restore"
+          ? Math.max(0, Number(scrollY) || 0)
+          : 0;
+        window.requestAnimationFrame(() => {
+          window.scrollTo({
+            top: targetScroll,
+            left: 0,
+            behavior: "auto",
+          });
+        });
+      }
       window.__nfeloBoot.ready = true;
     } catch (error) {
       console.error(error);
@@ -4634,6 +4722,27 @@ function renderFAQ() {
     menuButton.setAttribute("aria-expanded", "true");
   });
   document.addEventListener("click", (event) => {
+    const routeLink = event.target.closest?.('a[href^="#/"]');
+    const targetRoute = routeFromInternalHref(
+      routeLink?.getAttribute("href"),
+    );
+    const plainPrimaryClick = (
+      !event.defaultPrevented
+      && (event.button == null || event.button === 0)
+      && !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey
+    );
+    if (
+      targetRoute
+      && plainPrimaryClick
+      && !routeLink.hasAttribute("download")
+      && routeLink.getAttribute("target") !== "_blank"
+    ) {
+      event.preventDefault();
+      navigateToInternalRoute(targetRoute);
+    }
     if (
       !nav?.contains(event.target)
       && event.target !== menuButton
@@ -4656,6 +4765,18 @@ function renderFAQ() {
     openGroup.removeAttribute("open");
     openGroup.querySelector("summary")?.focus();
   });
-  window.addEventListener("hashchange", route);
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+  window.addEventListener(
+    "hashchange",
+    () => route({ scrollMode: "top" }),
+  );
+  window.addEventListener("popstate", (event) => {
+    route({
+      scrollMode: "restore",
+      scrollY: event.state?.nfeloScrollY,
+    });
+  });
   route();
 })();

@@ -64,18 +64,23 @@ class PresentationReleaseTests(unittest.TestCase):
                 '<meta name="theme-color" content="#10070e" '
                 'media="(prefers-color-scheme: dark)">'
             ),
-            "favicon-2026.ico?v=20260727",
-            "favicon-2026.svg?v=20260727",
-            "apple-touch-icon-2026.png?v=20260727",
-            "site.webmanifest?v=20260727",
-            "social-card.png?v=20260727",
+            "favicon-2026.ico?v=20260728",
+            "favicon-2026.svg?v=20260728",
+            "apple-touch-icon-2026.png?v=20260728",
+            "site.webmanifest?v=20260728",
+            "social-card.png?v=20260728",
             f"assets/styles.css?v={stylesheet_hash}",
-            '<span class="brand-mark" aria-hidden="true">',
+            (
+                '<img class="brand-mark" '
+                'src="favicon-2026.svg?v=20260728"'
+            ),
         )
         obsolete = (
             'content="#301032"',
             "site.webmanifest?v=20260723",
             "styles.css?v=6be8afb7b626",
+            "favicon-2026.svg?v=20260727",
+            '<span class="brand-mark"',
         )
         for route in routes:
             html = route.read_text(encoding="utf-8")
@@ -88,13 +93,16 @@ class PresentationReleaseTests(unittest.TestCase):
         stylesheet = STYLES.read_text(encoding="utf-8")
         for marker in (
             '--font-body: "Aptos", Calibri',
-            "--font-display: Corbel, Candara",
+            "--font-display: Candara, Corbel",
             '--font-numeric: "Aptos", Calibri',
             'font-feature-settings: "lnum" 1, "tnum" 1;',
             "font-variant-numeric: lining-nums tabular-nums;",
             "Refined rose-and-lavender presentation system",
-            ".brand-mark::after",
+            ".brand:hover .brand-mark",
             ".eyebrow::before",
+            ".page-heading::after",
+            ".button-primary::before",
+            ".chronology-cause::before",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
             "min-height: 44px;",
@@ -196,8 +204,8 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertEqual(
             {icon["src"] for icon in manifest["icons"]},
             {
-                "icon-192-2026.png?v=20260727",
-                "icon-512-2026.png?v=20260727",
+                "icon-192-2026.png?v=20260728",
+                "icon-512-2026.png?v=20260728",
             },
         )
 
@@ -208,10 +216,10 @@ class PresentationReleaseTests(unittest.TestCase):
         for marker in (
             'content="#43133c"',
             'content="#10070e"',
-            "favicon-2026.svg?v=20260727",
-            "apple-touch-icon-2026.png?v=20260727",
+            "favicon-2026.svg?v=20260728",
+            "apple-touch-icon-2026.png?v=20260728",
             "font-variant-numeric: lining-nums tabular-nums",
-            "font-family: Corbel, Candara",
+            "font-family: Candara, Corbel",
             "background: #fff8fc",
             "background: #170b14",
             "@media (max-width: 480px)",

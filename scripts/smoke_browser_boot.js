@@ -37,6 +37,7 @@ const content = {
 const navigation = {
   classList,
   contains: () => false,
+  querySelector: () => null,
   querySelectorAll: () => [],
 };
 const menuButton = {
@@ -79,8 +80,21 @@ const document = {
 const windowObject = {
   __nfeloBoot: {},
   goatcounter: null,
+  scrollY: 0,
+  scrollCalls: [],
   addEventListener(type, callback) {
     listeners.set(`window:${type}`, callback);
+  },
+  requestAnimationFrame(callback) {
+    callback();
+    return 1;
+  },
+  scrollTo(options) {
+    const top = typeof options === "number"
+      ? options
+      : Number(options?.top) || 0;
+    this.scrollY = top;
+    this.scrollCalls.push(top);
   },
   setTimeout,
   clearTimeout,
@@ -95,7 +109,61 @@ const location = {
   origin: "https://example.test",
   reload: () => {},
 };
-const history = { replaceState: () => {} };
+const applyURL = (value) => {
+  if (!value) return;
+  const target = new URL(value, location.origin);
+  location.pathname = target.pathname;
+  location.search = target.search;
+  location.hash = target.hash;
+};
+const historyEntries = [{
+  pathname: location.pathname,
+  search: location.search,
+  hash: location.hash,
+  state: null,
+}];
+let historyIndex = 0;
+const history = {
+  state: null,
+  scrollRestoration: "auto",
+  replaceState(state, _title, url) {
+    applyURL(url);
+    this.state = state;
+    historyEntries[historyIndex] = {
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+      state,
+    };
+  },
+  pushState(state, _title, url) {
+    applyURL(url);
+    this.state = state;
+    historyEntries.splice(
+      historyIndex + 1,
+      historyEntries.length,
+      {
+        pathname: location.pathname,
+        search: location.search,
+        hash: location.hash,
+        state,
+      },
+    );
+    historyIndex += 1;
+  },
+  back() {
+    if (historyIndex === 0) return;
+    historyIndex -= 1;
+    const entry = historyEntries[historyIndex];
+    location.pathname = entry.pathname;
+    location.search = entry.search;
+    location.hash = entry.hash;
+    this.state = entry.state;
+    listeners.get("window:popstate")?.({
+      state: entry.state,
+    });
+  },
+};
 
 const summary = {
   current: [],
@@ -177,10 +245,74 @@ vm.runInContext(javascript, sandbox, {
   if (!content.innerHTML.includes("home-page")) {
     throw new Error("Home page was not rendered.");
   }
+  if (history.scrollRestoration !== "manual") {
+    throw new Error("Route scroll restoration was not made deterministic.");
+  }
+
+  windowObject.scrollY = 420;
+  let prevented = false;
+  const aboutLink = {
+    getAttribute(name) {
+      if (name === "href") return "#/about";
+      if (name === "target") return "";
+      return null;
+    },
+    hasAttribute: () => false,
+  };
+  listeners.get("document:click")?.({
+    target: {
+      closest(selector) {
+        return selector === 'a[href^="#/"]'
+          ? aboutLink
+          : null;
+      },
+    },
+    defaultPrevented: false,
+    button: 0,
+    metaKey: false,
+    ctrlKey: false,
+    shiftKey: false,
+    altKey: false,
+    preventDefault() {
+      prevented = true;
+    },
+  });
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (content.innerHTML.includes("<h1>About</h1>")) break;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  if (!prevented || location.pathname !== "/about/") {
+    throw new Error("Internal route navigation did not use clean history.");
+  }
+  if (!content.innerHTML.includes("<h1>About</h1>")) {
+    throw new Error("Internal route navigation did not render its page.");
+  }
+  if (windowObject.scrollY !== 0) {
+    throw new Error("A newly selected page did not open at the top.");
+  }
+
+  history.back();
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (content.innerHTML.includes("home-page")) break;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  if (
+    location.pathname !== "/"
+    || !content.innerHTML.includes("home-page")
+  ) {
+    throw new Error(
+      "Browser Back did not restore the preceding home route.",
+    );
+  }
+  if (windowObject.scrollY !== 420) {
+    throw new Error(
+      "Browser Back did not restore the preceding page position.",
+    );
+  }
 
   console.log(
-    "Browser boot smoke test passed: the application replaced "
-    + "the initial loading shell.",
+    "Browser boot and route-history smoke test passed: "
+    + "new pages open at the top and Back restores the prior route.",
   );
 })().catch((error) => {
   console.error(error);
