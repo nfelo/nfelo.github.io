@@ -3,40 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#301032" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#110710" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#43133c" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#10070e" media="(prefers-color-scheme: dark)">
     <meta name="robots" content="noindex">
     <meta http-equiv="refresh" content="5; url=https://nfelo.github.io/">
-    <link rel="icon" href="/favicon-2026.ico" sizes="16x16 32x32 48x48">
-    <link rel="icon" href="/favicon-2026.svg" type="image/svg+xml" sizes="any">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png">
+    <link rel="icon" href="/favicon-2026.ico?v=20260727" sizes="16x16 32x32 48x48">
+    <link rel="icon" href="/favicon-2026.svg?v=20260727" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png?v=20260727">
     <title>Page not found · Network Football Elo</title>
     <style>
       :root {
         color-scheme: light;
-        font-family: Calibri, "Segoe UI", Roboto, Arial, sans-serif;
-        color: #321635;
-        background: #fff6fc;
-        --ink-soft: #70576f;
+        font-family: "Aptos", Calibri, "Segoe UI", Roboto, Arial, sans-serif;
+        color: #3d1f38;
+        background: #fff8fc;
+        font-variant-numeric: lining-nums tabular-nums;
+        font-feature-settings: "lnum" 1, "tnum" 1;
+        --ink-soft: #705268;
         --surface: #fffafd;
-        --navy: #301032;
-        --on-dark: #fff7fc;
-        --border: rgba(57, 26, 71, .16);
-        --shadow: rgba(48, 17, 63, .12);
-        --ring: rgba(255, 154, 217, .5);
+        --navy: #43133c;
+        --on-dark: #fff9fd;
+        --border: rgba(103, 41, 88, .18);
+        --shadow: rgba(78, 26, 69, .11);
+        --ring: #c12f8e;
       }
       @media (prefers-color-scheme: dark) {
         :root {
           color-scheme: dark;
-          color: #fff7fc;
-          background: #190d18;
-          --ink-soft: #dfc5da;
-          --surface: #281523;
-          --navy: #87548e;
-          --on-dark: #fff7fc;
-          --border: rgba(236, 210, 244, .2);
+          color: #fff9fd;
+          background: #170b14;
+          --ink-soft: #e4ccdc;
+          --surface: #27111f;
+          --navy: #6f3466;
+          --on-dark: #fff9fd;
+          --border: rgba(244, 212, 237, .21);
           --shadow: rgba(4, 1, 6, .42);
-          --ring: rgba(255, 143, 213, .58);
+          --ring: #ff78c5;
         }
       }
       * { box-sizing: border-box; }
@@ -47,20 +49,40 @@
         margin: 0;
         padding: 20px;
         place-items: center;
+        background:
+          radial-gradient(circle at 8% 4%, rgba(255, 155, 213, .17), transparent 30rem),
+          radial-gradient(circle at 96% 18%, rgba(213, 176, 255, .14), transparent 32rem);
       }
       main {
+        position: relative;
         width: min(620px, 100%);
+        overflow: hidden;
         padding: clamp(28px, 7vw, 42px);
-        background: var(--surface);
+        background:
+          linear-gradient(145deg, rgba(255, 155, 213, .05), transparent),
+          var(--surface);
         border: 1px solid var(--border);
-        border-radius: 20px;
+        border-radius: 24px 32px 24px 32px;
         box-shadow: 0 20px 50px var(--shadow);
+      }
+      main::before {
+        position: absolute;
+        top: 24px;
+        right: 28px;
+        width: 14px;
+        height: 14px;
+        background: linear-gradient(135deg, #ff9bd5, #d878c8);
+        border-radius: 70% 30% 70% 30%;
+        box-shadow: 0 0 0 7px rgba(232, 102, 183, .13);
+        content: "";
+        transform: rotate(45deg);
       }
       h1 {
         margin: 0 0 12px;
-        font-family: Candara, "Trebuchet MS", Calibri, "Segoe UI", sans-serif;
+        font-family: Corbel, Candara, "Aptos Display", "Segoe UI", sans-serif;
         font-size: clamp(38px, 8vw, 64px);
-        letter-spacing: -.04em;
+        font-weight: 600;
+        letter-spacing: -.026em;
         line-height: .98;
       }
       p {
@@ -73,10 +95,11 @@
         display: inline-block;
         padding: 12px 18px;
         color: var(--on-dark);
-        background: var(--navy);
-        border-radius: 12px;
+        background: linear-gradient(135deg, var(--navy), #69265e);
+        border-radius: 14px;
         font-weight: 700;
         text-decoration: none;
+        box-shadow: 0 8px 22px var(--shadow);
       }
       a:focus-visible {
         outline: 3px solid var(--ring);

@@ -1,6 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Network Football Elo">
-  <rect width="64" height="64" rx="14" fill="#2b103b"/>
-  <rect x="13" y="35" width="10" height="16" rx="3" fill="#dfbfff" opacity=".8"/>
-  <rect x="27" y="13" width="10" height="38" rx="3" fill="#ff9ddd"/>
-  <rect x="41" y="24" width="10" height="27" rx="3" fill="#bd7df0" opacity=".92"/>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="5" x2="58" y2="61" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7b2e6e"/>
+      <stop offset="1" stop-color="#3e1036"/>
+    </linearGradient>
+    <linearGradient id="rose" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffe2f3"/>
+      <stop offset="1" stop-color="#ff8fce"/>
+    </linearGradient>
+    <linearGradient id="lilac" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f4e2ff"/>
+      <stop offset="1" stop-color="#c77be0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="url(#bg)"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="14.5" fill="none" stroke="#ffd8ef" stroke-opacity=".22"/>
+  <circle cx="18" cy="14" r="18" fill="#ffb5de" opacity=".09"/>
+  <rect x="14" y="34" width="9" height="18" rx="4.5" fill="url(#rose)" opacity=".88"/>
+  <rect x="27.5" y="14" width="9" height="38" rx="4.5" fill="url(#rose)"/>
+  <rect x="41" y="25" width="9" height="27" rx="4.5" fill="url(#lilac)"/>
+  <path d="M50 9l1.5 4.5L56 15l-4.5 1.5L50 21l-1.5-4.5L44 15l4.5-1.5L50 9z" fill="#ffe0f2"/>
 </svg>

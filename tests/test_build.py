@@ -788,8 +788,8 @@ class StaticBuildTests(unittest.TestCase):
             'media="(prefers-color-scheme: dark)"',
             "@media (prefers-color-scheme: dark)",
             "color-scheme: dark",
-            "background: #fff6fc",
-            "background: #190d18",
+            "background: #fff8fc",
+            "background: #170b14",
             "a:focus-visible",
             "@media (max-width: 480px)",
         ):
@@ -822,16 +822,16 @@ class StaticBuildTests(unittest.TestCase):
             return (lighter + 0.05) / (darker + 0.05)
 
         for foreground, background in (
-            ("#321635", "#fffafd"),
-            ("#70576f", "#fffafd"),
-            ("#74317b", "#fffafd"),
-            ("#fff7fc", "#301032"),
-            ("#edd8e9", "#301032"),
-            ("#30102d", "#ff9ad9"),
-            ("#fff7fc", "#281523"),
-            ("#dfc5da", "#281523"),
-            ("#f0a8e6", "#281523"),
-            ("#fff7fc", "#87548e"),
+            ("#3d1f38", "#fffafd"),
+            ("#705268", "#fffafd"),
+            ("#7b286b", "#fffafd"),
+            ("#fff9fd", "#43133c"),
+            ("#f1dceb", "#43133c"),
+            ("#35102e", "#ff9bd5"),
+            ("#fff9fd", "#27111f"),
+            ("#e4ccdc", "#27111f"),
+            ("#f3a8dc", "#27111f"),
+            ("#fff9fd", "#6f3466"),
         ):
             self.assertGreaterEqual(contrast(foreground, background), 4.5)
 
@@ -2284,7 +2284,12 @@ class StaticBuildTests(unittest.TestCase):
 
         for marker in (
             "--font-display:",
+            "--font-numeric:",
             "--focus:",
+            'font-feature-settings: "lnum" 1, "tnum" 1;',
+            "Corbel, Candara",
+            ".brand-mark::after",
+            "Refined rose-and-lavender presentation system",
             ".nav-submenu",
             ".ranking-desktop",
             ".ranking-cards",
@@ -2604,16 +2609,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('rel="canonical"', html)
         self.assertIn('property="og:image"', html)
         self.assertIn(
-            'rel="icon" href="favicon-2026.svg"',
+            'rel="icon" href="favicon-2026.svg?v=20260727"',
             html,
         )
         self.assertIn(
             'rel="apple-touch-icon" sizes="180x180" '
-            'href="apple-touch-icon-2026.png"',
+            'href="apple-touch-icon-2026.png?v=20260727"',
             html,
         )
         self.assertIn(
-            'rel="manifest" href="site.webmanifest?v=20260723"',
+            'rel="manifest" href="site.webmanifest?v=20260727"',
             html,
         )
         self.assertRegex(html, r'assets/styles\.css\?v=[0-9a-f]{12}')
@@ -2630,8 +2635,8 @@ class StaticBuildTests(unittest.TestCase):
                 for icon in webmanifest["icons"]
             },
             {
-                "icon-192-2026.png",
-                "icon-512-2026.png",
+                "icon-192-2026.png?v=20260727",
+                "icon-512-2026.png?v=20260727",
             },
         )
         expected_png_sizes = {
