@@ -511,7 +511,11 @@ NQT	4	Q	1967-01-10	1967-02-17	1967_CONCACAF_Championship_qualifying
 CCH	3	1965	1965-03-27	1965-04-11	1965_CONCACAF_Championship
 NQT	4	Q	1965-03-06	1965-03-14	1965_CONCACAF_Championship_qualifying
 CCH	3	1963	1963-03-22	1963-04-07	1963_CONCACAF_Championship
-CNL	2				2024-25_CONCACAF_Nations_League
+CNL	2				2026-27_CONCACAF_Nations_League_A
+CNL	3	2026-27			2026-27_CONCACAF_Nations_League_A
+CLA	4	LA			2026-27_CONCACAF_Nations_League_A
+CLB	4	LB			2026-27_CONCACAF_Nations_League_B
+CLC	4	LC			2026-27_CONCACAF_Nations_League_C
 CNL	3	2024-25	2024-11-13	2025-03-23	2024-25_CONCACAF_Nations_League
 CLA	4	LA	2024-09-04	2024-10-15	2024-25_CONCACAF_Nations_League_A
 CLB	4	LB	2024-09-04	2024-11-19	2024-25_CONCACAF_Nations_League_B
@@ -1185,8 +1189,8 @@ C	0
 UEF	1	UE			UEFA
 CMB	1	MB			CONMEBOL
 CNC	1	NC			CONCACAF
-CFU	2	CU		2026-07-25	CFU
-UNF	2	UF		2026-07-25	UNCAF
+CFU	2	CU			CFU
+UNF	2	UF			UNCAF
 CAF	1	FF			CAF
 CEF	2	EFF			CECAFA
 COF	2	SFA			COSAFA
@@ -1201,7 +1205,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-07-25	Unaffiliated
+UN	1	UFL		2026-07-27	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1210,7 +1214,7 @@ NF	2				Northern_Africa
 SF	2				Southern_Africa
 WF	2				Western_Africa
 AM	1				America
-CB	2			2026-07-25	Caribbean
+CB	2				Caribbean
 CM	2				Central_America
 LM	2				Latin_America
 NM	2				North_America
@@ -1229,12 +1233,12 @@ SEE	2				Southeast_Europe
 SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-07-25	Melanesia
-MI	2			2026-07-25	Micronesia
-PO	2			2026-07-25	Polynesia
+ME	2			2026-07-27	Melanesia
+MI	2			2026-07-27	Micronesia
+PO	2			2026-07-27	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-07-25	2026
+YR	2	2026	2025-12-31	2026-07-27	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
