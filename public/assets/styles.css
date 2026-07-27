@@ -247,6 +247,7 @@ h3 { font-size: 18px; }
 .home-facts div { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--dark-line); }
 .home-facts dt { color: var(--on-dark-soft); font-size: 13px; }
 .home-facts dd { margin: 0; color: var(--lime); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.home-facts dd small { display: block; margin-top: 2px; color: var(--on-dark-soft); font-size: 10px; font-weight: 700; letter-spacing: .03em; }
 .home-dashboard { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); gap: 22px; margin-top: 30px; }
 .home-ranking-list, .home-upcoming, .home-records { padding: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; }
 .compact-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -491,6 +492,36 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   line-height: 1.5;
 }
 .venue-profile-details a { color: var(--link); font-weight: 800; text-decoration: none; }
+.team-model-details {
+  margin-top: 12px;
+  padding: 0 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-small);
+}
+.team-model-details summary {
+  padding: 15px 0;
+  color: var(--link);
+  cursor: pointer;
+}
+.team-model-details summary > span { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.team-model-details summary b { color: var(--ink); font-size: 15px; }
+.team-model-details summary small { color: var(--ink-soft); font-size: 12px; font-weight: 650; }
+.team-model-details summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.team-model-details[open] { padding-bottom: 15px; }
+.team-model-details[open] summary { border-bottom: 1px solid var(--border); }
+.team-model-details p {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.team-model-details a { color: var(--link); font-weight: 800; text-decoration: none; }
 .chart-shell { position: relative; padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .chart-controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 18px; margin-bottom: 10px; }
 .chart-year-form, .chart-navigation { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
@@ -865,6 +896,8 @@ td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; 
   .venue-highlight:last-child { grid-column: 1 / -1; }
   .venue-highlight strong { font-size: 20px; }
   .venue-detail-grid { grid-template-columns: 1fr; }
+  .team-model-details { padding-right: 14px; padding-left: 14px; }
+  .team-model-details summary > span { display: inline-grid; }
   .chart-summary { display: grid; gap: 5px; }
   .pagination { flex-wrap: wrap; }
   .pagination > span { order: -1; width: 100%; text-align: center; }

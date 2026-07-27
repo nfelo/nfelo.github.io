@@ -11,9 +11,10 @@ probability calculator.
 
 NFELO publishes one rating everywhere: current rankings, rankings on historical
 dates, team peaks, team pages and match records all use the same
-evidence-adjusted network rating. A hidden attack/defence state refines match
+evidence-adjusted network rating. A separate attack/defence state refines match
 probabilities only; it never changes ratings, ranking order, peaks or points
-gained from results.
+gained from results. Team pages expose the selected-date attack and defence
+tendencies in an expandable technical section.
 
 **Current methodology version:** `2026-07-27-country-home-dependence`.
 
@@ -109,8 +110,10 @@ appearances, its mean and posterior precision revert toward that prior with a
 40-year half-life. This allows genuine country differences to change through
 time without treating short runs or old conditions as permanent national
 traits. Non-neutral competitive results have learning ratio 1; evidence-backed
-friendlies use 0.78621. All matches on one complete date use frozen pre-date
-profiles before their venue evidence is combined.
+friendlies use 0.78621. The profile changes after each non-neutral matchday the
+country plays. All matches on one complete date use frozen pre-date profiles;
+only after every forecast has been stored is that day’s venue evidence combined
+into one update. Neutral matches neither use nor update a country profile.
 
 The source ledger lists the host first in 38,769 non-neutral rows and second in
 only one. Independent country host and visitor parameters are therefore not
@@ -121,10 +124,11 @@ equally between hosting and visiting. Adding a country-specific neutral term
 or adding venue-state posterior variance to match variance made forecasts
 worse.
 
-Team pages publish the selected-date dependence estimate, hosting and away
-components, neutral value, standard error, 95% interval, evidence count and
-reliability. These numbers affect match expectations, not the public ranking
-formula directly.
+Team pages show the selected-date hosting and away effects plus a simple
+evidence label. The dependence estimate, neutral value, standard error, 95%
+interval, evidence count and reliability remain available in an expandable
+technical section. These numbers affect match expectations, not the public
+ranking formula directly.
 
 ## Forecast probabilities
 
@@ -135,6 +139,13 @@ draw calibration, probability powers and the pool weight are fitted using only
 the preceding eight complete calendar years. Before use, the four fitted
 coefficients are placed on a fixed six-decimal publication grid. This removes
 platform-level optimiser jitter without changing any displayed probability.
+
+Each team’s attack and defence state is a residual after strength, opposition
+and venue have already been considered. It updates after every completed
+matchday the team plays and decays toward neutral between appearances. Team
+pages translate the selected-date residuals into percentage effects on the
+team’s own expected goals and its opponent’s expected goals, with the raw
+values available in the same expandable area.
 
 The score correction is boundary-gated: NFELO moves toward the pooled forecast
 only as far as it can without changing the network model's most likely W/D/L
@@ -196,9 +207,9 @@ Under this classification, the full 52,312-match replay jointly fitted:
 - competitive network temperature `1.061356232973`.
 
 The scoring period contains 46,801 forecasts from 1960 through 11 July 2026,
-including 18,546 friendlies. The network-only log-loss minimum is
-`0.881475145850`. At the previous ratio of `0.76064`, with both temperatures
-refitted under the same classification, it is `0.881478166958`.
+including 18,546 friendlies. The exact component search results and alternatives
+remain in the tournament-classification research files; the public accuracy
+section below reports only the final deployed formula.
 
 These are reproducible full-sample constants for the fixed ledger and
 objective, not claims of equivalent population precision. Classification
@@ -211,46 +222,26 @@ check of friendly learning in the country venue state found no reliable
 incremental era effect over one constant. NFELO therefore keeps `0.78621`
 across eras rather than publishing a curve that did not generalise.
 
-## Validation: two different evidence classes
+## Current formula accuracy
 
-The primary comparative result is the original five-block **nested historical
-holdout** over 46,801 matches from 1960 onward:
+The public site and this README use one score for the complete formula currently
+deployed:
 
-| Model | Three-way log loss | Most-likely W/D/L correct |
-| --- | ---: | ---: |
-| NFELO network | **0.884219** | **59.095%** |
-| Best tested scalar Elo | 0.892970 | 58.527% |
-| G-Elo comparison | 0.895187 | 58.779% |
-| Published World Football Elo forecast | 0.902619 | 58.804% |
+| Formula | Forecasts | Three-way log loss | Most-likely W/D/L correct |
+| --- | ---: | ---: | ---: |
+| Current NFELO formula | 46,801 | **0.878333** | **59.170%** |
 
-Choices used earlier periods and were scored on later periods. The aggregate
-result is retained, but the original fitter programs and frozen derived dataset
-were not committed, so it cannot currently be reconstructed bit-for-bit.
+This is a retrospective replay of all stored pre-match forecasts from 1960
+through 11 July 2026. It is an implementation score for the final formula, not
+a promise about an individual future match. Candidate changes are selected
+with earlier data and checked on later periods before adoption. The first
+published probabilities for identified future fixtures are also stored before
+results are known, providing a growing genuinely prospective record.
 
-The site also calculates a **retrospective diagnostic** on every build by
-replaying the final constants through the fixed 1960–11 July 2026 window. It is
-useful for checking date batching, the boundary gate and other mechanics, but
-it is not a second out-of-sample estimate and must not be compared as if it were
-the same experiment as the nested holdout.
-
-The country venue release has a separate temporal study. It executed 1,949
-overlapping screening fits across 16 formula structures and associated prior,
-half-life, learning and predictive-variance choices. Selection used matches
-through 2019. The final end-to-end replay was then scored on 6,320 untouched
-matches from 2020 through 11 July 2026.
-
-| Country venue comparison | Three-way log loss |
-| --- | ---: |
-| Previous final-layer replay | 0.880169 |
-| Selected country-profile replay | **0.878333** |
-| Improvement | **0.001836** |
-
-The untouched-period improvement was `0.001315`. A paired year-block bootstrap
-put its 95% interval at `0.000208` to `0.002607`, with 99.0% of resamples
-favouring the country-profile model. All five time blocks from 1960–1979
-through 2020–2026 improved. This supports adoption as an average forecast
-improvement; it does not establish that every country has a non-zero effect.
-The complete protocol, formula-family comparison and guardrails are in
+Older comparisons and component studies remain in `docs/` and `research/` for
+reproducibility, but their figures describe earlier formulas or narrower tests
+and are not mixed into the public current-model headline. The complete country
+venue protocol, formula-family comparison and guardrails are in
 [`research/home-advantage-2026-07-27/`](research/home-advantage-2026-07-27/).
 
 First-published fixture probabilities are stored in
@@ -300,7 +291,7 @@ python -m http.server 8000 --directory public
 - `scripts/tournament_classification.py` — evidence registry, future-code rules and audit.
 - `scripts/model.py` — date-batched opponent-network replay and public rating.
 - `scripts/venue_effects.py` — causal time-varying country venue state.
-- `scripts/forecast_layer.py` — hidden score state, annual calibration and gate.
+- `scripts/forecast_layer.py` — attack/defence state, annual calibration and gate.
 - `scripts/build_site.py` — static data, history, records and fixture generation.
 - `scripts/fetch_sources.py` — guarded multi-source updater.
 - `public/` — GitHub Pages application shell; generated data is ignored by Git.

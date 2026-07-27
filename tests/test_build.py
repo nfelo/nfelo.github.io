@@ -272,8 +272,14 @@ class StaticBuildTests(unittest.TestCase):
         normalised_readme = " ".join(readme.split())
         self.assertNotIn("codex", readme)
         self.assertNotIn("bake-off", readme)
-        self.assertIn("nested historical holdout", normalised_readme)
-        self.assertIn("retrospective diagnostic", normalised_readme)
+        self.assertIn("current formula accuracy", normalised_readme)
+        self.assertIn("0.878333", readme)
+        self.assertIn("59.170%", readme)
+        self.assertNotIn("0.884219", readme)
+        self.assertIn(
+            "older comparisons and component studies remain",
+            normalised_readme,
+        )
         self.assertIn("prospective_forecasts.jsonl", readme)
         validation = (ROOT / "docs" / "model-validation.md").read_text(encoding="utf-8").lower()
         for phrase in (
@@ -437,6 +443,20 @@ class StaticBuildTests(unittest.TestCase):
             self.assertTrue(
                 any("venue_effect" in point for point in page["history"])
             )
+            score_states = [
+                point["score_state"]
+                for point in page["history"]
+                if point.get("score_state")
+            ]
+            self.assertTrue(score_states)
+            for field in (
+                "attack",
+                "defence",
+                "last_day",
+                "annual_decay",
+                "learning_rate",
+            ):
+                self.assertIn(field, score_states[-1])
 
         latest_matches = json.loads(
             (
@@ -494,6 +514,13 @@ class StaticBuildTests(unittest.TestCase):
             "What happens at a neutral venue?",
             "projectVenueProfile",
             "compactVenueProfileHTML",
+            "projectScoreProfile",
+            "score-profile-details",
+            "Attack and defence forecast details",
+            "Own expected goals",
+            "Opponent expected goals",
+            "after every non-neutral matchday",
+            "after every completed matchday",
         ):
             self.assertIn(phrase, javascript)
         for phrase in (
@@ -501,6 +528,7 @@ class StaticBuildTests(unittest.TestCase):
             ".venue-profile-highlights",
             ".venue-highlight",
             ".venue-profile-details",
+            ".team-model-details",
         ):
             self.assertIn(phrase, stylesheet)
         self.assertNotIn(".venue-profile-metrics", stylesheet)
@@ -1139,13 +1167,17 @@ class StaticBuildTests(unittest.TestCase):
             "Attack, defence and annual calibration",
             "preceding ${number(f.calibration_window_years)} complete years",
             "Joint matchday update",
-            "rolling historical blocks",
-            "Implementation replay",
+            "Current deployed NFELO formula",
+            "summary.validation.retrospective",
+            "number(replay.log_loss, 6)",
+            "precisePercent(replay.accuracy)",
             "The published rating",
             "Constant, stepped and smoothly changing friendly weights",
             "calibration_precision_decimals",
             "method-contents",
             "method-details",
+            "updated after every non-neutral matchday",
+            "available in an expandable section on each team page",
         ):
             self.assertIn(phrase, methodology)
         for patch_note_phrase in (
@@ -1154,6 +1186,11 @@ class StaticBuildTests(unittest.TestCase):
             "Previous full replay",
             "Country venue study:",
             "release improved",
+            "NFELO network benchmark",
+            "Published World Football Elo forecast",
+            "Best tested scalar Elo",
+            "G-Elo comparison",
+            "0.884219",
         ):
             self.assertNotIn(patch_note_phrase, methodology)
         self.assertIn("applyForecastLayer", javascript)
@@ -1194,10 +1231,23 @@ class StaticBuildTests(unittest.TestCase):
         ):
             self.assertNotIn(jargon, faq)
         self.assertIn(
-            "Team pages label the evidence as limited, "
+            "Team pages label its evidence as limited, "
             "moderate or strong.",
             faq,
         )
+        for phrase in (
+            "updated after every non-neutral matchday",
+            "Team pages show these tendencies in an expandable section.",
+            "summary.validation.retrospective.accuracy",
+            "summary.validation.retrospective.log_loss",
+        ):
+            self.assertIn(phrase, faq)
+        for stale_public_metric in (
+            "summary.validation.nested",
+            "0.8842",
+            "two different historical log-loss figures",
+        ):
+            self.assertNotIn(stale_public_metric, faq)
 
         section_links = set(re.findall(
             r'href="#/methodology\?section=([a-z]+)"',
@@ -1238,30 +1288,45 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
 
-    def test_rating_forecast_explanation_and_validation_comparison(self) -> None:
+    def test_rating_forecast_explanation_and_current_accuracy(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
         for phrase in (
             "Why can the lower-rated team be the forecast favourite?",
             "Why can a lower-rated team be the forecast favourite?",
             "ratingForecastExplanation()",
-            "Best tested scalar Elo",
-            "G-Elo comparison",
-            "Published World Football Elo forecast",
-            "precisePercent(nested.published_wfe_accuracy)",
+            "Current-model accuracy",
+            "Current deployed NFELO formula",
+            "precisePercent(summary.validation.retrospective.accuracy)",
+            "number(summary.validation.retrospective.log_loss, 6)",
             "yearNumber(f.calibration.year)",
             "yearNumber(f.calibration.training_first_year)",
             "yearNumber(f.calibration.training_last_year)",
         ):
             self.assertIn(phrase, javascript)
+        for old_public_comparison in (
+            "Best tested scalar Elo",
+            "G-Elo comparison",
+            "Published World Football Elo forecast",
+            "precisePercent(nested.published_wfe_accuracy)",
+            "Historical holdout accuracy",
+        ):
+            self.assertNotIn(old_public_comparison, javascript)
         self.assertNotIn("number(f.calibration.year)", javascript)
         self.assertNotIn("number(f.calibration.training_first_year)", javascript)
         self.assertNotIn("number(f.calibration.training_last_year)", javascript)
         self.assertNotIn("Does that mean a friendly is treated exactly like a World Cup match?", javascript)
-        nested = self.summary["validation"]["nested"]
-        self.assertEqual(nested["best_scalar_elo_accuracy"], 0.58527)
-        self.assertEqual(nested["g_elo_log_loss"], 0.895187)
-        self.assertEqual(nested["g_elo_accuracy"], 0.58779)
-        self.assertEqual(nested["published_wfe_accuracy"], 0.58804)
+        replay = self.summary["validation"]["retrospective"]
+        self.assertEqual(replay["matches"], 46_801)
+        self.assertAlmostEqual(
+            replay["log_loss"],
+            0.87833346,
+            delta=0.000005,
+        )
+        self.assertAlmostEqual(
+            replay["accuracy"],
+            0.59169676,
+            delta=2.5 / replay["matches"],
+        )
 
     def test_same_date_and_publication_safeguards_are_present(self) -> None:
         model = (ROOT / "scripts" / "model.py").read_text(encoding="utf-8")
@@ -1938,7 +2003,8 @@ class StaticBuildTests(unittest.TestCase):
             "Current and historical teams",
             "const allTeams = summary.teams",
             'class="context-actions team-context-actions"',
-            "summary.validation.nested.matches",
+            "summary.validation.retrospective.matches",
+            "score-profile-details",
         ):
             self.assertIn(marker, javascript)
 

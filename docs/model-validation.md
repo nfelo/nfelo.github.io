@@ -1,7 +1,10 @@
 # Model validation
 
-This document separates the evidence for NFELO into three categories. They must
-not be combined into a single leaderboard:
+The public site reports one headline for the formula it currently deploys:
+46,801 historical pre-match forecasts, log loss 0.878333 and top-result
+accuracy 59.170%. That is a retrospective full-history replay. This technical
+record preserves three evidence categories behind that headline, which must not
+be combined into a single leaderboard:
 
 1. **Nested historical holdout** — choices use earlier periods and are scored
    on later periods.
@@ -13,7 +16,7 @@ Three-way logarithmic loss is primary because it evaluates the complete win,
 draw and loss vector and penalises unjustified certainty. Brier score, ranked
 probability score, accuracy and calibration are secondary.
 
-## Primary evidence: nested historical holdout
+## Archived comparative evidence: nested historical holdout
 
 The original five-block evaluation contains 46,801 predictions from 1960
 onward. Each outer block was scored after model choices had been made using an
@@ -30,11 +33,12 @@ The original report found that the NFELO network beat the published WFER
 forecast by 0.018400 log loss per match, with a paired calendar-year interval
 of 0.015270–0.021477 in NFELO's favour.
 
-This remains the primary comparative evidence. Its limitation is
-reproducibility: the exact fitter programs and frozen derived evaluation
-dataset named by the original report were never committed. The aggregate
-result and hashes survive, but the selection cannot presently be reconstructed
-bit-for-bit.
+This remains archived comparative evidence for the earlier network
+specification. It is not presented as the accuracy of the complete current
+formula. Its limitation is reproducibility: the exact fitter programs and
+frozen derived evaluation dataset named by the original report were never
+committed. The aggregate result and hashes survive, but the selection cannot
+presently be reconstructed bit-for-bit.
 
 ## Method selection and structural checks
 
@@ -115,9 +119,8 @@ of 0.76064, with temperatures refitted under the same classification, it is
 0.881478166958.
 
 This is a full-sample retrospective fit. It is reproducible to the fixed ledger
-and objective, but it is not a new nested out-of-period result. The original
-nested historical holdout remains the primary comparison against other rating
-systems.
+and objective, but it is not a new nested out-of-period comparison against
+other rating systems.
 
 An additional temporal check tested 1,650 constant, step and smooth
 era-varying friendly ratios. Candidate families were selected on 2010–2019
@@ -214,8 +217,9 @@ fit into a different final digit.
 
 These constants and calibrations use information extending beyond parts of the
 replay window. The figures diagnose the published chronology and verify the
-implementation; they are not nested out-of-sample estimates and do not replace
-0.884219 as the headline comparative result.
+complete current implementation. They supply the public current-formula
+headline, explicitly labelled as retrospective rather than nested
+out-of-sample evidence.
 
 ## Why one public rating was preserved
 

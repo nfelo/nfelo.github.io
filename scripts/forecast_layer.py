@@ -524,6 +524,8 @@ class ForecastLayer:
             "attack": float(state.attack[team]),
             "defence": float(state.defence[team]),
             "last_day": int(state.last_day[team]),
+            "annual_decay": float(state.parameters.annual_decay),
+            "learning_rate": float(state.parameters.learning_rate),
         }
 
     def export(self) -> dict[str, Any]:

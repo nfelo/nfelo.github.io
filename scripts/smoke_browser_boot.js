@@ -108,6 +108,7 @@ const summary = {
   },
   validation: {
     nested: { accuracy: 0 },
+    retrospective: { accuracy: 0, log_loss: 0 },
   },
 };
 const catalog = { teams: [], tournaments: [] };
