@@ -492,7 +492,7 @@ const filteredEmptyState = (subject) => (
   }
 
   function ratingForecastExplanation() {
-    return `<div class="callout forecast-explanation"><b>Why can the lower-rated team be the forecast favourite?</b> The public rating is deliberately reduced for limited opponent breadth and uncertainty so rankings remain cautious and comparable across eras. Match probabilities use the model's underlying strength estimate, its uncertainty, the two countries’ time-varying home/away profiles and team-specific attack and defence tendencies. The two outputs therefore answer related but different questions. <a href="#/methodology">How ratings and forecasts fit together →</a></div>`;
+    return `<div class="callout forecast-explanation"><b>Why can the lower-rated team be the forecast favourite?</b> The public rating is deliberately reduced for limited opponent breadth and uncertainty so rankings remain cautious and comparable across eras. Match probabilities use the model's underlying strength estimate, its uncertainty, the two countries’ time-varying home/away profiles and team-specific attack and defence tendencies. The two outputs therefore answer related but different questions. <a href="#/methodology?section=ratings">How ratings and forecasts fit together →</a></div>`;
   }
 
   function poissonWDL(lambdaA, lambdaB) {
@@ -615,7 +615,7 @@ const filteredEmptyState = (subject) => (
             <p class="eyebrow">What makes it different</p><h2>Opponents—and their opponents—matter.</h2>
             <p>Beating a strong side counts for more. Shared opponents connect regions and eras, while uncertainty stops isolated teams being overrated.</p>
             <div class="home-help-links">
-              <a href="#/methodology">Read the methodology →</a>
+              <a href="#/methodology?section=strength">How the network works →</a>
               <a href="#/faq">Questions? Read the FAQ →</a>
             </div>
           </div>
@@ -3951,24 +3951,48 @@ const lineageNote = lineageNames.length > 1
         venueProfile.dependence + 1.96 * venueProfile.se,
       ]
       : null;
+    const venueEvidence = venueProfile
+      ? (
+        venueProfile.reliability >= 0.6
+          ? "Strong"
+          : venueProfile.reliability >= 0.3
+            ? "Moderate"
+            : "Limited"
+      )
+      : "";
+    const venueTendency = venueProfile
+      ? (
+        venueProfile.hosting_adjustment >= 7
+          ? `${displayName} has tended to benefit more from home conditions than the average team.`
+          : venueProfile.hosting_adjustment <= -7
+            ? `${displayName} has tended to depend less on home conditions than the average team.`
+            : `${displayName} is currently close to the average home-and-away pattern.`
+      )
+      : "";
     const venuePanel = venueProfile ? `
       <section class="venue-profile" aria-labelledby="venue-profile-title">
         <div class="venue-profile-copy">
-          <p class="eyebrow">Venue model · ${validDate(venueAsOfDate)}</p>
-          <h2 id="venue-profile-title">Home and away profile</h2>
-          <p>This country estimate changes through time and is shrunk toward the worldwide era baseline when evidence is limited or old. Positive dependence means a larger boost at home and a larger penalty away; negative values mean results have depended less on home conditions.</p>
-          <p class="venue-profile-formula">For a home match, the model adds the era baseline plus half of each participant’s dependence. Neutral matches receive no country venue adjustment. <a href="#/methodology">Full method and validation →</a></p>
+          <p class="eyebrow">Match adjustment · ${validDate(venueAsOfDate)}</p>
+          <h2 id="venue-profile-title">Home and away</h2>
+          <p><b>${escapeHTML(venueTendency)}</b> Forecast-only adjustment on top of the worldwide home advantage.</p>
         </div>
-        <div class="venue-profile-metrics">
-          <div class="venue-metric venue-metric-primary"><span>Home dependence</span><strong>${signedRating(venueProfile.dependence)}</strong><small>Elo-point estimate</small></div>
-          <div class="venue-metric"><span>When hosting</span><strong>${signedRating(venueProfile.hosting_adjustment)}</strong><small>Team’s expected-score gap</small></div>
-          <div class="venue-metric"><span>When away</span><strong>${signedRating(venueProfile.away_adjustment)}</strong><small>Team’s expected-score gap</small></div>
-          <div class="venue-metric"><span>At neutral venue</span><strong>${signedRating(venueProfile.neutral)}</strong><small>Country adjustment</small></div>
-          <div class="venue-metric"><span>Standard error</span><strong>±${rating(venueProfile.se)}</strong><small>Estimate uncertainty</small></div>
-          <div class="venue-metric"><span>95% interval</span><strong>${signedRating(venueInterval[0])} to ${signedRating(venueInterval[1])}</strong><small>Dependence estimate</small></div>
-          <div class="venue-metric"><span>Evidence</span><strong>${number(venueProfile.matches)}</strong><small>Non-neutral appearances</small></div>
-          <div class="venue-metric"><span>Reliability</span><strong>${percent(venueProfile.reliability)}</strong><small>Relative to the 60-point prior</small></div>
+        <div class="venue-profile-highlights" aria-label="Home and away summary">
+          <div class="venue-highlight"><span>Extra at home</span><strong>${signedRating(venueProfile.hosting_adjustment)}</strong></div>
+          <div class="venue-highlight"><span>Extra when away</span><strong>${signedRating(venueProfile.away_adjustment)}</strong></div>
+          <div class="venue-highlight"><span>Evidence</span><strong>${venueEvidence}</strong></div>
         </div>
+        <details class="venue-profile-details">
+          <summary>See uncertainty and technical details</summary>
+          <div class="venue-detail-grid">
+            <div><span>Full dependence estimate</span><strong>${signedRating(venueProfile.dependence)}</strong></div>
+            <div><span>95% range</span><strong>${signedRating(venueInterval[0])} to ${signedRating(venueInterval[1])}</strong></div>
+            <div><span>Standard error</span><strong>±${rating(venueProfile.se)}</strong></div>
+            <div><span>Non-neutral appearances</span><strong>${number(venueProfile.matches)}</strong></div>
+            <div><span>Reliability</span><strong>${percent(venueProfile.reliability)}</strong></div>
+            <div><span>Extra at neutral venue</span><strong>${signedRating(venueProfile.neutral)}</strong></div>
+          </div>
+          <p>Home and away are opposite halves of one cautious estimate. <a href="#/methodology?section=venue">How this is calculated →</a></p>
+        </details>
       </section>` : "";
     setTitle(displayName);
     content.innerHTML = `
@@ -4002,141 +4026,140 @@ const lineageNote = lineageNames.length > 1
 
 function buildFAQItems() {
   return [
-  {
-    question: "What is NFELO?",
-    answer: "NFELO is an independent rating system for men’s international football. It ranks national teams using their results, the strength of their opponents and the wider network of matches connecting teams across countries, regions and eras."
-  },
-  {
-    question: "How is NFELO different from the World Football Elo Ratings?",
-    answer: "Both systems belong to the Elo family, but NFELO does not update each team using only two fixed ratings and a traditional K-factor. It models uncertainty and the relationships created by shared opponents. Its displayed ratings and forecast probabilities are also separated: an additional scoring model can improve match forecasts without changing the rankings."
-  },
-  {
-    question: "What does a team’s rating mean?",
-    answer: "The public rating is an evidence-adjusted measure of team strength. It combines the underlying opponent-network estimate with allowances for opponent breadth and uncertainty, so a team supported by a narrow or weakly connected schedule is not presented with false precision. Differences between ratings matter more than the absolute scale."
-  },
-  {
-    question: "How are the rankings calculated?",
-    answer: "For each complete date, every match is forecast from the same start-of-day state. The model then learns all results on that date together. Surprise, score margin, uncertainty and the wider opponent network move the latent estimates, including connected teams that did not play that day. Global end-of-day snapshots then apply opponent breadth and marginal uncertainty to produce the one public rating used throughout the site."
-  },
-  {
-    question: "What is the network element?",
-    answer: "International teams do not all play one another, and some groups of countries historically played within relatively isolated networks. NFELO uses shared opponents—and shared opponents of opponents—to estimate how results in one part of international football relate to results elsewhere. This reduces distortions caused by repeatedly playing within a small, closed group."
-  },
-  {
-    question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
-    answer: "Not in the traditional Elo sense. Competitive and unresolved matches use the full information weight. Evidence-backed friendlies use about 78.6% of that weight. Friendly and competitive forecasts also have separate probability calibration. NFELO tested stepped and smooth friendly weights by era, but every flexible family selected on 2010–2019 forecast the untouched 2020–2026 block worse than the single coefficient, so no era curve was adopted."
-  },
-  {
-    question: "Why is a friendly’s rating change not always 78.6% of a competitive match?",
-    answer: "The 78.6% value scales the information entering the opponent-network update; it is not applied to the final displayed points. Opponent strength, surprise, winning margin, uncertainty and every other result on the same date are considered together, so the displayed movement is not a fixed percentage. Friendlies also have their own probability calibration."
-  },
-  {
-    question: "How is home advantage handled?",
-    answer: `A genuine home match combines the era-wide home baseline with a separate, time-varying estimate for each country. Half of the host’s home-dependence value and half of the visitor’s value are added to the home team’s expected-score gap. The country values are learned only from earlier non-neutral matches, use a ${number(summary.parameters.venue_effects.prior_sd, 0)}-point prior and move halfway back toward zero every ${number(summary.parameters.venue_effects.half_life_years, 0)} years without evidence. Team pages show the complete current or historical profile.`
-  },
-  {
-    question: "Why is there one home-dependence value rather than separate home and away numbers?",
-    answer: "Almost every non-neutral source row lists the host first. That makes a country’s extra hosting benefit and its extra disadvantage when visiting difficult to identify independently: both affect the same result in opposite team perspectives. The audit tested separate host, away and combined formulations. One shared country value, divided equally between hosting and away effects, forecast later results better and was more statistically identifiable. The displayed hosting and away figures are therefore opposite halves of the same estimate, not two independently fitted claims."
-  },
-  {
-    question: "Do countries receive an extra adjustment at neutral venues?",
-    answer: "No. Neutral-only, home-plus-neutral, away-plus-neutral and shared non-home formulations were tested. Adding a country-specific neutral effect did not improve the selected model and generally weakened the stronger home-and-away result. A neutral match therefore receives zero era-wide home advantage and zero country venue adjustment."
-  },
-  {
-    question: "How certain are the country venue profiles?",
-    answer: "They are deliberately conservative estimates rather than permanent labels. Every team page shows the standard error, a 95% interval, the number of non-neutral appearances and reliability relative to the prior. Teams with little, old or noisy evidence remain close to the worldwide baseline; all estimates drift gradually back toward it when a country stops playing."
-  },
-  {
-    question: "How does goal margin affect ratings?",
-    answer: "Winning by more normally provides more information than winning by one goal, but the effect is not linear. Each additional goal contributes less information than the previous one, preventing unusually large victories from dominating a team’s rating. The margin treatment is also normalised across eras because scoring conditions have changed over football history."
-  },
-  {
-    question: "How are new teams given a starting rating?",
-    answer: "New teams are not assigned an arbitrary universal starting number. Their initial estimate is based on the established teams active around the time of their debut, adjusted for the size and strength distribution of the international pool. Their early rating also carries greater uncertainty and can therefore adapt more quickly as results accumulate."
-  },
-  {
-    question: "How are match probabilities calculated?",
-    answer: "The opponent network first estimates the teams’ underlying relative strength, including venue and uncertainty. A hidden forecasting layer then uses team-specific attacking, defensive, scoring and draw tendencies to refine the win, draw and loss probabilities. These forecasts use more information than the single public rating and do not change displayed ratings, historical peaks or ranking order."
-  },
-  {
-    question: "Why can a lower-rated team be the forecast favourite?",
-    answer: "The public rating is a cautious ranking measure: it reduces the underlying estimate when opponent breadth is limited or uncertainty is high, which is important for comparisons across countries and eras. A match forecast instead uses the underlying strength difference, its uncertainty, venue and recent attack and defence tendencies. A team can therefore rank slightly lower yet have the higher win probability for a particular match. This is intentional, and historical testing found that forcing forecasts to follow the public rating would discard useful predictive information."
-  },
-  {
-    question: "Why keep the forecasting layer separate from the rankings?",
-    answer: "A single rating is useful because it produces a clear, understandable ranking. Attack-and-defence information can improve probabilities, but reducing all those characteristics to one number would lose some of their forecasting value. Keeping the extra detail behind the scenes preserves a simple ranking while allowing more accurate forecasts."
-  },
-  {
-    question: "Does the forecasting layer ever reverse the rating model’s favourite?",
-    answer: "No. It moves toward the score-based probabilities only as far as the exact boundary at which the network model’s most likely result would change. This retains useful probability information while preserving every network top pick."
-  },
-  {
-    question: "What does a probability such as 45%–29%–26% mean?",
-    answer: "It means the model estimates a 45% chance that the first-listed team wins, a 29% chance of a draw and a 26% chance that the second-listed team wins. A 45% prediction is not a claim that the team should always win: it would still be expected not to win 55% of the time."
-  },
-  {
-    question: "How is the methodology tested?",
-    answer: "Model choices are evaluated with rolling historical holdouts: earlier periods are used to choose the method and later periods are used to score it. Separate retrospective replays check implementation details and parameter sensitivity, while first-published fixture forecasts provide prospective evidence. Each result is labelled by the kind of evidence it represents."
-  },
-  {
-    question: "Is NFELO always more likely to predict the correct result than other systems?",
-    answer: `No. In the ${number(summary.validation.nested.matches)}-match nested historical holdout, NFELO’s most likely win, draw or loss outcome was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, compared with ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for the published World Football Elo forecast, ${precisePercent(summary.validation.nested.g_elo_accuracy)} for the tested G-Elo comparison and ${precisePercent(summary.validation.nested.best_scalar_elo_accuracy)} for the best tested scalar Elo. The differences in top-choice accuracy are small. The attack/defence layer preserves the network’s top choice, so it changes probability quality rather than this accuracy measure. NFELO’s clearer comparative advantage was in log loss, which evaluates all three probabilities.`
-  },
-  {
-    question: "What does better log loss mean in practice?",
-    answer: "Log loss evaluates the full probability forecast, not just the most likely result. It rewards confident correct forecasts but heavily penalises excessive confidence in outcomes that do not happen. A lower log loss therefore indicates that the probabilities were more useful and better calibrated over many matches."
-  },
-  {
-    question: "How are extra time and penalty shootouts treated?",
-    answer: "A match level after the recorded playing period is treated as a draw for win, draw and loss forecasting and rating purposes. A penalty shootout determines which team advances or wins the trophy, but it does not turn the preceding draw into a normal match victory. Scores shown by the source data may include extra time but exclude shootout kicks."
-  },
-  {
-    question: "Can I view rankings from a previous date?",
-    answer: "Yes. The History page uses the complete global network state after the latest completed matchday on or before the selected date, then carries uncertainty forward to the exact date chosen. It therefore includes network movement caused by other teams’ results rather than freezing every team at its own last match. Historical country names, such as West Germany, the Soviet Union and Czechoslovakia, are shown where appropriate."
-  },
-  {
-    question: "How often is the site updated?",
-    answer: "The site checks for new results and fixtures three times each day. When new completed matches are found, it validates the source data, replays the complete rating history and rebuilds the site. If an update fails its checks, the existing verified version remains online rather than publishing incomplete or inconsistent data."
-  }
-,
-{
-  question: "Why can a team’s rating change by a different amount from its opponent’s?",
-  answer: "NFELO is not a strictly two-team, zero-sum Elo system. A result updates the estimated strengths and uncertainty of both teams within the wider opponent network. Their displayed ratings also include separate uncertainty and opponent-breadth adjustments, so one team’s displayed gain does not always exactly equal the other team’s loss."
-},
-{
-  question: "Why can an inactive team remain highly ranked?",
-  answer: "Ratings measure estimated strength, not recent activity alone. After every completed matchday, NFELO projects each recently active team’s uncertainty forward to the ranking or prediction date. That gradually lowers the cautious public rating without pretending the team’s underlying ability suddenly collapsed. Historical matchday ratings and peaks stay fixed."
-},
-{
-  question: "Can ratings from different eras be compared directly?",
-  answer: "They can be compared within NFELO’s evidence-adjusted historical scale, but not as a literal time-machine claim. The rating deliberately preserves uncertainty shared by isolated historical networks instead of cancelling it against a contemporaneous reference. Era, scoring and schedule adjustments help, but no model can prove how teams separated by a century would perform head to head."
-},
-{
-  question: "Why does NFELO include territories and some teams outside FIFA?",
-  answer: "The site follows the senior international match histories available in its source ledger, not FIFA membership alone. That includes some territories, regional selections and historically recognised teams such as Réunion, Zanzibar and Mayotte. They are ranked under the same 30-match, recent-activity, opponent-breadth and uncertainty rules as every other team. Inclusion describes the available football record; it is not a statement about political status or eligibility for a particular competition."
-},
-{
-  question: "How are several matches played on the same date handled?",
-  answer: "Every match with a complete shared date is forecast before any result from that date is learned. New teams receive the same pre-date pool prior, and all results are then applied in one joint order-invariant update. This prevents unknown kickoff order or source row order from leaking one same-day result into another forecast."
-},
-{
-  question: "Why does NFELO not publish the raw posterior mean as a second ranking?",
-  answer: "The posterior mean is useful inside the forecast model, but it can be misleading as an all-time table. In a small, inward-looking historical network, uncertainty may be shared by every leading team; cancelling that common uncertainty can make the whole cluster look implausibly strong. NFELO therefore publishes one breadth- and uncertainty-adjusted rating for rankings and records."
-},
-{
-    question: "Why are two different historical log-loss figures shown?",
-    answer: "They answer different questions. The 0.8842 figure comes from a rolling historical holdout, where choices were tested on later periods. The lower figure is a retrospective replay of the published model through past matches. It checks the implementation, but it is not a second out-of-sample result."
-},
-{
-  question: "Why might a recent result or fixture be missing?",
-  answer: "The site depends on external results and fixture feeds. Updates are published only after the data pass validation checks. A match may therefore appear late if its source has not updated, team names cannot be matched safely or different sources report conflicting information."
-},
-{
-  question: "What should I do if I find incorrect data?",
-  answer: "Check whether the match is also incorrect or missing in the listed source data. If NFELO differs from a reliable published result, report the teams, date, score, competition and venue through the project’s GitHub repository.",
-  link: "https://github.com/nfelo/nfelo.github.io",
-  linkLabel: "Open the NFELO GitHub repository →"
-}
+    {
+      question: "What is NFELO?",
+      answer: "NFELO is an independent rating and forecasting system for men’s international football. It uses results, opponents and shared opponents to connect national teams across countries, regions and eras."
+    },
+    {
+      question: "How is NFELO different from the World Football Elo Ratings?",
+      answer: "Both are Elo-style systems, but NFELO keeps track of uncertainty and the wider opponent network rather than updating only the two teams in isolation. It also keeps the public ranking simple while using extra scoring information behind the scenes for match probabilities."
+    },
+    {
+      question: "What does a team’s rating mean?",
+      answer: "It is NFELO’s cautious estimate of that team’s strength. A team with limited or weakly connected evidence is held back more than one supported by a broad range of opponents, so rating differences matter more than the absolute number."
+    },
+    {
+      question: "How are the rankings calculated?",
+      answer: "Results move the estimates of teams throughout the connected opponent network. NFELO then allows for how broad and how certain each team’s evidence is before publishing one rating used across every ranking and record page."
+    },
+    {
+      question: "What is the network element?",
+      answer: "Not every national team plays every other one. Shared opponents let NFELO compare teams from different regions and reduce the advantage of repeatedly playing within a small, closed group."
+    },
+    {
+      question: "Does NFELO use different K-factors for friendlies, qualifiers and tournaments?",
+      answer: "NFELO does not use a traditional K-factor. Confirmed friendlies contribute about 78.6% as much rating information as competitive matches; qualifiers and tournaments use the full weight. Testing different friendly weights by era did not improve later forecasts, so one friendly weight is retained."
+    },
+    {
+      question: "Why is a friendly’s rating change not always 78.6% of a competitive match?",
+      answer: "The 78.6% applies to the information learned, not directly to the displayed points. The opponent, result, winning margin, uncertainty and other matches on the same date all affect the eventual rating movement."
+    },
+    {
+      question: "How is home advantage handled?",
+      answer: "A home forecast combines the worldwide home advantage for that era with cautious, changing estimates for the two countries involved. A team page shows the resulting extra home and away adjustments; neutral matches receive neither."
+    },
+    {
+      question: "Why are a team’s home and away adjustments linked?",
+      answer: "The data cannot reliably separate a country’s extra benefit at home from its extra difficulty away. NFELO therefore uses one estimate, shown as equal and opposite home and away adjustments, because that version performed best on later results."
+    },
+    {
+      question: "What happens at a neutral venue?",
+      answer: "Neither the worldwide home advantage nor a country-specific adjustment is used. Separate country effects for neutral matches were tested but did not improve later forecasts."
+    },
+    {
+      question: "How reliable is a team’s home-and-away estimate?",
+      answer: `Team pages label the evidence as limited, moderate or strong. Sparse or old results stay close to the worldwide average, and the estimate gradually fades toward that average with a ${number(summary.parameters.venue_effects.half_life_years, 0)}-year half-life.`
+    },
+    {
+      question: "How does goal margin affect ratings?",
+      answer: "A larger win usually provides more information than a one-goal win, but each additional goal matters less than the previous one. The model also allows for the fact that typical scorelines have changed over football history."
+    },
+    {
+      question: "How are new teams given a starting rating?",
+      answer: "A new team starts relative to the established international pool active around its debut, not at one universal number. Early estimates are deliberately uncertain and can adapt quickly as results accumulate."
+    },
+    {
+      question: "How are match probabilities calculated?",
+      answer: "NFELO starts with underlying strength, uncertainty, era and venue. A hidden layer then uses each team’s recent scoring and conceding tendencies to refine the win, draw and loss percentages without changing the public ranking."
+    },
+    {
+      question: "Why can a lower-rated team be the forecast favourite?",
+      answer: "The public rating is deliberately cautious when evidence is narrow or uncertain. A match forecast uses the fuller strength and scoring information for that particular matchup, so the two can differ slightly without either being an error."
+    },
+    {
+      question: "Why keep the forecasting layer separate from the rankings?",
+      answer: "One rating keeps the ranking clear and comparable. Extra attack and defence information is useful for predicting one match, but compressing it into the same number would make the ranking less meaningful."
+    },
+    {
+      question: "Can the scoring layer reverse NFELO’s most likely result?",
+      answer: "No. It can improve the percentages, but it stops before changing whether the underlying network model favours a win, draw or loss."
+    },
+    {
+      question: "What does a probability such as 45%–29%–26% mean?",
+      answer: "It means a 45% chance that the first-listed team wins, a 29% chance of a draw and a 26% chance that the second team wins. The first team is the most likely winner, but a draw or loss is still more likely in total."
+    },
+    {
+      question: "How is the methodology tested?",
+      answer: "Choices are made using earlier matches and checked on later matches that were not used to choose them. The site separately labels historical comparisons, full replays and forecasts that were published before a fixture."
+    },
+    {
+      question: "Is NFELO always more likely to pick the correct result?",
+      answer: `No. Across ${number(summary.validation.nested.matches)} historical holdout matches, NFELO’s top win, draw or loss choice was correct ${precisePercent(summary.validation.nested.accuracy)} of the time, against ${precisePercent(summary.validation.nested.published_wfe_accuracy)} for published WFER. Its larger advantage was in the quality of all three probabilities, measured by log loss.`
+    },
+    {
+      question: "What does better log loss mean in practice?",
+      answer: "Log loss judges all three probabilities rather than only the top choice. Lower is better: it rewards useful confidence and penalises a model that is too certain about an outcome that does not happen."
+    },
+    {
+      question: "How are extra time and penalty shootouts treated?",
+      answer: "A match that remains level after its recorded playing period counts as a draw for ratings and win/draw/loss forecasts. A shootout decides who advances, but it does not turn that draw into a normal match win."
+    },
+    {
+      question: "Can I view rankings from a previous date?",
+      answer: "Yes. The History page reconstructs the latest completed matchday on or before any selected date and uses names appropriate to that time, such as West Germany, the Soviet Union and Czechoslovakia."
+    },
+    {
+      question: "How often is the site updated?",
+      answer: "The site checks results and fixtures three times each day. It rebuilds the complete history only after the new data pass validation; if a check fails, the last verified site stays online."
+    },
+    {
+      question: "Why can the two teams’ ratings move by different amounts?",
+      answer: "NFELO is not a two-team, zero-sum table. A result affects the wider opponent network, while the two teams can also have different levels of uncertainty and opponent coverage."
+    },
+    {
+      question: "Why can an inactive team remain highly ranked?",
+      answer: "A period without matches does not prove that a team suddenly became weak. Instead, uncertainty grows and gradually lowers its cautious public rating, while historical ratings and peaks remain as they were at the time."
+    },
+    {
+      question: "Can ratings from different eras be compared directly?",
+      answer: "They can be compared on NFELO’s historical scale, with adjustments for era, schedule breadth and uncertainty. They are still estimates, not proof of what two teams separated by a century would do in a real match."
+    },
+    {
+      question: "Why does NFELO include territories and some teams outside FIFA?",
+      answer: "The site follows the senior international histories available in its sources rather than FIFA membership alone. Territories and historical teams use the same match-count, activity and evidence rules as everyone else; inclusion is not a political statement."
+    },
+    {
+      question: "How are several matches played on the same date handled?",
+      answer: "Every match on a known date is predicted before any result from that date is learned. The results are then learned together, so source order cannot give one same-day match advance knowledge of another."
+    },
+    {
+      question: "Why does NFELO publish only one ranking?",
+      answer: "The internal strength estimate is useful for forecasting but can flatter teams from small, isolated historical groups. The published rating adds caution for uncertainty and limited opponent breadth, producing one consistent ranking across the site."
+    },
+    {
+      question: "Why are two different historical log-loss figures shown?",
+      answer: "They come from different tests. The historical holdout checks choices on later unseen periods; the lower full-replay figure checks the final implementation over the past and is not a second out-of-sample claim."
+    },
+    {
+      question: "Why might a recent result or fixture be missing?",
+      answer: "NFELO depends on external data feeds and publishes only data that pass its checks. A match can appear late when a source has not updated, a team name cannot be matched safely or sources disagree."
+    },
+    {
+      question: "What should I do if I find incorrect data?",
+      answer: "If NFELO differs from a reliable published result, report the teams, date, score, competition and venue through the project’s GitHub repository.",
+      link: "https://github.com/nfelo/nfelo.github.io",
+      linkLabel: "Open the NFELO GitHub repository →"
+    }
   ];
 }
 
@@ -4171,7 +4194,7 @@ function renderFAQ() {
       </div>
       <p id="faq-count" class="muted small" aria-live="polite"></p>
       <div id="faq-list" class="faq-list"></div>
-      <div class="callout faq-more"><b>Looking for the exact calculations?</b> The <a href="#/methodology">Methodology page</a> contains the full formulae, parameters and validation approach.</div>
+      <div class="callout faq-more"><b>Looking for the exact calculations?</b> Start with <a href="#/methodology?section=strength">how the strength model works</a>, or open the full Methodology page from the main navigation.</div>
     </article>`;
 
   const list = document.getElementById("faq-list");
@@ -4206,7 +4229,7 @@ function renderFAQ() {
   draw();
 }
 
-  function renderMethodology() {
+  function renderMethodology(query = new URLSearchParams()) {
     setTitle("Methodology");
     const p = summary.parameters;
     const f = p.forecast_layer;
@@ -4215,118 +4238,156 @@ function renderFAQ() {
     const replay = summary.validation.retrospective;
     const venueStudy = summary.validation.home_advantage_study;
     content.innerHTML = `
-      <article class="page page-narrow prose">
-        <p class="eyebrow">Exact model · evidence · limitations</p><h1>Methodology</h1>
-        <p class="lede">NFELO has one connected strength model with two outputs: a cautious public rating for rankings and records, and a match forecast that uses the underlying strength distribution plus team-specific scoring tendencies. Every match on a known date is predicted from the same start-of-day information.</p>
+      <article class="page page-narrow prose methodology-page">
+        <p class="eyebrow">Model · evidence · limitations</p>
+        <h1>Methodology</h1>
+        <p class="lede">NFELO uses one connected model of team strength. It publishes a cautious rating for rankings and records, while match forecasts also use venue, uncertainty and team-specific scoring patterns.</p>
 
-        <div class="method-summary">
-          <h2>In plain English</h2>
-          <ol>
-            <li><b>Start before the matches.</b> Every match sharing a complete date is predicted before any result from that date enters the model.</li>
-            <li><b>Estimate underlying strength.</b> Results connect teams through opponents and shared opponents. The model also records how uncertain those estimates are.</li>
-            <li><b>Let old evidence age.</b> If a recently active team does not play, its underlying estimate is left alone but uncertainty grows to the requested ranking or prediction date. The cautious public rating therefore falls gradually rather than staying frozen.</li>
-            <li><b>Adjust for where it is played.</b> A home match combines the worldwide baseline for that era with the two countries’ time-varying home/away profiles. A neutral match receives neither adjustment.</li>
-            <li><b>Forecast the match.</b> Underlying strength, venue, football era and uncertainty produce an initial win/draw/loss forecast.</li>
-            <li><b>Add scoring tendencies.</b> A hidden attack and defence layer asks whether each team has recently scored or conceded more than its strength alone would suggest. It refines the probabilities without overturning the network's most likely outcome.</li>
-            <li><b>Learn from the completed date.</b> Surprise and goal margin determine how informative each result is. An evidence-backed friendly contributes exactly ${p.network.friendly_information_ratio_exact} times the network information of a competitive match; unresolved events remain competitive, and all results on the date are learned together.</li>
-            <li><b>Publish the ranking.</b> A global end-of-day snapshot captures movement throughout the connected network, including teams that did not play. The public rating then reduces the underlying estimate when opponent coverage is narrow or uncertainty is high.</li>
+        <nav class="method-contents" aria-label="Methodology sections">
+          <a href="#/methodology?section=overview">Plain-English overview</a>
+          <a href="#/methodology?section=strength">Connected strength</a>
+          <a href="#/methodology?section=venue">Home and away</a>
+          <a href="#/methodology?section=forecast">Match forecasts</a>
+          <a href="#/methodology?section=learning">Learning from results</a>
+          <a href="#/methodology?section=ratings">Published ratings</a>
+          <a href="#/methodology?section=validation">Evidence and accuracy</a>
+          <a href="#/methodology?section=limits">Limits and reproducibility</a>
+        </nav>
+
+        <section class="method-section" aria-labelledby="method-overview">
+          <h2 id="method-overview" tabindex="-1">In plain English</h2>
+          <ol class="method-steps">
+            <li><b>Connect the opposition.</b> A result informs not only the two teams, but also the network created by their shared opponents.</li>
+            <li><b>Respect uncertainty.</b> New, inactive or narrowly connected teams are treated more cautiously than teams supported by broad recent evidence.</li>
+            <li><b>Account for the venue.</b> A home match combines the worldwide advantage for that era with changing estimates for both countries. Neutral matches receive neither.</li>
+            <li><b>Predict before learning.</b> Every match on a known date is forecast from the same start-of-day information, then all results on that date are learned together.</li>
+            <li><b>Use the score carefully.</b> Surprise and winning margin affect how much is learned, with diminishing weight for additional goals and a smaller information weight for friendlies.</li>
+            <li><b>Keep rankings simple.</b> One public rating is used everywhere. Extra attack and defence information can refine match probabilities, but never changes ratings or ranking order.</li>
           </ol>
-          <p><b>A higher public rating does not guarantee a higher match win probability.</b> The rating is the cautious ranking output; the forecast uses the fuller predictive state. The hidden attack and defence layer changes probabilities only and never changes rankings, peaks or rating movements.</p>
-        </div>
+        </section>
 
-        <h2>1. Latent strength and uncertainty</h2>
-        <p>Team strengths form a joint Gaussian approximation <code>r ~ N(μ,Σ)</code>. The full covariance matrix is essential: it records how evidence about one team is connected to every other team. On every requested as-of date, and again before a participant's next matchday, its diagonal variance receives Brownian drift:</p>
-        <div class="formula">Σᵢᵢ ← Σᵢᵢ + ${number(p.network.drift_sd, 10)}² Δt</div>
-        <p>A debutant starts with standard deviation <b>${rating(p.network.prior_sd)}</b> and a mean relative to the active international pool:</p>
-        <div class="formula">μnew = median(active established pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>
-        <p><code>A</code> contains teams that appeared in the selected calendar year or one of the preceding four calendar years. The median uses teams with at least 30 matches when five or more are available, otherwise teams with at least 10. All teams debuting on the same known date receive the same pre-date pool prior. Incomplete historical dates are kept in their source sequence rather than treating every unknown day as simultaneous.</p>
+        <section class="method-section" aria-labelledby="method-strength">
+          <h2 id="method-strength" tabindex="-1">Connected strength and uncertainty</h2>
+          <p>Team strength is represented by a joint estimate <code>r ~ N(μ,Σ)</code>. The mean <code>μ</code> contains each team’s estimated strength; the covariance matrix <code>Σ</code> preserves links created by common opponents. This is why evidence can move a connected team even when it did not play that day.</p>
+          <p>Uncertainty grows slowly when a team is not playing, using:</p>
+          <div class="formula">Σᵢᵢ ← Σᵢᵢ + ${number(p.network.drift_sd, 10)}² Δt</div>
+          <p>The underlying strength does not simply collapse during inactivity. Instead, the public rating becomes more cautious as uncertainty grows.</p>
+          <details class="method-details">
+            <summary>Starting strength for a new team</summary>
+            <p>A debutant begins relative to the established teams active around that date, with standard deviation <b>${rating(p.network.prior_sd)}</b>:</p>
+            <div class="formula">μnew = median(active pool) ${p.debut.offset < 0 ? "−" : "+"} ${number(Math.abs(p.debut.offset), 10)} ${p.debut.pool_slope < 0 ? "−" : "+"} ${number(Math.abs(p.debut.pool_slope), 10)} ln[(A+10)/50]</div>
+            <p><code>A</code> is the active international pool. Teams debuting on the same complete date receive the same pre-match pool estimate.</p>
+          </details>
+        </section>
 
-        <h2>2. Expected result, era and country venue profile</h2>
-        <div class="formula">C₁₂ = h(d₁+d₂)/2<br>δ = a(y)(μ₁ − μ₂) + H(y)h + C₁₂<br>E = 1 / [1 + 10^(−δ/400)]</div>
-        <p><code>h</code> is +1 when team one is at home, −1 when team two is at home and 0 at a neutral venue. <code>H(y)</code> is the worldwide home baseline for the football era. <code>dᵢ</code> is country <code>i</code>’s time-varying home-dependence estimate. A positive value contributes <code>+dᵢ/2</code> when the team hosts and <code>−dᵢ/2</code> to that team’s perspective when it visits. At a neutral venue, both <code>H(y)h</code> and <code>C₁₂</code> are exactly zero. <code>E</code> is expected fractional score.</p>
-        <p>The two halves are one shared estimate, not independently fitted home and away claims. In the audited ledger, the host is listed first in ${number(venueStudy.home_team_listed_first)} non-neutral rows, second in only ${number(venueStudy.home_team_listed_second)}, and ${number(venueStudy.neutral_matches)} matches are neutral. That ordering makes separate country hosting and visitor parameters weakly identifiable. Separate host, away, host-plus-away, neutral and non-home structures were nevertheless tested; the shared dependence term forecast later results best.</p>
-        <h3>How a country profile changes through time</h3>
-        <p>Each country starts at zero with prior standard deviation <b>${rating(v.prior_sd)}</b>. Between matchdays, the estimate and its uncertainty follow a mean-reverting process with a <b>${number(v.half_life_years)}-year half-life</b>:</p>
-        <div class="formula">r = 2^(−Δt/${number(v.half_life_years)})<br>dᵢ(t) = r dᵢ(t₀)<br>Vᵢ(t) = ${rating(v.prior_sd)}² − [${rating(v.prior_sd)}²−Vᵢ(t₀)]r²</div>
-        <p>Old evidence therefore fades toward the worldwide era baseline rather than becoming a permanent national label. Before any result from a date is learned, every match on that date uses the same projected profiles. For a non-neutral match, let <code>zᵢ=h/2</code>, <code>b=ln(10)/400</code> and <code>q</code> be <b>${number(v.friendly_learning_ratio, 5)}</b> for a friendly or 1 for a competitive match. The diagonal country-state update is:</p>
-        <div class="formula">gᵢ = qbzᵢ(S−E)<br>cᵢ = qb²zᵢ²E(1−E)<br>Vᵢ′ = 1 / (1/Vᵢ + Σcᵢ)<br>dᵢ′ = dᵢ + Vᵢ′Σgᵢ</div>
-        <p>Sums combine all of a country’s matches on the date. Neutral matches have no country feature and do not update this state. Goal margin and the main network’s quality scale are deliberately absent: earlier-only selection preferred unit result learning, with only the established friendly information discount. The estimate is already shrunk by its posterior; adding its remaining variance to match variance was also tested and made log loss worse, so <b>${number(v.predictive_variance_scale, 1)}</b> of that variance is added to forecasts. Team pages still publish the standard error, 95% interval, evidence count and reliability.</p>
-        <p>Era values are smoothly interpolated; gap scale is interpolated in log space, draw rate in a bounded-logit coordinate and worldwide home advantage linearly.</p>
-        <div class="table-hint" aria-hidden="true">Swipe horizontally to see all columns →</div><div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
+        <section class="method-section" aria-labelledby="method-venue">
+          <h2 id="method-venue" tabindex="-1">Home, away and neutral venues</h2>
+          <p>Home advantage has two parts: a worldwide baseline that changes through football history, and a cautious country profile that can also change over time.</p>
+          <div class="formula">C₁₂ = h(d₁+d₂)/2<br>δ = a(y)(μ₁−μ₂) + H(y)h + C₁₂<br>E = 1 / [1 + 10^(−δ/400)]</div>
+          <p><code>h</code> is +1 when team one is at home, −1 when team two is at home and 0 at a neutral venue. <code>H(y)</code> is the worldwide home advantage for year <code>y</code>; <code>d₁</code> and <code>d₂</code> are the two countries’ profiles. Each profile contributes half when hosting and the opposite half when away. Both venue terms are exactly zero at a neutral ground.</p>
+          <p>Home and away are shown as two views of one estimate because the match record does not reliably identify separate national home and away effects. The shared version performed better on later results. Sparse or old evidence stays close to the worldwide average and moves halfway back toward it every <b>${number(v.half_life_years, 0)} years</b>.</p>
+          <div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div>
+          <div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Worldwide home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
+          <details class="method-details">
+            <summary>Exact country-profile update</summary>
+            <p>Each country starts at zero with a ${rating(v.prior_sd)}-point standard deviation. Between matchdays:</p>
+            <div class="formula">r = 2^(−Δt/${number(v.half_life_years)})<br>dᵢ(t) = r dᵢ(t₀)<br>Vᵢ(t) = ${rating(v.prior_sd)}² − [${rating(v.prior_sd)}²−Vᵢ(t₀)]r²</div>
+            <p>For a non-neutral result, <code>zᵢ=h/2</code>, <code>b=ln(10)/400</code> and <code>q</code> is ${number(v.friendly_learning_ratio, 5)} for a friendly or 1 for a competitive match:</p>
+            <div class="formula">gᵢ = qbzᵢ(S−E)<br>cᵢ = qb²zᵢ²E(1−E)<br>Vᵢ′ = 1 / (1/Vᵢ + Σcᵢ)<br>dᵢ′ = dᵢ + Vᵢ′Σgᵢ</div>
+            <p>Neutral matches do not update this profile. Its remaining uncertainty is reported on team pages but is not added to match variance because that made later forecasts worse.</p>
+          </details>
+        </section>
 
-        <h2>3. Network W/D/L forecast</h2>
-        <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
-        <p>This construction preserves <code>W + D/2 = E</code>. The strength difference here is the latent opponent-network difference, <b>not the difference between the two displayed ratings</b>. NFELO integrates W/D/L over <code>V = Σ₁₁+Σ₂₂−2Σ₁₂</code> with 11-point Gauss–Hermite quadrature, then raises the probabilities to power <b>${p.forecast_temperature_exact.friendly}</b> for friendlies or <b>${p.forecast_temperature_exact.competitive}</b> for competitive matches and renormalises.</p>
+        <section class="method-section" aria-labelledby="method-forecast">
+          <h2 id="method-forecast" tabindex="-1">From strength to match probabilities</h2>
+          <p>The expected fractional score <code>E</code> is converted into win, draw and loss probabilities while preserving <code>W + D/2 = E</code>:</p>
+          <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
+          <p>NFELO integrates over the uncertainty in the strength difference, then calibrates friendly and competitive forecasts separately. A hidden score model also tracks whether each team has recently scored or conceded more than its strength alone would suggest.</p>
+          <p>The scoring layer changes probabilities only. It is allowed to move toward its score-based forecast only as far as it can go without reversing the network model’s most likely win, draw or loss.</p>
+          <details class="method-details">
+            <summary>Attack, defence and annual calibration</summary>
+            <p>The goal environment uses the current and preceding ${number(f.goal_environment_years)} calendar years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
+            <div class="formula">B = [${number(2 * f.goal_prior_matches * f.goal_prior_per_team, 0)} + previous goals] / [${number(2 * f.goal_prior_matches)} + 2(previous matches)]<br>g = ${number(f.parameters.gap_scale, 1)} ln[E/(1−E)]<br>λ₁ = B exp(g/2+A₁−D₂)<br>λ₂ = B exp(−g/2+A₂−D₁)</div>
+            <p>Attack and defence residuals decay as <code>exp(−${number(f.parameters.annual_decay, 1)}t)</code> and learn with rate ${number(f.parameters.learning_rate, 2)} after every forecast on the date has been stored.</p>
+            <div class="formula">Ppool = ${number(f.calibration.nfelo_weight, 4)}Pnetwork + ${number(f.calibration.score_weight, 4)}Pscore<br>Pfinal = Pnetwork + t(Ppool−Pnetwork)</div>
+            <p>At each January boundary, the draw adjustment, probability powers and pool weight are fitted from only the preceding ${number(f.calibration_window_years)} complete years. For ${yearNumber(f.calibration.year)}, that means ${number(f.calibration.training_matches)} matches from ${yearNumber(f.calibration.training_first_year)}–${yearNumber(f.calibration.training_last_year)}. Coefficients are fixed to ${number(f.calibration_precision_decimals)} decimal places before use.</p>
+          </details>
+          <details class="method-details">
+            <summary>Exact-score table</summary>
+            <p>Poisson score probabilities are reconciled to the displayed W/D/L totals. Within each outcome region <code>o</code>:</p>
+            <div class="formula">P*(i,j) = Praw(i,j) · Pfinal(o) / Praw(o)</div>
+            <p>This preserves the relative scorelines within wins, draws and losses while making the complete grid agree with the headline forecast.</p>
+          </details>
+        </section>
 
-        <h2>4. Hidden attack and defence forecast</h2>
-        <p>The probability-only layer tracks attack residual <code>Aᵢ</code> and defence residual <code>Dᵢ</code>. Its goal baseline uses the current and preceding ${number(f.goal_environment_years)} calendar years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>
-        <div class="formula">B = [${number(2 * f.goal_prior_matches * f.goal_prior_per_team, 0)} + previous goals] / [${number(2 * f.goal_prior_matches)} + 2(previous matches)]<br>g = ${number(f.parameters.gap_scale, 1)} ln[E/(1−E)]<br>λ₁ = B exp(g/2+A₁−D₂)<br>λ₂ = B exp(−g/2+A₂−D₁)</div>
-        <p>Independent Poisson scores are collapsed to W/D/L. Residuals decay as <code>exp(−${number(f.parameters.annual_decay, 1)}t)</code>. Only after every forecast on the date is stored are clipped goal residuals learned:</p>
-        <div class="formula">rᵢ = clip[min(goalsᵢ,${number(f.parameters.goal_update_cap)})−λᵢ,−${number(f.parameters.goal_residual_cap)},+${number(f.parameters.goal_residual_cap)}]<br>Aᵢ′ = Aᵢ + (${number(f.parameters.learning_rate, 2)}/2)rᵢ<br>Dⱼ′ = Dⱼ − (${number(f.parameters.learning_rate, 2)}/2)rᵢ</div>
+        <section class="method-section" aria-labelledby="method-learning">
+          <h2 id="method-learning" tabindex="-1">Learning from results</h2>
+          <p>A surprising result carries more information than an expected one. Goal margin also matters, but additional goals have diminishing influence and the margin is adjusted for the scoring environment of its era.</p>
+          <details class="method-details">
+            <summary>Goal-margin formula</summary>
+            <p>The recent excess-margin environment <code>e</code> uses the match year and preceding ${number(p.goal_margin.lookback_years)} calendar years, with a ${number(p.goal_margin.prior_decisive_matches)}-match prior:</p>
+            <div class="formula">e = [${number(p.goal_margin.prior_decisive_matches)}·${number(p.goal_margin.prior_excess_goals, 2)} + Σ(min(|mᵣ|,7)−1)] / [${number(p.goal_margin.prior_decisive_matches)} + n]<br>u = min{7, 1 + [min(|m|,7)−1]·[${number(p.goal_margin.prior_excess_goals, 2)}/max(0.10,e)]^${number(p.goal_margin.environment_power, 10)}}</div>
+            <div class="formula">G(0) = ${number(p.goal_margin.draw, 10)}<br>G(m) = 1, if u ≤ 1<br>G(m) = 1 + (u−1)(${number(p.goal_margin.two, 10)}−1), if 1 &lt; u ≤ 2<br>G(m) = ${number(p.goal_margin.two, 10)} + (u−2)(${number(p.goal_margin.three, 10)}−${number(p.goal_margin.two, 10)}), if 2 &lt; u ≤ 3<br>G(m) = ${number(p.goal_margin.three, 10)} + ${number(p.goal_margin.tail, 10)}(u−3), if u &gt; 3</div>
+          </details>
+          <details class="method-details">
+            <summary>Joint matchday update</summary>
+            <p>For match <code>k</code>, <code>xₖ=e₁−e₂</code>, <code>βₖ=a(y)ln(10)/400</code>, and <code>qₖ</code> is ${p.network.friendly_information_ratio_exact} for an evidence-backed friendly or 1 otherwise:</p>
+            <div class="formula">λₖ = ${number(p.network.quality_scale, 6)}G(mₖ)qₖ<br>cₖ = λₖβₖ²Eₖ(1−Eₖ)<br>gₖ = xₖλₖβₖ(Sₖ−Eₖ)<br>Σ′ = [Σ⁻¹ + Σₖcₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
+            <p>All matches on the date enter one update, making the result independent of arbitrary row order.</p>
+          </details>
+          <p>Confirmed friendlies use exactly <b>${p.network.friendly_information_ratio_exact}</b> of the network information assigned to competitive matches. This is not a direct multiplier on visible rating points. Constant, stepped and smoothly changing friendly weights were tested; the more complicated era-based versions did not improve the later confirmation period, so the single coefficient was retained.</p>
+        </section>
 
-        <h3>Annual calibration and boundary gate</h3>
-        <p>At each January boundary, draw tilt, friendly/competitive powers and the linear-pool weight are fitted using only the preceding ${number(f.calibration_window_years)} complete years. The calibration for ${yearNumber(f.calibration.year)} uses ${number(f.calibration.training_matches)} matches from ${yearNumber(f.calibration.training_first_year)}–${yearNumber(f.calibration.training_last_year)}. Before use, all four coefficients are fixed to ${number(f.calibration_precision_decimals)} decimal places. This removes platform-level optimiser jitter at a precision far below any probability displayed on the site.</p>
-        <div class="formula">Ppool = ${number(f.calibration.nfelo_weight, 4)}Pnetwork + ${number(f.calibration.score_weight, 4)}Pscore<br>Pfinal = Pnetwork + t(Ppool−Pnetwork)<br>t = largest value in [0,1] that preserves argmax(Pnetwork)</div>
-        <p>The boundary rule keeps the largest safe part of the scoring correction while preserving the network forecast's most likely win, draw or loss outcome.</p>
+        <section class="method-section" aria-labelledby="method-ratings">
+          <h2 id="method-ratings" tabindex="-1">The published rating</h2>
+          <p>The public rating starts from underlying strength, anchors it to the leading active international pool, then reduces it when recent opponent breadth is narrow or uncertainty is high:</p>
+          <div class="formula">Nᵢ = (Σⱼwᵢⱼ)² / Σⱼwᵢⱼ²<br>ρᵢ = Nᵢ/(Nᵢ+4)<br>Mᵢ = 2000 + ρᵢ(μᵢ−B)<br>NRᵢ = Mᵢ − 1.644854√Σᵢᵢ</div>
+          <p><code>B</code> is the mean underlying strength of the ten strongest eligible active teams. Opponent evidence decays with age, repeated opponents are combined, and <code>Nᵢ</code> is the effective variety of opponents.</p>
+          <p>This same rating powers current and historical rankings, tournament snapshots, team pages, peaks and record tables. Teams need 30 previous matches to receive a displayed rating, and must have played within the relevant activity window to appear in a ranking.</p>
+          <p>The forecast deliberately uses more information than this one number. Therefore a slightly lower-rated team can be favoured in a particular match because of uncertainty, venue or attack and defence tendencies. The rating answers “how strong is the evidence-supported ranking estimate?”; the forecast answers “what is most likely in this matchup?”</p>
+          <p>For an eligible match record, combined rating is:</p>
+          <div class="formula">Qᵢⱼ = Mᵢ+Mⱼ−1.644854√(Σᵢᵢ+Σⱼⱼ+2Σᵢⱼ)</div>
+        </section>
 
-        <h3>Exact-score grid</h3>
-        <p>The displayed score grid is reconciled to the final W/D/L vector. For a scoreline in outcome region <code>o</code>:</p>
-        <div class="formula">P*(i,j) = Praw(i,j) · Pfinal(o) / Praw(o)</div>
-        <p>Relative scoreline probabilities within wins, draws and losses are unchanged, while the full grid sums to the same three outcome probabilities shown above it. Tail mass is included before the visible 0–5 cells are cut off.</p>
+        <section class="method-section" aria-labelledby="method-validation">
+          <h2 id="method-validation" tabindex="-1">Evidence and forecast accuracy</h2>
+          <p>The broad comparison uses five rolling historical blocks from 1960 onward. Model choices were made with earlier periods and scored on later ones. Lower log loss means better use of all three probabilities; top-choice accuracy counts only whether the most likely W/D/L result happened.</p>
+          <div class="table-hint" aria-hidden="true">Swipe to compare every method →</div>
+          <div class="table-shell parameter-table"><table><thead><tr><th>Method</th><th class="numeric">Log loss</th><th class="numeric">Top W/D/L correct</th></tr></thead><tbody><tr><td><b>NFELO network benchmark</b></td><td class="numeric"><b>${number(nested.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(nested.accuracy)}</b></td></tr><tr><td>Best tested scalar Elo</td><td class="numeric">${number(nested.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.best_scalar_elo_accuracy)}</td></tr><tr><td>G-Elo comparison</td><td class="numeric">${number(nested.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.g_elo_accuracy)}</td></tr><tr><td>Published World Football Elo forecast</td><td class="numeric">${number(nested.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.published_wfe_accuracy)}</td></tr></tbody></table></div>
+          <p>The country venue formula was evaluated separately so its evidence remained chronological: its settings were selected using matches through 2019, then checked on ${number(venueStudy.untouched_matches)} matches from ${yearNumber(venueStudy.untouched_first_year)} onward that had not been used for that choice.</p>
+          <div class="metric-grid"><div><span>Later-period log-loss improvement</span><strong>${number(venueStudy.untouched_log_loss_improvement, 6)}</strong></div><div><span>Later tests favouring the country model</span><strong>${percent(venueStudy.untouched_probability_better)}</strong></div><div><span>All-period improvement</span><strong>${number(venueStudy.final_log_loss_improvement, 6)}</strong></div><div><span>Time blocks improved</span><strong>${venueStudy.all_five_time_blocks_improved ? "5 of 5" : "Not all"}</strong></div></div>
+          <p>The later-period 95% interval was ${number(venueStudy.untouched_bootstrap_ci95_improvement_low, 6)} to ${number(venueStudy.untouched_bootstrap_ci95_improvement_high, 6)}. This supports the venue formula on average; it does not mean every country has a precisely known non-zero effect.</p>
+          <h3>Implementation replay</h3>
+          <div class="metric-grid"><div><span>Forecasts</span><strong>${number(replay.matches)}</strong></div><div><span>Final log loss</span><strong>${number(replay.log_loss, 4)}</strong></div><div><span>Network-only log loss</span><strong>${number(replay.network_only_log_loss, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(replay.accuracy)}</strong></div></div>
+          <p>This replay applies the final constants throughout the historical chronology to check the deployed implementation. Because it is retrospective, it is not another out-of-sample comparison and should not be read as a replacement for the rolling benchmark above.</p>
+        </section>
 
-        <h2>5. Goal margin and the joint date update</h2>
-        <p>Let <code>e</code> be the average excess decisive margin available before the matchday. It uses decisive matches from the match’s calendar year and the preceding ${number(p.goal_margin.lookback_years)} calendar years, with a ${number(p.goal_margin.prior_decisive_matches)}-match prior at ${number(p.goal_margin.prior_excess_goals, 2)} excess goals:</p>
-        <div class="formula">e = [${number(p.goal_margin.prior_decisive_matches)}·${number(p.goal_margin.prior_excess_goals, 2)} + Σ(min(|mᵣ|,7)−1)] / [${number(p.goal_margin.prior_decisive_matches)} + n]<br>u = min{7, 1 + [min(|m|,7)−1]·[${number(p.goal_margin.prior_excess_goals, 2)}/max(0.10,e)]^${number(p.goal_margin.environment_power, 10)}}</div>
-        <p>The exact information function is piecewise:</p>
-        <div class="formula">G(0) = ${number(p.goal_margin.draw, 10)}<br>G(m) = 1, if u ≤ 1<br>G(m) = 1 + (u−1)(${number(p.goal_margin.two, 10)}−1), if 1 &lt; u ≤ 2<br>G(m) = ${number(p.goal_margin.two, 10)} + (u−2)(${number(p.goal_margin.three, 10)}−${number(p.goal_margin.two, 10)}), if 2 &lt; u ≤ 3<br>G(m) = ${number(p.goal_margin.three, 10)} + ${number(p.goal_margin.tail, 10)}(u−3), if u &gt; 3</div>
-        <p>Thus a draw has weight <b>${number(p.goal_margin.draw, 3)}</b>; a one-goal result starts at <b>1.000</b>; and larger margins are capped, era-normalised and subject to diminishing interpretation through <code>u</code>.</p>
-        <p>For each match <code>k</code> on a known date, define <code>xₖ=e₁−e₂</code> and <code>βₖ=a(y)ln(10)/400</code>. The class ratio is exactly <b>${p.network.friendly_information_ratio_exact}</b> for an evidence-backed friendly or 1 for a competitive or unresolved match. The complete matchday update is:</p>
-        <div class="formula">qₖ = ${number(p.network.friendly_information_ratio, 5)} (friendly) or 1 (competitive)<br>λₖ = ${number(p.network.quality_scale, 6)}G(mₖ)qₖ<br>cₖ = λₖβₖ²Eₖ(1−Eₖ)<br>gₖ = xₖλₖβₖ(Sₖ−Eₖ)<br>Σ′ = [Σ⁻¹ + Σₖ cₖxₖxₖᵀ]⁻¹<br>μ′ = μ + Σ′Σₖgₖ</div>
-        <p>This is an assumed-density Gaussian update, not an exact Bayesian posterior for the displayed three-way likelihood. It is invariant to arbitrary within-date row order. The friendly multiplier reduces both gradient and curvature before the joint update; the resulting displayed point movement is therefore not a simple fixed percentage.</p>
-
-        <h2>6. Public rating and match forecast</h2>
-        <p>Let <code>B</code> be the mean latent strength of the ten strongest teams with at least 30 matches and an appearance in the selected calendar year or preceding eight calendar years. An opponent contribution has weight <code>w=2^(−Δt/8)</code>; repeated opponents are added before the effective count and reliability are calculated. The same public rating is used for current rankings, historical rankings, tournament snapshots, team peaks, record tables and team pages:</p>
-        <div class="formula">Nᵢ = (Σⱼwᵢⱼ)² / Σⱼwᵢⱼ²<br>ρᵢ = Nᵢ/(Nᵢ+4)<br>Mᵢ = 2000 + ρᵢ(μᵢ−B)<br>NRᵢ = Mᵢ − 1.644854√Σᵢᵢ</div>
-        <p>The uncertainty term is the team's marginal posterior uncertainty. NFELO intentionally does <b>not</b> cancel uncertainty shared with the contemporaneous elite reference when making cross-era records: that common component contains information about how well an era or regional network is anchored to the rest of international football. Cancelling it can make a small, inward-looking historical group appear implausibly dominant.</p>
-        <p>The latent posterior mean is used for match prediction because it contains useful short-horizon information. The displayed rating additionally applies breadth adjustment and a conservative uncertainty deduction. Consequently, a team can have the higher public rating while its opponent has the higher win probability. That is not a contradiction: the rating asks which estimate is better supported for ranking and cross-era comparison, while the forecast asks what is most likely in one specified match.</p>
-        <p>The attack and defence layer can reshape the three probabilities but cannot reverse the latent network's top W/D/L choice. It does not alter the public rating. Matches and the prediction calculator show both outputs together so this distinction remains visible.</p>
-        <p>For an eligible match record, the combined score is:</p>
-        <div class="formula">Qᵢⱼ = Mᵢ+Mⱼ−1.644854√(Σᵢᵢ+Σⱼⱼ+2Σᵢⱼ)</div>
-        <p>Teams require 30 previous matches before receiving a displayed rating or entering the record book. A ranking for year <code>y</code> includes a team only if it appeared in calendar year <code>y</code> or one of the preceding four calendar years. Global end-of-day snapshots retain movements propagated through the covariance network even when the team itself did not play.</p>
-        <p>Completed matches store the exact pre-match covariance used at the time. For an arbitrary historical pairing, the static calculator reconstructs exact selected-date marginal states but does not archive every old off-diagonal covariance; it labels that W/D/L output as an approximation. Its margin table is an isolated one-match scenario that holds the reference, opponent breadth and other same-date results fixed.</p>
-
-        <h2 id="validation">7. Forecast validation</h2>
-        <h3>Primary evidence: nested historical holdout</h3>
-        <div class="table-hint" aria-hidden="true">Swipe to compare every method →</div><div class="table-shell parameter-table"><table><thead><tr><th>Method tested</th><th class="numeric">Log loss</th><th class="numeric">Most-likely W/D/L correct</th></tr></thead><tbody><tr><td><b>Original NFELO full-covariance network benchmark</b></td><td class="numeric"><b>${number(nested.log_loss, 6)}</b></td><td class="numeric"><b>${precisePercent(nested.accuracy)}</b></td></tr><tr><td>Best tested scalar Elo</td><td class="numeric">${number(nested.best_scalar_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.best_scalar_elo_accuracy)}</td></tr><tr><td>G-Elo comparison</td><td class="numeric">${number(nested.g_elo_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.g_elo_accuracy)}</td></tr><tr><td>Published World Football Elo forecast</td><td class="numeric">${number(nested.published_wfe_log_loss, 6)}</td><td class="numeric">${precisePercent(nested.published_wfe_accuracy)}</td></tr></tbody></table></div>
-        <p>The five-block rolling evaluation contains ${number(nested.matches)} predictions from 1960 onward. Choices were made using earlier periods and scored on later periods. NFELO selected the most likely W/D/L outcome ${precisePercent(nested.accuracy)} of the time, versus ${precisePercent(nested.published_wfe_accuracy)} for published WFER—a difference of ${number((nested.accuracy - nested.published_wfe_accuracy) * 100, 3)} percentage points. The attack/defence layer preserves the network's top choice, so it can improve the probability vector but cannot change this accuracy figure. Log loss is primary because it evaluates all three probabilities and penalises unjustified confidence. Lower is better.</p>
-        <p>These are the methods included in the recorded comparison, not a claim to cover every football forecasting method. The original fitter programs and frozen derived evaluation dataset were not retained, so the aggregate comparison cannot currently be reconstructed bit-for-bit.</p>
-
-        <h3>Country venue study: earlier-only selection and later holdout</h3>
-        <p>The country venue release has its own reproducible study and is not retrospectively inserted into the older nested benchmark above. The audit ran <b>${number(venueStudy.screening_fits)}</b> overlapping screening fits across <b>${number(venueStudy.candidate_structures)}</b> structures: global drift, country host only, away only, separate host and away, shared home dependence, country neutral, shared non-home and combinations with a global residual. It varied prior strength, temporal half-life, friendly learning, full network/margin learning and whether posterior venue variance entered the forecast. Hyperparameters were chosen using matches through 2019; ${number(venueStudy.untouched_matches)} matches from ${yearNumber(venueStudy.untouched_first_year)} through 11 July 2026 were left untouched until the final test.</p>
-        <div class="table-hint" aria-hidden="true">Swipe to compare candidate families →</div><div class="table-shell parameter-table"><table><thead><tr><th>Screening family</th><th class="numeric">All-period log-loss improvement</th><th class="numeric">2020–2026 improvement</th></tr></thead><tbody>
-          <tr><td>Time-varying global home residual only</td><td class="numeric">0.000238</td><td class="numeric negative">−0.000098</td></tr>
-          <tr><td>Country host only</td><td class="numeric">0.000876</td><td class="numeric">0.001081</td></tr>
-          <tr><td>Country away only</td><td class="numeric">0.000829</td><td class="numeric">0.000752</td></tr>
-          <tr><td>Separate country host + away</td><td class="numeric">0.001230</td><td class="numeric">0.001357</td></tr>
-          <tr><td>Shared country dependence + neutral</td><td class="numeric">0.001237</td><td class="numeric">0.000892</td></tr>
-          <tr><td><b>Selected shared country dependence</b></td><td class="numeric"><b>0.001662</b></td><td class="numeric"><b>0.001410</b></td></tr>
-        </tbody></table></div>
-        <p>Positive values mean lower, better log loss than the era-only home baseline. The screening stage held the existing network state fixed so many candidates could be compared consistently. The selected specification was then replayed through the complete strength network and hidden score layer.</p>
-        <div class="metric-grid"><div><span>Previous full replay</span><strong>${number(venueStudy.baseline_final_log_loss, 6)}</strong></div><div><span>Country-profile full replay</span><strong>${number(venueStudy.selected_final_log_loss, 6)}</strong></div><div><span>Full-replay improvement</span><strong>${number(venueStudy.final_log_loss_improvement, 6)}</strong></div><div><span>Untouched 2020–2026 improvement</span><strong>${number(venueStudy.untouched_log_loss_improvement, 6)}</strong></div></div>
-        <p>The end-to-end release improved all five time blocks: 1960–1979, 1980–1999, 2000–2009, 2010–2019 and 2020–2026. A paired year-block bootstrap put the overall improvement between <b>${number(venueStudy.bootstrap_ci95_improvement_low, 6)}</b> and <b>${number(venueStudy.bootstrap_ci95_improvement_high, 6)}</b> at 95%; the untouched-period interval was <b>${number(venueStudy.untouched_bootstrap_ci95_improvement_low, 6)}</b> to <b>${number(venueStudy.untouched_bootstrap_ci95_improvement_high, 6)}</b>, with ${percent(venueStudy.untouched_probability_better)} of resamples favouring the country model. This is evidence of a useful average forecasting improvement, not proof that every individual country estimate is non-zero.</p>
-
-        <h3>Secondary evidence: retrospective replay</h3>
-        <div class="metric-grid"><div><span>Final layer log loss</span><strong>${number(replay.log_loss, 4)}</strong></div><div><span>Network-only log loss</span><strong>${number(replay.network_only_log_loss, 4)}</strong></div><div><span>Brier score</span><strong>${number(replay.brier, 4)}</strong></div><div><span>Top outcome correct</span><strong>${percent(replay.accuracy)}</strong></div></div>
-        <p>This ${number(replay.matches)}-match diagnostic replays the current final constants, including country venue profiles, through the past to the fixed ${validDate(replay.cutoff)} cutoff. It is useful for component comparisons, including date batching and the boundary gate, but it is <b>not</b> a nested out-of-sample estimate and must not be compared as if it were the same experiment as ${number(nested.log_loss, 4)}.</p>
-
-        <h3>Why friendlies use ${p.network.friendly_information_ratio_exact}</h3>
-        <p>Tournament importance and match class are separate. Only evidence-backed exhibitions, preparation matches and friendly tournaments receive the friendly weight; uncertain or unknown competitions remain competitive. The model uses information ratio <b>${p.network.friendly_information_ratio_exact}</b>, friendly network temperature <b>${p.forecast_temperature_exact.friendly}</b> and competitive network temperature <b>${p.forecast_temperature_exact.competitive}</b>. These values come from a ${number(52312)}-match full-sample fit scoring ${number(46801)} forecasts from 1960 through 11 July 2026. The fit is retrospective and does not replace the nested historical holdout.</p>
-        <p>A separate chronology-first check tested <b>1,650</b> constant, stepped and smooth era-varying friendly ratios. Families were selected on 2010–2019 after fitting probability temperatures only through 2009, then tested on untouched 2020–2026 matches. Every flexible family winner was worse than the single coefficient on confirmation. A further 170-profile check in the country venue update found only a 0.000022 incremental era gain over its best constant, with a paired year-block interval crossing zero. The simpler fixed ratio was therefore retained in both updates.</p>
-
-        <h2>8. Reproducibility and limitations</h2>
-        <p>The repository records a methodology version, source hash and first-published prospective forecast for every identified future fixture. Historical validation must be labelled as nested holdout, retrospective replay or prospective. Routine data refreshes rebuild history but do not refit the structural constants; annual probability calibration follows its declared prior-years-only rule.</p>
-        <p>NFELO uses results, scores, dates, venue and competition class. It does not know squads, injuries, red cards, tactics, travel, rest, weather or betting markets. Political successor mappings remain a modelling assumption. Ratings and probabilities are estimates, not certainties or betting advice.</p>
+        <section class="method-section" aria-labelledby="method-limits">
+          <h2 id="method-limits" tabindex="-1">Reproducibility and limits</h2>
+          <p>The repository records the model configuration, source ledger, research code and first-published prospective forecast for every identified future fixture. Routine data updates rebuild the chronology but do not silently refit structural rating parameters; annual probability calibration follows its declared prior-years-only rule.</p>
+          <p>NFELO uses results, scores, dates, venues and competition class. It does not know line-ups, injuries, red cards, tactics, travel, rest, weather or betting markets. Historical team lineages are modelling choices, and cross-era ratings cannot prove how teams separated by decades would perform head to head.</p>
+          <p>Probabilities are estimates, not certainties or betting advice. The complete research record and reproducible checks are available in the <a href="https://github.com/nfelo/nfelo.github.io/tree/main/research" rel="external">repository’s research directory</a>.</p>
+        </section>
       </article>`;
+
+    const requestedSection = query.get("section");
+    const validSections = new Set([
+      "overview",
+      "strength",
+      "venue",
+      "forecast",
+      "learning",
+      "ratings",
+      "validation",
+      "limits",
+    ]);
+    if (validSections.has(requestedSection)) {
+      const target = document.getElementById(`method-${requestedSection}`);
+      window.requestAnimationFrame(() => {
+        target?.scrollIntoView({ block: "start" });
+        target?.focus({ preventScroll: true });
+      });
+    }
   }
 
   function renderAbout() {
@@ -4384,7 +4445,7 @@ function renderFAQ() {
         case "compare": await renderCompare(current); break;
         case "predict": await renderPredict(current); break;
         case "team": current.value ? await renderTeam(current.value, current.query) : renderNotFound(); break;
-        case "methodology": renderMethodology(); break;
+        case "methodology": renderMethodology(current.query); break;
         case "faq": renderFAQ(); break;
         case "about": renderAbout(); break;
         default: renderNotFound();

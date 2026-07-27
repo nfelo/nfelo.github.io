@@ -251,8 +251,8 @@ class PublicCopyTests(unittest.TestCase):
             javascript,
         )
         self.assertIn(
-            '<div class="formula">qₖ = '
-            '${number(p.network.friendly_information_ratio, 5)}',
+            "<code>qₖ</code> is "
+            "${p.network.friendly_information_ratio_exact}",
             javascript,
         )
 

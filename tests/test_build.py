@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 import json
 import math
 from pathlib import Path
+import re
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
@@ -485,21 +486,25 @@ class StaticBuildTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for phrase in (
-            "Home and away profile",
-            "Team-one venue adjustment",
-            "Country venue study: earlier-only selection and later holdout",
-            "Why is there one home-dependence value",
-            "Do countries receive an extra adjustment at neutral venues?",
+            "Home and away",
+            "Extra at home",
+            "Extra when away",
+            "See uncertainty and technical details",
+            "Why are a team’s home and away adjustments linked?",
+            "What happens at a neutral venue?",
             "projectVenueProfile",
             "compactVenueProfileHTML",
         ):
             self.assertIn(phrase, javascript)
         for phrase in (
             ".venue-profile",
-            ".venue-profile-metrics",
-            ".venue-metric-primary",
+            ".venue-profile-highlights",
+            ".venue-highlight",
+            ".venue-profile-details",
         ):
             self.assertIn(phrase, stylesheet)
+        self.assertNotIn(".venue-profile-metrics", stylesheet)
+        self.assertNotIn(".venue-metric-primary", stylesheet)
         self.assertIn("Country-specific home and away profiles", readme)
         self.assertIn(
             "research/home-advantage-2026-07-27/",
@@ -793,8 +798,8 @@ class StaticBuildTests(unittest.TestCase):
             javascript,
         )
         self.assertIn(
-            "every flexible family selected on 2010–2019 forecast "
-            "the untouched 2020–2026 block worse",
+            "Testing different friendly weights by era did not "
+            "improve later forecasts",
             javascript,
         )
         self.assertIn("Expand all", javascript)
@@ -1123,26 +1128,34 @@ class StaticBuildTests(unittest.TestCase):
 
     def test_methodology_explains_probability_only_layer_in_plain_english(self) -> None:
         javascript = (ROOT / "public" / "assets" / "app.js").read_text(encoding="utf-8")
+        methodology = javascript.split(
+            "function renderMethodology(query",
+            1,
+        )[1].split("function renderAbout", 1)[0]
         for phrase in (
-            "Add scoring tendencies",
+            "In plain English",
+            "Connect the opposition",
             "changes probabilities only",
-            "Hidden attack and defence forecast",
-            "Annual calibration and boundary gate",
-            "preceding eight complete calendar years",
-            "joint date update",
-            "nested historical holdout",
-            "retrospective replay",
-            "Public rating and match forecast",
-            "marginal posterior uncertainty",
-            "Why friendlies use ${p.network.friendly_information_ratio_exact}",
+            "Attack, defence and annual calibration",
+            "preceding ${number(f.calibration_window_years)} complete years",
+            "Joint matchday update",
+            "rolling historical blocks",
+            "Implementation replay",
+            "The published rating",
+            "Constant, stepped and smoothly changing friendly weights",
+            "calibration_precision_decimals",
+            "method-contents",
+            "method-details",
+        ):
+            self.assertIn(phrase, methodology)
+        for patch_note_phrase in (
             "1,650",
             "incremental era gain",
-            "p.forecast_temperature_exact.friendly",
-            "p.forecast_temperature_exact.competitive",
-            "calibration_precision_decimals",
-            "platform-level optimiser jitter",
+            "Previous full replay",
+            "Country venue study:",
+            "release improved",
         ):
-            self.assertIn(phrase, javascript)
+            self.assertNotIn(patch_note_phrase, methodology)
         self.assertIn("applyForecastLayer", javascript)
         self.assertIn(
             "Why is a friendly’s rating change not always "
@@ -1153,11 +1166,75 @@ class StaticBuildTests(unittest.TestCase):
         self.assertNotIn("0.63901", javascript)
         self.assertIn(
             '${p.network.friendly_information_ratio_exact}',
+            methodology,
+        )
+        self.assertIn(
+            "<code>qₖ</code> is "
+            "${p.network.friendly_information_ratio_exact}",
+            methodology,
+        )
+
+    def test_faq_is_plain_language_and_methodology_links_are_section_aware(self) -> None:
+        javascript = (
+            ROOT / "public" / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        faq = javascript.split(
+            "function buildFAQItems()",
+            1,
+        )[1].split("function faqSearchTokens", 1)[0]
+        self.assertEqual(faq.count('question: "'), 33)
+        for jargon in (
+            "posterior",
+            "latent",
+            "covariance",
+            "Gauss",
+            "bootstrap",
+            "hyperparameter",
+            "order-invariant",
+        ):
+            self.assertNotIn(jargon, faq)
+        self.assertIn(
+            "Team pages label the evidence as limited, "
+            "moderate or strong.",
+            faq,
+        )
+
+        section_links = set(re.findall(
+            r'href="#/methodology\?section=([a-z]+)"',
+            javascript,
+        ))
+        section_ids = set(re.findall(
+            r'id="method-([a-z]+)"',
+            javascript.split(
+                "function renderMethodology(query",
+                1,
+            )[1].split("function renderAbout", 1)[0],
+        ))
+        self.assertEqual(
+            section_ids,
+            {
+                "overview",
+                "strength",
+                "venue",
+                "forecast",
+                "learning",
+                "ratings",
+                "validation",
+                "limits",
+            },
+        )
+        self.assertEqual(section_links, section_ids)
+        self.assertIn(
+            'case "methodology": '
+            "renderMethodology(current.query);",
             javascript,
         )
         self.assertIn(
-            '<div class="formula">qₖ = '
-            '${number(p.network.friendly_information_ratio, 5)}',
+            'target?.scrollIntoView({ block: "start" });',
+            javascript,
+        )
+        self.assertIn(
+            "target?.focus({ preventScroll: true });",
             javascript,
         )
 
