@@ -34,6 +34,9 @@
         --shadow: rgba(78, 26, 69, .11);
         --ring: #c12f8e;
         --pearl: rgba(255, 255, 255, .36);
+        --fairy-rose: rgba(250, 163, 207, .18);
+        --princess-lilac: rgba(202, 174, 229, .17);
+        --mermaid-pearl: rgba(164, 219, 220, .11);
       }
       @media (prefers-color-scheme: dark) {
         :root {
@@ -48,6 +51,9 @@
           --shadow: rgba(4, 1, 6, .42);
           --ring: #ff78c5;
           --pearl: rgba(255, 255, 255, .055);
+          --fairy-rose: rgba(226, 103, 165, .09);
+          --princess-lilac: rgba(157, 119, 190, .09);
+          --mermaid-pearl: rgba(111, 177, 178, .055);
         }
       }
       * { box-sizing: border-box; }
@@ -61,10 +67,12 @@
         background:
           radial-gradient(ellipse 34rem 23rem at -5% 0, rgba(255, 198, 227, .32), transparent 69%),
           radial-gradient(ellipse 30rem 25rem at 105% 18%, rgba(218, 197, 237, .27), transparent 72%),
+          radial-gradient(ellipse 24rem 18rem at 88% 96%, var(--mermaid-pearl), transparent 74%),
           #fff8fc;
       }
       main {
         position: relative;
+        isolation: isolate;
         width: min(620px, 100%);
         overflow: hidden;
         padding: clamp(28px, 7vw, 42px);
@@ -79,14 +87,29 @@
           inset 0 1px 0 var(--pearl),
           0 20px 50px var(--shadow);
       }
+      main::before {
+        position: absolute;
+        z-index: 0;
+        inset: 8px;
+        pointer-events: none;
+        border: 1px solid rgba(190, 75, 144, .14);
+        border-radius: inherit;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3);
+        content: "";
+      }
+      main > * {
+        position: relative;
+        z-index: 1;
+      }
       h1 {
         margin: 0 0 12px;
         font-family: "Fraunces Variable", Candara, Corbel, serif;
         font-size: clamp(38px, 8vw, 64px);
-        font-weight: 470;
-        font-variation-settings: "SOFT" 92, "WONK" 0, "opsz" 82;
-        letter-spacing: -.041em;
+        font-weight: 445;
+        font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 96;
+        letter-spacing: -.043em;
         line-height: .98;
+        text-wrap: balance;
       }
       p {
         margin: 0 0 24px;
@@ -98,21 +121,37 @@
         display: inline-block;
         padding: 12px 18px;
         color: #35102e;
-        background: linear-gradient(120deg, #ffe3f1, #f6b2d5 45%, #e2ccef);
+        background:
+          linear-gradient(
+            118deg,
+            #ffe8f3,
+            #f8bad9 30%,
+            #ee9fc9 52%,
+            #e0c7ef 76%,
+            #d5e7e5
+          );
         border: 1px solid rgba(126, 36, 96, .15);
         border-radius: 999px;
-        font-weight: 680;
+        font-weight: 665;
         letter-spacing: .008em;
         text-decoration: none;
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, .68),
           0 8px 22px var(--shadow);
+        transition: transform .18s ease, box-shadow .18s ease;
+      }
+      a:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .76),
+          0 12px 27px var(--shadow);
       }
       @media (prefers-color-scheme: dark) {
         body {
           background:
             radial-gradient(ellipse 32rem 22rem at -5% 0, rgba(132, 49, 103, .17), transparent 70%),
             radial-gradient(ellipse 29rem 24rem at 105% 18%, rgba(101, 72, 130, .15), transparent 73%),
+            radial-gradient(ellipse 23rem 17rem at 88% 96%, var(--mermaid-pearl), transparent 75%),
             #170b14;
         }
         main {
@@ -124,6 +163,10 @@
           box-shadow:
             inset 0 1px 0 var(--pearl),
             0 20px 50px var(--shadow);
+        }
+        main::before {
+          border-color: rgba(244, 182, 219, .1);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
         }
       }
       a:focus-visible {
@@ -137,8 +180,12 @@
         main {
           border-radius: 22px 30px 22px 30px;
         }
+        main::before { inset: 6px; }
         p { font-size: 17px; }
         a { width: 100%; text-align: center; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        a { transition: none; }
       }
     </style>
   </head>

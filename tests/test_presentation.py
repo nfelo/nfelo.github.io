@@ -215,14 +215,21 @@ class PresentationReleaseTests(unittest.TestCase):
             ("#705268", "#fffafd"),
             ("#7b286b", "#fffafd"),
             ("#944174", "#fffafd"),
+            ("#8f3d70", "#fffafd"),
+            ("#7c3a68", "#f7d9e9"),
+            ("#7c3a68", "#d9c5e5"),
             ("#fff9fd", "#43133c"),
             ("#f1dceb", "#43133c"),
             ("#35102e", "#ff9bd5"),
             ("#35102e", "#f6b2d5"),
+            ("#35102e", "#d5e7e5"),
             ("#fff9fd", "#27111f"),
             ("#e4ccdc", "#27111f"),
             ("#f3a8dc", "#27111f"),
             ("#fff9fd", "#6f3466"),
+            ("#fff9fd", "#8b537b"),
+            ("#fff9fd", "#583046"),
+            ("#fff9fd", "#493554"),
             ("#fff9fd", "#2f7657"),
             ("#fff9fd", "#a93b55"),
         )
@@ -235,6 +242,66 @@ class PresentationReleaseTests(unittest.TestCase):
                     contrast(foreground, background),
                     4.5,
                 )
+
+    def test_fairytale_couture_finish_is_material_led_and_responsive(
+        self,
+    ) -> None:
+        stylesheet = STYLES.read_text(encoding="utf-8")
+        marker = (
+            "Fairytale couture spectrum: "
+            "ten material-led feminine refinements"
+        )
+        self.assertIn(marker, stylesheet)
+        finish = stylesheet.split(marker, 1)[1]
+
+        for numbered_idea in (
+            "1. Rosewater, lavender and sea-pearl atmosphere.",
+            "2. Softer, fashion-editorial display typography.",
+            "3. A perfume-seal setting",
+            "4. Organza and tulle layering",
+            "5. Mother-of-pearl inner frames",
+            "6. Powder-compact surfaces",
+            "7. Satin controls",
+            "8. Pearl-like details",
+            "9. Whisper-soft row rhythm",
+            "10. A moonlit version",
+        ):
+            self.assertIn(numbered_idea, finish)
+
+        for implementation in (
+            "--fairy-rose:",
+            "--princess-lilac:",
+            "--mermaid-pearl:",
+            '"SOFT" 100',
+            "font-weight: 445;",
+            "text-wrap: balance;",
+            ".brand-mark {",
+            ".hero::before,",
+            "--couture-tint: var(--fairy-rose);",
+            "--couture-tint: var(--princess-lilac);",
+            "--couture-tint: var(--mermaid-pearl);",
+            "background-size: 175% 100%;",
+            ".home-rank {",
+            "tbody tr:nth-child(even)",
+            "@media (prefers-color-scheme: dark)",
+            "@media (min-width: 721px) and (max-width: 1024px)",
+            "@media (max-width: 720px)",
+            "@media (prefers-reduced-motion: reduce)",
+        ):
+            self.assertIn(implementation, finish)
+
+        for excluded_decoration in (
+            ".svg",
+            "url(",
+            "-webkit-mask:",
+            "mask:",
+            "--bow-mask",
+            "--blossom-mask",
+        ):
+            self.assertNotIn(excluded_decoration, finish)
+
+        self.assertNotIn("--result-win:", finish)
+        self.assertNotIn("--result-loss:", finish)
 
     def test_brand_assets_cover_browser_apple_android_and_sharing(self) -> None:
         expected_png_sizes = {
@@ -302,13 +369,20 @@ class PresentationReleaseTests(unittest.TestCase):
             "apple-touch-icon-2026.png?v=20260728f1",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
-            'font-variation-settings: "SOFT" 92',
             "linear-gradient(118deg",
             "radial-gradient(ellipse 34rem 23rem",
             "radial-gradient(ellipse 32rem 22rem",
+            "--fairy-rose:",
+            "--princess-lilac:",
+            "--mermaid-pearl:",
+            "main::before",
+            "font-weight: 445",
+            '"SOFT" 100',
+            "text-wrap: balance",
             "#fff8fc;",
             "#170b14;",
             "@media (max-width: 480px)",
+            "@media (prefers-reduced-motion: reduce)",
         ):
             self.assertIn(marker, html)
         for applied_art in (

@@ -4667,3 +4667,769 @@ th {
     transition: none;
   }
 }
+
+/* Fairytale couture spectrum: ten material-led feminine refinements */
+:root {
+  --fairy-rose: rgba(250, 163, 207, 0.17);
+  --princess-lilac: rgba(202, 174, 229, 0.16);
+  --mermaid-pearl: rgba(164, 219, 220, 0.105);
+  --organza-light: rgba(255, 255, 255, 0.21);
+  --organza-soft: rgba(255, 238, 248, 0.105);
+  --jewel-edge: rgba(187, 69, 139, 0.2);
+  --jewel-inner: rgba(255, 255, 255, 0.52);
+  --powder-shadow: rgba(91, 26, 73, 0.09);
+  --couture-tint: var(--fairy-rose);
+}
+
+/* 1. Rosewater, lavender and sea-pearl atmosphere. */
+body {
+  background:
+    radial-gradient(
+      ellipse 50rem 34rem at -8% -7%,
+      rgba(255, 193, 225, 0.34),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 45rem 33rem at 108% 16%,
+      rgba(216, 194, 238, 0.29),
+      transparent 71%
+    ),
+    radial-gradient(
+      ellipse 34rem 24rem at 88% 88%,
+      rgba(183, 226, 224, 0.105),
+      transparent 72%
+    ),
+    linear-gradient(180deg, #fffafd 0, #fff7fb 48%, #fdf3fa 100%);
+}
+
+::selection {
+  color: #35102e;
+  background: #f7b3d7;
+}
+
+/* 2. Softer, fashion-editorial display typography. */
+h1,
+h2,
+h3,
+.brand,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3,
+.analysis-disclosure > summary b,
+.faq-item summary {
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0,
+    "opsz" 96;
+}
+
+h1,
+h2,
+.page-heading h1,
+.section-heading h2 {
+  text-wrap: balance;
+}
+
+h1 {
+  font-weight: 445;
+  letter-spacing: -0.043em;
+}
+
+h2 {
+  font-weight: 480;
+  letter-spacing: -0.032em;
+}
+
+h3,
+.brand strong,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3 {
+  font-weight: 540;
+}
+
+.hero h1 em {
+  color: #ffc1e2;
+  font-style: italic;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0,
+    "opsz" 112;
+  text-shadow: 0 0 26px rgba(255, 163, 211, 0.2);
+}
+
+.eyebrow {
+  color: #8f3d70;
+  font-weight: 700;
+  letter-spacing: 0.205em;
+}
+
+/* 3. A perfume-seal setting for the existing flower identity. */
+.brand-mark {
+  padding: 1px;
+  background:
+    radial-gradient(
+      circle at 36% 27%,
+      rgba(255, 255, 255, 0.52),
+      rgba(255, 206, 232, 0.13) 42%,
+      transparent 69%
+    );
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 220, 241, 0.32),
+    0 0 0 5px rgba(255, 178, 220, 0.055),
+    0 8px 18px rgba(31, 5, 27, 0.23);
+}
+
+.brand:hover .brand-mark {
+  box-shadow:
+    0 0 0 1px rgba(255, 229, 245, 0.46),
+    0 0 0 6px rgba(255, 178, 220, 0.09),
+    0 10px 21px rgba(31, 5, 27, 0.27);
+}
+
+/* 4. Organza and tulle layering on the focal panels. */
+.hero,
+.home-intro,
+.team-hero,
+.forecast,
+.panel-dark,
+.home-support > div:first-child {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      114deg,
+      transparent 0 47%,
+      rgba(255, 241, 249, 0.055) 55%,
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 31rem 23rem at 99% 0,
+      rgba(255, 178, 219, 0.23),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 27rem 21rem at 0 106%,
+      rgba(212, 184, 236, 0.17),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 22rem 17rem at 82% 112%,
+      rgba(170, 222, 220, 0.065),
+      transparent 73%
+    ),
+    linear-gradient(135deg, #46113c, #72265f);
+  border-color: rgba(255, 225, 243, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 26px 62px rgba(71, 13, 58, 0.17);
+}
+
+.hero > *,
+.home-intro > *,
+.team-hero > *,
+.forecast > *,
+.panel-dark > *,
+.home-support > div:first-child > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 5. Mother-of-pearl inner frames, like a jewellery setting. */
+.hero::before,
+.home-intro::before,
+.team-hero::before,
+.forecast::before,
+.panel-dark::before,
+.home-support > div:first-child::before {
+  position: absolute;
+  z-index: 0;
+  inset: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 231, 245, 0.17);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 24px rgba(255, 178, 220, 0.035);
+  content: "";
+}
+
+.hero,
+.home-intro {
+  border-radius: 44px 62px 44px 62px;
+}
+
+.team-hero,
+.forecast {
+  border-radius: 36px 51px 36px 51px;
+}
+
+/* 6. Powder-compact surfaces with varied, non-repeating tints. */
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .bar-chart,
+  .team-picker,
+  .toolbar,
+  .faq-tools,
+  .method-contents,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-add-panel,
+  .comparison-head-summary
+) {
+  background:
+    linear-gradient(
+      116deg,
+      transparent 0 52%,
+      var(--organza-light) 61%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 24rem 16rem at 108% -13%,
+      var(--couture-tint),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.28),
+      rgba(247, 190, 221, 0.05) 58%,
+      rgba(219, 199, 236, 0.075)
+    ),
+    var(--surface);
+  border-color: var(--jewel-edge);
+  box-shadow:
+    inset 0 1px 0 var(--jewel-inner),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 13px 34px var(--powder-shadow);
+}
+
+:is(
+  .home-ranking-list,
+  .method-contents,
+  .comparison-selection
+) {
+  --couture-tint: var(--fairy-rose);
+}
+
+:is(
+  .home-upcoming,
+  .faq-tools,
+  .team-picker,
+  .comparison-add-panel
+) {
+  --couture-tint: var(--princess-lilac);
+}
+
+:is(
+  .home-records,
+  .home-explore,
+  .chart-shell,
+  .venue-profile
+) {
+  --couture-tint: var(--mermaid-pearl);
+}
+
+/* Dense information stays quiet and legible. */
+:is(
+  .stat-card,
+  .faq-item,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .comparison-team-row,
+  .comparison-summary-table
+) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.23),
+      rgba(238, 211, 230, 0.045) 56%,
+      rgba(219, 201, 235, 0.05)
+    ),
+    var(--surface);
+  border-color: color-mix(
+    in srgb,
+    var(--jewel-edge) 70%,
+    var(--border)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 7px 22px rgba(91, 26, 73, 0.065);
+}
+
+/* 7. Satin controls and polished beauty-counter interactions. */
+.button {
+  border-radius: 999px;
+  font-weight: 665;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.66),
+    0 7px 20px rgba(103, 31, 83, 0.085);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background-position 0.3s ease;
+}
+
+.button-primary {
+  color: #35102e;
+  background:
+    linear-gradient(
+      118deg,
+      #ffe8f3 0,
+      #f8bad9 27%,
+      #ee9fc9 48%,
+      #e0c7ef 72%,
+      #d5e7e5 86%,
+      #ffe8f3 100%
+    );
+  background-position: 0 50%;
+  background-size: 175% 100%;
+  border-color: rgba(130, 38, 101, 0.15);
+}
+
+.button-primary:hover {
+  background:
+    linear-gradient(
+      118deg,
+      #fff0f7 0,
+      #fac4df 27%,
+      #f2aad0 48%,
+      #e7d1f3 72%,
+      #dcecea 86%,
+      #fff0f7 100%
+    );
+  background-position: 100% 50%;
+  background-size: 175% 100%;
+}
+
+.button-dark {
+  background:
+    linear-gradient(135deg, #7d2e6d, #5a1f50 58%, #39203e);
+  border-color: rgba(255, 214, 238, 0.12);
+}
+
+.button-quiet {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 78%, #fff0f8),
+      color-mix(in srgb, var(--surface) 93%, #eadcf4)
+    );
+}
+
+.field input,
+.field select,
+.team-picker select,
+.comparison-pair-picker select,
+.comparison-team-row select,
+.comparison-add-panel select,
+.chart-year-form input {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 77%, #fff1f8),
+      color-mix(in srgb, var(--surface) 94%, #eadcf4)
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--control-border) 61%,
+    #e59bc4
+  );
+  border-radius: 17px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 4px 14px rgba(100, 34, 84, 0.055);
+}
+
+/* 8. Pearl-like details made from existing functional elements. */
+.home-rank {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #7c3a68;
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      #fff,
+      #f7d9e9 48%,
+      #d9c5e5
+    );
+  border: 1px solid rgba(157, 71, 126, 0.16);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 3px 8px rgba(95, 29, 76, 0.08);
+}
+
+.comparison-series-swatch,
+.chart-inspector-value > i {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.34),
+    0 0 0 1px var(--series-colour),
+    0 3px 8px rgba(76, 24, 65, 0.1);
+}
+
+.score,
+.venue-code,
+.form i,
+.probability {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 3px 9px rgba(80, 25, 68, 0.07);
+}
+
+/* 9. Whisper-soft row rhythm instead of decorative clutter. */
+th {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-subtle) 52%, #fff9fc),
+      color-mix(in srgb, var(--surface-subtle) 61%, #eadbf3)
+    );
+  border-bottom-color: var(--jewel-edge);
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(246, 210, 230, 0.075);
+}
+
+.faq-item[open],
+.method-details[open],
+.analysis-disclosure[open],
+.team-model-details[open] {
+  border-color: color-mix(
+    in srgb,
+    var(--jewel-edge) 78%,
+    var(--control-border)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 10px 27px rgba(91, 26, 73, 0.085);
+}
+
+/* 10. A moonlit version of the same materials for dark mode. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fairy-rose: rgba(226, 103, 165, 0.085);
+    --princess-lilac: rgba(157, 119, 190, 0.085);
+    --mermaid-pearl: rgba(111, 177, 178, 0.055);
+    --organza-light: rgba(255, 255, 255, 0.027);
+    --organza-soft: rgba(255, 228, 244, 0.022);
+    --jewel-edge: rgba(239, 177, 214, 0.19);
+    --jewel-inner: rgba(255, 255, 255, 0.045);
+    --powder-shadow: rgba(0, 0, 0, 0.2);
+  }
+
+  body {
+    background:
+      radial-gradient(
+        ellipse 47rem 32rem at -8% -7%,
+        rgba(128, 42, 97, 0.18),
+        transparent 69%
+      ),
+      radial-gradient(
+        ellipse 43rem 31rem at 108% 16%,
+        rgba(92, 61, 122, 0.16),
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 32rem 23rem at 88% 88%,
+        rgba(63, 120, 120, 0.055),
+        transparent 74%
+      ),
+      linear-gradient(180deg, #190a15 0, #140910 52%, #10070d 100%);
+  }
+
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .panel-dark,
+  .home-support > div:first-child {
+    background:
+      linear-gradient(
+        114deg,
+        transparent 0 47%,
+        rgba(255, 224, 242, 0.027) 55%,
+        transparent 64%
+      ),
+      radial-gradient(
+        ellipse 29rem 22rem at 99% 0,
+        rgba(224, 104, 166, 0.12),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 25rem 20rem at 0 106%,
+        rgba(151, 113, 184, 0.095),
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 20rem 16rem at 82% 112%,
+        rgba(91, 157, 157, 0.04),
+        transparent 75%
+      ),
+      linear-gradient(135deg, #310e2a, #4c193f);
+    border-color: rgba(246, 192, 224, 0.14);
+  }
+
+  .hero::before,
+  .home-intro::before,
+  .team-hero::before,
+  .forecast::before,
+  .panel-dark::before,
+  .home-support > div:first-child::before {
+    border-color: rgba(255, 220, 241, 0.09);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.025),
+      0 0 24px rgba(226, 111, 173, 0.025);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .bar-chart,
+    .team-picker,
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-add-panel,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        116deg,
+        transparent 0 52%,
+        var(--organza-light) 61%,
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 23rem 15rem at 108% -13%,
+        var(--couture-tint),
+        transparent 74%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.027),
+        rgba(104, 48, 90, 0.05)
+      ),
+      var(--surface);
+  }
+
+  :is(
+    .stat-card,
+    .faq-item,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .comparison-team-row,
+    .comparison-summary-table
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.025),
+        rgba(98, 66, 112, 0.04)
+      ),
+      var(--surface);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 7px 22px rgba(0, 0, 0, 0.15);
+  }
+
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 86%, #4b1f3b),
+        color-mix(in srgb, var(--surface) 95%, #4a3155)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+
+  .home-rank {
+    color: #fff9fd;
+    background:
+      radial-gradient(
+        circle at 35% 28%,
+        #8b537b,
+        #583046 48%,
+        #493554
+      );
+    border-color: rgba(246, 190, 224, 0.2);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 3px 8px rgba(0, 0, 0, 0.17);
+  }
+
+  th {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-subtle) 74%, #4b203b),
+        color-mix(in srgb, var(--surface-subtle) 82%, #493354)
+      );
+  }
+
+  tbody tr:nth-child(even) {
+    background: rgba(207, 117, 167, 0.035);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  tbody tr:hover {
+    background: rgba(244, 171, 211, 0.105);
+  }
+}
+
+@media
+  (prefers-color-scheme: dark)
+  and (hover: hover)
+  and (pointer: fine) {
+  tbody tr:hover {
+    background: rgba(210, 104, 162, 0.075);
+  }
+}
+
+/* Tablet and mobile retain the full interface with lighter ornament. */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .hero,
+  .home-intro {
+    border-radius: 38px 53px 38px 53px;
+  }
+
+  .team-hero,
+  .forecast {
+    border-radius: 32px 44px 32px 44px;
+  }
+}
+
+@media (max-width: 720px) {
+  h1 {
+    font-weight: 470;
+    letter-spacing: -0.038em;
+  }
+
+  h2 {
+    font-weight: 500;
+  }
+
+  .hero,
+  .home-intro {
+    border-radius: 28px 39px 28px 39px;
+  }
+
+  .team-hero,
+  .forecast {
+    border-radius: 24px 33px 24px 33px;
+  }
+
+  .hero::before,
+  .home-intro::before,
+  .team-hero::before,
+  .forecast::before,
+  .panel-dark::before,
+  .home-support > div:first-child::before {
+    inset: 6px;
+  }
+
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.18),
+        rgba(230, 203, 237, 0.055)
+      ),
+      var(--surface);
+  }
+
+  .button,
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 720px) {
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.024),
+        rgba(98, 66, 112, 0.04)
+      ),
+      var(--surface);
+  }
+}
+
+@media print {
+  .hero::before,
+  .home-intro::before,
+  .team-hero::before,
+  .forecast::before,
+  .panel-dark::before,
+  .home-support > div:first-child::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark,
+  .button,
+  tbody tr {
+    transition: none;
+  }
+}
