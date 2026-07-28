@@ -3440,3 +3440,518 @@ th {
     display: none;
   }
 }
+
+/* Dainty botanical wash: atmosphere rather than applied ornament */
+:root {
+  --botanical-blush: rgba(244, 142, 195, 0.16);
+  --botanical-lilac: rgba(190, 156, 221, 0.13);
+  --botanical-pearl: rgba(255, 255, 255, 0.58);
+  --botanical-edge: rgba(171, 79, 139, 0.16);
+  --botanical-shadow: rgba(92, 34, 78, 0.085);
+}
+
+body {
+  background:
+    radial-gradient(
+      ellipse 52rem 34rem at -8% -8%,
+      rgba(255, 202, 229, 0.31),
+      transparent 67%
+    ),
+    radial-gradient(
+      ellipse 48rem 38rem at 108% 24%,
+      rgba(221, 202, 239, 0.26),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #fffafd 0, var(--paper) 48%, #fff7fb 100%);
+}
+
+body::before,
+body::after {
+  z-index: -1;
+  display: block;
+  width: min(42rem, 62vw);
+  height: min(28rem, 42vw);
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 38% 48%,
+      var(--botanical-blush),
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse at 64% 56%,
+      var(--botanical-lilac),
+      transparent 66%
+    );
+  border-radius: 58% 42% 54% 46% / 46% 56% 44% 54%;
+  filter: blur(22px);
+  opacity: 0.72;
+  transform: rotate(-7deg);
+}
+
+body::before {
+  top: 5rem;
+  right: -20rem;
+}
+
+body::after {
+  bottom: 2rem;
+  left: -22rem;
+  transform: rotate(9deg);
+}
+
+/* Remove the badge-like flowers and bows from controls and headings. */
+.eyebrow::before,
+.chronology-cause::before,
+.button-primary::before,
+.section-heading h2::after,
+.compact-heading h2::after,
+.home-explore-links a::after {
+  display: none;
+  content: none;
+  -webkit-mask: none;
+  mask: none;
+}
+
+.page-heading {
+  padding-bottom: 20px;
+}
+
+.page-heading::after {
+  bottom: 1px;
+  width: min(10rem, 42vw);
+  height: 12px;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(215, 128, 181, 0.24),
+      rgba(205, 174, 226, 0.12) 46%,
+      transparent 74%
+    );
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.78;
+}
+
+.hero,
+.home-intro,
+.team-hero,
+.forecast,
+.panel-dark,
+.home-support > div:first-child {
+  background:
+    radial-gradient(
+      ellipse 28rem 22rem at 96% 4%,
+      rgba(255, 172, 216, 0.19),
+      transparent 66%
+    ),
+    radial-gradient(
+      ellipse 25rem 20rem at 2% 104%,
+      rgba(211, 182, 236, 0.14),
+      transparent 68%
+    ),
+    linear-gradient(135deg, #45123c, #6d275c);
+  border-color: rgba(255, 226, 243, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    var(--shadow);
+}
+
+.hero::after {
+  right: -9rem;
+  bottom: -12rem;
+  display: block;
+  width: 30rem;
+  height: 25rem;
+  aspect-ratio: auto;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255, 191, 225, 0.1),
+      transparent 67%
+    );
+  border: 0;
+  border-radius: 58% 42% 54% 46% / 46% 56% 44% 54%;
+  box-shadow: none;
+  filter: blur(7px);
+  transform: rotate(-12deg);
+}
+
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .stat-card,
+  .bar-chart,
+  .team-picker,
+  .toolbar,
+  .faq-tools,
+  .faq-item,
+  .method-contents,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-team-row,
+  .comparison-add-panel,
+  .comparison-summary-table,
+  .comparison-head-summary
+) {
+  background:
+    radial-gradient(
+      ellipse 22rem 14rem at 108% -12%,
+      rgba(246, 183, 216, 0.1),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(244, 190, 219, 0.045) 58%,
+      rgba(220, 199, 237, 0.07)
+    ),
+    var(--surface);
+  border-color: var(--botanical-edge);
+  box-shadow:
+    inset 0 1px 0 var(--botanical-pearl),
+    0 10px 28px var(--botanical-shadow);
+}
+
+/* Repeated information should read as data, with no decorative wash. */
+:is(
+  .stat-card,
+  .faq-item,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .comparison-team-row,
+  .comparison-summary-table
+) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(221, 199, 236, 0.045)
+    ),
+    var(--surface);
+}
+
+.button,
+.field input,
+.field select,
+.team-picker select,
+.comparison-pair-picker select,
+.comparison-team-row select,
+.comparison-add-panel select,
+.chart-year-form input {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    0 5px 16px rgba(98, 38, 84, 0.065);
+}
+
+.button-primary {
+  background:
+    linear-gradient(
+      135deg,
+      #ffd9ec,
+      #f4a9d0 52%,
+      #dec7ee
+    );
+}
+
+.button-primary:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #ffe3f1,
+      #f7b4d7 52%,
+      #e6d1f2
+    );
+}
+
+.table-shell,
+.chart-stage,
+.faq-item,
+.method-details,
+.analysis-disclosure,
+.team-model-details,
+.ranking-card {
+  border-color: var(--botanical-edge);
+}
+
+.site-footer {
+  background:
+    radial-gradient(
+      ellipse 30rem 22rem at 100% 0,
+      rgba(250, 150, 204, 0.14),
+      transparent 67%
+    ),
+    radial-gradient(
+      ellipse 26rem 20rem at 2% 110%,
+      rgba(191, 156, 222, 0.11),
+      transparent 70%
+    ),
+    linear-gradient(135deg, #3b0e33, #210b1d);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --botanical-blush: rgba(235, 112, 176, 0.095);
+    --botanical-lilac: rgba(172, 130, 205, 0.08);
+    --botanical-pearl: rgba(255, 255, 255, 0.055);
+    --botanical-edge: rgba(235, 177, 212, 0.17);
+    --botanical-shadow: rgba(0, 0, 0, 0.19);
+  }
+
+  body {
+    background:
+      radial-gradient(
+        ellipse 48rem 32rem at -8% -8%,
+        rgba(135, 51, 105, 0.16),
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 44rem 35rem at 108% 24%,
+        rgba(103, 74, 132, 0.14),
+        transparent 72%
+      ),
+      linear-gradient(180deg, #1b0a16 0, var(--paper) 48%, #12080f 100%);
+  }
+
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .panel-dark,
+  .home-support > div:first-child {
+    background:
+      radial-gradient(
+        ellipse 27rem 21rem at 96% 4%,
+        rgba(229, 112, 174, 0.12),
+        transparent 68%
+      ),
+      radial-gradient(
+        ellipse 24rem 19rem at 2% 104%,
+        rgba(162, 123, 194, 0.1),
+        transparent 70%
+      ),
+      linear-gradient(135deg, #35102e, #511c46);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .stat-card,
+    .bar-chart,
+    .team-picker,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-team-row,
+    .comparison-add-panel,
+    .comparison-summary-table,
+    .comparison-head-summary
+  ) {
+    background:
+      radial-gradient(
+        ellipse 21rem 13rem at 108% -12%,
+        rgba(221, 112, 171, 0.045),
+        transparent 74%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.028),
+        rgba(111, 51, 96, 0.055)
+      ),
+      var(--surface);
+  }
+
+  :is(
+    .stat-card,
+    .faq-item,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .comparison-team-row,
+    .comparison-summary-table
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.025),
+        rgba(102, 68, 116, 0.04)
+      ),
+      var(--surface);
+  }
+
+  .page-heading::after {
+    background:
+      radial-gradient(
+        ellipse at center,
+        rgba(226, 121, 180, 0.16),
+        rgba(174, 134, 204, 0.08) 48%,
+        transparent 76%
+      );
+  }
+
+  .button,
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 5px 16px rgba(0, 0, 0, 0.13);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  body::before,
+  body::after {
+    width: 34rem;
+    height: 23rem;
+  }
+}
+
+@media (max-width: 720px) {
+  body::before {
+    top: 4rem;
+    right: -15rem;
+    width: 25rem;
+    height: 17rem;
+  }
+
+  body::after {
+    bottom: 1rem;
+    left: -17rem;
+    width: 27rem;
+    height: 18rem;
+  }
+
+  .page-heading {
+    padding-bottom: 17px;
+  }
+
+  .page-heading::after {
+    bottom: 2px;
+    width: min(8rem, 48vw);
+    height: 9px;
+  }
+
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .panel-dark,
+  .home-support > div:first-child {
+    background:
+      radial-gradient(
+        ellipse 16rem 13rem at 106% -6%,
+        rgba(255, 172, 216, 0.15),
+        transparent 69%
+      ),
+      radial-gradient(
+        ellipse 15rem 12rem at -6% 106%,
+        rgba(211, 182, 236, 0.11),
+        transparent 71%
+      ),
+      linear-gradient(135deg, #45123c, #6d275c);
+  }
+
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.18),
+        rgba(221, 199, 236, 0.05)
+      ),
+      var(--surface);
+  }
+
+  .hero::after {
+    right: -10rem;
+    bottom: -11rem;
+    width: 24rem;
+    height: 21rem;
+    opacity: 0.68;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 720px) {
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .panel-dark,
+  .home-support > div:first-child {
+    background:
+      radial-gradient(
+        ellipse 16rem 13rem at 106% -6%,
+        rgba(229, 112, 174, 0.1),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 15rem 12rem at -6% 106%,
+        rgba(162, 123, 194, 0.075),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #35102e, #511c46);
+  }
+
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.024),
+        rgba(102, 68, 116, 0.04)
+      ),
+      var(--surface);
+  }
+}
+
+@media print {
+  body::before,
+  body::after,
+  .hero::after,
+  .page-heading::after {
+    display: none;
+  }
+}

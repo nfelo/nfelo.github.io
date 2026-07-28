@@ -100,22 +100,17 @@ class PresentationReleaseTests(unittest.TestCase):
             "font-variant-numeric: lining-nums tabular-nums;",
             "Floral editorial presentation system",
             "Floral couture refinement",
-            "Dense and repeated components stay motif-free",
+            "Dainty botanical wash",
+            "atmosphere rather than applied ornament",
+            "Repeated information should read as data",
             ".brand:hover .brand-mark",
             ".eyebrow::before",
             ".page-heading::after",
             ".button-primary::before",
             ".chronology-cause::before",
-            "--flower-mask:",
-            'url("botanical-sprig-2026.svg")',
-            'url("floral-divider-2026.svg")',
-            'url("floral-divider-dark-2026.svg")',
-            'url("floral-corner-rose-2026.svg")',
-            'url("floral-corner-rose-dark-2026.svg")',
-            'url("floral-corner-blossom-2026.svg")',
-            'url("floral-corner-blossom-dark-2026.svg")',
-            'url("floral-ribbon-2026.svg")',
-            'url("floral-ribbon-dark-2026.svg")',
+            "--botanical-blush:",
+            "--botanical-lilac:",
+            "--botanical-edge:",
             "@media (min-width: 721px) and (max-width: 1024px)",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
@@ -140,16 +135,27 @@ class PresentationReleaseTests(unittest.TestCase):
             2,
         )
         final_cascade = stylesheet.split(
-            "Floral couture refinement",
+            "Dainty botanical wash",
             1,
         )[1]
-        self.assertNotIn("botanical-sprig-2026.svg", final_cascade)
-        for motif in (
+        for applied_art in (
+            "botanical-sprig-2026.svg",
+            "floral-divider-2026.svg",
             "floral-corner-rose-2026.svg",
             "floral-corner-blossom-2026.svg",
             "floral-ribbon-2026.svg",
+            "--bow-mask",
+            "--blossom-mask",
         ):
-            self.assertIn(motif, final_cascade)
+            self.assertNotIn(applied_art, final_cascade)
+        self.assertIn(
+            ".button-primary::before",
+            final_cascade,
+        )
+        self.assertIn(
+            "content: none;",
+            final_cascade,
+        )
         definitions = set(
             re.findall(r"--([\w-]+)\s*:", stylesheet)
         )
@@ -236,61 +242,6 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertIn('<g id="flower">', social_svg)
         self.assertIn("International ratings, results", social_svg)
 
-        botanical = (
-            PUBLIC / "assets" / "botanical-sprig-2026.svg"
-        ).read_text(encoding="utf-8")
-        self.assertIn('<g id="flower">', botanical)
-        self.assertGreaterEqual(botanical.count("<ellipse"), 5)
-
-        motif_names = (
-            "floral-corner-rose-2026.svg",
-            "floral-corner-rose-dark-2026.svg",
-            "floral-corner-blossom-2026.svg",
-            "floral-corner-blossom-dark-2026.svg",
-            "floral-ribbon-2026.svg",
-            "floral-ribbon-dark-2026.svg",
-            "floral-divider-2026.svg",
-            "floral-divider-dark-2026.svg",
-        )
-        motifs = {
-            name: (PUBLIC / "assets" / name).read_text(
-                encoding="utf-8"
-            )
-            for name in motif_names
-        }
-        for name, motif in motifs.items():
-            with self.subTest(asset=name):
-                self.assertIn("<svg", motif)
-                self.assertIn("viewBox=", motif)
-                self.assertIn("<path", motif)
-                self.assertGreater(
-                    motif.count("<path") + motif.count("<circle"),
-                    4,
-                )
-        self.assertNotEqual(
-            motifs["floral-corner-rose-2026.svg"],
-            motifs["floral-corner-blossom-2026.svg"],
-        )
-        for light, dark in (
-            (
-                "floral-corner-rose-2026.svg",
-                "floral-corner-rose-dark-2026.svg",
-            ),
-            (
-                "floral-corner-blossom-2026.svg",
-                "floral-corner-blossom-dark-2026.svg",
-            ),
-            (
-                "floral-ribbon-2026.svg",
-                "floral-ribbon-dark-2026.svg",
-            ),
-            (
-                "floral-divider-2026.svg",
-                "floral-divider-dark-2026.svg",
-            ),
-        ):
-            self.assertNotEqual(motifs[light], motifs[dark])
-
         manifest = json.loads(
             (PUBLIC / "site.webmanifest").read_text(encoding="utf-8")
         )
@@ -315,12 +266,21 @@ class PresentationReleaseTests(unittest.TestCase):
             "apple-touch-icon-2026.png?v=20260728f1",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
-            "-webkit-mask: url(",
-            "background: #fff8fc",
-            "background: #170b14",
+            "radial-gradient(ellipse 34rem 23rem",
+            "radial-gradient(ellipse 32rem 22rem",
+            "#fff8fc;",
+            "#170b14;",
             "@media (max-width: 480px)",
         ):
             self.assertIn(marker, html)
+        for applied_art in (
+            "floral-corner-",
+            "floral-ribbon",
+            "floral-divider",
+            "-webkit-mask:",
+            "mask:",
+        ):
+            self.assertNotIn(applied_art, html)
 
 
 if __name__ == "__main__":
