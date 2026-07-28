@@ -223,6 +223,9 @@ class PresentationReleaseTests(unittest.TestCase):
             ("#35102e", "#ff9bd5"),
             ("#35102e", "#f6b2d5"),
             ("#35102e", "#d5e7e5"),
+            ("#35102e", "#ffe8f3"),
+            ("#35102e", "#f7bad9"),
+            ("#35102e", "#e3caef"),
             ("#fff9fd", "#27111f"),
             ("#e4ccdc", "#27111f"),
             ("#f3a8dc", "#27111f"),
@@ -230,6 +233,11 @@ class PresentationReleaseTests(unittest.TestCase):
             ("#fff9fd", "#8b537b"),
             ("#fff9fd", "#583046"),
             ("#fff9fd", "#493554"),
+            ("#ffc3e2", "#43133c"),
+            ("#ffc3e2", "#4c193f"),
+            ("#fff9fd", "#5c3151"),
+            ("#fff9fd", "#44223b"),
+            ("#fff9fd", "#35233f"),
             ("#fff9fd", "#2f7657"),
             ("#fff9fd", "#a93b55"),
         )
@@ -303,6 +311,81 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertNotIn("--result-win:", finish)
         self.assertNotIn("--result-loss:", finish)
 
+    def test_atelier_reverie_adds_ten_distinct_accessible_finishes(
+        self,
+    ) -> None:
+        stylesheet = STYLES.read_text(encoding="utf-8")
+        marker = (
+            "Atelier reverie: "
+            "ten further feminine refinements"
+        )
+        self.assertIn(marker, stylesheet)
+        finish = stylesheet.split(marker, 1)[1]
+
+        for numbered_idea in (
+            "1. Ballet-wrap geometry",
+            "2. Porcelain cameo settings",
+            "3. Micro-embroidered seams",
+            "4. Opal and moonstone mats",
+            "5. Fine-jewellery tray compartments",
+            "6. Glossed silk data bars",
+            "7. Delicate perfume-label microtype",
+            "8. Pink-sapphire double focus halos",
+            "9. Alternating draped silhouettes",
+            "10. Bridal-stationery double rules",
+        ):
+            self.assertIn(numbered_idea, finish)
+
+        for implementation in (
+            "--ballet-ribbon-light:",
+            "--cameo-edge:",
+            "--embroidery-stitch:",
+            "--opal-rose:",
+            "--atelier-focus:",
+            ".record-tabs .button[aria-pressed=\"true\"]",
+            ".team-rating {",
+            "border-radius: 50% / 44%;",
+            ".page-heading::after {",
+            ".chart-stage {",
+            ".probability .pw,",
+            "font-style: italic;",
+            "):focus-visible {",
+            "> :nth-child(4n + 1)",
+            "border: 3px double var(--stationery-line);",
+            "@media (prefers-color-scheme: dark)",
+            "@media (min-width: 721px) and (max-width: 1024px)",
+            "@media (max-width: 720px)",
+            "@media print",
+        ):
+            self.assertIn(implementation, finish)
+
+        for excluded_decoration in (
+            ".svg",
+            "url(",
+            "-webkit-mask:",
+            "mask:",
+            "--bow-mask",
+            "--blossom-mask",
+            "--flower-mask",
+            "animation:",
+        ):
+            self.assertNotIn(excluded_decoration, finish)
+
+        self.assertNotIn("--result-win:", finish)
+        self.assertNotIn("--result-loss:", finish)
+        self.assertIn(
+            "without changing W/D/L colours",
+            finish,
+        )
+        self.assertIn(
+            "min-width: 320px;",
+            stylesheet,
+        )
+        self.assertIn(
+            "min-height: 44px;",
+            stylesheet,
+        )
+
     def test_brand_assets_cover_browser_apple_android_and_sharing(self) -> None:
         expected_png_sizes = {
             "apple-touch-icon-2026.png": (180, 180),
@@ -375,7 +458,13 @@ class PresentationReleaseTests(unittest.TestCase):
             "--fairy-rose:",
             "--princess-lilac:",
             "--mermaid-pearl:",
+            "--atelier-focus:",
+            "--embroidery-stitch:",
+            "--stationery-line:",
             "main::before",
+            "main::after",
+            "border: 3px double var(--stationery-line)",
+            "linear-gradient(35deg",
             "font-weight: 445",
             '"SOFT" 100',
             "text-wrap: balance",
@@ -383,6 +472,7 @@ class PresentationReleaseTests(unittest.TestCase):
             "#170b14;",
             "@media (max-width: 480px)",
             "@media (prefers-reduced-motion: reduce)",
+            "@media print",
         ):
             self.assertIn(marker, html)
         for applied_art in (

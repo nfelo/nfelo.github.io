@@ -5433,3 +5433,591 @@ tbody tr:nth-child(even) {
     transition: none;
   }
 }
+
+/*
+ * Atelier reverie: ten further feminine refinements.
+ * This layer borrows construction, finish and rhythm from balletwear,
+ * bridal embroidery, fine jewellery, perfume labels and opalescent beauty.
+ * It deliberately adds no literal costume, crown, shell or decorative icon.
+ */
+:root {
+  --ballet-ribbon-light: rgba(255, 255, 255, 0.43);
+  --ballet-ribbon-soft: rgba(246, 188, 219, 0.24);
+  --cameo-edge: rgba(181, 66, 135, 0.24);
+  --cameo-inner: rgba(255, 255, 255, 0.48);
+  --embroidery-stitch: rgba(172, 66, 132, 0.34);
+  --opal-rose: rgba(249, 174, 213, 0.18);
+  --opal-lilac: rgba(199, 177, 227, 0.17);
+  --opal-sea: rgba(151, 211, 211, 0.13);
+  --enamel-highlight: rgba(255, 255, 255, 0.58);
+  --atelier-focus: #b52f83;
+  --atelier-focus-halo: rgba(181, 47, 131, 0.18);
+  --stationery-line: rgba(174, 69, 134, 0.22);
+}
+
+/* 1. Ballet-wrap geometry for selected navigation and tab states. */
+:is(
+  .site-nav a[aria-current="page"],
+  .nav-group[open] > summary,
+  .nav-group.contains-current > summary,
+  .record-tabs .button[aria-pressed="true"],
+  .toggle-group .button[aria-pressed="true"]
+) {
+  color: #35102e;
+  background:
+    linear-gradient(
+      35deg,
+      transparent 0 41%,
+      var(--ballet-ribbon-light) 42% 47%,
+      transparent 48%
+    ),
+    linear-gradient(
+      -35deg,
+      transparent 0 53%,
+      var(--ballet-ribbon-soft) 54% 59%,
+      transparent 60%
+    ),
+    linear-gradient(
+      128deg,
+      #ffe8f3,
+      #f7bad9 47%,
+      #e3caef
+    );
+  border-color: rgba(149, 48, 111, 0.17);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 7px 19px rgba(112, 37, 92, 0.11);
+}
+
+/* 2. Porcelain cameo settings for the most important ratings. */
+.team-rating {
+  min-width: 188px;
+  max-width: 100%;
+  padding: 22px 28px 20px;
+  text-align: center;
+  background:
+    radial-gradient(
+      ellipse at 40% 26%,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 204, 231, 0.045) 52%,
+      transparent 70%
+    );
+  border: 1px solid rgba(255, 222, 241, 0.24);
+  border-radius: 50% / 44%;
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 13px 29px rgba(24, 4, 21, 0.14);
+}
+
+.team-rating strong {
+  color: #ffc3e2;
+  font-weight: 620;
+  text-shadow: 0 0 22px rgba(255, 155, 211, 0.16);
+}
+
+.comparison-cards article > strong {
+  display: inline-grid;
+  min-width: 124px;
+  min-height: 74px;
+  place-items: center;
+  padding: 10px 22px;
+  background:
+    radial-gradient(
+      ellipse at 38% 25%,
+      #fff,
+      #fbe5f0 55%,
+      #eadcf2
+    );
+  border: 1px solid var(--cameo-edge);
+  border-radius: 50% / 45%;
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.38),
+    0 8px 20px rgba(91, 26, 73, 0.08);
+}
+
+/* 3. Micro-embroidered seams instead of graphic divider artwork. */
+.page-heading::after {
+  bottom: 0;
+  width: min(13rem, 52vw);
+  height: 5px;
+  background:
+    radial-gradient(
+      circle,
+      var(--embroidery-stitch) 0 1px,
+      transparent 1.35px
+    )
+    left center / 8px 4px repeat-x;
+  filter: none;
+  opacity: 1;
+}
+
+.compact-heading,
+.section-heading {
+  padding-bottom: 10px;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(
+        in srgb,
+        var(--embroidery-stitch) 72%,
+        transparent
+      ) 0 0.9px,
+      transparent 1.25px
+    )
+    left bottom / 8px 3px repeat-x;
+}
+
+/* 4. Opal and moonstone mats for interactive rating charts. */
+.chart-stage {
+  background:
+    radial-gradient(
+      ellipse 31rem 18rem at 6% 3%,
+      var(--opal-rose),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 28rem 17rem at 96% 9%,
+      var(--opal-lilac),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 24rem 15rem at 73% 104%,
+      var(--opal-sea),
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 93%, #fff),
+      color-mix(in srgb, var(--surface-subtle) 78%, #fff)
+    );
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 0 1px 0 var(--enamel-highlight),
+    inset 0 0 0 4px rgba(255, 255, 255, 0.14);
+}
+
+.chart-inspector {
+  background:
+    radial-gradient(
+      ellipse 20rem 10rem at 100% 0,
+      var(--opal-lilac),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--chart-readout) 94%, #fff),
+      color-mix(in srgb, var(--chart-readout) 86%, #f9ddea)
+    );
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 4px 0 0 rgba(203, 86, 156, 0.3),
+    inset 0 1px 0 var(--enamel-highlight);
+}
+
+/* 5. Fine-jewellery tray compartments for compact metrics. */
+:is(
+  .stat-card,
+  .team-stats > div,
+  .metric-grid > div,
+  .venue-highlight,
+  .comparison-cards article
+) {
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 var(--enamel-highlight),
+    0 9px 24px rgba(91, 26, 73, 0.07);
+}
+
+:is(
+  .stat-card .value,
+  .team-stats strong,
+  .metric-grid strong,
+  .comparison-cards article > strong
+) {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+/* 6. Glossed silk data bars, without changing W/D/L colours. */
+.bar-track {
+  height: 13px;
+  border: 1px solid rgba(151, 61, 120, 0.11);
+  box-shadow:
+    inset 0 2px 5px rgba(93, 30, 76, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+.bar-fill {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48),
+      transparent 46%,
+      rgba(86, 23, 70, 0.08)
+    ),
+    linear-gradient(
+      90deg,
+      #d3a8f2,
+      #ee7fbd 56%,
+      #b94ba2
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.probability .pw,
+.probability .pd,
+.probability .pl {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18),
+      transparent 48%,
+      rgba(33, 9, 29, 0.11)
+    );
+}
+
+/* 7. Delicate perfume-label microtype for signposts and controls. */
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-style: italic;
+  font-weight: 560;
+  letter-spacing: 0.135em;
+  text-transform: none;
+}
+
+:is(
+  .field label,
+  .chart-year-form label,
+  .comparison-team-row label,
+  .comparison-add-panel label,
+  .comparison-pair-picker label,
+  .stat-card .label,
+  .team-stats span
+) {
+  font-family: var(--font-display);
+  font-weight: 560;
+  letter-spacing: 0.075em;
+}
+
+/* 8. Pink-sapphire double focus halos for keyboard navigation. */
+:where(
+  a,
+  button,
+  summary,
+  input,
+  select,
+  [tabindex]
+):focus-visible {
+  outline: 2px solid var(--atelier-focus);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 5px var(--atelier-focus-halo),
+    0 0 18px rgba(181, 47, 131, 0.14);
+}
+
+:is(
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input
+):focus-visible {
+  border-color: var(--atelier-focus);
+  outline: 2px solid var(--atelier-focus);
+  outline-offset: 1px;
+  box-shadow:
+    0 0 0 5px var(--atelier-focus-halo),
+    inset 0 1px 0 var(--enamel-highlight);
+}
+
+/* 9. Alternating draped silhouettes, like softly cut garment panels. */
+:is(
+  .stat-grid,
+  .leader-grid,
+  .team-stats,
+  .metric-grid
+) > :nth-child(4n + 1) {
+  border-radius: 24px 35px 25px 30px;
+}
+
+:is(
+  .stat-grid,
+  .leader-grid,
+  .team-stats,
+  .metric-grid
+) > :nth-child(4n + 2) {
+  border-radius: 34px 24px 31px 25px;
+}
+
+:is(
+  .stat-grid,
+  .leader-grid,
+  .team-stats,
+  .metric-grid
+) > :nth-child(4n + 3) {
+  border-radius: 26px 31px 23px 36px;
+}
+
+:is(
+  .stat-grid,
+  .leader-grid,
+  .team-stats,
+  .metric-grid
+) > :nth-child(4n) {
+  border-radius: 32px 25px 35px 23px;
+}
+
+.home-dashboard > :nth-child(odd),
+.home-support > :nth-child(even) {
+  border-radius: 24px 35px 25px 31px;
+}
+
+.home-dashboard > :nth-child(even),
+.home-support > :nth-child(odd) {
+  border-radius: 34px 24px 31px 25px;
+}
+
+/* 10. Bridal-stationery double rules for utility panels. */
+:is(
+  .toolbar,
+  .faq-tools,
+  .method-contents,
+  .team-picker,
+  .comparison-selection,
+  .comparison-add-panel,
+  .team-model-details
+) {
+  border: 3px double var(--stationery-line);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 var(--enamel-highlight),
+    0 11px 29px rgba(91, 26, 73, 0.075);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ballet-ribbon-light: rgba(255, 255, 255, 0.19);
+    --ballet-ribbon-soft: rgba(244, 165, 210, 0.13);
+    --cameo-edge: rgba(239, 177, 214, 0.2);
+    --cameo-inner: rgba(255, 255, 255, 0.055);
+    --embroidery-stitch: rgba(244, 177, 214, 0.35);
+    --opal-rose: rgba(210, 91, 154, 0.075);
+    --opal-lilac: rgba(147, 111, 180, 0.075);
+    --opal-sea: rgba(84, 151, 152, 0.05);
+    --enamel-highlight: rgba(255, 255, 255, 0.055);
+    --atelier-focus: #ff91cf;
+    --atelier-focus-halo: rgba(255, 145, 207, 0.19);
+    --stationery-line: rgba(239, 177, 214, 0.18);
+  }
+
+  .team-rating {
+    background:
+      radial-gradient(
+        ellipse at 40% 26%,
+        rgba(255, 255, 255, 0.065),
+        rgba(224, 119, 176, 0.035) 52%,
+        transparent 72%
+      );
+    border-color: rgba(246, 194, 225, 0.2);
+    box-shadow:
+      inset 0 0 0 5px rgba(255, 255, 255, 0.025),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 13px 29px rgba(0, 0, 0, 0.22);
+  }
+
+  .comparison-cards article > strong {
+    color: var(--ink);
+    background:
+      radial-gradient(
+        ellipse at 38% 25%,
+        #5c3151,
+        #44223b 55%,
+        #35233f
+      );
+    box-shadow:
+      inset 0 0 0 4px rgba(255, 255, 255, 0.035),
+      0 8px 20px rgba(0, 0, 0, 0.17);
+  }
+
+  .chart-stage {
+    background:
+      radial-gradient(
+        ellipse 30rem 17rem at 6% 3%,
+        var(--opal-rose),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 27rem 16rem at 96% 9%,
+        var(--opal-lilac),
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 23rem 14rem at 73% 104%,
+        var(--opal-sea),
+        transparent 74%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 91%, #4a203a),
+        var(--surface)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      inset 0 0 0 4px rgba(255, 255, 255, 0.018);
+  }
+
+  .chart-inspector {
+    background:
+      radial-gradient(
+        ellipse 20rem 10rem at 100% 0,
+        var(--opal-lilac),
+        transparent 74%
+      ),
+      var(--chart-readout);
+    box-shadow:
+      inset 4px 0 0 rgba(230, 123, 185, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+
+  :is(
+    .stat-card,
+    .team-stats > div,
+    .metric-grid > div,
+    .venue-highlight,
+    .comparison-cards article
+  ) {
+    box-shadow:
+      inset 0 0 0 4px rgba(255, 255, 255, 0.018),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 9px 24px rgba(0, 0, 0, 0.16);
+  }
+
+  :is(
+    .stat-card .value,
+    .team-stats strong,
+    .metric-grid strong,
+    .comparison-cards article > strong
+  ) {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.32);
+  }
+
+  .bar-track {
+    border-color: rgba(239, 177, 214, 0.13);
+    box-shadow:
+      inset 0 2px 5px rgba(0, 0, 0, 0.22),
+      0 1px 0 rgba(255, 255, 255, 0.035);
+  }
+
+  :is(
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .team-picker,
+    .comparison-selection,
+    .comparison-add-panel,
+    .team-model-details
+  ) {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 11px 29px rgba(0, 0, 0, 0.17);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .team-rating {
+    min-width: 174px;
+    padding: 20px 24px 18px;
+  }
+
+  :is(
+    .stat-grid,
+    .leader-grid,
+    .team-stats,
+    .metric-grid
+  ) > * {
+    border-radius: 24px 31px 25px 29px;
+  }
+}
+
+@media (max-width: 720px) {
+  .team-rating {
+    width: fit-content;
+    min-width: 154px;
+    justify-self: start;
+    padding: 16px 22px 15px;
+    text-align: center;
+  }
+
+  .team-rating strong {
+    font-size: 56px;
+  }
+
+  .compact-heading,
+  .section-heading {
+    padding-bottom: 8px;
+    background-size: 7px 3px;
+  }
+
+  .page-heading::after {
+    width: min(9rem, 48vw);
+  }
+
+  :is(
+    .stat-grid,
+    .leader-grid,
+    .team-stats,
+    .metric-grid
+  ) > * {
+    border-radius: 22px 28px 23px 27px;
+  }
+
+  .home-dashboard > *,
+  .home-support > * {
+    border-radius: 23px 29px 24px 27px;
+  }
+
+  :is(
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .team-picker,
+    .comparison-selection,
+    .comparison-add-panel,
+    .team-model-details
+  ) {
+    border-width: 2px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media print {
+  .page-heading::after {
+    display: none;
+  }
+
+  .compact-heading,
+  .section-heading {
+    background: none;
+  }
+
+  :is(
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .team-picker,
+    .comparison-selection,
+    .comparison-add-panel,
+    .team-model-details
+  ) {
+    border: 1px solid #999;
+    box-shadow: none;
+  }
+}
