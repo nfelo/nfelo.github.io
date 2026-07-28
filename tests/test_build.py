@@ -1166,6 +1166,19 @@ class StaticBuildTests(unittest.TestCase):
             if point["date"].startswith("1985")
         }
         self.assertIn("Czechoslovakia", historical_names_1985)
+        inactive_without_rating_lines = {
+            team["code"]
+            for team in self.summary["teams"]
+            if not team.get("rank")
+            and not json.loads(
+                (
+                    comparison_data
+                    / f'{team["code"]}.json'
+                ).read_text(encoding="utf-8")
+            )["history"]
+        }
+        self.assertTrue(inactive_without_rating_lines)
+        self.assertNotIn("DD", inactive_without_rating_lines)
         self.assertLess(
             (comparison_data / "ES.json").stat().st_size,
             (self.data / "teams" / "ES.json").stat().st_size,
@@ -1184,6 +1197,10 @@ class StaticBuildTests(unittest.TestCase):
             "No longer active",
             "point.historical_name || item.label",
             "const chartSeriesClass",
+            'if (!item.history.length) return [];',
+            'if (!item.history.length) return "";',
+            "No rating line (fewer than 30 matches)",
+            "if (!config.series[index]?.history.length) return;",
         ):
             self.assertIn(phrase, javascript)
         for phrase in (

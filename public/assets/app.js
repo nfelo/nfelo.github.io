@@ -2902,7 +2902,7 @@ function renderRecords(route) {
       ariaLabel: options.ariaLabel || "Rating history",
     });
     const legend = prepared.length > 1
-      ? `<div class="comparison-legend" aria-label="Chart teams">${prepared.map((item, index) => `<button type="button" class="chart-legend-item" data-chart-focus-series="${index}" aria-pressed="false"><svg viewBox="0 0 28 8" aria-hidden="true"><line class="chart-legend-line ${item.className}" x1="1" y1="4" x2="27" y2="4"/></svg><span>${escapeHTML(item.label)}</span>${item.active ? "" : `<small>historical</small>`}</button>`).join("")}<button type="button" class="button button-quiet chart-show-all" data-chart-show-all hidden>Show all teams</button></div>`
+      ? `<div class="comparison-legend" aria-label="Chart teams">${prepared.map((item, index) => `<button type="button" class="chart-legend-item" data-chart-focus-series="${index}" aria-pressed="false" ${item.history.length ? "" : `aria-disabled="true"`}><svg viewBox="0 0 28 8" aria-hidden="true"><line class="chart-legend-line ${item.className}" x1="1" y1="4" x2="27" y2="4"/></svg><span>${escapeHTML(item.label)}</span>${item.history.length ? (item.active ? "" : `<small>historical</small>`) : `<small>no rating line</small>`}</button>`).join("")}<button type="button" class="button button-quiet chart-show-all" data-chart-show-all hidden>Show all teams</button></div>`
       : "";
     return `<div class="chart-shell interactive-chart ${escapeHTML(options.className || "")}" id="${id}" data-rating-history-chart>
       ${legend}
@@ -3020,7 +3020,10 @@ function renderRecords(route) {
       ));
       const values = inspected.map(({ item, point, ended }) => {
         if (!point) {
-          return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Not yet eligible for a rating</small></span><strong>—</strong></span>`;
+          const unavailable = item.history.length
+            ? "Not yet eligible for a rating"
+            : "No rating line (fewer than 30 matches)";
+          return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>${unavailable}</small></span><strong>—</strong></span>`;
         }
         const displayLabel = publicTeamName(point.historical_name || item.label);
         const lineage = displayLabel === item.label
@@ -3066,6 +3069,7 @@ function renderRecords(route) {
       const plotHeight = height - pad.top - pad.bottom;
       const x = (stamp) => pad.left + (stamp - start) / Math.max(chartDay, end - start) * plotWidth;
       const samples = config.series.flatMap((item) => {
+        if (!item.history.length) return [];
         const finalStamp = item.history.at(-1).stamp;
         if (!item.active && finalStamp < start) return [];
         const seriesEnd = item.active ? end : Math.min(end, finalStamp);
@@ -3092,6 +3096,7 @@ function renderRecords(route) {
           Math.round(fromYear + yearSpan * index / (xTickCount - 1))
         )))];
       const stepPath = (item) => {
+        if (!item.history.length) return "";
         const finalStamp = item.history.at(-1).stamp;
         const seriesEnd = item.active ? end : Math.min(end, finalStamp);
         if (seriesEnd < start) return "";
@@ -3228,6 +3233,7 @@ function renderRecords(route) {
     zoomOutButton.addEventListener("click", () => zoom(1));
     allButton.addEventListener("click", () => setRange(config.firstYear, config.lastYear));
     const focusOnSeries = (index) => {
+      if (!config.series[index]?.history.length) return;
       focusedSeries = focusedSeries === index ? null : index;
       legendButtons.forEach((button, buttonIndex) => {
         button.setAttribute("aria-pressed", String(buttonIndex === focusedSeries));
