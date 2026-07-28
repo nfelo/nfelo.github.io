@@ -523,8 +523,9 @@ class StaticBuildTests(unittest.TestCase):
             "projectVenueProfile",
             "compactVenueProfileHTML",
             "projectScoreProfile",
+            'class="venue-profile score-profile"',
             "score-profile-details",
-            "<b>Attack and defence</b>",
+            '<h2 id="score-profile-title">Attack and defence</h2>',
             "Own expected goals",
             "Opponent expected goals",
             "Attack residual",
@@ -556,6 +557,8 @@ class StaticBuildTests(unittest.TestCase):
             ".venue-highlight",
             ".venue-profile-details",
             ".team-model-details",
+            ".score-profile",
+            ".score-profile-highlights",
             ".score-profile-details .venue-detail-grid",
         ):
             self.assertIn(phrase, stylesheet)
@@ -789,8 +792,8 @@ class StaticBuildTests(unittest.TestCase):
             'media="(prefers-color-scheme: dark)"',
             "@media (prefers-color-scheme: dark)",
             "color-scheme: dark",
-            "background: #fff8fc",
-            "background: #170b14",
+            "background: #fff6fb",
+            "background: #1b0d17",
             "a:focus-visible",
             "@media (max-width: 480px)",
         ):
@@ -823,16 +826,16 @@ class StaticBuildTests(unittest.TestCase):
             return (lighter + 0.05) / (darker + 0.05)
 
         for foreground, background in (
-            ("#3d1f38", "#fffafd"),
-            ("#705268", "#fffafd"),
-            ("#7b286b", "#fffafd"),
-            ("#fff9fd", "#43133c"),
-            ("#f1dceb", "#43133c"),
-            ("#35102e", "#ff9bd5"),
-            ("#fff9fd", "#27111f"),
-            ("#e4ccdc", "#27111f"),
-            ("#f3a8dc", "#27111f"),
-            ("#fff9fd", "#6f3466"),
+            ("#44203d", "#fff9fc"),
+            ("#75566c", "#fff9fc"),
+            ("#7b286b", "#fff9fc"),
+            ("#fff4fb", "#4a183f"),
+            ("#f3dce9", "#4a183f"),
+            ("#3b1532", "#ff9bd5"),
+            ("#fff2fa", "#2c1425"),
+            ("#e8cede", "#2c1425"),
+            ("#f3a8dc", "#2c1425"),
+            ("#fff2fa", "#6f3466"),
         ):
             self.assertGreaterEqual(contrast(foreground, background), 4.5)
 
@@ -2680,16 +2683,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('rel="canonical"', html)
         self.assertIn('property="og:image"', html)
         self.assertIn(
-            'rel="icon" href="favicon-2026.svg?v=20260728f2"',
+            'rel="icon" href="favicon-2026.svg?v=20260728f3"',
             html,
         )
         self.assertIn(
             'rel="apple-touch-icon" sizes="180x180" '
-            'href="apple-touch-icon-2026.png?v=20260728f2"',
+            'href="apple-touch-icon-2026.png?v=20260728f3"',
             html,
         )
         self.assertIn(
-            'rel="manifest" href="site.webmanifest?v=20260728f2"',
+            'rel="manifest" href="site.webmanifest?v=20260728f3"',
             html,
         )
         self.assertRegex(html, r'assets/styles\.css\?v=[0-9a-f]{12}')
@@ -2706,8 +2709,8 @@ class StaticBuildTests(unittest.TestCase):
                 for icon in webmanifest["icons"]
             },
             {
-                "icon-192-2026.png?v=20260728f2",
-                "icon-512-2026.png?v=20260728f2",
+                "icon-192-2026.png?v=20260728f3",
+                "icon-512-2026.png?v=20260728f3",
             },
         )
         expected_png_sizes = {

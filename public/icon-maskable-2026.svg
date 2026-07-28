@@ -1,35 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Network Football Elo">
   <defs>
     <linearGradient id="velvet" x1="7" y1="4" x2="58" y2="61" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9b4a88"/>
-      <stop offset=".48" stop-color="#672159"/>
-      <stop offset="1" stop-color="#35102f"/>
+      <stop stop-color="#a75591"/>
+      <stop offset=".48" stop-color="#70265f"/>
+      <stop offset="1" stop-color="#3b1234"/>
     </linearGradient>
     <radialGradient id="pearl" cx=".32" cy=".22" r=".88">
-      <stop stop-color="#fffefd"/>
-      <stop offset=".42" stop-color="#ffeaf5"/>
-      <stop offset=".76" stop-color="#e9d8f2"/>
-      <stop offset="1" stop-color="#d7b8d6"/>
+      <stop stop-color="#fff9fc"/>
+      <stop offset=".42" stop-color="#ffe7f3"/>
+      <stop offset=".76" stop-color="#ead9f3"/>
+      <stop offset="1" stop-color="#d5bedf"/>
     </radialGradient>
     <linearGradient id="monogram" x1="20" y1="18" x2="45" y2="46" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9e3f7d"/>
-      <stop offset=".52" stop-color="#6d245c"/>
-      <stop offset="1" stop-color="#411438"/>
+      <stop stop-color="#a94382"/>
+      <stop offset=".52" stop-color="#76285f"/>
+      <stop offset="1" stop-color="#4a183f"/>
     </linearGradient>
     <radialGradient id="gem">
-      <stop stop-color="#fff6d7"/>
-      <stop offset=".38" stop-color="#ffb9dd"/>
-      <stop offset="1" stop-color="#c66ab1"/>
+      <stop stop-color="#fff2dc"/>
+      <stop offset=".38" stop-color="#f7b8d8"/>
+      <stop offset="1" stop-color="#d078b6"/>
     </radialGradient>
   </defs>
-  <rect width="64" height="64" fill="#35102f"/>
+  <rect width="64" height="64" fill="#3b1234"/>
   <rect x="1.5" y="1.5" width="61" height="61" rx="18" fill="url(#velvet)"/>
-  <rect x="4.5" y="4.5" width="55" height="55" rx="15" fill="none" stroke="#ffe3f3" stroke-opacity=".34"/>
-  <path d="M8 15C22 4 43 3 56 16" fill="none" stroke="#ffd8ed" stroke-linecap="round" stroke-opacity=".12" stroke-width="5"/>
-  <ellipse cx="32" cy="32.5" rx="21.8" ry="25.5" fill="url(#pearl)" stroke="#f5bfdc" stroke-width="1.4"/>
-  <ellipse cx="32" cy="32.5" rx="18.2" ry="22.1" fill="none" stroke="#b55693" stroke-opacity=".3"/>
+  <rect x="4.5" y="4.5" width="55" height="55" rx="15" fill="none" stroke="#ffe1f1" stroke-opacity=".36"/>
+  <path d="M8 15C22 4 43 3 56 16" fill="none" stroke="#ffd5ea" stroke-linecap="round" stroke-opacity=".13" stroke-width="5"/>
+  <ellipse cx="32" cy="32.5" rx="21.8" ry="25.5" fill="url(#pearl)" stroke="#f3bbd9" stroke-width="1.4"/>
+  <ellipse cx="32" cy="32.5" rx="18.2" ry="22.1" fill="none" stroke="#ba5d99" stroke-opacity=".3"/>
   <path d="M21.5 44V21l21 23V21" fill="none" stroke="url(#monogram)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.2"/>
-  <path d="M19.3 46.3c8.4 2.8 17 2.8 25.4 0" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".38"/>
-  <circle cx="49.2" cy="15.2" r="4.1" fill="#7d2b69" stroke="#ffe0f1" stroke-width="1"/>
+  <path d="M19.3 46.3c8.4 2.8 17 2.8 25.4 0" fill="none" stroke="#fff4fb" stroke-linecap="round" stroke-opacity=".4"/>
+  <circle cx="49.2" cy="15.2" r="4.1" fill="#83306f" stroke="#ffdeef" stroke-width="1"/>
   <circle cx="49.2" cy="15.2" r="2.5" fill="url(#gem)"/>
 </svg>

@@ -300,7 +300,7 @@ The later country venue study is under
 `research/home-advantage-2026-07-27/`.
 
 Routine site builds execute the deployed replay and public regression suite.
-The research programs are retained for independent inspection; broad parameter
+The research programmes are retained for independent inspection; broad parameter
 searches are not rerun during scheduled updates.
 
 ## Limitations

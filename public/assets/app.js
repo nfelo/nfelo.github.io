@@ -692,9 +692,9 @@ const filteredEmptyState = (subject) => (
           <h1>International football, ranked in context.</h1>
           <p class="lede">International results since 1872 are used to estimate each team's strength. The model follows connections through shared opponents and allows for uncertainty when teams have played few or geographically limited opponents.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#/rankings">See the rankings</a>
-            <a class="button" href="#/fixtures">Upcoming matches</a>
-            <a class="button" href="#/predict">Predict any historical or current matchup</a>
+            <a class="button button-primary home-action home-action-rankings" href="#/rankings">See the rankings</a>
+            <a class="button home-action home-action-fixtures" href="#/fixtures">Upcoming matches</a>
+            <a class="button home-action home-action-predict" href="#/predict">Predict any historical or current matchup</a>
           </div>
           </div>
           <dl class="home-facts">
@@ -4185,22 +4185,29 @@ const lineageNote = lineageNames.length > 1
             <div><span>Reliability</span><strong>${percent(venueProfile.reliability)}</strong></div>
             <div><span>Extra at neutral venue</span><strong>${signedRating(venueProfile.neutral)}</strong></div>
           </div>
-          <p>The profile changes after every non-neutral matchday this team plays. All forecasts on that date use the old values first, then the day’s evidence is learned together. Between appearances, the estimate gradually moves toward the worldwide average. Neutral matches do not update it. <a href="#/methodology?section=venue">How this is calculated →</a></p>
+          <p>The profile changes after every non-neutral matchday this team plays. All forecasts on that date use the old values first, then the day’s evidence is learned together. Between appearances, the estimate gradually moves towards the worldwide average. Neutral matches do not update it. <a href="#/methodology?section=venue">How this is calculated →</a></p>
         </details>
       </section>` : "";
     const scorePanel = scoreProfile ? `
-      <details class="team-model-details score-profile-details">
-        <summary>
-          <span><b>Attack and defence</b></span>
-        </summary>
-        <div class="venue-detail-grid" aria-label="Attack and defence forecast tendencies">
-          <div><span>Own expected goals</span><strong>${signedPercent(scoreProfile.attack_goal_change)}</strong></div>
-          <div><span>Opponent expected goals</span><strong>${signedPercent(scoreProfile.opponent_goal_change)}</strong></div>
-          <div><span>Attack residual</span><strong>${number(scoreProfile.attack, 4)}</strong></div>
-          <div><span>Defence residual</span><strong>${number(scoreProfile.defence, 4)}</strong></div>
+      <section class="venue-profile score-profile" aria-labelledby="score-profile-title">
+        <div class="venue-profile-copy score-profile-copy">
+          <p class="eyebrow">Forecast-only scoring tendencies</p>
+          <h2 id="score-profile-title">Attack and defence</h2>
+          <p>Recent scoring above or below what strength, opposition and venue already predicted.</p>
         </div>
-        <p>These values describe scoring above or below what strength, opposition and venue already predicted. They update after each completed matchday and gradually move toward neutral during inactivity. They refine forecast probabilities only, never the public rating or ranking. <a href="#/methodology?section=forecast">How the forecast layer works →</a></p>
-      </details>` : "";
+        <div class="venue-profile-highlights score-profile-highlights" aria-label="Attack and defence summary">
+          <div class="venue-highlight"><span>Own expected goals</span><strong>${signedPercent(scoreProfile.attack_goal_change)}</strong></div>
+          <div class="venue-highlight"><span>Opponent expected goals</span><strong>${signedPercent(scoreProfile.opponent_goal_change)}</strong></div>
+        </div>
+        <details class="venue-profile-details score-profile-details">
+          <summary>See technical details</summary>
+          <div class="venue-detail-grid">
+            <div><span>Attack residual</span><strong>${number(scoreProfile.attack, 4)}</strong></div>
+            <div><span>Defence residual</span><strong>${number(scoreProfile.defence, 4)}</strong></div>
+          </div>
+          <p>The tendencies update after each completed matchday and gradually move towards neutral during inactivity. They refine forecast probabilities only, never the public rating or ranking. <a href="#/methodology?section=forecast">How the forecast layer works →</a></p>
+        </details>
+      </section>` : "";
     setTitle(displayName);
     content.innerHTML = `
       <div class="page">
@@ -4276,7 +4283,7 @@ function buildFAQItems() {
     },
     {
       question: "When does a team’s home-and-away estimate change?",
-      answer: "It is updated after every non-neutral matchday the team plays. All matches on that date are predicted first, then the day’s evidence is learned together. Between appearances, the estimate gradually fades toward the worldwide average. Team pages label its evidence as limited, moderate or strong."
+      answer: "It is updated after every non-neutral matchday the team plays. All matches on that date are predicted first, then the day’s evidence is learned together. Between appearances, the estimate gradually fades towards the worldwide average. Team pages label its evidence as limited, moderate or strong."
     },
     {
       question: "How does goal margin affect ratings?",
@@ -4492,7 +4499,7 @@ function renderFAQ() {
           <p>Home advantage has two parts: a worldwide baseline that changes through football history, and a cautious country profile that can also change over time.</p>
           <div class="formula">C₁₂ = h(d₁+d₂)/2<br>δ = a(y)(μ₁−μ₂) + H(y)h + C₁₂<br>E = 1 / [1 + 10^(−δ/400)]</div>
           <p><code>h</code> is +1 when team one is at home, −1 when team two is at home and 0 at a neutral venue. <code>H(y)</code> is the worldwide home advantage for year <code>y</code>; <code>d₁</code> and <code>d₂</code> are the two countries’ profiles. Each profile contributes half when hosting and the opposite half when away. Both venue terms are exactly zero at a neutral ground.</p>
-          <p>Home and away are shown as two views of one estimate because the match record does not reliably identify separate national home and away effects. The shared version performed better on later results. The profile is updated after every non-neutral matchday the country plays: every forecast on that date uses the same old profile, then all of that day’s venue evidence is learned together. Neutral matches do not update it. Sparse or old evidence stays close to the worldwide average and moves halfway back toward it every <b>${number(v.half_life_years, 0)} years</b>.</p>
+          <p>Home and away are shown as two views of one estimate because the match record does not reliably identify separate national home and away effects. The shared version performed better on later results. The profile is updated after every non-neutral matchday the country plays: every forecast on that date uses the same old profile, then all of that day’s venue evidence is learned together. Neutral matches do not update it. Sparse or old evidence stays close to the worldwide average and moves halfway back towards it every <b>${number(v.half_life_years, 0)} years</b>.</p>
           <div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div>
           <div class="table-shell parameter-table"><table><thead><tr><th>Year</th><th class="numeric">Gap scale</th><th class="numeric">Equivalent divisor</th><th class="numeric">Worldwide home advantage</th><th class="numeric">Equal-team draw rate</th></tr></thead><tbody>${p.knot_years.map((year, index) => `<tr><td>${year}${index === p.knot_years.length - 1 ? "+" : ""}</td><td class="numeric">${number(p.calibration_scale[index], 4)}</td><td class="numeric">${number(400 / p.calibration_scale[index], 1)}</td><td class="numeric">${rating(p.home_advantage[index])}</td><td class="numeric">${percent(p.draw_probability[index])}</td></tr>`).join("")}</tbody></table></div>
           <details class="method-details">
@@ -4510,7 +4517,7 @@ function renderFAQ() {
           <p>The expected fractional score <code>E</code> is converted into win, draw and loss probabilities while preserving <code>W + D/2 = E</code>:</p>
           <div class="formula">D = pD(y)·4E(1−E)<br>W = E−D/2<br>L = 1−E−D/2</div>
           <p>NFELO integrates over the uncertainty in the strength difference, then calibrates friendly and competitive forecasts separately. A forecast-only score model also tracks whether each team has recently scored or conceded more than its strength alone would suggest. The current or selected-date attack and defence tendencies are available in an expandable section on each team page.</p>
-          <p>The scoring layer changes probabilities only. It is allowed to move toward its score-based forecast only as far as it can go without reversing the network model’s most likely win, draw or loss.</p>
+          <p>The scoring layer changes probabilities only. It is allowed to move towards its score-based forecast only as far as it can go without reversing the network model’s most likely win, draw or loss.</p>
           <details class="method-details">
             <summary>Attack, defence and annual calibration</summary>
             <p>The goal environment uses the current and preceding ${number(f.goal_environment_years)} calendar years, with a ${number(f.goal_prior_matches)}-match prior at ${number(f.goal_prior_per_team, 2)} goals per team:</p>

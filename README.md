@@ -106,7 +106,7 @@ perspective when it visits. Neutral matches receive no era or country venue
 adjustment and do not update the country venue state.
 
 Each `d_i` begins at zero with a 60-point prior standard deviation. Between
-appearances, its mean and posterior precision revert toward that prior with a
+appearances, its mean and posterior precision revert towards that prior with a
 40-year half-life. This allows genuine country differences to change through
 time without treating short runs or old conditions as permanent national
 traits. Non-neutral competitive results have learning ratio 1; evidence-backed
@@ -142,12 +142,12 @@ platform-level optimiser jitter without changing any displayed probability.
 
 Each team’s attack and defence state is a residual after strength, opposition
 and venue have already been considered. It updates after every completed
-matchday the team plays and decays toward neutral between appearances. Team
+matchday the team plays and decays towards neutral between appearances. Team
 pages translate the selected-date residuals into percentage effects on the
 team’s own expected goals and its opponent’s expected goals, with the raw
 values available in the same expandable area.
 
-The score correction is boundary-gated: NFELO moves toward the pooled forecast
+The score correction is boundary-gated: NFELO moves towards the pooled forecast
 only as far as it can without changing the network model's most likely W/D/L
 outcome. The exact-score table is then raked so its win, draw and loss regions
 sum to the displayed final probabilities; omitted scorelines above 5–5 remain
@@ -256,7 +256,7 @@ executable reproduction materials are retained under
 
 The Pages workflow checks results and fixtures at 06:20, 15:20 and 23:20 UTC.
 It validates and stages external data, replays the complete history, runs the
-test suite and deploys only a verified static artifact. If input or model checks
+test suite and deploys only a verified static artefact. If input or model checks
 fail, the last good site remains online.
 
 Routine updates do not refit core rating, country-venue or score-state
@@ -312,7 +312,7 @@ or betting markets. Political successor mappings and cross-era comparison remain
 modelling assumptions. Ratings and probabilities are estimates, not certainties
 or betting advice.
 
-## License
+## Licence
 
 Project code is MIT-licensed. Source data remains attributable to its publisher
 and is not relicensed by this repository.

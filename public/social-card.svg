@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="backdrop" x1="68" y1="20" x2="1146" y2="624" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7f3271"/>
-      <stop offset=".46" stop-color="#43133c"/>
-      <stop offset="1" stop-color="#210a1d"/>
+      <stop stop-color="#81336f"/>
+      <stop offset=".46" stop-color="#4a183f"/>
+      <stop offset="1" stop-color="#1b0d17"/>
     </linearGradient>
     <radialGradient id="rose-glow">
       <stop stop-color="#ffacd8" stop-opacity=".24"/>
@@ -14,20 +14,20 @@
       <stop offset="1" stop-color="#d8b8ee" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="pearl" cx=".32" cy=".22" r=".88">
-      <stop stop-color="#fffefd"/>
-      <stop offset=".42" stop-color="#ffeaf5"/>
-      <stop offset=".76" stop-color="#e9d8f2"/>
-      <stop offset="1" stop-color="#d7b8d6"/>
+      <stop stop-color="#fff9fc"/>
+      <stop offset=".42" stop-color="#ffe7f3"/>
+      <stop offset=".76" stop-color="#ead9f3"/>
+      <stop offset="1" stop-color="#d5bedf"/>
     </radialGradient>
     <linearGradient id="monogram" x1="28" y1="20" x2="98" y2="104" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#a94b89"/>
-      <stop offset=".52" stop-color="#71265f"/>
-      <stop offset="1" stop-color="#411438"/>
+      <stop stop-color="#ad4f8b"/>
+      <stop offset=".52" stop-color="#76285f"/>
+      <stop offset="1" stop-color="#4a183f"/>
     </linearGradient>
     <radialGradient id="gem">
-      <stop stop-color="#fff6d7"/>
-      <stop offset=".38" stop-color="#ffb9dd"/>
-      <stop offset="1" stop-color="#c66ab1"/>
+      <stop stop-color="#fff2dc"/>
+      <stop offset=".38" stop-color="#f7b8d8"/>
+      <stop offset="1" stop-color="#d078b6"/>
     </radialGradient>
     <linearGradient id="date-pill" x1="0" y1="0" x2="1" y2="1">
       <stop stop-color="#ffb8dd" stop-opacity=".2"/>
@@ -42,20 +42,20 @@
   <ellipse cx="1064" cy="517" rx="226" ry="127" fill="none" stroke="#ead7f5" stroke-opacity=".09" stroke-width="38" transform="rotate(22 1064 517)"/>
   <path d="M818 129c121 17 195-25 296-105" fill="none" stroke="#f4b7d7" stroke-linecap="round" stroke-opacity=".16" stroke-width="3"/>
   <g transform="translate(84 70)">
-    <rect width="132" height="132" rx="39" fill="#6f285f"/>
-    <rect x="5" y="5" width="122" height="122" rx="34" fill="none" stroke="#ffe3f3" stroke-opacity=".34"/>
-    <path d="M17 31C44 8 88 8 115 34" fill="none" stroke="#ffd8ed" stroke-linecap="round" stroke-opacity=".12" stroke-width="10"/>
-    <ellipse cx="66" cy="67" rx="45" ry="52" fill="url(#pearl)" stroke="#f5bfdc" stroke-width="2.8"/>
-    <ellipse cx="66" cy="67" rx="37" ry="45" fill="none" stroke="#b55693" stroke-opacity=".3" stroke-width="2"/>
+    <rect width="132" height="132" rx="39" fill="#752a64"/>
+    <rect x="5" y="5" width="122" height="122" rx="34" fill="none" stroke="#ffe1f1" stroke-opacity=".36"/>
+    <path d="M17 31C44 8 88 8 115 34" fill="none" stroke="#ffd5ea" stroke-linecap="round" stroke-opacity=".13" stroke-width="10"/>
+    <ellipse cx="66" cy="67" rx="45" ry="52" fill="url(#pearl)" stroke="#f3bbd9" stroke-width="2.8"/>
+    <ellipse cx="66" cy="67" rx="37" ry="45" fill="none" stroke="#ba5d99" stroke-opacity=".3" stroke-width="2"/>
     <path d="M43 92V44l46 48V44" fill="none" stroke="url(#monogram)" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-    <path d="M39 97c18 6 36 6 54 0" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".38" stroke-width="2"/>
-    <circle cx="101" cy="31" r="9" fill="#7d2b69" stroke="#ffe0f1" stroke-width="2"/>
+    <path d="M39 97c18 6 36 6 54 0" fill="none" stroke="#fff4fb" stroke-linecap="round" stroke-opacity=".4" stroke-width="2"/>
+    <circle cx="101" cy="31" r="9" fill="#83306f" stroke="#ffdeef" stroke-width="2"/>
     <circle cx="101" cy="31" r="5.3" fill="url(#gem)"/>
   </g>
-  <text x="84" y="306" fill="#fff9fd" font-family="Fraunces, Corbel, Candara, serif" font-size="82" font-weight="520" letter-spacing="-2">Network Football Elo</text>
+  <text x="84" y="306" fill="#fff4fb" font-family="Fraunces, Corbel, Candara, serif" font-size="82" font-weight="520" letter-spacing="-2">Network Football Elo</text>
   <path d="M84 339h176" stroke="#ffadd8" stroke-linecap="round" stroke-width="3"/>
   <path d="M271 339c9-6 17-6 26 0-9 6-17 6-26 0z" fill="#e7c9f2" opacity=".7"/>
-  <text x="84" y="404" fill="#f1dceb" font-family="Aptos, Calibri, Segoe UI, sans-serif" font-size="34">International ratings, results and match forecasts</text>
+  <text x="84" y="404" fill="#f3dce9" font-family="Aptos, Calibri, Segoe UI, sans-serif" font-size="34">International ratings, results and match forecasts</text>
   <g transform="translate(84 494)">
     <rect width="224" height="54" rx="22" fill="url(#date-pill)"/>
     <rect x=".75" y=".75" width="222.5" height="52.5" rx="21.25" fill="none" stroke="#ffc1e1" stroke-opacity=".3" stroke-width="1.5"/>

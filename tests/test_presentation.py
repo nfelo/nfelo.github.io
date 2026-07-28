@@ -57,22 +57,22 @@ class PresentationReleaseTests(unittest.TestCase):
         ).hexdigest()[:12]
         required = (
             (
-                '<meta name="theme-color" content="#43133c" '
+                '<meta name="theme-color" content="#4a183f" '
                 'media="(prefers-color-scheme: light)">'
             ),
             (
-                '<meta name="theme-color" content="#10070e" '
+                '<meta name="theme-color" content="#170b14" '
                 'media="(prefers-color-scheme: dark)">'
             ),
-            "favicon-2026.ico?v=20260728f2",
-            "favicon-2026.svg?v=20260728f2",
-            "apple-touch-icon-2026.png?v=20260728f2",
-            "site.webmanifest?v=20260728f2",
-            "social-card.png?v=20260728f2",
+            "favicon-2026.ico?v=20260728f3",
+            "favicon-2026.svg?v=20260728f3",
+            "apple-touch-icon-2026.png?v=20260728f3",
+            "site.webmanifest?v=20260728f3",
+            "social-card.png?v=20260728f3",
             f"assets/styles.css?v={stylesheet_hash}",
             (
                 '<img class="brand-mark" '
-                'src="favicon-2026.svg?v=20260728f2"'
+                'src="favicon-2026.svg?v=20260728f3"'
             ),
         )
         obsolete = (
@@ -211,37 +211,37 @@ class PresentationReleaseTests(unittest.TestCase):
 
     def test_light_and_dark_text_contrast(self) -> None:
         pairs = (
-            ("#3d1f38", "#fffafd"),
-            ("#705268", "#fffafd"),
-            ("#7b286b", "#fffafd"),
-            ("#944174", "#fffafd"),
-            ("#8f3d70", "#fffafd"),
+            ("#44203d", "#fff9fc"),
+            ("#75566c", "#fff9fc"),
+            ("#7b286b", "#fff9fc"),
+            ("#944174", "#fff9fc"),
+            ("#8f3d70", "#fff9fc"),
             ("#7c3a68", "#f7d9e9"),
             ("#7c3a68", "#d9c5e5"),
-            ("#fff9fd", "#43133c"),
-            ("#f1dceb", "#43133c"),
-            ("#35102e", "#ff9bd5"),
+            ("#fff4fb", "#4a183f"),
+            ("#f3dce9", "#4a183f"),
+            ("#3b1532", "#ff9bd5"),
             ("#35102e", "#f6b2d5"),
             ("#35102e", "#d5e7e5"),
             ("#35102e", "#ffe8f3"),
             ("#35102e", "#f7bad9"),
             ("#35102e", "#e3caef"),
-            ("#fff9fd", "#27111f"),
-            ("#e4ccdc", "#27111f"),
-            ("#f3a8dc", "#27111f"),
-            ("#fff9fd", "#6f3466"),
-            ("#fff9fd", "#8b537b"),
-            ("#fff9fd", "#583046"),
-            ("#fff9fd", "#493554"),
-            ("#ffc3e2", "#43133c"),
+            ("#fff2fa", "#2c1425"),
+            ("#e8cede", "#2c1425"),
+            ("#f3a8dc", "#2c1425"),
+            ("#fff2fa", "#6f3466"),
+            ("#fff2fa", "#8b537b"),
+            ("#fff2fa", "#583046"),
+            ("#fff2fa", "#493554"),
+            ("#ffc3e2", "#4a183f"),
             ("#ffc3e2", "#4c193f"),
-            ("#fff9fd", "#5c3151"),
-            ("#fff9fd", "#44223b"),
-            ("#fff9fd", "#35233f"),
-            ("#fff9fd", "#2f7657"),
-            ("#fff9fd", "#a93b55"),
+            ("#fff2fa", "#5c3151"),
+            ("#fff2fa", "#44223b"),
+            ("#fff2fa", "#35233f"),
+            ("#fff2fa", "#2f7657"),
+            ("#fff2fa", "#a93b55"),
             ("#35102e", "#f3b9d8"),
-            ("#fff9fd", "#a64f84"),
+            ("#fff4fb", "#a64f84"),
         )
         for foreground, background in pairs:
             with self.subTest(
@@ -440,6 +440,127 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertIn("min-width: 320px;", stylesheet)
         self.assertIn("min-height: 44px;", stylesheet)
 
+    def test_rose_porcelain_finale_is_complete_consistent_and_british(
+        self,
+    ) -> None:
+        stylesheet = STYLES.read_text(encoding="utf-8")
+        javascript = (
+            PUBLIC / "assets" / "app.js"
+        ).read_text(encoding="utf-8")
+        homepage = (PUBLIC / "index.html").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        audit = (
+            ROOT / "docs" / "methodology-audit-2026-07-19.md"
+        ).read_text(encoding="utf-8")
+
+        for route, label in (
+            ("#/rankings", "Rankings"),
+            ("#/fixtures", "Upcoming matches"),
+            ("#/predict", "Predict"),
+            ("#/history", "History"),
+            ("#/tournaments", "Tournaments"),
+            ("#/matches", "Matches"),
+            ("#/compare", "Compare"),
+            ("#/records", "Records"),
+            ("#/methodology", "Methodology"),
+            ("#/faq", "FAQ"),
+            ("#/about", "About"),
+        ):
+            self.assertIn(
+                f'<a href="{route}">{label}</a>',
+                homepage,
+            )
+        self.assertIn(
+            "https://github.com/nfelo/nfelo.github.io",
+            homepage,
+        )
+
+        for marker in (
+            "home-action-rankings",
+            "home-action-fixtures",
+            "home-action-predict",
+            'class="venue-profile score-profile"',
+            'id="score-profile-title"',
+            'class="venue-profile-highlights score-profile-highlights"',
+            'class="venue-profile-details score-profile-details"',
+            "gradually move towards neutral",
+        ):
+            self.assertIn(marker, javascript)
+        self.assertNotIn(
+            'class="team-model-details score-profile-details"',
+            javascript,
+        )
+
+        marker = "Rose-porcelain finale."
+        self.assertIn(marker, stylesheet)
+        finish = stylesheet.split(marker, 1)[1]
+        for numbered_idea in (
+            "1. A Ladurée-like aquarelle wash",
+            "2. Pressed-satin edge light",
+            "3. Major title seams gain a two-tone micro-pavé rhythm",
+            "4. Search, filter and selection tools",
+            "5. Unselected tabs rotate through a quiet macaron palette",
+            "6. Repeated statistics use alternating confectionery mats",
+            "7. Chart readouts use a slim rose-gold compact bezel",
+            "8. Notes and callouts have a fine picot thread",
+            "9. Ranking movement receives a tiny polished status setting",
+            "10. Footer links are joined by alternating seed-pearl markers",
+        ):
+            self.assertIn(numbered_idea, finish)
+        for implementation in (
+            "--porcelain-rose: #fff6fb;",
+            "--black-cherry: #1b0d17;",
+            ".footer-links {",
+            "grid-template-columns: repeat(3, minmax(112px, 1fr));",
+            ".home-action-rankings {",
+            ".home-action-fixtures {",
+            ".home-action-predict {",
+            ".score-profile {",
+            ".score-profile-highlights {",
+            ".score-profile-details .venue-detail-grid {",
+            ".home-explore-links a:nth-child(4n + 4)",
+            "font-family: var(--font-display);",
+            "font-family: var(--font-numeric);",
+            "background-attachment: fixed;",
+            ".chart-inspector {",
+            ".footer-links a::before {",
+            "@media (prefers-color-scheme: dark)",
+            "@media (min-width: 721px) and (max-width: 1024px)",
+            "@media (max-width: 720px)",
+            "@media print",
+        ):
+            self.assertIn(implementation, finish)
+        for excluded_decoration in (
+            ".svg",
+            "url(",
+            "-webkit-mask:",
+            "mask:",
+            "--bow-mask",
+            "--blossom-mask",
+            "--flower-mask",
+        ):
+            self.assertNotIn(excluded_decoration, finish)
+        self.assertNotIn("--result-win:", finish)
+        self.assertNotIn("--result-loss:", finish)
+
+        public_prose = "\n".join((javascript, readme, audit))
+        for americanism in (
+            " move toward ",
+            " moves toward ",
+            " revert toward ",
+            " decays toward ",
+            " fades toward ",
+            "static artifact",
+            "## License",
+        ):
+            self.assertNotIn(americanism, public_prose)
+        self.assertIsNone(
+            re.search(r"\bresearch programs?\b", public_prose),
+        )
+        self.assertIn("static artefact", readme)
+        self.assertIn("## Licence", readme)
+        self.assertIn("research programme", audit)
+
     def test_brand_assets_cover_browser_apple_android_and_sharing(self) -> None:
         expected_png_sizes = {
             "apple-touch-icon-2026.png": (180, 180),
@@ -480,7 +601,7 @@ class PresentationReleaseTests(unittest.TestCase):
         maskable_svg = (
             PUBLIC / "icon-maskable-2026.svg"
         ).read_text(encoding="utf-8")
-        self.assertIn('<rect width="64" height="64" fill="#35102f"/>', maskable_svg)
+        self.assertIn('<rect width="64" height="64" fill="#3b1234"/>', maskable_svg)
         self.assertIn('d="M21.5 44V21l21 23V21"', maskable_svg)
         social_svg = (PUBLIC / "social-card.svg").read_text(
             encoding="utf-8"
@@ -494,13 +615,13 @@ class PresentationReleaseTests(unittest.TestCase):
         manifest = json.loads(
             (PUBLIC / "site.webmanifest").read_text(encoding="utf-8")
         )
-        self.assertEqual(manifest["background_color"], "#fff8fc")
-        self.assertEqual(manifest["theme_color"], "#43133c")
+        self.assertEqual(manifest["background_color"], "#fff6fb")
+        self.assertEqual(manifest["theme_color"], "#4a183f")
         self.assertEqual(
             {icon["src"] for icon in manifest["icons"]},
             {
-                "icon-192-2026.png?v=20260728f2",
-                "icon-512-2026.png?v=20260728f2",
+                "icon-192-2026.png?v=20260728f3",
+                "icon-512-2026.png?v=20260728f3",
             },
         )
         self.assertTrue(
@@ -515,10 +636,10 @@ class PresentationReleaseTests(unittest.TestCase):
             encoding="utf-8"
         )
         for marker in (
-            'content="#43133c"',
-            'content="#10070e"',
-            "favicon-2026.svg?v=20260728f2",
-            "apple-touch-icon-2026.png?v=20260728f2",
+            'content="#4a183f"',
+            'content="#170b14"',
+            "favicon-2026.svg?v=20260728f3",
+            "apple-touch-icon-2026.png?v=20260728f3",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
             "linear-gradient(118deg",
@@ -542,8 +663,8 @@ class PresentationReleaseTests(unittest.TestCase):
             "font-weight: 445",
             '"SOFT" 100',
             "text-wrap: balance",
-            "#fff8fc;",
-            "#170b14;",
+            "#fff6fb;",
+            "#1b0d17;",
             "@media (max-width: 480px)",
             "@media (prefers-reduced-motion: reduce)",
             "@media print",

@@ -10,24 +10,24 @@
 
 :root {
   color-scheme: light;
-  --ink: #3d1f38;
-  --ink-soft: #705268;
-  --paper: #fff8fc;
-  --paper-deep: #f3ddec;
-  --surface: #fffafd;
-  --surface-subtle: #fcecf6;
-  --surface-glass: rgba(255, 250, 253, 0.9);
-  --navy: #43133c;
-  --navy-2: #69265e;
-  --header-bg: rgba(58, 16, 52, 0.97);
+  --ink: #44203d;
+  --ink-soft: #75566c;
+  --paper: #fff6fb;
+  --paper-deep: #f3dbe9;
+  --surface: #fff9fc;
+  --surface-subtle: #fbe8f3;
+  --surface-glass: rgba(255, 249, 252, 0.92);
+  --navy: #4a183f;
+  --navy-2: #713064;
+  --header-bg: rgba(66, 21, 56, 0.97);
   --mint: #f0d8ff;
   --lime: #ff9bd5;
   --coral: #b84aa0;
   --gold: #c12f8e;
   --focus: #c12f8e;
-  --on-dark: #fff9fd;
-  --on-dark-soft: #f1dceb;
-  --on-accent: #35102e;
+  --on-dark: #fff4fb;
+  --on-dark-soft: #f3dce9;
+  --on-accent: #3b1532;
   --eyebrow: #8b3c78;
   --link: #7b286b;
   --control-dark: #5c2454;
@@ -40,7 +40,7 @@
   --positive: #276b4d;
   --negative: #9d304a;
   --chart-a: #8e3caf;
-  --chart-b: #c52c82;
+  --chart-b: #c02a7d;
   --chart-c: #315f9e;
   --chart-d: #176b68;
   --chart-e: #8b4a16;
@@ -50,8 +50,8 @@
   --chart-i: #8b2d70;
   --chart-j: #4f566f;
   --chart-cursor: #4d2145;
-  --chart-marker-fill: #fffafd;
-  --chart-readout: #fcecf6;
+  --chart-marker-fill: #fff9fc;
+  --chart-readout: #fbe8f3;
   --border: rgba(103, 41, 88, 0.18);
   --dark-line: rgba(255, 244, 252, 0.18);
   --dark-panel: rgba(255, 244, 252, 0.09);
@@ -95,24 +95,24 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --ink: #fff9fd;
-    --ink-soft: #e4ccdc;
-    --paper: #170b14;
-    --paper-deep: #35172d;
-    --surface: #27111f;
-    --surface-subtle: #3a1931;
-    --surface-glass: rgba(39, 17, 31, 0.92);
-    --navy: #10070e;
-    --navy-2: #4c173f;
-    --header-bg: rgba(21, 9, 18, 0.97);
+    --ink: #fff2fa;
+    --ink-soft: #e8cede;
+    --paper: #1b0d17;
+    --paper-deep: #3a1a31;
+    --surface: #2c1425;
+    --surface-subtle: #402036;
+    --surface-glass: rgba(44, 20, 37, 0.94);
+    --navy: #170b14;
+    --navy-2: #522044;
+    --header-bg: rgba(27, 12, 23, 0.97);
     --mint: #f2d7ff;
     --lime: #ff8fce;
     --coral: #d162b7;
     --gold: #ff78c5;
     --focus: #ff78c5;
-    --on-dark: #fff9fd;
-    --on-dark-soft: #efd9e8;
-    --on-accent: #35102e;
+    --on-dark: #fff2fa;
+    --on-dark-soft: #e8cede;
+    --on-accent: #3b1532;
     --eyebrow: #f1addb;
     --link: #f3a8dc;
     --control-dark: #6f3466;
@@ -134,9 +134,9 @@
     --chart-h: #8fe0a8;
     --chart-i: #f2a3e5;
     --chart-j: #b9c8ef;
-    --chart-cursor: #fff8fd;
-    --chart-marker-fill: #27111f;
-    --chart-readout: #3a1931;
+    --chart-cursor: #fff2fa;
+    --chart-marker-fill: #2c1425;
+    --chart-readout: #402036;
     --border: rgba(244, 212, 237, 0.21);
     --dark-line: rgba(255, 247, 252, 0.2);
     --dark-panel: rgba(255, 247, 252, 0.1);
@@ -6598,5 +6598,483 @@ th {
     summary
   ) {
     transition: none;
+  }
+}
+
+/*
+ * Rose-porcelain finale.
+ *
+ * The base whites are now rose porcelain rather than stark white, and the
+ * darkest surfaces are black cherry rather than neutral black. Ten restrained
+ * material cues complete the presentation without adding literal icons,
+ * flowers or bows, and without changing the traditional green/red W/L system.
+ */
+:root {
+  --porcelain-rose: #fff6fb;
+  --porcelain-panel: #fff9fc;
+  --black-cherry: #1b0d17;
+  --aquarelle-rose: rgba(247, 171, 211, 0.2);
+  --aquarelle-lilac: rgba(207, 183, 235, 0.18);
+  --aquarelle-pearl: rgba(181, 225, 219, 0.12);
+  --satin-edge: rgba(220, 112, 173, 0.3);
+  --pave-stitch: rgba(173, 67, 131, 0.34);
+  --engraved-line: rgba(150, 51, 113, 0.18);
+  --macaron-rose: #fde3f0;
+  --macaron-lilac: #eee2fa;
+  --macaron-pearl: #e3f2ee;
+  --macaron-apricot: #fae8df;
+  --rose-gold: rgba(183, 75, 139, 0.34);
+  --picot-thread: rgba(185, 74, 140, 0.27);
+  --footer-bead: #efacd0;
+  --footer-bead-alt: #d8b9eb;
+}
+
+/* Required structural fixes: complete footer, coloured home actions and cards. */
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  gap: 5px 16px;
+  width: min(500px, 100%);
+  max-width: 500px;
+}
+
+.footer-links a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.home-action {
+  color: var(--on-accent);
+  border-color: rgba(91, 28, 73, 0.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 8px 20px rgba(42, 10, 35, 0.12);
+}
+
+.home-action-rankings {
+  background: linear-gradient(135deg, #ffc1df, #efa4d0);
+}
+
+.home-action-fixtures {
+  background: linear-gradient(135deg, #ead8fb, #d8bff0);
+}
+
+.home-action-predict {
+  background: linear-gradient(135deg, #dff1ed, #c8e4df);
+}
+
+.home-explore-links a:nth-child(4n + 1) {
+  background: var(--macaron-rose);
+}
+
+.home-explore-links a:nth-child(4n + 2) {
+  background: var(--macaron-lilac);
+}
+
+.home-explore-links a:nth-child(4n + 3) {
+  background: var(--macaron-pearl);
+}
+
+.home-explore-links a:nth-child(4n + 4) {
+  background: var(--macaron-apricot);
+}
+
+.home-explore-links a:hover {
+  background-position: 100% 50%;
+  filter: saturate(1.06);
+}
+
+/* Required team-page fix: attack/defence now shares the venue panel language. */
+.score-profile {
+  background:
+    radial-gradient(
+      ellipse 26rem 14rem at 94% 0,
+      var(--aquarelle-lilac),
+      transparent 72%
+    ),
+    linear-gradient(135deg, var(--accent-soft), transparent 58%),
+    var(--surface);
+}
+
+.score-profile-highlights {
+  grid-template-columns: repeat(2, minmax(132px, 1fr));
+}
+
+.score-profile-details .venue-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Required typography fix: every semantic title uses the display family. */
+:is(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .brand,
+  .ranking-card-team,
+  .comparison-team-name,
+  .home-explore-links b,
+  .forecast-title,
+  .venue-profile-details > summary,
+  .team-model-details > summary,
+  .ranking-card-details > summary,
+  .method-details > summary,
+  .analysis-disclosure > summary
+) {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0,
+    "opsz" 88;
+}
+
+:is(
+  time,
+  table,
+  input,
+  output,
+  .numeric,
+  .score,
+  .probability,
+  .team-rating,
+  .team-stats,
+  .venue-profile-highlights,
+  .venue-detail-grid,
+  .chart-inspector,
+  .metric-grid
+) {
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+/* 1. A Ladurée-like aquarelle wash replaces a flat page ground. */
+body {
+  background:
+    radial-gradient(
+      ellipse 40rem 30rem at -8% 4%,
+      var(--aquarelle-rose),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 38rem 28rem at 108% 20%,
+      var(--aquarelle-lilac),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 28rem 21rem at 82% 102%,
+      var(--aquarelle-pearl),
+      transparent 76%
+    ),
+    var(--paper);
+  background-attachment: fixed;
+}
+
+/* 2. Pressed-satin edge light appears only on major editorial panels. */
+:is(.home-intro, .team-hero) {
+  position: relative;
+}
+
+:is(.home-intro, .team-hero)::after,
+.page-heading::before {
+  position: absolute;
+  z-index: 0;
+  top: clamp(14px, 2vw, 24px);
+  bottom: clamp(14px, 2vw, 24px);
+  left: 0;
+  width: 4px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      var(--satin-edge) 18% 82%,
+      transparent
+    );
+  border-radius: 999px;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.16);
+  content: "";
+}
+
+.page-heading {
+  position: relative;
+  padding-left: clamp(13px, 2vw, 20px);
+}
+
+:is(.home-intro, .team-hero) > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 3. Major title seams gain a two-tone micro-pavé rhythm. */
+:is(.section-heading, .compact-heading) {
+  background:
+    radial-gradient(
+      circle,
+      var(--pave-stitch) 0 0.85px,
+      transparent 1.25px
+    )
+    left bottom / 8px 3px repeat-x,
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--pave-stitch) 46%, transparent)
+      0 0.65px,
+      transparent 1px
+    )
+    4px calc(100% - 1px) / 8px 3px repeat-x;
+}
+
+/* 4. Search, filter and selection tools receive an engraved inner rule. */
+:is(
+  .toolbar,
+  .faq-tools,
+  .method-contents,
+  .team-picker,
+  .comparison-selection,
+  .comparison-add-panel
+) {
+  border-color: var(--engraved-line);
+  box-shadow:
+    inset 0 0 0 3px color-mix(
+      in srgb,
+      var(--surface) 86%,
+      var(--engraved-line)
+    ),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    var(--shadow-small);
+}
+
+/* 5. Unselected tabs rotate through a quiet macaron palette. */
+:is(.record-tabs, .toggle-group) .button[aria-pressed="false"]:nth-child(4n + 1) {
+  background: var(--macaron-rose);
+}
+
+:is(.record-tabs, .toggle-group) .button[aria-pressed="false"]:nth-child(4n + 2) {
+  background: var(--macaron-lilac);
+}
+
+:is(.record-tabs, .toggle-group) .button[aria-pressed="false"]:nth-child(4n + 3) {
+  background: var(--macaron-pearl);
+}
+
+:is(.record-tabs, .toggle-group) .button[aria-pressed="false"]:nth-child(4n + 4) {
+  background: var(--macaron-apricot);
+}
+
+/* 6. Repeated statistics use alternating confectionery mats. */
+:is(
+  .team-stats,
+  .metric-grid,
+  .venue-profile-highlights,
+  .comparison-cards
+) > :nth-child(4n + 1) {
+  background: color-mix(in srgb, var(--surface) 72%, var(--macaron-rose));
+}
+
+:is(
+  .team-stats,
+  .metric-grid,
+  .venue-profile-highlights,
+  .comparison-cards
+) > :nth-child(4n + 2) {
+  background: color-mix(in srgb, var(--surface) 72%, var(--macaron-lilac));
+}
+
+:is(
+  .team-stats,
+  .metric-grid,
+  .venue-profile-highlights,
+  .comparison-cards
+) > :nth-child(4n + 3) {
+  background: color-mix(in srgb, var(--surface) 72%, var(--macaron-pearl));
+}
+
+:is(
+  .team-stats,
+  .metric-grid,
+  .venue-profile-highlights,
+  .comparison-cards
+) > :nth-child(4n + 4) {
+  background: color-mix(in srgb, var(--surface) 72%, var(--macaron-apricot));
+}
+
+/* 7. Chart readouts use a slim rose-gold compact bezel. */
+.chart-inspector {
+  border-color: var(--rose-gold);
+  outline: 1px solid color-mix(
+    in srgb,
+    var(--rose-gold) 42%,
+    transparent
+  );
+  outline-offset: -4px;
+  box-shadow:
+    inset 4px 0 0 var(--rose-gold),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 8px 22px rgba(83, 24, 67, 0.07);
+}
+
+/* 8. Notes and callouts have a fine picot thread, never a literal motif. */
+:is(.record-note, .callout) {
+  background-image:
+    radial-gradient(
+      circle,
+      var(--picot-thread) 0 1.4px,
+      transparent 1.8px
+    );
+  background-position: 5px 5px;
+  background-repeat: repeat-y;
+  background-size: 8px 8px;
+}
+
+/* 9. Ranking movement receives a tiny polished status setting. */
+.movement b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px;
+  padding: 3px 8px;
+  background: color-mix(in srgb, currentColor 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 999px;
+}
+
+/* 10. Footer links are joined by alternating seed-pearl markers. */
+.footer-links a::before {
+  width: 4px;
+  height: 4px;
+  flex: 0 0 auto;
+  margin-right: 8px;
+  background: var(--footer-bead);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 244, 251, 0.12);
+  content: "";
+}
+
+.footer-links a:nth-child(even)::before {
+  background: var(--footer-bead-alt);
+}
+
+.loading-shell p,
+:is(.empty, .empty-state, .error-panel) > :is(h2, h3) {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0,
+    "opsz" 80;
+  font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --aquarelle-rose: rgba(171, 66, 126, 0.13);
+    --aquarelle-lilac: rgba(124, 91, 153, 0.12);
+    --aquarelle-pearl: rgba(83, 151, 145, 0.065);
+    --satin-edge: rgba(244, 167, 210, 0.25);
+    --pave-stitch: rgba(240, 178, 214, 0.32);
+    --engraved-line: rgba(238, 183, 215, 0.19);
+    --macaron-rose: #48223a;
+    --macaron-lilac: #3d294a;
+    --macaron-pearl: #203b39;
+    --macaron-apricot: #492d2a;
+    --rose-gold: rgba(238, 170, 209, 0.27);
+    --picot-thread: rgba(239, 177, 214, 0.25);
+    --footer-bead: #e9a8cb;
+    --footer-bead-alt: #c9a9df;
+  }
+
+  .home-action {
+    color: var(--on-accent);
+    border-color: rgba(255, 244, 251, 0.12);
+  }
+
+  :is(
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .team-picker,
+    .comparison-selection,
+    .comparison-add-panel
+  ) {
+    box-shadow:
+      inset 0 0 0 3px color-mix(
+        in srgb,
+        var(--surface) 88%,
+        var(--engraved-line)
+      ),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      var(--shadow-small);
+  }
+
+  .chart-inspector {
+    box-shadow:
+      inset 4px 0 0 var(--rose-gold),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 8px 22px rgba(0, 0, 0, 0.17);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .footer-links {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    max-width: none;
+    margin: 18px 0;
+  }
+
+  .score-profile-highlights {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 720px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-width: none;
+    margin: 18px 0;
+  }
+
+  .footer-links a {
+    min-height: 34px;
+  }
+
+  .score-profile-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .score-profile-highlights .venue-highlight:last-child {
+    grid-column: auto;
+  }
+
+  .score-profile-details .venue-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  :is(.home-intro, .team-hero)::after {
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  :is(.home-intro, .team-hero)::after,
+  .page-heading::before,
+  .footer-links a::before {
+    display: none;
   }
 }
