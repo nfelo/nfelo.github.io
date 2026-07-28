@@ -1,23 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Network Football Elo">
   <defs>
     <linearGradient id="bg" x1="8" y1="5" x2="58" y2="61" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7b2e6e"/>
-      <stop offset="1" stop-color="#3e1036"/>
+      <stop stop-color="#8d3b7d"/>
+      <stop offset=".52" stop-color="#651f59"/>
+      <stop offset="1" stop-color="#35102f"/>
     </linearGradient>
     <linearGradient id="rose" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#ffe2f3"/>
-      <stop offset="1" stop-color="#ff8fce"/>
+      <stop stop-color="#fff0f9"/>
+      <stop offset="1" stop-color="#ff91ce"/>
     </linearGradient>
     <linearGradient id="lilac" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#f4e2ff"/>
-      <stop offset="1" stop-color="#c77be0"/>
+      <stop stop-color="#f8ecff"/>
+      <stop offset="1" stop-color="#c988e2"/>
     </linearGradient>
+    <radialGradient id="petal">
+      <stop stop-color="#fffafd"/>
+      <stop offset="1" stop-color="#ffb0d9"/>
+    </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="17" fill="url(#bg)"/>
-  <rect x="3.5" y="3.5" width="57" height="57" rx="14.5" fill="none" stroke="#ffd8ef" stroke-opacity=".22"/>
-  <circle cx="18" cy="14" r="18" fill="#ffb5de" opacity=".09"/>
-  <rect x="14" y="34" width="9" height="18" rx="4.5" fill="url(#rose)" opacity=".88"/>
-  <rect x="27.5" y="14" width="9" height="38" rx="4.5" fill="url(#rose)"/>
-  <rect x="41" y="25" width="9" height="27" rx="4.5" fill="url(#lilac)"/>
-  <path d="M50 9l1.5 4.5L56 15l-4.5 1.5L50 21l-1.5-4.5L44 15l4.5-1.5L50 9z" fill="#ffe0f2"/>
+  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="15.5" fill="none" stroke="#ffe2f3" stroke-opacity=".28"/>
+  <circle cx="17" cy="13" r="19" fill="#ffbee2" opacity=".1"/>
+  <path d="M12 51c13-8 23-17 31-31" fill="none" stroke="#f6b5d8" stroke-linecap="round" stroke-opacity=".2" stroke-width="1.4"/>
+  <path d="M20 42c-7-8-12-7-16-3 5 5 10 7 16 3z" fill="#f4b3d7" opacity=".38"/>
+  <rect x="13" y="35" width="9" height="17" rx="4.5" fill="url(#rose)" opacity=".9"/>
+  <rect x="26.5" y="16" width="9" height="36" rx="4.5" fill="url(#rose)"/>
+  <rect x="40" y="27" width="9" height="25" rx="4.5" fill="url(#lilac)"/>
+  <g transform="translate(49 15)">
+    <ellipse cy="-5.7" rx="3.4" ry="5.8" fill="url(#petal)"/>
+    <ellipse cy="-5.7" rx="3.4" ry="5.8" fill="url(#petal)" transform="rotate(72)"/>
+    <ellipse cy="-5.7" rx="3.4" ry="5.8" fill="url(#petal)" transform="rotate(144)"/>
+    <ellipse cy="-5.7" rx="3.4" ry="5.8" fill="url(#petal)" transform="rotate(216)"/>
+    <ellipse cy="-5.7" rx="3.4" ry="5.8" fill="url(#petal)" transform="rotate(288)"/>
+    <circle r="2.8" fill="#8f3976"/>
+    <circle r="1.2" fill="#ffe4a8"/>
+  </g>
 </svg>

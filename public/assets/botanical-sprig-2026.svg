@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" aria-hidden="true">
+  <defs>
+    <linearGradient id="stem" x1="18" y1="100" x2="302" y2="20" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c76aa9"/>
+      <stop offset=".52" stop-color="#e78bc1"/>
+      <stop offset="1" stop-color="#b48bdd"/>
+    </linearGradient>
+    <radialGradient id="petal">
+      <stop stop-color="#fff7fc"/>
+      <stop offset="1" stop-color="#f0a9d0"/>
+    </radialGradient>
+    <g id="flower">
+      <ellipse cx="0" cy="-9" rx="5.7" ry="9.2" fill="url(#petal)"/>
+      <ellipse cx="0" cy="-9" rx="5.7" ry="9.2" fill="url(#petal)" transform="rotate(72)"/>
+      <ellipse cx="0" cy="-9" rx="5.7" ry="9.2" fill="url(#petal)" transform="rotate(144)"/>
+      <ellipse cx="0" cy="-9" rx="5.7" ry="9.2" fill="url(#petal)" transform="rotate(216)"/>
+      <ellipse cx="0" cy="-9" rx="5.7" ry="9.2" fill="url(#petal)" transform="rotate(288)"/>
+      <circle r="4" fill="#9b3e7e"/>
+      <circle r="1.7" fill="#ffe0a8"/>
+    </g>
+  </defs>
+  <g opacity=".42">
+    <path d="M16 101C78 92 93 57 151 60c63 4 88-28 153-41" fill="none" stroke="url(#stem)" stroke-linecap="round" stroke-width="2.2"/>
+    <path d="M70 83c-18-22-31-19-38-10 14 11 27 14 38 10z" fill="#e9a4cd"/>
+    <path d="M94 69c8-24 23-30 35-23-6 16-17 24-35 23z" fill="#cda6e8"/>
+    <path d="M144 60c-12-24-27-26-38-17 9 15 21 21 38 17z" fill="#f0b0d4"/>
+    <path d="M185 57c8-23 23-29 35-22-6 16-18 23-35 22z" fill="#cda6e8"/>
+    <path d="M229 42c-11-21-26-23-36-14 9 14 21 19 36 14z" fill="#eda6cf"/>
+    <path d="M266 30c8-20 21-25 32-19-6 14-16 20-32 19z" fill="#cda6e8"/>
+    <g transform="translate(84 72) scale(.75)">
+      <use href="#flower"/>
+    </g>
+    <g transform="translate(169 58) scale(.9)">
+      <use href="#flower"/>
+    </g>
+    <g transform="translate(254 34) scale(.66)">
+      <use href="#flower"/>
+    </g>
+  </g>
+</svg>

@@ -2339,11 +2339,11 @@ class StaticBuildTests(unittest.TestCase):
             "--font-numeric:",
             "--focus:",
             'font-feature-settings: "lnum" 1, "tnum" 1;',
-            "Candara, Corbel",
+            '"Fraunces Variable", Candara, Corbel',
             ".brand:hover .brand-mark",
             ".page-heading::after",
             ".chronology-cause",
-            "Refined rose-and-lavender presentation system",
+            "Floral editorial presentation system",
             ".nav-submenu",
             ".ranking-desktop",
             ".ranking-cards",
@@ -2663,16 +2663,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('rel="canonical"', html)
         self.assertIn('property="og:image"', html)
         self.assertIn(
-            'rel="icon" href="favicon-2026.svg?v=20260728"',
+            'rel="icon" href="favicon-2026.svg?v=20260728f1"',
             html,
         )
         self.assertIn(
             'rel="apple-touch-icon" sizes="180x180" '
-            'href="apple-touch-icon-2026.png?v=20260728"',
+            'href="apple-touch-icon-2026.png?v=20260728f1"',
             html,
         )
         self.assertIn(
-            'rel="manifest" href="site.webmanifest?v=20260728"',
+            'rel="manifest" href="site.webmanifest?v=20260728f1"',
             html,
         )
         self.assertRegex(html, r'assets/styles\.css\?v=[0-9a-f]{12}')
@@ -2689,8 +2689,8 @@ class StaticBuildTests(unittest.TestCase):
                 for icon in webmanifest["icons"]
             },
             {
-                "icon-192-2026.png?v=20260728",
-                "icon-512-2026.png?v=20260728",
+                "icon-192-2026.png?v=20260728f1",
+                "icon-512-2026.png?v=20260728f1",
             },
         )
         expected_png_sizes = {

@@ -64,15 +64,15 @@ class PresentationReleaseTests(unittest.TestCase):
                 '<meta name="theme-color" content="#10070e" '
                 'media="(prefers-color-scheme: dark)">'
             ),
-            "favicon-2026.ico?v=20260728",
-            "favicon-2026.svg?v=20260728",
-            "apple-touch-icon-2026.png?v=20260728",
-            "site.webmanifest?v=20260728",
-            "social-card.png?v=20260728",
+            "favicon-2026.ico?v=20260728f1",
+            "favicon-2026.svg?v=20260728f1",
+            "apple-touch-icon-2026.png?v=20260728f1",
+            "site.webmanifest?v=20260728f1",
+            "social-card.png?v=20260728f1",
             f"assets/styles.css?v={stylesheet_hash}",
             (
                 '<img class="brand-mark" '
-                'src="favicon-2026.svg?v=20260728"'
+                'src="favicon-2026.svg?v=20260728f1"'
             ),
         )
         obsolete = (
@@ -80,6 +80,7 @@ class PresentationReleaseTests(unittest.TestCase):
             "site.webmanifest?v=20260723",
             "styles.css?v=6be8afb7b626",
             "favicon-2026.svg?v=20260727",
+            "favicon-2026.svg?v=20260728\"",
             '<span class="brand-mark"',
         )
         for route in routes:
@@ -93,16 +94,20 @@ class PresentationReleaseTests(unittest.TestCase):
         stylesheet = STYLES.read_text(encoding="utf-8")
         for marker in (
             '--font-body: "Aptos", Calibri',
-            "--font-display: Candara, Corbel",
+            '--font-display: "Fraunces Variable", Candara, Corbel',
             '--font-numeric: "Aptos", Calibri',
             'font-feature-settings: "lnum" 1, "tnum" 1;',
             "font-variant-numeric: lining-nums tabular-nums;",
-            "Refined rose-and-lavender presentation system",
+            "Floral editorial presentation system",
             ".brand:hover .brand-mark",
             ".eyebrow::before",
             ".page-heading::after",
             ".button-primary::before",
             ".chronology-cause::before",
+            "--flower-mask:",
+            'url("botanical-sprig-2026.svg")',
+            'url("floral-divider-2026.svg")',
+            "@media (min-width: 721px) and (max-width: 1024px)",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
             "min-height: 44px;",
@@ -132,6 +137,17 @@ class PresentationReleaseTests(unittest.TestCase):
             re.findall(r"var\(--([\w-]+)", stylesheet)
         )
         self.assertEqual(references - definitions, set())
+        font = PUBLIC / "assets" / "fonts" / "fraunces-variable-latin-v38.woff2"
+        self.assertEqual(font.read_bytes()[:4], b"wOF2")
+        self.assertIn(
+            "SIL OPEN FONT LICENSE",
+            (
+                PUBLIC
+                / "assets"
+                / "fonts"
+                / "Fraunces-OFL.txt"
+            ).read_text(encoding="utf-8"),
+        )
 
     def test_light_and_dark_text_contrast(self) -> None:
         pairs = (
@@ -186,15 +202,29 @@ class PresentationReleaseTests(unittest.TestCase):
         )
         for marker in (
             'aria-label="Network Football Elo"',
-            'stop-color="#ff8fce"',
-            'fill="#ffe0f2"',
+            'stop-color="#ff91ce"',
+            '<radialGradient id="petal">',
+            '<ellipse cy="-5.7"',
         ):
             self.assertIn(marker, primary_svg)
+        self.assertGreaterEqual(primary_svg.count("<ellipse"), 5)
+        self.assertNotIn("l1.5 4.5L56 15", primary_svg)
         social_svg = (PUBLIC / "social-card.svg").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Corbel, Candara", social_svg)
+        self.assertIn("Fraunces, Corbel, Candara", social_svg)
+        self.assertIn('<g id="flower">', social_svg)
         self.assertIn("International ratings, results", social_svg)
+
+        for asset in (
+            "botanical-sprig-2026.svg",
+            "floral-divider-2026.svg",
+        ):
+            botanical = (
+                PUBLIC / "assets" / asset
+            ).read_text(encoding="utf-8")
+            self.assertIn('<g id="flower">', botanical)
+            self.assertGreaterEqual(botanical.count("<ellipse"), 5)
 
         manifest = json.loads(
             (PUBLIC / "site.webmanifest").read_text(encoding="utf-8")
@@ -204,8 +234,8 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertEqual(
             {icon["src"] for icon in manifest["icons"]},
             {
-                "icon-192-2026.png?v=20260728",
-                "icon-512-2026.png?v=20260728",
+                "icon-192-2026.png?v=20260728f1",
+                "icon-512-2026.png?v=20260728f1",
             },
         )
 
@@ -216,10 +246,11 @@ class PresentationReleaseTests(unittest.TestCase):
         for marker in (
             'content="#43133c"',
             'content="#10070e"',
-            "favicon-2026.svg?v=20260728",
-            "apple-touch-icon-2026.png?v=20260728",
+            "favicon-2026.svg?v=20260728f1",
+            "apple-touch-icon-2026.png?v=20260728f1",
             "font-variant-numeric: lining-nums tabular-nums",
-            "font-family: Candara, Corbel",
+            'font-family: "Fraunces Variable", Candara, Corbel',
+            "-webkit-mask: url(",
             "background: #fff8fc",
             "background: #170b14",
             "@media (max-width: 480px)",

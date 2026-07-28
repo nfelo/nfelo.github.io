@@ -7,11 +7,18 @@
     <meta name="theme-color" content="#10070e" media="(prefers-color-scheme: dark)">
     <meta name="robots" content="noindex">
     <meta http-equiv="refresh" content="5; url=https://nfelo.github.io/">
-    <link rel="icon" href="/favicon-2026.ico?v=20260728" sizes="16x16 32x32 48x48">
-    <link rel="icon" href="/favicon-2026.svg?v=20260728" type="image/svg+xml" sizes="any">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png?v=20260728">
+    <link rel="icon" href="/favicon-2026.ico?v=20260728f1" sizes="16x16 32x32 48x48">
+    <link rel="icon" href="/favicon-2026.svg?v=20260728f1" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png?v=20260728f1">
     <title>Page not found · Network Football Elo</title>
     <style>
+      @font-face {
+        font-family: "Fraunces Variable";
+        font-style: normal;
+        font-display: swap;
+        font-weight: 400 900;
+        src: url("/assets/fonts/fraunces-variable-latin-v38.woff2") format("woff2-variations");
+      }
       :root {
         color-scheme: light;
         font-family: "Aptos", Calibri, "Segoe UI", Roboto, Arial, sans-serif;
@@ -69,20 +76,19 @@
         position: absolute;
         top: 24px;
         right: 28px;
-        width: 14px;
-        height: 14px;
-        background: linear-gradient(135deg, #ff9bd5, #d878c8);
-        border-radius: 70% 30% 70% 30%;
-        box-shadow: 0 0 0 7px rgba(232, 102, 183, .13);
+        width: 23px;
+        height: 23px;
+        background: linear-gradient(145deg, #ff9bd5, #d878c8);
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(72 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(144 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(216 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(288 12 12)'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(72 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(144 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(216 12 12)'/%3E%3Cellipse cx='12' cy='5.5' rx='3.2' ry='5' transform='rotate(288 12 12)'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
         content: "";
-        transform: rotate(45deg);
       }
       h1 {
         margin: 0 0 12px;
-        font-family: Candara, Corbel, "Aptos Display", "Segoe UI", sans-serif;
+        font-family: "Fraunces Variable", Candara, Corbel, serif;
         font-size: clamp(38px, 8vw, 64px);
-        font-weight: 600;
-        letter-spacing: -.026em;
+        font-weight: 500;
+        letter-spacing: -.032em;
         line-height: .98;
       }
       p {
@@ -96,7 +102,7 @@
         padding: 12px 18px;
         color: var(--on-dark);
         background: linear-gradient(135deg, var(--navy), #69265e);
-        border-radius: 14px;
+        border-radius: 999px;
         font-weight: 700;
         text-decoration: none;
         box-shadow: 0 8px 22px var(--shadow);
