@@ -22,11 +22,15 @@ const classList = {
   toggle: () => {},
 };
 const content = {
+  attributes: {},
   innerHTML: (
     '<div class="loading-shell">'
     + "<p>Loading the latest ratings…</p></div>"
   ),
   focus: () => {},
+  setAttribute(name, value) {
+    this.attributes[name] = String(value);
+  },
   querySelector(selector) {
     return selector === ".loading-shell"
       && this.innerHTML.includes("loading-shell")
@@ -50,6 +54,11 @@ const metadataNode = { setAttribute: () => {} };
 const document = {
   baseURI: "https://example.test/",
   title: "",
+  body: {
+    append: () => {},
+    classList,
+    dataset: {},
+  },
   head: { appendChild: () => {} },
   getElementById(id) {
     if (id === "content") return content;
@@ -70,6 +79,12 @@ const document = {
   },
   createElement() {
     return {
+      attributes: {},
+      className: "",
+      hidden: false,
+      setAttribute(name, value) {
+        this.attributes[name] = String(value);
+      },
       set src(value) { this._src = value; },
       get src() { return this._src; },
       onerror: null,
@@ -199,6 +214,7 @@ async function fetchMock(input) {
 const sandbox = {
   window: windowObject,
   document,
+  navigator: { onLine: true },
   location,
   history,
   fetch: fetchMock,

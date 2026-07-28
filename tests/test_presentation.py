@@ -321,8 +321,14 @@ class PresentationReleaseTests(unittest.TestCase):
             "Atelier reverie: "
             "ten further feminine refinements"
         )
+        next_marker = "Final keepsake polish"
         self.assertIn(marker, stylesheet)
-        finish = stylesheet.split(marker, 1)[1]
+        self.assertIn(next_marker, stylesheet)
+        finish = (
+            stylesheet
+            .split(marker, 1)[1]
+            .split(next_marker, 1)[0]
+        )
 
         for numbered_idea in (
             "1. Ballet-wrap geometry",
