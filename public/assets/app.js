@@ -8,6 +8,12 @@
   const content = document.getElementById("content");
   const nav = document.getElementById("site-nav");
   const menuButton = document.querySelector(".menu-button");
+  const connectionStatus = document.createElement("div");
+  connectionStatus.className = "connection-status";
+  connectionStatus.setAttribute("role", "status");
+  connectionStatus.setAttribute("aria-live", "polite");
+  connectionStatus.hidden = true;
+  document.body.append(connectionStatus);
   const dataCache = new Map();
   const confidenceZ = 1.6448536269514715;
   let summary;
@@ -461,6 +467,7 @@ const filteredEmptyState = (subject) => (
     document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical);
     document.querySelector('meta[name="twitter:title"]')?.setAttribute("content", document.title);
     document.querySelector('meta[name="twitter:description"]')?.setAttribute("content", description);
+    document.body.dataset.route = route.section;
   }
 
   function parseRoute() {
@@ -573,6 +580,15 @@ const filteredEmptyState = (subject) => (
 
   function loading(label = "Loading rating history…") {
     content.innerHTML = `<div class="loading-shell" role="status"><span class="spinner" aria-hidden="true"></span><p>${escapeHTML(label)}</p></div>`;
+  }
+
+  function syncConnectionState() {
+    const offline = navigator.onLine === false;
+    connectionStatus.hidden = !offline;
+    connectionStatus.textContent = offline
+      ? "You are offline. Already loaded pages remain available, but new data cannot be fetched."
+      : "";
+    document.body.classList.toggle("is-offline", offline);
   }
 
   function formHTML(values) {
@@ -2986,6 +3002,7 @@ function renderRecords(route) {
       inspectorNote.textContent = "Exact rating values will appear here.";
       inspectorValues.innerHTML = "";
       clearButton.hidden = true;
+      shell.classList.remove("has-chart-selection");
     };
 
     const inspect = (rawStamp, keep = pinned) => {
@@ -3050,6 +3067,7 @@ function renderRecords(route) {
           : "";
       }).join("");
       clearButton.hidden = false;
+      shell.classList.add("has-chart-selection");
     };
 
     const draw = () => {
@@ -4649,7 +4667,9 @@ function renderFAQ() {
   } = {}) {
     disposeRatingHistoryCharts();
     const current = parseRoute();
+    document.body.dataset.route = current.section;
     setActiveNav(current.section);
+    content.setAttribute("aria-busy", "true");
     try {
       if (!summary) [summary, catalog] = await Promise.all([getJSON("data/summary.json"), getJSON("data/catalog.json")]);
       if (!teamAliasSearch.size) initialiseTeamAliasSearch();
@@ -4670,6 +4690,7 @@ function renderFAQ() {
         default: renderNotFound();
       }
       setRouteMetadata(current);
+      content.setAttribute("aria-busy", "false");
       if (location.hash.startsWith("#/")) {
         history.replaceState(
           routeHistoryState(
@@ -4710,6 +4731,7 @@ function renderFAQ() {
     } catch (error) {
       console.error(error);
       window.__nfeloBoot.failed = true;
+      content.setAttribute("aria-busy", "false");
       content.innerHTML = `<div class="error-panel" role="alert"><p class="eyebrow">Build data unavailable</p><h2>The static rating files could not be loaded.</h2><p>${escapeHTML(error.message)}</p><button class="button button-dark" type="button" id="retry">Retry</button></div>`;
       document.getElementById("retry")?.addEventListener("click", () => { dataCache.clear(); summary = null; route(); });
     }
@@ -4781,6 +4803,9 @@ function renderFAQ() {
   if ("scrollRestoration" in history) {
     history.scrollRestoration = "manual";
   }
+  window.addEventListener("online", syncConnectionState);
+  window.addEventListener("offline", syncConnectionState);
+  syncConnectionState();
   window.addEventListener(
     "hashchange",
     () => route({ scrollMode: "top" }),

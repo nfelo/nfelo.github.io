@@ -7078,3 +7078,924 @@ body {
     display: none;
   }
 }
+
+/*
+ * True final presentation pass.
+ *
+ * This layer art-directs motion, transient states, route rhythm and charts
+ * without changing the football data, information density or W/D/L colours.
+ * Its materials remain abstract: rosewater, organza, porcelain and pearl.
+ */
+:root {
+  --motion-quick: 150ms;
+  --motion-gentle: 240ms;
+  --motion-luxury: 420ms;
+  --ease-satin: cubic-bezier(0.22, 0.78, 0.26, 1);
+  --route-wash-a: rgba(244, 143, 196, 0.12);
+  --route-wash-b: rgba(195, 166, 229, 0.11);
+  --route-wash-c: rgba(158, 214, 207, 0.075);
+  --skeleton-base: color-mix(
+    in srgb,
+    var(--surface-subtle) 80%,
+    var(--macaron-lilac)
+  );
+  --skeleton-light: color-mix(
+    in srgb,
+    var(--surface) 78%,
+    var(--macaron-rose)
+  );
+  --transient-rule: color-mix(
+    in srgb,
+    var(--rose-gold) 52%,
+    var(--border)
+  );
+}
+
+/* 1. Gentle, useful motion with a complete reduced-motion alternative. */
+:is(
+  .button,
+  button,
+  summary,
+  input,
+  select,
+  .home-explore-links a,
+  .ranking-card,
+  .chart-legend-item,
+  .chart-inspector,
+  .team-link,
+  .site-nav a,
+  .footer-links a
+) {
+  transition:
+    color var(--motion-quick) ease,
+    border-color var(--motion-quick) ease,
+    background-color var(--motion-gentle) ease,
+    box-shadow var(--motion-gentle) var(--ease-satin),
+    transform var(--motion-gentle) var(--ease-satin),
+    opacity var(--motion-quick) ease;
+}
+
+.page > :is(header, section, article, nav, aside) {
+  animation: porcelain-arrival var(--motion-luxury) var(--ease-satin) both;
+}
+
+.page > :nth-child(2) { animation-delay: 35ms; }
+.page > :nth-child(3) { animation-delay: 70ms; }
+
+@keyframes porcelain-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 2. Loading, empty and error states belong to the same porcelain family. */
+.loading-shell {
+  position: relative;
+  width: min(720px, calc(100vw - 40px));
+  min-height: clamp(350px, 55vh, 560px);
+  margin: 34px auto 60px;
+  padding: clamp(28px, 5vw, 52px);
+  overflow: hidden;
+  color: var(--ink-soft);
+  background:
+    radial-gradient(
+      ellipse 20rem 11rem at 100% 0,
+      var(--route-wash-b),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 94%, var(--macaron-rose)),
+      var(--surface)
+    );
+  border: 1px solid var(--transient-rule);
+  border-radius: clamp(22px, 4vw, 34px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    var(--shadow);
+}
+
+.loading-shell::after {
+  width: min(520px, 100%);
+  height: 142px;
+  margin-top: 22px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 32%,
+      color-mix(in srgb, var(--surface) 72%, transparent) 46% 54%,
+      transparent 68% 100%
+    )
+    -160% 0 / 240% 100% no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 4px / 42% 16px no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 42px / 100% 23px no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 82px / 88% 23px no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 122px / 64% 16px no-repeat;
+  border-radius: 10px;
+  content: "";
+  animation: porcelain-shimmer 1.65s ease-in-out infinite;
+}
+
+.compact-loading {
+  min-height: 250px;
+  margin-block: 18px;
+}
+
+.compact-loading::after {
+  height: 86px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 32%,
+      color-mix(in srgb, var(--surface) 72%, transparent) 46% 54%,
+      transparent 68% 100%
+    )
+    -160% 0 / 240% 100% no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 5px / 46% 14px no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 39px / 100% 20px no-repeat,
+    linear-gradient(var(--skeleton-base), var(--skeleton-base))
+    0 73px / 72% 13px no-repeat;
+}
+
+@keyframes porcelain-shimmer {
+  50% { background-position: 220% 0, 0 4px, 0 42px, 0 82px, 0 122px; }
+}
+
+.spinner {
+  position: relative;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: var(--link);
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      rgba(255, 255, 255, 0.82),
+      transparent 28%
+    ),
+    color-mix(in srgb, var(--surface) 68%, var(--macaron-rose));
+  border: 1px solid var(--rose-gold);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 5px color-mix(
+      in srgb,
+      var(--surface) 82%,
+      var(--macaron-lilac)
+    ),
+    0 8px 20px rgba(83, 24, 67, 0.1);
+  animation: cameo-breathe 1.8s ease-in-out infinite;
+}
+
+.spinner::before {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  content: "N";
+}
+
+.spinner::after {
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed color-mix(
+    in srgb,
+    var(--rose-gold) 68%,
+    transparent
+  );
+  border-radius: inherit;
+  content: "";
+  animation: cameo-turn 8s linear infinite;
+}
+
+@keyframes cameo-breathe {
+  50% {
+    box-shadow:
+      inset 0 0 0 5px color-mix(
+        in srgb,
+        var(--surface) 78%,
+        var(--macaron-lilac)
+      ),
+      0 10px 26px rgba(137, 50, 105, 0.17);
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes cameo-turn {
+  to { transform: rotate(360deg); }
+}
+
+.loading-shell p {
+  margin: 18px 0 0;
+  color: var(--ink);
+  font-size: clamp(17px, 2vw, 21px);
+}
+
+:is(.empty, .empty-state, .error-panel) {
+  position: relative;
+  padding: clamp(28px, 5vw, 44px);
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 18rem 11rem at 100% 0,
+      var(--route-wash-a),
+      transparent 74%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 95%, var(--macaron-lilac)),
+      var(--surface)
+    );
+  border: 1px solid var(--transient-rule);
+  border-radius: clamp(18px, 3vw, 28px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    var(--shadow-small);
+}
+
+:is(.empty, .empty-state, .error-panel)::after {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: color-mix(in srgb, var(--link) 72%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--surface) 72%,
+    var(--macaron-rose)
+  );
+  border: 1px solid var(--rose-gold);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  content: "N";
+}
+
+.empty {
+  min-height: 180px;
+  margin-block: 20px;
+}
+
+.error-panel {
+  width: min(680px, calc(100vw - 40px));
+}
+
+.error-panel[role="alert"] {
+  border-left: 4px solid color-mix(
+    in srgb,
+    var(--negative) 72%,
+    var(--rose-gold)
+  );
+}
+
+/* 3. Route-specific spacing keeps dense pages tailored, not templated. */
+body[data-route="home"] .page { padding-top: 30px; }
+
+:is(
+  body[data-route="rankings"],
+  body[data-route="matches"],
+  body[data-route="fixtures"],
+  body[data-route="history"],
+  body[data-route="tournaments"]
+) .page {
+  padding-top: 46px;
+}
+
+:is(
+  body[data-route="team"],
+  body[data-route="compare"],
+  body[data-route="predict"],
+  body[data-route="records"]
+) .page {
+  padding-top: 40px;
+}
+
+:is(
+  body[data-route="methodology"],
+  body[data-route="faq"],
+  body[data-route="about"]
+) .page {
+  padding-top: 50px;
+}
+
+:is(
+  body[data-route="rankings"],
+  body[data-route="matches"],
+  body[data-route="fixtures"]
+) .section {
+  margin-top: 52px;
+}
+
+:is(
+  body[data-route="team"],
+  body[data-route="compare"],
+  body[data-route="predict"]
+) .section {
+  margin-top: 62px;
+}
+
+:is(
+  body[data-route="methodology"],
+  body[data-route="faq"],
+  body[data-route="about"]
+) .prose h2 {
+  margin-top: 58px;
+}
+
+/* 4. Editorial hierarchy: expressive openings, quiet supporting metadata. */
+.page-heading {
+  padding-top: 8px;
+}
+
+.page-heading h1 {
+  max-width: 820px;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.page-heading .lede {
+  max-width: 560px;
+  line-height: 1.62;
+}
+
+:is(.page-heading, .section-heading, .compact-heading) .eyebrow {
+  color: color-mix(in srgb, var(--eyebrow) 86%, var(--link));
+  letter-spacing: 0.18em;
+}
+
+.section-heading > :first-child {
+  max-width: 760px;
+}
+
+.section-heading h2 {
+  line-height: 1.02;
+}
+
+.section-heading > :is(p, .muted, .small),
+.compact-heading > :is(p, .muted, .small) {
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+.prose > p:first-of-type {
+  color: color-mix(in srgb, var(--ink) 82%, var(--link));
+  font-size: 1.08em;
+  line-height: 1.75;
+}
+
+/* 5. Each major route receives a non-literal, non-repeating atmosphere. */
+main {
+  position: relative;
+  isolation: isolate;
+}
+
+body[data-route] main::before,
+body[data-route] main::after {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+body[data-route] main::before {
+  top: 18px;
+  right: max(-150px, calc((100vw - 1500px) / 2));
+  width: min(42vw, 620px);
+  height: 360px;
+  background:
+    radial-gradient(
+      ellipse at 42% 40%,
+      var(--route-wash-a),
+      transparent 67%
+    ),
+    radial-gradient(
+      ellipse at 72% 58%,
+      var(--route-wash-b),
+      transparent 69%
+    );
+  border-radius: 48% 52% 64% 36% / 38% 56% 44% 62%;
+  filter: blur(0.15px);
+  opacity: 0.82;
+  transform: rotate(-7deg);
+}
+
+body[data-route] main::after {
+  bottom: 30px;
+  left: max(-170px, calc((100vw - 1500px) / 2));
+  width: min(38vw, 540px);
+  height: 280px;
+  background: radial-gradient(
+    ellipse,
+    var(--route-wash-c),
+    transparent 72%
+  );
+  border-radius: 62% 38% 43% 57% / 54% 44% 56% 46%;
+  opacity: 0.68;
+  transform: rotate(11deg);
+}
+
+:is(
+  body[data-route="history"],
+  body[data-route="tournaments"],
+  body[data-route="records"]
+) {
+  --route-wash-a: rgba(203, 163, 232, 0.13);
+  --route-wash-b: rgba(245, 153, 202, 0.095);
+  --route-wash-c: rgba(167, 216, 210, 0.07);
+}
+
+:is(
+  body[data-route="matches"],
+  body[data-route="fixtures"],
+  body[data-route="predict"]
+) {
+  --route-wash-a: rgba(239, 157, 199, 0.12);
+  --route-wash-b: rgba(166, 216, 208, 0.085);
+  --route-wash-c: rgba(210, 181, 234, 0.09);
+}
+
+:is(
+  body[data-route="team"],
+  body[data-route="compare"]
+) {
+  --route-wash-a: rgba(188, 162, 225, 0.12);
+  --route-wash-b: rgba(245, 151, 201, 0.11);
+  --route-wash-c: rgba(238, 194, 218, 0.075);
+}
+
+:is(
+  body[data-route="methodology"],
+  body[data-route="faq"],
+  body[data-route="about"]
+) {
+  --route-wash-a: rgba(239, 180, 211, 0.1);
+  --route-wash-b: rgba(192, 169, 225, 0.085);
+  --route-wash-c: rgba(162, 211, 205, 0.06);
+}
+
+/* 6. Charts: quieter scaffolding, polished exact-value inspection. */
+.chart-shell {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 96%, var(--macaron-lilac)),
+      var(--surface)
+    );
+}
+
+.chart-stage {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-subtle) 82%, transparent),
+      var(--surface-subtle)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 0 4px color-mix(
+      in srgb,
+      var(--surface) 60%,
+      transparent
+    );
+}
+
+.rating-chart .grid {
+  stroke: color-mix(in srgb, var(--grid-line) 62%, transparent);
+  stroke-dasharray: 2 5;
+}
+
+.rating-chart text {
+  fill: color-mix(in srgb, var(--ink-soft) 88%, transparent);
+}
+
+.rating-history-line {
+  filter: drop-shadow(
+    0 1px 0 color-mix(in srgb, var(--surface) 72%, transparent)
+  );
+}
+
+.chart-marker {
+  filter: drop-shadow(0 2px 3px rgba(80, 27, 66, 0.18));
+  transition:
+    r var(--motion-quick) ease,
+    opacity var(--motion-quick) ease,
+    stroke-width var(--motion-quick) ease;
+}
+
+.chart-inspector {
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-inspector::after {
+  position: absolute;
+  right: -42px;
+  bottom: -62px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(
+    circle,
+    var(--route-wash-b),
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  content: "";
+}
+
+.has-chart-selection .chart-inspector {
+  background: color-mix(
+    in srgb,
+    var(--chart-readout) 84%,
+    var(--macaron-rose)
+  );
+  box-shadow:
+    inset 4px 0 0 var(--rose-gold),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 12px 28px rgba(83, 24, 67, 0.1);
+  transform: translateY(-1px);
+}
+
+.chart-inspector-value > i {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 0 2px color-mix(
+      in srgb,
+      var(--series-colour) 15%,
+      var(--surface)
+    );
+}
+
+.chart-inspector-value strong {
+  position: relative;
+  z-index: 1;
+}
+
+.comparison-legend {
+  padding-block: 4px;
+}
+
+.chart-legend-item {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.chart-legend-item[aria-pressed="true"] {
+  box-shadow:
+    inset 3px 0 0 var(--series-colour),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 5px 14px rgba(83, 24, 67, 0.08);
+}
+
+/* 7. Skeletons already mirror cards and rows; compact variants mirror tables. */
+#content[aria-busy="true"] {
+  cursor: progress;
+}
+
+#content[aria-busy="true"] :is(button, input, select) {
+  pointer-events: none;
+}
+
+/* 8. Tactile interaction states remain subtle and fully keyboard-visible. */
+:is(.button, button):not(:disabled):active,
+.home-explore-links a:active,
+.chart-legend-item:not([aria-disabled="true"]):active {
+  box-shadow:
+    inset 0 2px 5px rgba(91, 28, 73, 0.16),
+    0 2px 5px rgba(91, 28, 73, 0.06);
+  transform: translateY(1px) scale(0.992);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-explore-links a:hover,
+  .ranking-card:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--control-border) 58%,
+      var(--rose-gold)
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.38),
+      0 13px 28px rgba(83, 24, 67, 0.11);
+    transform: translateY(-2px);
+  }
+
+  .chart-inspector-value:hover > i {
+    transform: scale(1.18);
+  }
+}
+
+:is(
+  .button,
+  button,
+  input,
+  select,
+  summary,
+  .chart-legend-item,
+  .rating-chart,
+  a
+):focus-visible {
+  outline: 2px solid var(--rose-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(
+    in srgb,
+    var(--rose-focus) 18%,
+    transparent
+  );
+}
+
+/* 9. The pearl-cameo identity also covers connection and recovery states. */
+.connection-status {
+  position: fixed;
+  z-index: 120;
+  right: 18px;
+  bottom: 18px;
+  width: min(390px, calc(100vw - 36px));
+  padding: 14px 18px 14px 54px;
+  color: var(--ink);
+  background:
+    radial-gradient(
+      circle at 25px 50%,
+      color-mix(in srgb, var(--surface) 64%, var(--macaron-rose)) 0 16px,
+      transparent 17px
+    ),
+    color-mix(in srgb, var(--surface) 94%, var(--macaron-lilac));
+  border: 1px solid var(--rose-gold);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.connection-status::before {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  color: var(--link);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  content: "N";
+  transform: translateY(-52%);
+}
+
+.connection-status[hidden] { display: none; }
+
+/* 10. Responsive art direction keeps every function and removes excess air. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --route-wash-a: rgba(190, 78, 142, 0.1);
+    --route-wash-b: rgba(135, 96, 169, 0.085);
+    --route-wash-c: rgba(79, 145, 139, 0.055);
+    --skeleton-base: color-mix(
+      in srgb,
+      var(--surface-subtle) 84%,
+      var(--macaron-lilac)
+    );
+    --skeleton-light: color-mix(
+      in srgb,
+      var(--surface) 82%,
+      var(--macaron-rose)
+    );
+  }
+
+  .loading-shell,
+  :is(.empty, .empty-state, .error-panel),
+  .chart-shell {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      var(--shadow);
+  }
+
+  .spinner {
+    background:
+      radial-gradient(
+        circle at 35% 28%,
+        rgba(255, 255, 255, 0.18),
+        transparent 27%
+      ),
+      color-mix(in srgb, var(--surface) 72%, var(--macaron-rose));
+  }
+
+  .chart-stage {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      inset 0 0 0 4px rgba(255, 255, 255, 0.018);
+  }
+
+  .rating-history-line {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.38));
+  }
+
+  .has-chart-selection .chart-inspector {
+    box-shadow:
+      inset 4px 0 0 var(--rose-gold),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 12px 28px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  body[data-route] main::before {
+    right: -130px;
+    width: 58vw;
+    opacity: 0.62;
+  }
+
+  body[data-route] main::after {
+    left: -150px;
+    width: 52vw;
+  }
+
+  .page-heading {
+    gap: 24px;
+  }
+
+  .page-heading h1 {
+    font-size: clamp(46px, 7vw, 64px);
+  }
+
+  .loading-shell {
+    width: min(680px, calc(100vw - 48px));
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --motion-luxury: 300ms;
+  }
+
+  body[data-route] main::before {
+    top: 10px;
+    right: -120px;
+    width: 310px;
+    height: 240px;
+    opacity: 0.5;
+  }
+
+  body[data-route] main::after {
+    display: none;
+  }
+
+  :is(
+    body[data-route="rankings"],
+    body[data-route="matches"],
+    body[data-route="fixtures"],
+    body[data-route="history"],
+    body[data-route="tournaments"],
+    body[data-route="team"],
+    body[data-route="compare"],
+    body[data-route="predict"],
+    body[data-route="records"],
+    body[data-route="methodology"],
+    body[data-route="faq"],
+    body[data-route="about"]
+  ) .page {
+    padding-top: 30px;
+  }
+
+  .page-heading {
+    padding-top: 0;
+  }
+
+  .page-heading h1 {
+    font-size: clamp(39px, 12vw, 54px);
+    line-height: 0.98;
+  }
+
+  .page-heading .lede {
+    line-height: 1.56;
+  }
+
+  .loading-shell {
+    width: calc(100vw - 28px);
+    min-height: 390px;
+    margin-top: 20px;
+    padding: 28px 20px;
+    border-radius: 24px;
+  }
+
+  .loading-shell::after {
+    height: 122px;
+    background:
+      linear-gradient(
+        90deg,
+        transparent 0 32%,
+        color-mix(in srgb, var(--surface) 72%, transparent) 46% 54%,
+        transparent 68% 100%
+      )
+      -160% 0 / 240% 100% no-repeat,
+      linear-gradient(var(--skeleton-base), var(--skeleton-base))
+      0 4px / 52% 15px no-repeat,
+      linear-gradient(var(--skeleton-base), var(--skeleton-base))
+      0 38px / 100% 20px no-repeat,
+      linear-gradient(var(--skeleton-base), var(--skeleton-base))
+      0 72px / 88% 20px no-repeat,
+      linear-gradient(var(--skeleton-base), var(--skeleton-base))
+      0 106px / 68% 14px no-repeat;
+  }
+
+  :is(.empty, .empty-state, .error-panel) {
+    padding: 26px 20px;
+  }
+
+  :is(.empty, .empty-state, .error-panel)::after {
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .chart-shell {
+    padding: 13px;
+  }
+
+  .chart-stage {
+    margin-inline: -2px;
+  }
+
+  .chart-inspector {
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .chart-inspector-values {
+    gap: 7px;
+  }
+
+  .chart-inspector-value {
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+  }
+
+  .chart-inspector-value strong {
+    font-size: 20px;
+  }
+
+  .connection-status {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .page > :is(header, section, article, nav, aside) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .spinner,
+  .loading-shell,
+  :is(.empty, .empty-state, .error-panel),
+  .connection-status,
+  .chart-inspector {
+    border: 1px solid CanvasText;
+    box-shadow: none;
+  }
+
+  .spinner::after,
+  body[data-route] main::before,
+  body[data-route] main::after {
+    display: none;
+  }
+}
+
+@media print {
+  .connection-status,
+  .spinner::after,
+  .loading-shell::after,
+  body[data-route] main::before,
+  body[data-route] main::after {
+    display: none;
+  }
+
+  .page > :is(header, section, article, nav, aside) {
+    animation: none;
+  }
+}
