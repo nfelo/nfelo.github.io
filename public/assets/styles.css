@@ -3955,3 +3955,715 @@ body::after {
     display: none;
   }
 }
+
+/* Pearlescent editorial finish: maximal femininity without applied decoration */
+:root {
+  --pearl-sheen: rgba(255, 255, 255, 0.36);
+  --pearl-sheen-soft: rgba(255, 255, 255, 0.16);
+  --powder-pink: #f8bfdc;
+  --powder-lilac: #dcc8ec;
+  --powder-cream: #fff7fb;
+  --rose-focus: #bd3f8b;
+  --satin-edge: rgba(180, 72, 137, 0.18);
+  --satin-shadow: rgba(92, 31, 77, 0.105);
+}
+
+body {
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+.brand,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3,
+.analysis-disclosure > summary b,
+.faq-item summary {
+  font-variation-settings:
+    "SOFT" 92,
+    "WONK" 0,
+    "opsz" 82;
+}
+
+h1 {
+  font-weight: 470;
+  letter-spacing: -0.041em;
+}
+
+h2 {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+h3,
+.brand strong,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3 {
+  font-weight: 550;
+}
+
+.hero h1 em {
+  font-style: italic;
+  font-variation-settings:
+    "SOFT" 100,
+    "WONK" 0,
+    "opsz" 96;
+}
+
+.eyebrow {
+  color: #944174;
+  font-size: 11.5px;
+  font-weight: 720;
+  letter-spacing: 0.19em;
+}
+
+.hero .eyebrow,
+.home-intro .eyebrow,
+.home-support > div:first-child .eyebrow,
+.panel-dark .eyebrow,
+.forecast .eyebrow {
+  color: #f6c9e5;
+}
+
+.site-header {
+  background:
+    linear-gradient(
+      112deg,
+      rgba(55, 10, 46, 0.985),
+      rgba(94, 25, 77, 0.98) 54%,
+      rgba(51, 14, 49, 0.985)
+    );
+  border-bottom-color: rgba(255, 215, 239, 0.25);
+  box-shadow:
+    inset 0 -1px 0 rgba(255, 241, 249, 0.045),
+    0 9px 30px rgba(40, 7, 34, 0.22);
+}
+
+.brand {
+  letter-spacing: -0.012em;
+}
+
+.brand strong {
+  font-size: 17px;
+}
+
+.brand small {
+  font-weight: 610;
+  letter-spacing: 0.17em;
+}
+
+.site-nav a,
+.nav-group > summary {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 590;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"],
+.nav-group > summary:hover,
+.nav-group[open] > summary,
+.nav-group.contains-current > summary {
+  background:
+    linear-gradient(
+      135deg,
+      #ffe0ef,
+      #f6b6d7 51%,
+      #dec8ee
+    );
+  border-color: rgba(255, 245, 251, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 7px 20px rgba(235, 116, 183, 0.18);
+}
+
+.nav-submenu {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 244, 251, 0.075),
+      rgba(225, 196, 239, 0.035)
+    ),
+    #38102f;
+  border-color: rgba(255, 218, 240, 0.2);
+  border-radius: 21px;
+}
+
+.page-heading::after {
+  width: min(11rem, 45vw);
+  height: 14px;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(231, 138, 190, 0.27),
+      rgba(207, 174, 228, 0.12) 48%,
+      transparent 76%
+    );
+  filter: blur(2.5px);
+  opacity: 0.82;
+}
+
+.hero,
+.home-intro,
+.team-hero,
+.forecast,
+.panel-dark,
+.home-support > div:first-child {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 0 56%,
+      rgba(255, 238, 248, 0.055) 66%,
+      transparent 77%
+    ),
+    radial-gradient(
+      ellipse 29rem 22rem at 98% 1%,
+      rgba(255, 172, 216, 0.21),
+      transparent 67%
+    ),
+    radial-gradient(
+      ellipse 26rem 21rem at 1% 106%,
+      rgba(211, 182, 236, 0.15),
+      transparent 69%
+    ),
+    linear-gradient(135deg, #45113b, #70265e);
+  border-color: rgba(255, 226, 243, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(229, 173, 209, 0.035),
+    0 24px 58px rgba(74, 16, 61, 0.16);
+}
+
+.hero,
+.home-intro {
+  border-radius: 41px 55px 41px 55px;
+}
+
+.team-hero,
+.forecast {
+  border-radius: 34px 47px 34px 47px;
+}
+
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .bar-chart,
+  .team-picker,
+  .toolbar,
+  .faq-tools,
+  .method-contents,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-add-panel,
+  .comparison-head-summary
+) {
+  background:
+    linear-gradient(
+      118deg,
+      transparent 0 53%,
+      var(--pearl-sheen-soft) 63%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 23rem 15rem at 108% -14%,
+      rgba(247, 184, 218, 0.115),
+      transparent 73%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.25),
+      rgba(244, 190, 219, 0.045) 58%,
+      rgba(220, 199, 237, 0.075)
+    ),
+    var(--surface);
+  border-color: var(--satin-edge);
+  box-shadow:
+    inset 0 1px 0 var(--pearl-sheen),
+    0 12px 31px var(--satin-shadow);
+}
+
+:is(
+  .stat-card,
+  .faq-item,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .comparison-team-row,
+  .comparison-summary-table
+) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(222, 198, 237, 0.05)
+    ),
+    var(--surface);
+  border-color: color-mix(
+    in srgb,
+    var(--satin-edge) 72%,
+    var(--border)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 7px 21px rgba(92, 31, 77, 0.065);
+}
+
+.button {
+  border-radius: 999px;
+  font-weight: 680;
+  letter-spacing: 0.008em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 7px 19px rgba(105, 35, 86, 0.08);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background-position 0.25s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 11px 25px rgba(105, 35, 86, 0.13);
+}
+
+.button-primary {
+  color: #35102e;
+  background:
+    linear-gradient(
+      120deg,
+      #ffe3f1 0,
+      #f6b2d5 36%,
+      #f1a4ce 56%,
+      #e2ccef 82%,
+      #ffe3f1 100%
+    );
+  background-position: 0 50%;
+  background-size: 160% 100%;
+  border-color: rgba(126, 36, 96, 0.15);
+}
+
+.button-primary:hover {
+  background:
+    linear-gradient(
+      120deg,
+      #ffebf5 0,
+      #f9bddc 36%,
+      #f5afd3 56%,
+      #ead5f3 82%,
+      #ffebf5 100%
+    );
+  background-position: 100% 50%;
+  background-size: 160% 100%;
+}
+
+.button-quiet {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 80%, #fff0f8),
+      var(--surface)
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--control-border) 62%,
+    #eda7ce
+  );
+}
+
+.field input,
+.field select,
+.team-picker select,
+.comparison-pair-picker select,
+.comparison-team-row select,
+.comparison-add-panel select,
+.chart-year-form input {
+  caret-color: var(--rose-focus);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 80%, #fff1f8),
+      var(--surface)
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--control-border) 66%,
+    #e6a1c8
+  );
+  border-radius: 15px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 4px 13px rgba(101, 37, 86, 0.055);
+}
+
+.field input::placeholder {
+  color: color-mix(in srgb, var(--ink-soft) 77%, #bd6c9c);
+}
+
+.field input:focus,
+.field select:focus,
+.team-picker select:focus-visible,
+.comparison-pair-picker select:focus-visible,
+.comparison-team-row select:focus-visible,
+.comparison-add-panel select:focus-visible,
+.chart-year-form input:focus-visible {
+  border-color: var(--rose-focus);
+  outline: 3px solid rgba(226, 112, 177, 0.25);
+  outline-offset: 1px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 0 5px rgba(226, 112, 177, 0.075);
+}
+
+th {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-subtle) 54%, #fff9fc),
+      color-mix(in srgb, var(--surface-subtle) 66%, #ead9f3)
+    );
+}
+
+.faq-item summary::after {
+  color: #5b1d4c;
+  background:
+    linear-gradient(135deg, #ffd6e9, #f3afd2 56%, #ddc5ed);
+  border: 1px solid rgba(151, 50, 111, 0.13);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 5px 14px rgba(113, 39, 94, 0.08);
+  font-family: var(--font-display);
+  font-weight: 480;
+}
+
+.faq-item summary:hover,
+.ranking-card-details summary:hover,
+.analysis-disclosure > summary:hover,
+.method-details > summary:hover {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(247, 183, 216, 0.13),
+      rgba(220, 198, 237, 0.075)
+    );
+}
+
+.record-note,
+.callout,
+.chronology-cause {
+  border-color: var(--satin-edge);
+  box-shadow: inset 0 1px 0 var(--pearl-sheen-soft);
+}
+
+.site-footer {
+  background:
+    linear-gradient(
+      116deg,
+      transparent 0 58%,
+      rgba(255, 229, 244, 0.045) 69%,
+      transparent 79%
+    ),
+    radial-gradient(
+      ellipse 31rem 23rem at 100% 0,
+      rgba(250, 150, 204, 0.15),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 27rem 21rem at 2% 110%,
+      rgba(191, 156, 222, 0.12),
+      transparent 71%
+    ),
+    linear-gradient(135deg, #3a0d32, #210a1d);
+}
+
+.site-footer a {
+  text-decoration-color: rgba(246, 190, 224, 0.54);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  tbody tr {
+    transition: background-color 0.16s ease;
+  }
+
+  tbody tr:hover {
+    background: rgba(245, 178, 214, 0.095);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pearl-sheen: rgba(255, 255, 255, 0.06);
+    --pearl-sheen-soft: rgba(255, 255, 255, 0.035);
+    --powder-pink: #d98db8;
+    --powder-lilac: #a889be;
+    --powder-cream: #2d1425;
+    --rose-focus: #ff80c7;
+    --satin-edge: rgba(239, 178, 214, 0.18);
+    --satin-shadow: rgba(0, 0, 0, 0.2);
+  }
+
+  .eyebrow {
+    color: #f1addb;
+  }
+
+  .site-header {
+    background:
+      linear-gradient(
+        112deg,
+        rgba(22, 8, 18, 0.99),
+        rgba(56, 17, 47, 0.985) 54%,
+        rgba(24, 9, 23, 0.99)
+      );
+  }
+
+  .nav-submenu {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 220, 242, 0.045),
+        rgba(195, 154, 219, 0.025)
+      ),
+      #24101f;
+  }
+
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .panel-dark,
+  .home-support > div:first-child {
+    background:
+      linear-gradient(
+        118deg,
+        transparent 0 56%,
+        rgba(255, 222, 241, 0.03) 66%,
+        transparent 77%
+      ),
+      radial-gradient(
+        ellipse 28rem 21rem at 98% 1%,
+        rgba(228, 111, 173, 0.125),
+        transparent 69%
+      ),
+      radial-gradient(
+        ellipse 25rem 20rem at 1% 106%,
+        rgba(162, 123, 194, 0.1),
+        transparent 71%
+      ),
+      linear-gradient(135deg, #310e2a, #4d193f);
+    border-color: rgba(246, 194, 225, 0.13);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 24px 58px rgba(0, 0, 0, 0.2);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .bar-chart,
+    .team-picker,
+    .toolbar,
+    .faq-tools,
+    .method-contents,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-add-panel,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        118deg,
+        transparent 0 53%,
+        rgba(255, 224, 242, 0.022) 63%,
+        transparent 74%
+      ),
+      radial-gradient(
+        ellipse 22rem 14rem at 108% -14%,
+        rgba(219, 108, 168, 0.045),
+        transparent 75%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.028),
+        rgba(102, 57, 94, 0.05)
+      ),
+      var(--surface);
+  }
+
+  :is(
+    .stat-card,
+    .faq-item,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .comparison-team-row,
+    .comparison-summary-table
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.026),
+        rgba(101, 66, 115, 0.04)
+      ),
+      var(--surface);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 7px 21px rgba(0, 0, 0, 0.14);
+  }
+
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 87%, #4a203a),
+        var(--surface)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 4px 13px rgba(0, 0, 0, 0.11);
+  }
+
+  th {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-subtle) 75%, #4a203a),
+        color-mix(in srgb, var(--surface-subtle) 83%, #46304f)
+      );
+  }
+
+  .faq-item summary::after {
+    color: #35102e;
+  }
+}
+
+@media
+  (prefers-color-scheme: dark)
+  and (hover: hover)
+  and (pointer: fine) {
+  tbody tr:hover {
+    background: rgba(215, 106, 165, 0.07);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .hero,
+  .home-intro {
+    border-radius: 35px 48px 35px 48px;
+  }
+
+  .team-hero,
+  .forecast {
+    border-radius: 30px 41px 30px 41px;
+  }
+}
+
+@media (max-width: 720px) {
+  h1 {
+    font-weight: 500;
+    letter-spacing: -0.035em;
+  }
+
+  h2 {
+    font-weight: 520;
+  }
+
+  .site-nav a,
+  .nav-group > summary {
+    border-radius: 16px;
+  }
+
+  .hero,
+  .home-intro {
+    border-radius: 27px 37px 27px 37px;
+  }
+
+  .team-hero,
+  .forecast {
+    border-radius: 23px 32px 23px 32px;
+  }
+
+  .page-heading::after {
+    width: min(8.5rem, 50vw);
+    height: 10px;
+  }
+
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.19),
+        rgba(221, 199, 236, 0.05)
+      ),
+      var(--surface);
+  }
+
+  .button {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.58),
+      0 5px 15px rgba(105, 35, 86, 0.07);
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 720px) {
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.024),
+        rgba(101, 66, 115, 0.04)
+      ),
+      var(--surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  tbody tr {
+    transition: none;
+  }
+}

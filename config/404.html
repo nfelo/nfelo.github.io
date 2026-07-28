@@ -33,6 +33,7 @@
         --border: rgba(103, 41, 88, .18);
         --shadow: rgba(78, 26, 69, .11);
         --ring: #c12f8e;
+        --pearl: rgba(255, 255, 255, .36);
       }
       @media (prefers-color-scheme: dark) {
         :root {
@@ -46,6 +47,7 @@
           --border: rgba(244, 212, 237, .21);
           --shadow: rgba(4, 1, 6, .42);
           --ring: #ff78c5;
+          --pearl: rgba(255, 255, 255, .055);
         }
       }
       * { box-sizing: border-box; }
@@ -67,21 +69,23 @@
         overflow: hidden;
         padding: clamp(28px, 7vw, 42px);
         background:
+          linear-gradient(118deg, transparent 0 54%, rgba(255, 255, 255, .16) 64%, transparent 75%),
           radial-gradient(ellipse 18rem 12rem at 108% -10%, rgba(246, 181, 216, .13), transparent 72%),
           linear-gradient(145deg, rgba(255, 255, 255, .22), rgba(220, 197, 237, .065)),
           var(--surface);
         border: 1px solid var(--border);
         border-radius: 28px 40px 28px 40px;
         box-shadow:
-          inset 0 0 0 1px rgba(255, 255, 255, .3),
+          inset 0 1px 0 var(--pearl),
           0 20px 50px var(--shadow);
       }
       h1 {
         margin: 0 0 12px;
         font-family: "Fraunces Variable", Candara, Corbel, serif;
         font-size: clamp(38px, 8vw, 64px);
-        font-weight: 500;
-        letter-spacing: -.032em;
+        font-weight: 470;
+        font-variation-settings: "SOFT" 92, "WONK" 0, "opsz" 82;
+        letter-spacing: -.041em;
         line-height: .98;
       }
       p {
@@ -93,13 +97,16 @@
       a {
         display: inline-block;
         padding: 12px 18px;
-        color: var(--on-dark);
-        background: linear-gradient(135deg, #7d2d6c, #a34783 54%, #76508f);
-        border: 1px solid rgba(255, 226, 243, .22);
+        color: #35102e;
+        background: linear-gradient(120deg, #ffe3f1, #f6b2d5 45%, #e2ccef);
+        border: 1px solid rgba(126, 36, 96, .15);
         border-radius: 999px;
-        font-weight: 700;
+        font-weight: 680;
+        letter-spacing: .008em;
         text-decoration: none;
-        box-shadow: 0 8px 22px var(--shadow);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .68),
+          0 8px 22px var(--shadow);
       }
       @media (prefers-color-scheme: dark) {
         body {
@@ -110,11 +117,12 @@
         }
         main {
           background:
+            linear-gradient(118deg, transparent 0 54%, rgba(255, 224, 242, .025) 64%, transparent 75%),
             radial-gradient(ellipse 18rem 12rem at 108% -10%, rgba(218, 108, 168, .055), transparent 74%),
             linear-gradient(145deg, rgba(255, 255, 255, .025), rgba(102, 67, 115, .045)),
             var(--surface);
           box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, .05),
+            inset 0 1px 0 var(--pearl),
             0 20px 50px var(--shadow);
         }
       }

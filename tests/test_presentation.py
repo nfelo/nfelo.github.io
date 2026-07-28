@@ -103,6 +103,8 @@ class PresentationReleaseTests(unittest.TestCase):
             "Dainty botanical wash",
             "atmosphere rather than applied ornament",
             "Repeated information should read as data",
+            "Pearlescent editorial finish",
+            "maximal femininity without applied decoration",
             ".brand:hover .brand-mark",
             ".eyebrow::before",
             ".page-heading::after",
@@ -111,6 +113,12 @@ class PresentationReleaseTests(unittest.TestCase):
             "--botanical-blush:",
             "--botanical-lilac:",
             "--botanical-edge:",
+            "--pearl-sheen:",
+            "--powder-pink:",
+            "--rose-focus:",
+            '"SOFT" 92',
+            "@media (hover: hover) and (pointer: fine)",
+            "@media (prefers-reduced-motion: reduce)",
             "@media (min-width: 721px) and (max-width: 1024px)",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
@@ -156,6 +164,32 @@ class PresentationReleaseTests(unittest.TestCase):
             "content: none;",
             final_cascade,
         )
+        pearlescent_cascade = stylesheet.split(
+            "Pearlescent editorial finish",
+            1,
+        )[1]
+        for applied_art in (
+            "botanical-sprig-2026.svg",
+            "floral-divider-2026.svg",
+            "floral-corner-rose-2026.svg",
+            "floral-corner-blossom-2026.svg",
+            "floral-ribbon-2026.svg",
+            "--bow-mask",
+            "--blossom-mask",
+        ):
+            self.assertNotIn(
+                applied_art,
+                pearlescent_cascade,
+            )
+        for interaction in (
+            "background-position 0.25s ease;",
+            "tbody tr:hover",
+            "outline: 3px solid rgba(226, 112, 177, 0.25);",
+        ):
+            self.assertIn(
+                interaction,
+                pearlescent_cascade,
+            )
         definitions = set(
             re.findall(r"--([\w-]+)\s*:", stylesheet)
         )
@@ -180,9 +214,11 @@ class PresentationReleaseTests(unittest.TestCase):
             ("#3d1f38", "#fffafd"),
             ("#705268", "#fffafd"),
             ("#7b286b", "#fffafd"),
+            ("#944174", "#fffafd"),
             ("#fff9fd", "#43133c"),
             ("#f1dceb", "#43133c"),
             ("#35102e", "#ff9bd5"),
+            ("#35102e", "#f6b2d5"),
             ("#fff9fd", "#27111f"),
             ("#e4ccdc", "#27111f"),
             ("#f3a8dc", "#27111f"),
@@ -266,6 +302,8 @@ class PresentationReleaseTests(unittest.TestCase):
             "apple-touch-icon-2026.png?v=20260728f1",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
+            'font-variation-settings: "SOFT" 92',
+            "linear-gradient(118deg",
             "radial-gradient(ellipse 34rem 23rem",
             "radial-gradient(ellipse 32rem 22rem",
             "#fff8fc;",
