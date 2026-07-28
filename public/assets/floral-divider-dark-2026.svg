@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 52" aria-hidden="true">
+  <defs>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#eba8cc" stop-opacity=".9"/>
+      <stop offset=".62" stop-color="#c9a8df" stop-opacity=".72"/>
+      <stop offset="1" stop-color="#c9a8df" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="rose">
+      <stop stop-color="#ffe9f5"/>
+      <stop offset="1" stop-color="#d87aad"/>
+    </radialGradient>
+  </defs>
+  <g opacity=".74">
+    <path d="M4 27h326" stroke="url(#line)" stroke-linecap="round" stroke-width="1.5"/>
+    <path d="M70 27c-14-14-27-12-34-4 11 9 22 10 34 4z" fill="#d9a2c0"/>
+    <path d="M105 27c8-17 20-21 31-15-6 12-16 17-31 15z" fill="#bca3cf"/>
+    <g transform="translate(88 27)">
+      <path d="M0-16C8-17 14-11 13-4c8 2 9 12 2 16-4 8-15 8-20 2-8 1-14-8-10-15-4-8 4-16 12-14z" fill="url(#rose)"/>
+      <path d="M-5-1c4-6 13-4 13 3 0 6-9 9-13 4-2-2-2-5 0-7z" fill="#ffe9f5" opacity=".8"/>
+    </g>
+    <g transform="translate(334 27) scale(.7)">
+      <circle cy="-8" r="6" fill="#f0dff9"/>
+      <circle cy="-8" r="6" fill="#e8b0cf" transform="rotate(72)"/>
+      <circle cy="-8" r="6" fill="#f0dff9" transform="rotate(144)"/>
+      <circle cy="-8" r="6" fill="#e8b0cf" transform="rotate(216)"/>
+      <circle cy="-8" r="6" fill="#f0dff9" transform="rotate(288)"/>
+      <circle r="3.5" fill="#d49b55"/>
+    </g>
+  </g>
+</svg>

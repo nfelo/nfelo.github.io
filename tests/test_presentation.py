@@ -99,6 +99,8 @@ class PresentationReleaseTests(unittest.TestCase):
             'font-feature-settings: "lnum" 1, "tnum" 1;',
             "font-variant-numeric: lining-nums tabular-nums;",
             "Floral editorial presentation system",
+            "Floral couture refinement",
+            "Dense and repeated components stay motif-free",
             ".brand:hover .brand-mark",
             ".eyebrow::before",
             ".page-heading::after",
@@ -107,6 +109,13 @@ class PresentationReleaseTests(unittest.TestCase):
             "--flower-mask:",
             'url("botanical-sprig-2026.svg")',
             'url("floral-divider-2026.svg")',
+            'url("floral-divider-dark-2026.svg")',
+            'url("floral-corner-rose-2026.svg")',
+            'url("floral-corner-rose-dark-2026.svg")',
+            'url("floral-corner-blossom-2026.svg")',
+            'url("floral-corner-blossom-dark-2026.svg")',
+            'url("floral-ribbon-2026.svg")',
+            'url("floral-ribbon-dark-2026.svg")',
             "@media (min-width: 721px) and (max-width: 1024px)",
             "@media (prefers-color-scheme: dark)",
             "@media (max-width: 720px)",
@@ -130,6 +139,17 @@ class PresentationReleaseTests(unittest.TestCase):
             stylesheet.count("--result-loss: #a93b55;"),
             2,
         )
+        final_cascade = stylesheet.split(
+            "Floral couture refinement",
+            1,
+        )[1]
+        self.assertNotIn("botanical-sprig-2026.svg", final_cascade)
+        for motif in (
+            "floral-corner-rose-2026.svg",
+            "floral-corner-blossom-2026.svg",
+            "floral-ribbon-2026.svg",
+        ):
+            self.assertIn(motif, final_cascade)
         definitions = set(
             re.findall(r"--([\w-]+)\s*:", stylesheet)
         )
@@ -216,15 +236,60 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertIn('<g id="flower">', social_svg)
         self.assertIn("International ratings, results", social_svg)
 
-        for asset in (
-            "botanical-sprig-2026.svg",
+        botanical = (
+            PUBLIC / "assets" / "botanical-sprig-2026.svg"
+        ).read_text(encoding="utf-8")
+        self.assertIn('<g id="flower">', botanical)
+        self.assertGreaterEqual(botanical.count("<ellipse"), 5)
+
+        motif_names = (
+            "floral-corner-rose-2026.svg",
+            "floral-corner-rose-dark-2026.svg",
+            "floral-corner-blossom-2026.svg",
+            "floral-corner-blossom-dark-2026.svg",
+            "floral-ribbon-2026.svg",
+            "floral-ribbon-dark-2026.svg",
             "floral-divider-2026.svg",
+            "floral-divider-dark-2026.svg",
+        )
+        motifs = {
+            name: (PUBLIC / "assets" / name).read_text(
+                encoding="utf-8"
+            )
+            for name in motif_names
+        }
+        for name, motif in motifs.items():
+            with self.subTest(asset=name):
+                self.assertIn("<svg", motif)
+                self.assertIn("viewBox=", motif)
+                self.assertIn("<path", motif)
+                self.assertGreater(
+                    motif.count("<path") + motif.count("<circle"),
+                    4,
+                )
+        self.assertNotEqual(
+            motifs["floral-corner-rose-2026.svg"],
+            motifs["floral-corner-blossom-2026.svg"],
+        )
+        for light, dark in (
+            (
+                "floral-corner-rose-2026.svg",
+                "floral-corner-rose-dark-2026.svg",
+            ),
+            (
+                "floral-corner-blossom-2026.svg",
+                "floral-corner-blossom-dark-2026.svg",
+            ),
+            (
+                "floral-ribbon-2026.svg",
+                "floral-ribbon-dark-2026.svg",
+            ),
+            (
+                "floral-divider-2026.svg",
+                "floral-divider-dark-2026.svg",
+            ),
         ):
-            botanical = (
-                PUBLIC / "assets" / asset
-            ).read_text(encoding="utf-8")
-            self.assertIn('<g id="flower">', botanical)
-            self.assertGreaterEqual(botanical.count("<ellipse"), 5)
+            self.assertNotEqual(motifs[light], motifs[dark])
 
         manifest = json.loads(
             (PUBLIC / "site.webmanifest").read_text(encoding="utf-8")

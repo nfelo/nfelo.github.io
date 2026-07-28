@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 180" aria-hidden="true">
+  <defs>
+    <linearGradient id="branch" x1="16" y1="164" x2="344" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d5a5c6"/>
+      <stop offset=".55" stop-color="#efb6d4"/>
+      <stop offset="1" stop-color="#c4aee0"/>
+    </linearGradient>
+    <linearGradient id="petal-a" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ffeaf6"/>
+      <stop offset="1" stop-color="#e99fc7"/>
+    </linearGradient>
+    <linearGradient id="petal-b" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f7eaff"/>
+      <stop offset="1" stop-color="#c8a4df"/>
+    </linearGradient>
+    <g id="blossom-a">
+      <circle cy="-9" r="7" fill="url(#petal-a)"/>
+      <circle cy="-9" r="7" fill="url(#petal-a)" transform="rotate(72)"/>
+      <circle cy="-9" r="7" fill="url(#petal-a)" transform="rotate(144)"/>
+      <circle cy="-9" r="7" fill="url(#petal-a)" transform="rotate(216)"/>
+      <circle cy="-9" r="7" fill="url(#petal-a)" transform="rotate(288)"/>
+      <circle r="4" fill="#e6aa64"/>
+      <circle r="1.8" fill="#8d3f6c"/>
+    </g>
+    <g id="blossom-b">
+      <circle cy="-8" r="6.5" fill="url(#petal-b)"/>
+      <circle cy="-8" r="6.5" fill="url(#petal-b)" transform="rotate(72)"/>
+      <circle cy="-8" r="6.5" fill="url(#petal-b)" transform="rotate(144)"/>
+      <circle cy="-8" r="6.5" fill="url(#petal-b)" transform="rotate(216)"/>
+      <circle cy="-8" r="6.5" fill="url(#petal-b)" transform="rotate(288)"/>
+      <circle r="3.7" fill="#c972a1"/>
+      <circle r="1.5" fill="#ffe8ab"/>
+    </g>
+  </defs>
+  <g opacity=".46">
+    <path d="M18 165c64-25 92-60 148-65 67-6 103-53 176-77" fill="none" stroke="url(#branch)" stroke-linecap="round" stroke-width="2.4"/>
+    <path d="M88 137c-24-23-43-19-54-6 17 14 35 16 54 6z" fill="#d5a7c1"/>
+    <path d="M138 112c5-30 23-41 41-34-4 21-18 32-41 34z" fill="#bda4cf"/>
+    <path d="M216 84c-23-21-42-16-51-2 18 12 35 13 51 2z" fill="#dda7c4"/>
+    <path d="M271 51c7-25 23-34 39-26-5 18-18 27-39 26z" fill="#bda4cf"/>
+    <g transform="translate(112 126) scale(.72)"><use href="#blossom-b"/></g>
+    <g transform="translate(185 96) scale(.92)"><use href="#blossom-a"/></g>
+    <g transform="translate(258 62) scale(.65)"><use href="#blossom-b"/></g>
+    <g transform="translate(315 35) scale(1.05)"><use href="#blossom-a"/></g>
+    <g fill="#e9bfd5">
+      <circle cx="236" cy="55" r="3.5"/>
+      <circle cx="247" cy="46" r="2.6"/>
+      <circle cx="283" cy="31" r="3"/>
+    </g>
+  </g>
+</svg>

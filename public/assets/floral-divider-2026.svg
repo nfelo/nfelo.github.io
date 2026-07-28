@@ -1,32 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 44" aria-hidden="true">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 52" aria-hidden="true">
   <defs>
     <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#c15397"/>
-      <stop offset=".66" stop-color="#e790c4"/>
-      <stop offset="1" stop-color="#c59ae4" stop-opacity=".2"/>
+      <stop stop-color="#c95896" stop-opacity=".94"/>
+      <stop offset=".62" stop-color="#c59ade" stop-opacity=".74"/>
+      <stop offset="1" stop-color="#c59ade" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="petal">
+    <radialGradient id="rose">
       <stop stop-color="#fff9fd"/>
-      <stop offset="1" stop-color="#f0a8cf"/>
+      <stop offset="1" stop-color="#e98dbb"/>
     </radialGradient>
-    <g id="flower">
-      <ellipse cy="-6.4" rx="3.9" ry="6.5" fill="url(#petal)"/>
-      <ellipse cy="-6.4" rx="3.9" ry="6.5" fill="url(#petal)" transform="rotate(72)"/>
-      <ellipse cy="-6.4" rx="3.9" ry="6.5" fill="url(#petal)" transform="rotate(144)"/>
-      <ellipse cy="-6.4" rx="3.9" ry="6.5" fill="url(#petal)" transform="rotate(216)"/>
-      <ellipse cy="-6.4" rx="3.9" ry="6.5" fill="url(#petal)" transform="rotate(288)"/>
-      <circle r="3" fill="#8c3471"/>
-      <circle r="1.2" fill="#ffe0a1"/>
-    </g>
   </defs>
-  <path d="M4 23h265" stroke="url(#line)" stroke-linecap="round" stroke-width="1.5"/>
-  <path d="M70 22c-12-13-22-12-28-6 9 7 18 9 28 6z" fill="#e8a2ca" opacity=".52"/>
-  <path d="M91 22c7-14 17-17 25-12-5 9-13 13-25 12z" fill="#c9a1e3" opacity=".52"/>
-  <path d="M190 22c-10-12-20-11-26-5 8 7 17 8 26 5z" fill="#e8a2ca" opacity=".45"/>
-  <g transform="translate(81 22)">
-    <use href="#flower"/>
-  </g>
-  <g transform="translate(272 22) scale(.78)">
-    <use href="#flower"/>
+  <g opacity=".78">
+    <path d="M4 27h326" stroke="url(#line)" stroke-linecap="round" stroke-width="1.5"/>
+    <path d="M70 27c-14-14-27-12-34-4 11 9 22 10 34 4z" fill="#e7a6ca"/>
+    <path d="M105 27c8-17 20-21 31-15-6 12-16 17-31 15z" fill="#c8a7df"/>
+    <g transform="translate(88 27)">
+      <path d="M0-16C8-17 14-11 13-4c8 2 9 12 2 16-4 8-15 8-20 2-8 1-14-8-10-15-4-8 4-16 12-14z" fill="url(#rose)"/>
+      <path d="M-5-1c4-6 13-4 13 3 0 6-9 9-13 4-2-2-2-5 0-7z" fill="#fff0f8" opacity=".86"/>
+    </g>
+    <g transform="translate(334 27) scale(.7)">
+      <circle cy="-8" r="6" fill="#fff9fd"/>
+      <circle cy="-8" r="6" fill="#f1b4d2" transform="rotate(72)"/>
+      <circle cy="-8" r="6" fill="#fff9fd" transform="rotate(144)"/>
+      <circle cy="-8" r="6" fill="#e2c4f1" transform="rotate(216)"/>
+      <circle cy="-8" r="6" fill="#fff9fd" transform="rotate(288)"/>
+      <circle r="3.5" fill="#e0aa5e"/>
+    </g>
   </g>
 </svg>

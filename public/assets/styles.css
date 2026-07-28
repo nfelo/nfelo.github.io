@@ -2632,3 +2632,811 @@ th {
       auto;
   }
 }
+
+/* Floral couture refinement: varied motifs, quieter repetition and dark-mode art */
+:root {
+  --rose-water: #fff0f7;
+  --rose-satin: #f6a9d0;
+  --rose-deep: #bd4c91;
+  --lilac-mist: #eadcf5;
+  --lace-line: rgba(190, 76, 143, 0.2);
+  --couture-highlight: rgba(255, 255, 255, 0.62);
+  --bow-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 22'%3E%3Cpath d='M15 8C10 1 3 1 1 8c3 5 9 6 14 2v3c-4 2-8 5-11 9h8l4-8 4 8h8c-3-4-7-7-11-9v-3c5 4 11 3 14-2-2-7-9-7-14 0h-2Z'/%3E%3Ccircle cx='16' cy='10' r='3'/%3E%3C/svg%3E");
+  --blossom-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='6.5' r='5.5'/%3E%3Ccircle cx='14' cy='6.5' r='5.5' transform='rotate(72 14 14)'/%3E%3Ccircle cx='14' cy='6.5' r='5.5' transform='rotate(144 14 14)'/%3E%3Ccircle cx='14' cy='6.5' r='5.5' transform='rotate(216 14 14)'/%3E%3Ccircle cx='14' cy='6.5' r='5.5' transform='rotate(288 14 14)'/%3E%3Ccircle cx='14' cy='14' r='3.5'/%3E%3C/svg%3E");
+}
+
+body {
+  background:
+    radial-gradient(circle at 9% 0, rgba(255, 177, 217, 0.2), transparent 31rem),
+    radial-gradient(circle at 94% 21%, rgba(218, 189, 241, 0.17), transparent 38rem),
+    linear-gradient(180deg, #fffafd 0, var(--paper) 44%, #fff5fa 100%);
+}
+
+body::before,
+body::after {
+  height: 180px;
+  filter: none;
+  opacity: 1;
+}
+
+body::before {
+  top: 88px;
+  right: -90px;
+  width: 390px;
+  background:
+    url("floral-corner-rose-2026.svg")
+    center / contain no-repeat;
+  transform: rotate(-4deg);
+}
+
+body::after {
+  bottom: 16px;
+  left: -106px;
+  width: 360px;
+  background:
+    url("floral-corner-blossom-2026.svg")
+    center / contain no-repeat;
+  transform: rotate(174deg);
+}
+
+h1,
+h2,
+h3,
+.brand,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3,
+.analysis-disclosure > summary b,
+.faq-item summary {
+  font-variation-settings:
+    "SOFT" 72,
+    "WONK" 0,
+    "opsz" 78;
+}
+
+h1 {
+  font-weight: 480;
+  letter-spacing: -0.038em;
+}
+
+h2 {
+  font-weight: 500;
+  letter-spacing: -0.029em;
+}
+
+h3,
+.brand strong,
+.ranking-card-team,
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.leader-card h3 {
+  font-weight: 550;
+}
+
+.hero h1 em {
+  color: #ffb9df;
+  font-style: italic;
+  font-variation-settings:
+    "SOFT" 84,
+    "WONK" 0,
+    "opsz" 92;
+  text-shadow: 0 0 24px rgba(255, 159, 212, 0.18);
+}
+
+.site-header {
+  background:
+    linear-gradient(
+      112deg,
+      rgba(57, 11, 47, 0.985),
+      rgba(89, 24, 73, 0.98) 56%,
+      rgba(58, 17, 54, 0.985)
+    );
+  border-bottom-color: rgba(255, 215, 239, 0.27);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 30px rgba(48, 8, 40, 0.22);
+}
+
+.site-header::after {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  height: 1px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 174, 218, 0.45) 26%,
+      rgba(221, 192, 245, 0.42) 72%,
+      transparent
+    );
+  content: "";
+}
+
+.site-nav a,
+.nav-group > summary {
+  border: 1px solid transparent;
+  font-weight: 570;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"],
+.nav-group > summary:hover,
+.nav-group[open] > summary,
+.nav-group.contains-current > summary {
+  background:
+    linear-gradient(135deg, #ffd0e8, #ffa9d5 50%, #e5c6f4);
+  border-color: rgba(255, 241, 249, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 6px 18px rgba(255, 116, 194, 0.2);
+}
+
+.page-heading {
+  padding-bottom: 29px;
+}
+
+.page-heading::after {
+  bottom: -7px;
+  width: min(340px, 68vw);
+  height: 50px;
+  background:
+    url("floral-divider-2026.svg")
+    left center / contain no-repeat;
+}
+
+.eyebrow::before,
+.chronology-cause::before {
+  background:
+    linear-gradient(145deg, var(--lime), var(--orchid));
+  -webkit-mask: var(--blossom-mask) center / contain no-repeat;
+  mask: var(--blossom-mask) center / contain no-repeat;
+}
+
+.eyebrow::before {
+  width: 15px;
+  height: 15px;
+}
+
+.button-primary::before,
+.section-heading h2::after,
+.compact-heading h2::after,
+.home-explore-links a::after {
+  background: currentColor;
+  -webkit-mask: var(--bow-mask) center / contain no-repeat;
+  mask: var(--bow-mask) center / contain no-repeat;
+}
+
+.button-primary::before {
+  width: 18px;
+  height: 13px;
+  margin: 0 1px 0 -1px;
+}
+
+.button-primary:hover::before {
+  transform: translateY(-1px) rotate(-4deg) scale(1.04);
+}
+
+.section-heading h2::after,
+.compact-heading h2::after {
+  width: 17px;
+  height: 12px;
+  margin-left: 10px;
+  color: var(--orchid);
+  opacity: 0.62;
+}
+
+.home-explore-links a::after {
+  top: 17px;
+  width: 19px;
+  height: 14px;
+}
+
+.home-explore-links a:nth-child(even)::after {
+  background:
+    linear-gradient(145deg, var(--lime), var(--orchid));
+  -webkit-mask: var(--blossom-mask) center / contain no-repeat;
+  mask: var(--blossom-mask) center / contain no-repeat;
+  height: 18px;
+}
+
+.hero,
+.home-intro,
+.team-hero,
+.forecast,
+.panel-dark,
+.home-support > div:first-child {
+  background:
+    url("floral-corner-rose-dark-2026.svg")
+      calc(100% + 20px) -8px / clamp(230px, 31vw, 360px) auto
+      no-repeat,
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(255, 144, 205, 0.18),
+      transparent 29rem
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(220, 184, 247, 0.13),
+      transparent 25rem
+    ),
+    linear-gradient(135deg, #47123e, #73275f);
+  border-color: rgba(255, 225, 243, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    var(--shadow);
+}
+
+.home-intro,
+.forecast {
+  background-image:
+    url("floral-corner-blossom-dark-2026.svg"),
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(255, 144, 205, 0.18),
+      transparent 29rem
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(220, 184, 247, 0.13),
+      transparent 25rem
+    ),
+    linear-gradient(135deg, #47123e, #73275f);
+}
+
+.home-support > div:first-child {
+  background-image:
+    url("floral-ribbon-dark-2026.svg"),
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(255, 144, 205, 0.18),
+      transparent 29rem
+    ),
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(220, 184, 247, 0.13),
+      transparent 25rem
+    ),
+    linear-gradient(135deg, #47123e, #73275f);
+  background-position:
+    calc(100% + 12px) -2px,
+    0 0,
+    0 0,
+    0 0;
+  background-size:
+    245px auto,
+    auto,
+    auto,
+    auto;
+}
+
+.hero,
+.home-intro {
+  border-radius: 40px 58px 40px 58px;
+}
+
+.team-hero,
+.forecast {
+  border-radius: 34px 49px 34px 49px;
+}
+
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .stat-card,
+  .bar-chart,
+  .team-picker,
+  .toolbar,
+  .faq-tools,
+  .faq-item,
+  .method-contents,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-team-row,
+  .comparison-add-panel,
+  .comparison-summary-table,
+  .comparison-head-summary
+) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(247, 186, 220, 0.07) 54%,
+      rgba(220, 194, 239, 0.1)
+    ),
+    var(--surface);
+  border-color: var(--lace-line);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.36),
+    var(--shadow-small);
+}
+
+:is(
+  .home-ranking-list,
+  .home-records,
+  .method-contents,
+  .comparison-selection,
+  .venue-profile
+) {
+  background-image:
+    url("floral-corner-rose-2026.svg"),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(247, 186, 220, 0.07) 54%,
+      rgba(220, 194, 239, 0.1)
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-position: calc(100% + 70px) -47px, 0 0;
+  background-size: 205px auto, 100% 100%;
+}
+
+:is(
+  .home-upcoming,
+  .home-explore,
+  .faq-tools,
+  .team-picker,
+  .comparison-add-panel
+) {
+  background-image:
+    url("floral-corner-blossom-2026.svg"),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(247, 186, 220, 0.07) 54%,
+      rgba(220, 194, 239, 0.1)
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-position: calc(100% + 76px) -49px, 0 0;
+  background-size: 210px auto, 100% 100%;
+}
+
+:is(
+  .toolbar,
+  .chart-shell,
+  .team-model-details,
+  .comparison-head-summary
+) {
+  background-image:
+    url("floral-ribbon-2026.svg"),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(247, 186, 220, 0.07) 54%,
+      rgba(220, 194, 239, 0.1)
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-position: calc(100% + 58px) -42px, 0 0;
+  background-size: 155px auto, 100% 100%;
+}
+
+/* Dense and repeated components stay motif-free to prevent visual overload. */
+:is(
+  .stat-card,
+  .faq-item,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .comparison-team-row,
+  .comparison-summary-table
+) {
+  background-image:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(247, 186, 220, 0.07) 54%,
+      rgba(220, 194, 239, 0.1)
+    );
+  background-position: 0 0;
+  background-size: 100% 100%;
+}
+
+.button {
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 var(--couture-highlight),
+    0 8px 20px rgba(117, 42, 99, 0.1);
+}
+
+.button-primary {
+  background:
+    linear-gradient(
+      132deg,
+      #ffd7eb 0,
+      #ffacd5 43%,
+      #ef9dc9 63%,
+      #e1c6f1 100%
+    );
+  border-color: rgba(128, 37, 99, 0.16);
+}
+
+.button-primary:hover {
+  background:
+    linear-gradient(
+      132deg,
+      #ffe0ef 0,
+      #ffb5da 43%,
+      #f2a6cf 63%,
+      #e8cef5 100%
+    );
+}
+
+.button-quiet {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 83%, var(--rose-water)),
+      var(--surface)
+    );
+  border-color:
+    color-mix(in srgb, var(--control-border) 66%, var(--rose-satin));
+}
+
+.field input,
+.field select,
+.team-picker select,
+.comparison-pair-picker select,
+.comparison-team-row select,
+.comparison-add-panel select,
+.chart-year-form input {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 84%, var(--rose-water)),
+      var(--surface)
+    );
+  border-color:
+    color-mix(in srgb, var(--control-border) 68%, var(--rose-satin));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 3px 10px rgba(131, 55, 109, 0.04);
+}
+
+.table-shell,
+.chart-stage {
+  border-radius: 23px 32px 23px 32px;
+  border-color: var(--lace-line);
+}
+
+th {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-subtle) 60%, #fff8fc),
+      color-mix(in srgb, var(--surface-subtle) 62%, var(--lilac-mist))
+    );
+  border-bottom-color: var(--lace-line);
+}
+
+.record-note,
+.callout,
+.chronology-cause {
+  border-color: var(--lace-line);
+}
+
+.faq-item,
+.method-details,
+.analysis-disclosure,
+.team-model-details,
+.ranking-card {
+  border-radius: 18px 26px 18px 26px;
+}
+
+.site-footer {
+  background:
+    url("floral-corner-blossom-dark-2026.svg")
+      calc(100% + 4px) -18px / 330px auto no-repeat,
+    radial-gradient(
+      circle at 88% 0,
+      rgba(255, 143, 206, 0.16),
+      transparent 26rem
+    ),
+    linear-gradient(135deg, #3b0e33, #210b1d);
+  border-top-color: rgba(255, 214, 238, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rose-water: #4a1f3a;
+    --rose-satin: #e397c2;
+    --rose-deep: #ff80c7;
+    --lilac-mist: #4a3155;
+    --lace-line: rgba(244, 183, 219, 0.22);
+    --couture-highlight: rgba(255, 255, 255, 0.075);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 9% 0, rgba(255, 125, 197, 0.11), transparent 31rem),
+      radial-gradient(circle at 94% 21%, rgba(190, 151, 224, 0.1), transparent 38rem),
+      linear-gradient(180deg, #1b0a16 0, var(--paper) 44%, #12080f 100%);
+  }
+
+  body::before {
+    background-image: url("floral-corner-rose-dark-2026.svg");
+  }
+
+  body::after {
+    background-image: url("floral-corner-blossom-dark-2026.svg");
+  }
+
+  .page-heading::after {
+    background-image: url("floral-divider-dark-2026.svg");
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-records,
+    .method-contents,
+    .comparison-selection,
+    .venue-profile
+  ) {
+    background-image:
+      url("floral-corner-rose-dark-2026.svg"),
+      linear-gradient(
+        145deg,
+        rgba(255, 143, 206, 0.035),
+        rgba(107, 45, 93, 0.075)
+      );
+  }
+
+  :is(
+    .home-upcoming,
+    .home-explore,
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel
+  ) {
+    background-image:
+      url("floral-corner-blossom-dark-2026.svg"),
+      linear-gradient(
+        145deg,
+        rgba(255, 143, 206, 0.035),
+        rgba(107, 45, 93, 0.075)
+      );
+  }
+
+  :is(
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background-image:
+      url("floral-ribbon-dark-2026.svg"),
+      linear-gradient(
+        145deg,
+        rgba(255, 143, 206, 0.035),
+        rgba(107, 45, 93, 0.075)
+      );
+  }
+
+  :is(
+    .stat-card,
+    .faq-item,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .comparison-team-row,
+    .comparison-summary-table,
+    .panel:not(.panel-dark),
+    .bar-chart
+  ) {
+    background-image:
+      linear-gradient(
+        145deg,
+        rgba(255, 143, 206, 0.035),
+        rgba(107, 45, 93, 0.075)
+      );
+  }
+
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 88%, var(--rose-water)),
+        var(--surface)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.055),
+      0 3px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .button-primary {
+    color: #35102e;
+  }
+
+  th {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-subtle) 76%, var(--rose-water)),
+        color-mix(in srgb, var(--surface-subtle) 82%, var(--lilac-mist))
+      );
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  body::before,
+  body::after {
+    width: 310px;
+  }
+
+  .hero,
+  .home-intro {
+    border-radius: 34px 47px 34px 47px;
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-records,
+    .method-contents,
+    .comparison-selection,
+    .venue-profile,
+    .home-upcoming,
+    .home-explore,
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel
+  ) {
+    background-position: calc(100% + 82px) -51px, 0 0;
+    background-size: 190px auto, 100% 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  body::before {
+    top: 72px;
+    right: -102px;
+    width: 270px;
+    height: 140px;
+  }
+
+  h1 {
+    font-weight: 505;
+  }
+
+  h2 {
+    font-weight: 520;
+  }
+
+  .page-heading {
+    padding-bottom: 24px;
+  }
+
+  .page-heading::after {
+    bottom: -9px;
+    width: min(270px, 82vw);
+    height: 42px;
+  }
+
+  .hero,
+  .home-intro {
+    border-radius: 26px 36px 26px 36px;
+    background-position:
+      calc(100% + 55px) -24px,
+      0 0,
+      0 0,
+      0 0;
+    background-size:
+      205px auto,
+      auto,
+      auto,
+      auto;
+  }
+
+  .team-hero,
+  .forecast {
+    border-radius: 22px 31px 22px 31px;
+    background-position:
+      calc(100% + 68px) -31px,
+      0 0,
+      0 0,
+      0 0;
+    background-size:
+      190px auto,
+      auto,
+      auto,
+      auto;
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-records,
+    .method-contents,
+    .comparison-selection,
+    .venue-profile,
+    .home-upcoming,
+    .home-explore
+  ) {
+    background-position: calc(100% + 88px) -54px, 0 0;
+    background-size: 175px auto, 100% 100%;
+  }
+
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background-image:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.16),
+        rgba(247, 186, 220, 0.07) 54%,
+        rgba(220, 194, 239, 0.09)
+      );
+    background-position: 0 0;
+    background-size: 100% 100%;
+  }
+
+  .section-heading h2::after,
+  .compact-heading h2::after {
+    width: 15px;
+    height: 11px;
+    margin-left: 8px;
+  }
+
+  .site-footer {
+    background-position:
+      calc(100% + 70px) -26px,
+      0 0,
+      0 0;
+    background-size:
+      230px auto,
+      auto,
+      auto;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 720px) {
+  :is(
+    .faq-tools,
+    .team-picker,
+    .comparison-add-panel,
+    .toolbar,
+    .chart-shell,
+    .team-model-details,
+    .comparison-head-summary
+  ) {
+    background-image:
+      linear-gradient(
+        145deg,
+        rgba(255, 143, 206, 0.035),
+        rgba(107, 45, 93, 0.075)
+      );
+  }
+}
+
+@media print {
+  body::before,
+  body::after,
+  .site-header::after {
+    display: none;
+  }
+}
