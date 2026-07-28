@@ -1,0 +1,259 @@
+name: Install Compare inactive-team fix
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: install-nfelo-compare-inactive-teams-fix
+  cancel-in-progress: true
+
+jobs:
+  install:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the latest main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the reproducible runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Apply the inactive-team comparison fix
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+
+          def replace_once(path_value: str, old: str, new: str) -> None:
+              path = Path(path_value)
+              text = path.read_text(encoding="utf-8")
+              if new in text:
+                  print(f"{path}: change already present")
+                  return
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(
+                      f"{path}: expected one exact installation anchor, found {count}"
+                  )
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+              print(f"{path}: updated")
+
+
+          replace_once(
+              "public/assets/app.js",
+              r'''    const legend = prepared.length > 1
+                ? `<div class="comparison-legend" aria-label="Chart teams">${prepared.map((item, index) => `<button type="button" class="chart-legend-item" data-chart-focus-series="${index}" aria-pressed="false"><svg viewBox="0 0 28 8" aria-hidden="true"><line class="chart-legend-line ${item.className}" x1="1" y1="4" x2="27" y2="4"/></svg><span>${escapeHTML(item.label)}</span>${item.active ? "" : `<small>historical</small>`}</button>`).join("")}<button type="button" class="button button-quiet chart-show-all" data-chart-show-all hidden>Show all teams</button></div>`
+                : "";''',
+              r'''    const legend = prepared.length > 1
+                ? `<div class="comparison-legend" aria-label="Chart teams">${prepared.map((item, index) => `<button type="button" class="chart-legend-item" data-chart-focus-series="${index}" aria-pressed="false" ${item.history.length ? "" : `aria-disabled="true"`}><svg viewBox="0 0 28 8" aria-hidden="true"><line class="chart-legend-line ${item.className}" x1="1" y1="4" x2="27" y2="4"/></svg><span>${escapeHTML(item.label)}</span>${item.history.length ? (item.active ? "" : `<small>historical</small>`) : `<small>no rating line</small>`}</button>`).join("")}<button type="button" class="button button-quiet chart-show-all" data-chart-show-all hidden>Show all teams</button></div>`
+                : "";''',
+          )
+
+          replace_once(
+              "public/assets/app.js",
+              r'''      const values = inspected.map(({ item, point, ended }) => {
+                  if (!point) {
+                    return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>Not yet eligible for a rating</small></span><strong>—</strong></span>`;
+                  }''',
+              r'''      const values = inspected.map(({ item, point, ended }) => {
+                  if (!point) {
+                    const unavailable = item.history.length
+                      ? "Not yet eligible for a rating"
+                      : "No rating line (fewer than 30 matches)";
+                    return `<span class="chart-inspector-value ${item.className}"><i></i><span><b>${escapeHTML(item.label)}</b><small>${unavailable}</small></span><strong>—</strong></span>`;
+                  }''',
+          )
+
+          replace_once(
+              "public/assets/app.js",
+              r'''      const samples = config.series.flatMap((item) => {
+                  const finalStamp = item.history.at(-1).stamp;''',
+              r'''      const samples = config.series.flatMap((item) => {
+                  if (!item.history.length) return [];
+                  const finalStamp = item.history.at(-1).stamp;''',
+          )
+
+          replace_once(
+              "public/assets/app.js",
+              r'''      const stepPath = (item) => {
+                  const finalStamp = item.history.at(-1).stamp;''',
+              r'''      const stepPath = (item) => {
+                  if (!item.history.length) return "";
+                  const finalStamp = item.history.at(-1).stamp;''',
+          )
+
+          replace_once(
+              "public/assets/app.js",
+              r'''    const focusOnSeries = (index) => {
+                focusedSeries = focusedSeries === index ? null : index;''',
+              r'''    const focusOnSeries = (index) => {
+                if (!config.series[index]?.history.length) return;
+                focusedSeries = focusedSeries === index ? null : index;''',
+          )
+
+          replace_once(
+              "tests/test_build.py",
+              '''        self.assertIn("Czechoslovakia", historical_names_1985)
+                  self.assertLess(
+              ''',
+              '''        self.assertIn("Czechoslovakia", historical_names_1985)
+                  inactive_without_rating_lines = {
+                      team["code"]
+                      for team in self.summary["teams"]
+                      if not team.get("rank")
+                      and not json.loads(
+                          (
+                              comparison_data
+                              / f'{team["code"]}.json'
+                          ).read_text(encoding="utf-8")
+                      )["history"]
+                  }
+                  self.assertTrue(inactive_without_rating_lines)
+                  self.assertNotIn("DD", inactive_without_rating_lines)
+                  self.assertLess(
+              ''',
+          )
+
+          replace_once(
+              "tests/test_build.py",
+              '''            "point.historical_name || item.label",
+                      "const chartSeriesClass",
+                  ):
+              ''',
+              '''            "point.historical_name || item.label",
+                      "const chartSeriesClass",
+                      'if (!item.history.length) return [];',
+                      'if (!item.history.length) return "";',
+                      "No rating line (fewer than 30 matches)",
+                      "if (!config.series[index]?.history.length) return;",
+                  ):
+              ''',
+          )
+          PY
+
+      - name: Rebuild the static site
+        run: |
+          set -euo pipefail
+          python scripts/build_site.py \
+            --source source \
+            --config config \
+            --output public
+
+      - name: Verify the complete site
+        run: |
+          set -euo pipefail
+          python -m unittest discover \
+            --start-directory tests \
+            --verbose
+          node --check public/assets/app.js
+          git diff --check
+
+      - name: Audit the installation boundary
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import subprocess
+
+
+          app = Path("public/assets/app.js")
+          tests = Path("tests/test_build.py")
+          app_text = app.read_text(encoding="utf-8")
+          test_text = tests.read_text(encoding="utf-8")
+
+          app_markers = (
+              'if (!item.history.length) return [];',
+              'if (!item.history.length) return "";',
+              "No rating line (fewer than 30 matches)",
+              "if (!config.series[index]?.history.length) return;",
+              'aria-disabled="true"',
+          )
+          test_markers = (
+              "inactive_without_rating_lines",
+              'self.assertNotIn("DD", inactive_without_rating_lines)',
+          )
+          for marker in app_markers:
+              if marker not in app_text:
+                  raise SystemExit(f"Missing application safeguard: {marker}")
+          for marker in test_markers:
+              if marker not in test_text:
+                  raise SystemExit(f"Missing regression-test safeguard: {marker}")
+
+          app_version = sha256(app.read_bytes()).hexdigest()[:12]
+          routes = sorted(Path("public").rglob("index.html"))
+          if len(routes) < 250:
+              raise SystemExit(
+                  f"Unexpectedly found only {len(routes)} clean-route files"
+              )
+          stale_routes = [
+              str(path)
+              for path in routes
+              if f"app.js?v={app_version}" not in path.read_text(
+                  encoding="utf-8"
+              )
+          ]
+          if stale_routes:
+              raise SystemExit(
+                  "Routes have stale application versions: "
+                  + ", ".join(stale_routes[:10])
+              )
+
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only"],
+                  text=True,
+              ).splitlines()
+          )
+          allowed = {
+              "public/assets/app.js",
+              "tests/test_build.py",
+              *(str(path) for path in routes),
+          }
+          unexpected = sorted(changed - allowed)
+          if unexpected:
+              raise SystemExit(
+                  "Unexpected files changed: " + ", ".join(unexpected)
+              )
+
+          print(
+              "Installation audit passed: "
+              f"{len(routes)} routes use app.js?v={app_version}; "
+              f"{len(changed)} tracked files changed."
+          )
+          PY
+
+      - name: Commit and push the verified fix
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- public/assets/app.js tests/test_build.py
+          find public -type f -name index.html -print0 \
+            | xargs -0 git add --
+
+          if git diff --cached --quiet; then
+            echo "The inactive-team comparison fix is already installed."
+            exit 0
+          fi
+
+          git commit -m \
+            "Fix comparisons with inactive teams"
+          git push origin HEAD:main
