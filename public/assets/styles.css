@@ -6021,3 +6021,582 @@ tbody tr:nth-child(even) {
     box-shadow: none;
   }
 }
+
+/*
+ * Final keepsake polish: nine interface refinements plus one unified emblem.
+ * The visual language is drawn from scalloped couture hems, lacquered
+ * cosmetics, faceted compacts, pearl settings and softly pleated satin.
+ * Ornament stays structural, sparse and subordinate to the football data.
+ */
+:root {
+  --keepsake-lace: rgba(255, 210, 235, 0.62);
+  --keepsake-lace-shadow: rgba(114, 36, 92, 0.16);
+  --lacquer-glint: rgba(255, 255, 255, 0.7);
+  --lacquer-shadow: rgba(102, 29, 80, 0.15);
+  --vanity-lip: rgba(188, 76, 143, 0.24);
+  --pleat-light: rgba(255, 255, 255, 0.31);
+  --pleat-shadow: rgba(138, 57, 110, 0.055);
+  --pearl-scroll: #d68ab8;
+  --pearl-scroll-light: #f5c9e1;
+  --compact-open: rgba(245, 176, 214, 0.14);
+  --tray-edge: rgba(174, 69, 134, 0.19);
+  --rosewater-selection: #f3b9d8;
+  --rosewater-selection-ink: #35102e;
+}
+
+/* 1. A restrained scalloped couture hem joins the header and footer. */
+.site-header::after,
+.site-footer::before {
+  height: 6px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 0,
+      var(--keepsake-lace) 0 43%,
+      var(--keepsake-lace-shadow) 45% 50%,
+      transparent 52%
+    )
+    left top / 14px 6px repeat-x;
+  content: "";
+}
+
+.site-header::after {
+  right: 0;
+  bottom: -6px;
+  left: 0;
+}
+
+.site-footer {
+  position: relative;
+}
+
+.site-footer::before {
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  transform: rotate(180deg);
+}
+
+/* 2. Selected and pressed controls receive a mirror-lacquer finish. */
+:is(
+  .record-tabs .button[aria-pressed="true"],
+  .toggle-group .button[aria-pressed="true"],
+  .button[aria-pressed="true"],
+  .site-nav a[aria-current="page"],
+  .nav-group[open] > summary,
+  .nav-group.contains-current > summary
+) {
+  border-color: rgba(137, 42, 102, 0.24);
+  box-shadow:
+    inset 0 2px 0 var(--lacquer-glint),
+    inset 0 -5px 11px rgba(146, 55, 113, 0.1),
+    0 7px 19px var(--lacquer-shadow);
+}
+
+:is(
+  .button,
+  button,
+  input,
+  select
+):disabled,
+:is(
+  .button,
+  button
+)[aria-disabled="true"] {
+  cursor: not-allowed;
+  filter: saturate(0.62);
+  opacity: 0.54;
+  box-shadow: none;
+  transform: none;
+}
+
+/* 3. Form controls read like blush-glass vanity drawers. */
+:is(
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input
+) {
+  caret-color: var(--atelier-focus);
+  background:
+    radial-gradient(
+      ellipse 13rem 3rem at 34% 0,
+      rgba(255, 255, 255, 0.66),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 91%, #fff),
+      color-mix(in srgb, var(--surface) 91%, #f7ddea)
+    );
+  border-color: var(--vanity-lip);
+  box-shadow:
+    inset 0 1px 0 var(--lacquer-glint),
+    inset 0 -3px 7px rgba(138, 57, 110, 0.045),
+    0 4px 13px rgba(91, 26, 73, 0.045);
+}
+
+:is(
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input
+):hover:not(:disabled) {
+  border-color: color-mix(
+    in srgb,
+    var(--atelier-focus) 52%,
+    var(--control-border)
+  );
+}
+
+/* 4. Table headings use a very fine pleated-satin rhythm. */
+th {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 16px,
+      var(--pleat-light) 17px,
+      transparent 18px 33px,
+      var(--pleat-shadow) 34px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-subtle) 52%, #fff9fc),
+      color-mix(in srgb, var(--surface-subtle) 69%, #ead9f3)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 var(--border);
+}
+
+/* 5. Horizontally scrollable data has a visible pearl-finished track. */
+:is(
+  .table-shell,
+  .record-tabs[role="tablist"],
+  .comparison-legend
+) {
+  scrollbar-color: var(--pearl-scroll) transparent;
+  scrollbar-width: thin;
+}
+
+:is(
+  .table-shell,
+  .record-tabs[role="tablist"],
+  .comparison-legend
+)::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+:is(
+  .table-shell,
+  .record-tabs[role="tablist"],
+  .comparison-legend
+)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:is(
+  .table-shell,
+  .record-tabs[role="tablist"],
+  .comparison-legend
+)::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(
+      90deg,
+      var(--pearl-scroll-light),
+      var(--pearl-scroll) 52%,
+      var(--pearl-scroll-light)
+    );
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.table-hint {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 520;
+  letter-spacing: 0.025em;
+}
+
+/* 6. Small data markers become polished cabochons, not extra icons. */
+.venue-code {
+  background-image:
+    radial-gradient(
+      circle at 34% 24%,
+      rgba(255, 255, 255, 0.62),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 47%,
+      rgba(36, 9, 30, 0.12)
+    );
+  border: 1px solid rgba(73, 24, 62, 0.13);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    0 3px 8px rgba(73, 24, 62, 0.12);
+}
+
+.home-rank,
+.chart-legend-item {
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 0 1px 0 var(--enamel-highlight),
+    0 4px 11px rgba(91, 26, 73, 0.07);
+}
+
+.chart-legend-item {
+  border-radius: 999px;
+}
+
+/* 7. Expandable explanations open like powder compacts. */
+:is(
+  .faq-item,
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details,
+  .ranking-card-details
+)[open] {
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.11),
+    0 10px 25px rgba(91, 26, 73, 0.075);
+}
+
+:is(
+  .faq-item,
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details,
+  .ranking-card-details
+)[open] > summary {
+  background:
+    radial-gradient(
+      ellipse 18rem 6rem at 18% 0,
+      rgba(255, 255, 255, 0.38),
+      transparent 72%
+    ),
+    linear-gradient(
+      90deg,
+      var(--compact-open),
+      rgba(218, 193, 235, 0.08)
+    );
+  box-shadow: inset 0 -1px 0 var(--cameo-edge);
+}
+
+.faq-item summary::after,
+.analysis-disclosure > summary::after {
+  border-radius: 50% / 43%;
+  box-shadow:
+    inset 0 1px 0 var(--lacquer-glint),
+    0 4px 10px var(--lacquer-shadow);
+}
+
+/* 8. Pagination reads as one compact vanity tray on every breakpoint. */
+.pagination,
+.match-pagination {
+  min-height: 58px;
+  padding: 7px 9px;
+  background:
+    radial-gradient(
+      ellipse 24rem 7rem at 20% 0,
+      rgba(255, 255, 255, 0.47),
+      transparent 70%
+    ),
+    color-mix(in srgb, var(--surface) 93%, #f9e3ef);
+  border: 1px solid var(--tray-edge);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 var(--lacquer-glint),
+    0 7px 19px rgba(91, 26, 73, 0.055);
+}
+
+.pagination > span,
+.match-pagination > span {
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 560;
+  letter-spacing: 0.025em;
+}
+
+.pagination .button,
+.match-pagination .button {
+  min-width: 44px;
+  border-radius: 999px;
+}
+
+/* 9. Rosewater selection and ink details finish the editorial layer. */
+::selection {
+  color: var(--rosewater-selection-ink);
+  background: var(--rosewater-selection);
+  text-shadow: none;
+}
+
+:is(
+  .faq-answer,
+  .method-section,
+  .record-note,
+  .callout,
+  .team-model-details,
+  .venue-profile-details,
+  .site-footer
+) a:not(.button) {
+  text-decoration-color: color-mix(
+    in srgb,
+    currentColor 46%,
+    transparent
+  );
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.19em;
+}
+
+:is(
+  .empty-state,
+  .error-panel
+) {
+  background:
+    radial-gradient(
+      ellipse 22rem 12rem at 92% 0,
+      var(--opal-lilac),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 94%, #fff),
+      color-mix(in srgb, var(--surface) 91%, #f8e4ef)
+    );
+  border-color: var(--cameo-edge);
+  box-shadow:
+    inset 0 1px 0 var(--enamel-highlight),
+    0 11px 28px rgba(91, 26, 73, 0.07);
+}
+
+/* 10. A unified pearl-cameo N emblem now covers every brand surface. */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --keepsake-lace: rgba(246, 187, 222, 0.3);
+    --keepsake-lace-shadow: rgba(255, 228, 244, 0.08);
+    --lacquer-glint: rgba(255, 255, 255, 0.09);
+    --lacquer-shadow: rgba(0, 0, 0, 0.2);
+    --vanity-lip: rgba(239, 177, 214, 0.2);
+    --pleat-light: rgba(255, 255, 255, 0.026);
+    --pleat-shadow: rgba(0, 0, 0, 0.055);
+    --pearl-scroll: #ad5c8d;
+    --pearl-scroll-light: #e4a9ca;
+    --compact-open: rgba(210, 91, 154, 0.075);
+    --tray-edge: rgba(239, 177, 214, 0.18);
+    --rosewater-selection: #a64f84;
+    --rosewater-selection-ink: #fff9fd;
+  }
+
+  :is(
+    .field input,
+    .field select,
+    .team-picker select,
+    .comparison-pair-picker select,
+    .comparison-team-row select,
+    .comparison-add-panel select,
+    .chart-year-form input
+  ) {
+    background:
+      radial-gradient(
+        ellipse 13rem 3rem at 34% 0,
+        rgba(255, 255, 255, 0.055),
+        transparent 72%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 92%, #4b1f3b),
+        color-mix(in srgb, var(--surface) 96%, #39243f)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      inset 0 -3px 7px rgba(0, 0, 0, 0.08),
+      0 4px 13px rgba(0, 0, 0, 0.12);
+  }
+
+  th {
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 16px,
+        var(--pleat-light) 17px,
+        transparent 18px 33px,
+        var(--pleat-shadow) 34px
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-subtle) 75%, #4b203b),
+        color-mix(in srgb, var(--surface-subtle) 84%, #493354)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      inset 0 -1px 0 var(--border);
+  }
+
+  .venue-code {
+    background-image:
+      radial-gradient(
+        circle at 34% 24%,
+        rgba(255, 255, 255, 0.16),
+        transparent 35%
+      ),
+      linear-gradient(
+        180deg,
+        transparent 47%,
+        rgba(0, 0, 0, 0.16)
+      );
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 3px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  :is(
+    .faq-item,
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details,
+    .ranking-card-details
+  )[open] {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 255, 255, 0.014),
+      0 10px 25px rgba(0, 0, 0, 0.17);
+  }
+
+  :is(
+    .faq-item,
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details,
+    .ranking-card-details
+  )[open] > summary {
+    background:
+      radial-gradient(
+        ellipse 18rem 6rem at 18% 0,
+        rgba(255, 255, 255, 0.035),
+        transparent 72%
+      ),
+      linear-gradient(
+        90deg,
+        var(--compact-open),
+        rgba(117, 86, 139, 0.045)
+      );
+  }
+
+  .pagination,
+  .match-pagination {
+    background:
+      radial-gradient(
+        ellipse 24rem 7rem at 20% 0,
+        rgba(255, 255, 255, 0.035),
+        transparent 72%
+      ),
+      color-mix(in srgb, var(--surface) 94%, #42213a);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 7px 19px rgba(0, 0, 0, 0.15);
+  }
+
+  :is(
+    .empty-state,
+    .error-panel
+  ) {
+    background:
+      radial-gradient(
+        ellipse 22rem 12rem at 92% 0,
+        var(--opal-lilac),
+        transparent 74%
+      ),
+      var(--surface);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 11px 28px rgba(0, 0, 0, 0.17);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .pagination,
+  .match-pagination {
+    border-radius: 25px;
+  }
+
+  .site-header::after,
+  .site-footer::before {
+    background-size: 12px 6px;
+  }
+}
+
+@media (max-width: 720px) {
+  .site-header::after,
+  .site-footer::before {
+    height: 5px;
+    background-size: 10px 5px;
+  }
+
+  .site-header::after {
+    bottom: -5px;
+  }
+
+  .pagination,
+  .match-pagination {
+    min-height: 0;
+    padding: 7px;
+    border-radius: 18px 23px 18px 23px;
+  }
+
+  .pagination-actions {
+    gap: 6px;
+  }
+
+  .table-shell {
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 12px;
+  }
+}
+
+@media print {
+  .site-header::after,
+  .site-footer::before {
+    display: none;
+  }
+
+  .pagination,
+  .match-pagination,
+  :is(
+    .empty-state,
+    .error-panel
+  ) {
+    background: none;
+    border: 1px solid #999;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary
+  ) {
+    transition: none;
+  }
+}

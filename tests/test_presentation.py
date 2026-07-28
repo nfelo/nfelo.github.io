@@ -64,15 +64,15 @@ class PresentationReleaseTests(unittest.TestCase):
                 '<meta name="theme-color" content="#10070e" '
                 'media="(prefers-color-scheme: dark)">'
             ),
-            "favicon-2026.ico?v=20260728f1",
-            "favicon-2026.svg?v=20260728f1",
-            "apple-touch-icon-2026.png?v=20260728f1",
-            "site.webmanifest?v=20260728f1",
-            "social-card.png?v=20260728f1",
+            "favicon-2026.ico?v=20260728f2",
+            "favicon-2026.svg?v=20260728f2",
+            "apple-touch-icon-2026.png?v=20260728f2",
+            "site.webmanifest?v=20260728f2",
+            "social-card.png?v=20260728f2",
             f"assets/styles.css?v={stylesheet_hash}",
             (
                 '<img class="brand-mark" '
-                'src="favicon-2026.svg?v=20260728f1"'
+                'src="favicon-2026.svg?v=20260728f2"'
             ),
         )
         obsolete = (
@@ -240,6 +240,8 @@ class PresentationReleaseTests(unittest.TestCase):
             ("#fff9fd", "#35233f"),
             ("#fff9fd", "#2f7657"),
             ("#fff9fd", "#a93b55"),
+            ("#35102e", "#f3b9d8"),
+            ("#fff9fd", "#a64f84"),
         )
         for foreground, background in pairs:
             with self.subTest(
@@ -386,6 +388,58 @@ class PresentationReleaseTests(unittest.TestCase):
             stylesheet,
         )
 
+    def test_final_keepsake_polish_adds_ten_responsive_finishes(
+        self,
+    ) -> None:
+        stylesheet = STYLES.read_text(encoding="utf-8")
+        marker = (
+            "Final keepsake polish: "
+            "nine interface refinements plus one unified emblem"
+        )
+        self.assertIn(marker, stylesheet)
+        finish = stylesheet.split(marker, 1)[1]
+
+        for numbered_idea in (
+            "1. A restrained scalloped couture hem",
+            "2. Selected and pressed controls",
+            "3. Form controls read like blush-glass vanity drawers",
+            "4. Table headings use a very fine pleated-satin rhythm",
+            "5. Horizontally scrollable data",
+            "6. Small data markers become polished cabochons",
+            "7. Expandable explanations open like powder compacts",
+            "8. Pagination reads as one compact vanity tray",
+            "9. Rosewater selection and ink details",
+            "10. A unified pearl-cameo N emblem",
+        ):
+            self.assertIn(numbered_idea, finish)
+
+        for implementation in (
+            "--keepsake-lace:",
+            "--lacquer-glint:",
+            "--vanity-lip:",
+            "--pearl-scroll:",
+            ".site-footer::before",
+            "[aria-disabled=\"true\"]",
+            "caret-color: var(--atelier-focus);",
+            "repeating-linear-gradient(",
+            "::-webkit-scrollbar-thumb",
+            ".venue-code {",
+            ")[open] > summary",
+            ".match-pagination {",
+            "::selection {",
+            "@media (prefers-color-scheme: dark)",
+            "@media (min-width: 721px) and (max-width: 1024px)",
+            "@media (max-width: 720px)",
+            "@media print",
+            "@media (prefers-reduced-motion: reduce)",
+        ):
+            self.assertIn(implementation, finish)
+
+        self.assertNotIn("--result-win:", finish)
+        self.assertNotIn("--result-loss:", finish)
+        self.assertIn("min-width: 320px;", stylesheet)
+        self.assertIn("min-height: 44px;", stylesheet)
+
     def test_brand_assets_cover_browser_apple_android_and_sharing(self) -> None:
         expected_png_sizes = {
             "apple-touch-icon-2026.png": (180, 180),
@@ -414,18 +468,27 @@ class PresentationReleaseTests(unittest.TestCase):
         )
         for marker in (
             'aria-label="Network Football Elo"',
-            'stop-color="#ff91ce"',
-            '<radialGradient id="petal">',
-            '<ellipse cy="-5.7"',
+            '<radialGradient id="pearl"',
+            '<linearGradient id="monogram"',
+            'd="M21.5 44V21l21 23V21"',
+            '<circle cx="49.2" cy="15.2"',
         ):
             self.assertIn(marker, primary_svg)
-        self.assertGreaterEqual(primary_svg.count("<ellipse"), 5)
+        self.assertEqual(primary_svg.count("<ellipse"), 2)
+        self.assertNotIn('<radialGradient id="petal">', primary_svg)
         self.assertNotIn("l1.5 4.5L56 15", primary_svg)
+        maskable_svg = (
+            PUBLIC / "icon-maskable-2026.svg"
+        ).read_text(encoding="utf-8")
+        self.assertIn('<rect width="64" height="64" fill="#35102f"/>', maskable_svg)
+        self.assertIn('d="M21.5 44V21l21 23V21"', maskable_svg)
         social_svg = (PUBLIC / "social-card.svg").read_text(
             encoding="utf-8"
         )
         self.assertIn("Fraunces, Corbel, Candara", social_svg)
-        self.assertIn('<g id="flower">', social_svg)
+        self.assertIn('<radialGradient id="pearl"', social_svg)
+        self.assertIn('d="M43 92V44l46 48V44"', social_svg)
+        self.assertNotIn('<g id="flower">', social_svg)
         self.assertIn("International ratings, results", social_svg)
 
         manifest = json.loads(
@@ -436,9 +499,15 @@ class PresentationReleaseTests(unittest.TestCase):
         self.assertEqual(
             {icon["src"] for icon in manifest["icons"]},
             {
-                "icon-192-2026.png?v=20260728f1",
-                "icon-512-2026.png?v=20260728f1",
+                "icon-192-2026.png?v=20260728f2",
+                "icon-512-2026.png?v=20260728f2",
             },
+        )
+        self.assertTrue(
+            all(
+                icon["purpose"] == "any maskable"
+                for icon in manifest["icons"]
+            )
         )
 
     def test_standalone_404_matches_the_presentation(self) -> None:
@@ -448,8 +517,8 @@ class PresentationReleaseTests(unittest.TestCase):
         for marker in (
             'content="#43133c"',
             'content="#10070e"',
-            "favicon-2026.svg?v=20260728f1",
-            "apple-touch-icon-2026.png?v=20260728f1",
+            "favicon-2026.svg?v=20260728f2",
+            "apple-touch-icon-2026.png?v=20260728f2",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
             "linear-gradient(118deg",
@@ -461,6 +530,11 @@ class PresentationReleaseTests(unittest.TestCase):
             "--atelier-focus:",
             "--embroidery-stitch:",
             "--stationery-line:",
+            "Final keepsake polish for the standalone route",
+            "--keepsake-lace:",
+            "--lacquer-glint:",
+            "--rosewater-selection:",
+            "::selection",
             "main::before",
             "main::after",
             "border: 3px double var(--stationery-line)",

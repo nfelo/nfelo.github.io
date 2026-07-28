@@ -2680,16 +2680,16 @@ class StaticBuildTests(unittest.TestCase):
         self.assertIn('rel="canonical"', html)
         self.assertIn('property="og:image"', html)
         self.assertIn(
-            'rel="icon" href="favicon-2026.svg?v=20260728f1"',
+            'rel="icon" href="favicon-2026.svg?v=20260728f2"',
             html,
         )
         self.assertIn(
             'rel="apple-touch-icon" sizes="180x180" '
-            'href="apple-touch-icon-2026.png?v=20260728f1"',
+            'href="apple-touch-icon-2026.png?v=20260728f2"',
             html,
         )
         self.assertIn(
-            'rel="manifest" href="site.webmanifest?v=20260728f1"',
+            'rel="manifest" href="site.webmanifest?v=20260728f2"',
             html,
         )
         self.assertRegex(html, r'assets/styles\.css\?v=[0-9a-f]{12}')
@@ -2706,8 +2706,8 @@ class StaticBuildTests(unittest.TestCase):
                 for icon in webmanifest["icons"]
             },
             {
-                "icon-192-2026.png?v=20260728f1",
-                "icon-512-2026.png?v=20260728f1",
+                "icon-192-2026.png?v=20260728f2",
+                "icon-512-2026.png?v=20260728f2",
             },
         )
         expected_png_sizes = {

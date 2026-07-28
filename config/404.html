@@ -7,9 +7,9 @@
     <meta name="theme-color" content="#10070e" media="(prefers-color-scheme: dark)">
     <meta name="robots" content="noindex">
     <meta http-equiv="refresh" content="5; url=https://nfelo.github.io/">
-    <link rel="icon" href="/favicon-2026.ico?v=20260728f1" sizes="16x16 32x32 48x48">
-    <link rel="icon" href="/favicon-2026.svg?v=20260728f1" type="image/svg+xml" sizes="any">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png?v=20260728f1">
+    <link rel="icon" href="/favicon-2026.ico?v=20260728f2" sizes="16x16 32x32 48x48">
+    <link rel="icon" href="/favicon-2026.svg?v=20260728f2" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-2026.png?v=20260728f2">
     <title>Page not found · Network Football Elo</title>
     <style>
       @font-face {
@@ -253,6 +253,59 @@
       }
       @media (prefers-reduced-motion: reduce) {
         a { transition: none; }
+      }
+      /* Final keepsake polish for the standalone route. */
+      :root {
+        --keepsake-lace: rgba(255, 210, 235, .62);
+        --lacquer-glint: rgba(255, 255, 255, .7);
+        --rosewater-selection: #f3b9d8;
+        --rosewater-selection-ink: #35102e;
+      }
+      ::selection {
+        color: var(--rosewater-selection-ink);
+        background: var(--rosewater-selection);
+        text-shadow: none;
+      }
+      main {
+        border-color: rgba(174, 69, 134, .24);
+        box-shadow:
+          inset 0 1px 0 var(--lacquer-glint),
+          inset 0 0 0 7px rgba(255, 255, 255, .08),
+          0 20px 50px var(--shadow);
+      }
+      h1 {
+        text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
+      }
+      a {
+        border-color: rgba(137, 42, 102, .2);
+        box-shadow:
+          inset 0 2px 0 var(--lacquer-glint),
+          inset 0 -5px 11px rgba(146, 55, 113, .09),
+          0 8px 22px var(--shadow);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --keepsake-lace: rgba(246, 187, 222, .3);
+          --lacquer-glint: rgba(255, 255, 255, .09);
+          --rosewater-selection: #a64f84;
+          --rosewater-selection-ink: #fff9fd;
+        }
+        main {
+          border-color: rgba(239, 177, 214, .18);
+          box-shadow:
+            inset 0 1px 0 var(--lacquer-glint),
+            inset 0 0 0 7px rgba(255, 255, 255, .014),
+            0 20px 50px var(--shadow);
+        }
+        h1 {
+          text-shadow: 0 1px 0 rgba(0, 0, 0, .32);
+        }
+      }
+      @media print {
+        main {
+          border: 1px solid #999;
+          box-shadow: none;
+        }
       }
     </style>
   </head>

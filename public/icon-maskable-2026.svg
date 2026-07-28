@@ -22,8 +22,9 @@
       <stop offset="1" stop-color="#c66ab1"/>
     </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="19" fill="url(#velvet)"/>
-  <rect x="3.5" y="3.5" width="57" height="57" rx="15.5" fill="none" stroke="#ffe3f3" stroke-opacity=".34"/>
+  <rect width="64" height="64" fill="#35102f"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="18" fill="url(#velvet)"/>
+  <rect x="4.5" y="4.5" width="55" height="55" rx="15" fill="none" stroke="#ffe3f3" stroke-opacity=".34"/>
   <path d="M8 15C22 4 43 3 56 16" fill="none" stroke="#ffd8ed" stroke-linecap="round" stroke-opacity=".12" stroke-width="5"/>
   <ellipse cx="32" cy="32.5" rx="21.8" ry="25.5" fill="url(#pearl)" stroke="#f5bfdc" stroke-width="1.4"/>
   <ellipse cx="32" cy="32.5" rx="18.2" ry="22.1" fill="none" stroke="#b55693" stroke-opacity=".3"/>
