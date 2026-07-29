@@ -13137,3 +13137,534 @@ body[data-route="about"] .page-narrow > article.prose h2::after {
     content: none;
   }
 }
+
+/*
+ * Girlish heirloom corrective finish.
+ *
+ * This small, authoritative final layer fixes the six observed layout and
+ * contrast regressions without changing the identity, data or application.
+ * Its playful femininity comes from a coordinated jewellery-box vocabulary:
+ * pearl catches, satin colour, picot-like inner seams, rose-quartz and
+ * sea-glass venue cabochons, and compact powder-case formula cards. None of
+ * those details is allowed to compete with text, tables or narrow screens.
+ */
+
+:root {
+  --heirloom-ink: #3b1430;
+  --heirloom-rose: #ee8fbe;
+  --heirloom-lilac: #c7a4e8;
+  --heirloom-aqua: #94d2cc;
+  --heirloom-pearl: #fff8fc;
+  --heirloom-formula: 640px;
+  --venue-home: #9b2f6d;
+  --venue-away: #1d6970;
+}
+
+/*
+ * The homepage actions are three pieces from one vanity set, not generic
+ * pills. Fraunces, a tiny pearl stud, satin depth and a glass catchlight give
+ * them the same deliberately feminine finish as the navigation.
+ */
+.home-intro .hero-actions {
+  gap: 12px;
+}
+
+.home-intro .hero-actions .home-action {
+  position: relative;
+  isolation: isolate;
+  min-height: 50px;
+  overflow: hidden;
+  padding: 12px 24px 12px 42px;
+  color: var(--heirloom-ink);
+  border: 1px solid rgba(87, 25, 68, 0.32);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -3px 0 rgba(91, 28, 72, 0.09),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.19),
+    0 10px 22px rgba(72, 17, 56, 0.16);
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  font-variation-settings:
+    "opsz" 24,
+    "SOFT" 86,
+    "WONK" 1;
+  font-weight: 610;
+  letter-spacing: 0.006em;
+  line-height: 1.2;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.home-intro .hero-actions .home-action::before {
+  position: absolute;
+  top: 50%;
+  left: 17px;
+  z-index: -1;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      #fff 0 18%,
+      transparent 23%
+    ),
+    linear-gradient(145deg, #fffafd, #efd7e6 58%, #cfa9c1);
+  border: 1px solid rgba(91, 28, 72, 0.28);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.26),
+    0 2px 5px rgba(68, 16, 52, 0.16);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.home-intro .hero-actions .home-action::after {
+  top: 4px;
+  right: 13%;
+  left: 13%;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.9) 28% 72%,
+      transparent
+    );
+  box-shadow: 0 5px 12px rgba(255, 255, 255, 0.18);
+}
+
+.home-intro .hero-actions .home-action-rankings {
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 86% -18%,
+      rgba(255, 255, 255, 0.72),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #ffe6f2, var(--heirloom-rose) 52%, #f3b3d2);
+}
+
+.home-intro .hero-actions .home-action-fixtures {
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 86% -18%,
+      rgba(255, 255, 255, 0.72),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #f4eaff, var(--heirloom-lilac) 52%, #e0d0f0);
+}
+
+.home-intro .hero-actions .home-action-predict {
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 86% -18%,
+      rgba(255, 255, 255, 0.72),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #ebfffc, var(--heirloom-aqua) 52%, #cfeae6);
+}
+
+.home-intro .hero-actions .home-action:hover {
+  color: #321128;
+  border-color: rgba(87, 25, 68, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -3px 0 rgba(91, 28, 72, 0.1),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.24),
+    0 13px 27px rgba(72, 17, 56, 0.2);
+}
+
+/*
+ * FAQ answers occupy the whole accordion interior on desktop. The left
+ * padding still aligns prose with the question text, but no invisible 76ch
+ * cap is allowed to discard the right third of the card.
+ */
+.faq-answer {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: none;
+  width: 100%;
+  max-width: none;
+}
+
+.faq-answer > p {
+  inline-size: 100%;
+  max-inline-size: none;
+  width: 100%;
+  max-width: none;
+}
+
+.faq-item[open] {
+  border-color: rgba(132, 48, 101, 0.31);
+  box-shadow:
+    inset 3px 0 0 rgba(238, 143, 190, 0.38),
+    inset -3px 0 0 rgba(148, 210, 204, 0.2),
+    0 11px 26px rgba(73, 17, 57, 0.08);
+}
+
+/*
+ * Formulae are compact powder-case panels inside the wider technical page.
+ * Very long expressions scroll inside a 640px card rather than stretching
+ * nearly across the 900px editorial lane.
+ */
+.methodology-page .formula {
+  inline-size: min(var(--heirloom-formula), 100%);
+  max-inline-size: var(--heirloom-formula);
+  width: min(var(--heirloom-formula), 100%);
+  max-width: var(--heirloom-formula);
+  border-radius: 18px 12px 18px 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 3px rgba(255, 225, 241, 0.045),
+    0 9px 22px rgba(58, 12, 43, 0.12);
+}
+
+.methodology-page .method-details .formula {
+  inline-size: min(600px, 100%);
+  max-inline-size: 600px;
+  width: min(600px, 100%);
+  max-width: 600px;
+}
+
+/*
+ * Records no longer has a decorative rail at all. The colour and tailoring
+ * live on the actual controls, where they reinforce interaction instead of
+ * creating dots or a bow beneath it.
+ */
+.record-tabs {
+  gap: 10px;
+  margin-bottom: 22px;
+  padding-bottom: 0;
+}
+
+.record-tabs::before,
+.record-tabs::after {
+  width: 0;
+  height: 0;
+  background: none;
+  box-shadow: none;
+  content: none;
+}
+
+.record-tabs .button {
+  min-height: 46px;
+  color: #4b1a3c;
+  border-color: rgba(99, 31, 76, 0.24);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 -2px 0 rgba(92, 28, 72, 0.055);
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 590;
+}
+
+.record-tabs .button:nth-child(3n + 1) {
+  background: linear-gradient(135deg, #fff7fb, #f6d6e6);
+}
+
+.record-tabs .button:nth-child(3n + 2) {
+  background: linear-gradient(135deg, #fcf8ff, #e7dcf2);
+}
+
+.record-tabs .button:nth-child(3n + 3) {
+  background: linear-gradient(135deg, #f8fffe, #dcefeb);
+}
+
+.record-tabs .button[aria-pressed="true"],
+.record-tabs .button[aria-selected="true"] {
+  color: #fff8fc;
+  background:
+    linear-gradient(
+      135deg,
+      #9d356f,
+      #762552 58%,
+      #533450
+    );
+  border-color: rgba(255, 219, 239, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 0 0 3px rgba(255, 225, 242, 0.065),
+    0 7px 15px rgba(72, 17, 56, 0.14);
+  text-shadow: 0 1px 1px rgba(24, 3, 18, 0.34);
+}
+
+/*
+ * Venue is categorical data, so colour is never the only cue. Home is a
+ * round rose-quartz cabochon; away is a sea-glass lozenge with a different
+ * outline. Both maintain white-text contrast in light and dark palettes.
+ */
+.venue-code {
+  box-sizing: border-box;
+}
+
+.venue-code.venue-H {
+  color: #fff;
+  background: var(--venue-home);
+  border: 2px solid #f7bfd9;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 0 0 1px rgba(117, 30, 80, 0.2);
+}
+
+.venue-code.venue-A {
+  color: #fff;
+  background: var(--venue-away);
+  border: 2px solid #a9ddd9;
+  border-radius: 7px 13px 7px 13px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 1px rgba(20, 83, 88, 0.22);
+}
+
+/*
+ * On narrow phones each matchup becomes an explicit four-line miniature:
+ * first team, V, second team, date. This prevents the V from occupying a
+ * left rail before both country names and keeps every record visible.
+ */
+@media (max-width: 520px) {
+  body[data-route="home"] .home-records li {
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  body[data-route="home"] .home-records li > div {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body[data-route="home"] .home-records li > div > a:first-of-type {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    justify-self: center;
+  }
+
+  body[data-route="home"] .home-records li > div > a:last-of-type {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    grid-column: 1;
+    grid-row: 4;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .home-intro .hero-actions .home-action {
+    min-height: 50px;
+  }
+}
+
+@media (max-width: 720px) {
+  .faq-answer,
+  .faq-answer > p {
+    inline-size: 100%;
+    max-inline-size: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  .faq-answer {
+    padding: 18px;
+  }
+
+  .methodology-page .formula,
+  .methodology-page .method-details .formula {
+    inline-size: 100%;
+    max-inline-size: 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/*
+ * Dark mode keeps the controls luminous and confectionery rather than
+ * turning them into three muddy dark pills. The deep page background gives
+ * these compact pastel surfaces ample separation.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --venue-home: #a63372;
+    --venue-away: #227178;
+  }
+
+  .home-intro .hero-actions .home-action {
+    color: #321128;
+    border-color: rgba(255, 228, 243, 0.34);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      inset 0 -3px 0 rgba(50, 17, 40, 0.13),
+      inset 0 0 0 3px rgba(255, 255, 255, 0.12),
+      0 10px 24px rgba(2, 0, 2, 0.34);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+  }
+
+  .home-intro .hero-actions .home-action-rankings {
+    background:
+      radial-gradient(
+        ellipse 7rem 3rem at 86% -18%,
+        rgba(255, 255, 255, 0.52),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #f0a9cd, #ec8dbc 52%, #d762a0);
+  }
+
+  .home-intro .hero-actions .home-action-fixtures {
+    background:
+      radial-gradient(
+        ellipse 7rem 3rem at 86% -18%,
+        rgba(255, 255, 255, 0.5),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #ceb6eb, #b58ad8 52%, #a477ca);
+  }
+
+  .home-intro .hero-actions .home-action-predict {
+    background:
+      radial-gradient(
+        ellipse 7rem 3rem at 86% -18%,
+        rgba(255, 255, 255, 0.5),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #9bd6d0, #5ca9a4 52%, #4b9692);
+  }
+
+  .record-tabs .button {
+    color: #f9eaf3;
+    border-color: rgba(244, 209, 231, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.075),
+      inset 0 -2px 0 rgba(5, 1, 4, 0.12);
+  }
+
+  .record-tabs .button:nth-child(3n + 1) {
+    background: linear-gradient(135deg, #51203f, #3b182f);
+  }
+
+  .record-tabs .button:nth-child(3n + 2) {
+    background: linear-gradient(135deg, #463451, #33263c);
+  }
+
+  .record-tabs .button:nth-child(3n + 3) {
+    background: linear-gradient(135deg, #294845, #213936);
+  }
+
+  .record-tabs .button[aria-pressed="true"],
+  .record-tabs .button[aria-selected="true"] {
+    color: #fff8fc;
+    background: linear-gradient(135deg, #a63b76, #762853 58%, #543651);
+  }
+
+  .faq-item[open] {
+    border-color: rgba(246, 201, 226, 0.29);
+    box-shadow:
+      inset 3px 0 0 rgba(230, 126, 181, 0.36),
+      inset -3px 0 0 rgba(105, 179, 173, 0.22),
+      0 12px 28px rgba(5, 1, 4, 0.24);
+  }
+
+  .venue-code.venue-H {
+    border-color: #f0afd0;
+  }
+
+  .venue-code.venue-A {
+    border-color: #9bd8d3;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .home-intro .hero-actions .home-action-rankings {
+    background: #ef9fc5;
+  }
+
+  .home-intro .hero-actions .home-action-fixtures {
+    background: #cbb0e4;
+  }
+
+  .home-intro .hero-actions .home-action-predict {
+    background: #9ed4ce;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .home-intro .hero-actions .home-action {
+    border: 2px solid currentColor;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+
+  .record-tabs .button {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+
+  .venue-code.venue-H,
+  .venue-code.venue-A {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .home-intro .hero-actions .home-action,
+  .record-tabs .button {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+
+  .venue-code.venue-H,
+  .venue-code.venue-A {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  .home-intro .hero-actions .home-action,
+  .record-tabs .button,
+  .methodology-page .formula {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+}
