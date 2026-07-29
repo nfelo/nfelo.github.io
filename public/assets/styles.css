@@ -14644,3 +14644,321 @@ body[data-route="about"] .page-narrow > .split {
     content: none;
   }
 }
+
+/*
+ * Moonlit matchbook visibility correction.
+ *
+ * This final corrective layer repairs the token-order collision that made
+ * dark-mode text inherit the light palette's black-cherry ink. It also turns
+ * the homepage record book into a compact matchbook: Team V Team stays on one
+ * line on phones, while the date becomes the clearest secondary fact at every
+ * width. The pearl-football identity, match data and familiar outcome colours
+ * remain untouched.
+ */
+
+:root {
+  --matchbook-date-ink: #592148;
+  --matchbook-date-bg: #f8e4ef;
+  --matchbook-date-border: rgba(112, 37, 85, 0.24);
+}
+
+body[data-route="home"] .home-records ol {
+  width: min(500px, 100%);
+}
+
+body[data-route="home"] .home-records li {
+  grid-template-columns: 28px minmax(0, 1fr) 66px;
+  gap: 8px;
+  padding-block: 8px;
+}
+
+body[data-route="home"] .home-records li > div {
+  grid-template-columns:
+    minmax(0, 1fr)
+    20px
+    minmax(0, 1fr);
+  gap: 4px;
+}
+
+body[data-route="home"] .home-records li > div > a {
+  font-size: 14.5px;
+  font-weight: 560;
+  line-height: 1.25;
+  text-wrap: auto;
+}
+
+body[data-route="home"] .home-records li > div > i {
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+body[data-route="home"] .home-records li > div > small {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 3px 10px;
+  color: var(--matchbook-date-ink);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.76),
+      rgba(234, 217, 242, 0.46)
+    ),
+    var(--matchbook-date-bg);
+  border: 1px solid var(--matchbook-date-border);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 3px 8px rgba(70, 17, 54, 0.07);
+  font-family: var(--font-numeric);
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+  line-height: 1.25;
+  text-align: center;
+}
+
+body[data-route="home"] .home-records li > strong {
+  min-width: 62px;
+  font-size: 13.5px;
+}
+
+@media (max-width: 520px) {
+  body[data-route="home"] .home-records {
+    padding: 16px 13px;
+  }
+
+  body[data-route="home"] .home-records ol {
+    width: 100%;
+  }
+
+  body[data-route="home"] .home-records li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 8px;
+    padding-block: 7px;
+  }
+
+  body[data-route="home"] .home-records li > span {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-width: 56px;
+  }
+
+  body[data-route="home"] .home-records li > div {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      18px
+      minmax(0, 1fr);
+    gap: 3px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  body[data-route="home"] .home-records li > div > a:first-of-type {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    justify-self: center;
+    width: 18px;
+    height: 18px;
+  }
+
+  body[data-route="home"] .home-records li > div > a:last-of-type {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: left;
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 3px;
+  }
+
+  body[data-route="home"] .home-records li > div > a {
+    width: auto;
+    min-width: 0;
+    font-size: clamp(12px, 3.8vw, 14.5px);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: keep-all;
+    hyphens: none;
+  }
+}
+
+/*
+ * The full moonlit token set is repeated after the light finishing layer.
+ * This is deliberately last: --ink no longer resolves through a later
+ * light-only custom-property value when the operating system is dark.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --atelier-ink: #fff6fc;
+    --atelier-muted: #e8cede;
+    --atelier-paper: #140911;
+    --atelier-surface: #27101f;
+    --atelier-surface-soft: #3a1a30;
+    --atelier-rose: #d977ad;
+    --atelier-rose-deep: #ff9bd2;
+    --atelier-pink: #d67cac;
+    --atelier-lilac: #a98ac8;
+    --atelier-aqua: #72aaa5;
+    --atelier-ivory: #f7e8ef;
+    --atelier-champagne: #c69b7e;
+    --atelier-cherry: #8d2f68;
+    --atelier-velvet: #170913;
+    --atelier-velvet-2: #4f1c40;
+    --atelier-periwinkle: #aeb5e7;
+    --atelier-sea-pearl: #82bbb6;
+    --atelier-pearl: #fff6fc;
+    --atelier-border: rgba(244, 208, 230, 0.23);
+    --atelier-border-strong: rgba(247, 214, 234, 0.38);
+    --atelier-seam: rgba(246, 203, 228, 0.24);
+    --atelier-focus: #ff9bd2;
+    --atelier-disabled: #d1b9c8;
+    --atelier-disabled-bg: #35232f;
+    --atelier-disabled-border: #70566a;
+    --atelier-shadow: rgba(4, 0, 3, 0.28);
+    --ink: #fff6fc;
+    --ink-soft: #e8cede;
+    --paper: #140911;
+    --paper-deep: #402037;
+    --surface: #27101f;
+    --surface-subtle: #3a1a30;
+    --surface-glass: rgba(39, 16, 31, 0.94);
+    --navy: #170913;
+    --navy-2: #4f1c40;
+    --header-bg: rgba(21, 8, 17, 0.98);
+    --eyebrow: #f1b0d9;
+    --link: #f3a9d8;
+    --focus: #ff9bd2;
+    --gold: #ff9bd2;
+    --control-border: #9d7992;
+    --border: rgba(244, 208, 230, 0.23);
+    --grid-line: rgba(244, 209, 231, 0.19);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow:
+      0 24px 58px rgba(0, 0, 0, 0.38),
+      0 4px 13px rgba(0, 0, 0, 0.24);
+    --shadow-small:
+      0 10px 27px rgba(0, 0, 0, 0.29),
+      0 2px 7px rgba(0, 0, 0, 0.2);
+    --matchbook-date-ink: #ffe8f5;
+    --matchbook-date-bg: #4a203b;
+    --matchbook-date-border: rgba(246, 203, 228, 0.3);
+  }
+
+  html,
+  body,
+  main {
+    color: var(--ink);
+    background-color: var(--paper);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .bar-chart,
+    .team-picker,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-team-row,
+    .comparison-add-panel,
+    .comparison-summary-table,
+    .comparison-head-summary,
+    .comparison-pair-picker,
+    .record-note.team-lineage-note
+  ) {
+    color: var(--ink);
+    border-color: var(--border);
+  }
+
+  body[data-route="home"] .home-records li > div > a {
+    color: var(--ink);
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    color: var(--matchbook-date-ink);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(117, 83, 139, 0.12)
+      ),
+      var(--matchbook-date-bg);
+    border-color: var(--matchbook-date-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 4px 10px rgba(0, 0, 0, 0.22);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-route="home"] .home-records li > div > small {
+    background: var(--matchbook-date-bg);
+  }
+}
+
+@media (prefers-contrast: more) {
+  body[data-route="home"] .home-records li > div > small {
+    color: var(--ink);
+    background: var(--surface);
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  body[data-route="home"] .home-records li > div > small {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  body[data-route="home"] .home-records li > div > small {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+  }
+}
