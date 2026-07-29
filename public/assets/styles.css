@@ -14962,3 +14962,1344 @@ body[data-route="home"] .home-records li > strong {
     box-shadow: none;
   }
 }
+
+/*
+ * Pearl vanity unification finale.
+ *
+ * This is one authoritative visual grammar for the whole site: rose porcelain,
+ * lavender tulle, sea-pearl light, a fine lingerie seam and restrained
+ * jewellery depth.  The material changes with the content, but the radius,
+ * border, type and interaction language stay consistent.  Dense football data
+ * remains quiet; decoration lives on containers and controls, never on results.
+ */
+
+:root {
+  --pv-ink: #3b1830;
+  --pv-muted: #704d64;
+  --pv-link: #7c245d;
+  --pv-surface: #fff8fc;
+  --pv-surface-lilac: #faf5ff;
+  --pv-surface-sea: #f1fbf9;
+  --pv-control: #fff9fc;
+  --pv-control-2: #f2e4ef;
+  --pv-rose: #eaa8ca;
+  --pv-lilac: #c7b2e3;
+  --pv-aqua: #9fd4cf;
+  --pv-champagne: #e4c8a9;
+  --pv-lacquer: #7a2858;
+  --pv-lacquer-deep: #4d193d;
+  --pv-border: rgba(107, 37, 82, 0.2);
+  --pv-seam: rgba(126, 51, 98, 0.16);
+  --pv-highlight: rgba(255, 255, 255, 0.88);
+  --pv-shadow:
+    0 12px 28px rgba(71, 18, 55, 0.075),
+    0 2px 7px rgba(71, 18, 55, 0.045);
+  --pv-shadow-small:
+    0 7px 17px rgba(71, 18, 55, 0.065),
+    0 1px 4px rgba(71, 18, 55, 0.035);
+  --pv-radius: 18px 24px 18px 24px;
+  --pv-radius-small: 14px 19px 14px 19px;
+  --pv-shell: 1040px;
+  --pv-lane: 900px;
+  --pv-reading: 780px;
+  --pv-formula: 720px;
+}
+
+/*
+ * Clear type hierarchy. Fraunces supplies the editorial and girlish character;
+ * Aptos remains the long-reading and numerical face.
+ */
+body {
+  color: var(--ink);
+}
+
+body .eyebrow,
+body .home-intro .eyebrow,
+body .home-support .eyebrow,
+body .panel-dark .eyebrow {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 620;
+  letter-spacing: 0.075em;
+  line-height: 1.35;
+  text-shadow: none;
+}
+
+body .home-intro .eyebrow {
+  font-size: 14px;
+}
+
+:is(
+  .team-link,
+  .ranking-card-team,
+  .home-ranking-list li > a,
+  .home-upcoming li > span > a,
+  .home-records li > div > a
+) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+:is(
+  .compact-heading h2,
+  .section-heading h2,
+  .panel h2,
+  .faq-item summary,
+  .method-details > summary,
+  .analysis-disclosure > summary b,
+  .team-model-details > summary b
+) {
+  font-family: var(--font-display);
+}
+
+:is(.compact-heading > a, .home-help-links a) {
+  font-size: 14px;
+  font-weight: 760;
+}
+
+/*
+ * One pearl-vanity surface language. Repeated utility containers share the
+ * same porcelain ground, lingerie-fine inner seam and shallow jewellery depth.
+ */
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .toolbar,
+  .team-picker,
+  .faq-tools,
+  .faq-item,
+  .method-contents,
+  .method-details,
+  .analysis-disclosure,
+  .ranking-card,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-team-row,
+  .comparison-add-panel,
+  .comparison-summary-table,
+  .comparison-head-summary,
+  .comparison-pair-picker,
+  .record-note.team-lineage-note
+) {
+  color: var(--pv-ink);
+  background:
+    radial-gradient(
+      ellipse 18rem 7rem at 96% -20%,
+      rgba(255, 255, 255, 0.9),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 14rem 6rem at -8% 108%,
+      rgba(199, 178, 227, 0.13),
+      transparent 72%
+    ),
+    linear-gradient(
+      138deg,
+      rgba(255, 248, 252, 0.94),
+      rgba(250, 245, 255, 0.9) 58%,
+      rgba(241, 251, 249, 0.86)
+    ),
+    var(--pv-surface);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  box-shadow:
+    inset 0 1px 0 var(--pv-highlight),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.22),
+    var(--pv-shadow);
+}
+
+:is(.table-shell, .bar-chart, .forecast-table) {
+  border-color: var(--pv-border);
+  border-radius: var(--pv-radius-small);
+  box-shadow: var(--pv-shadow-small);
+}
+
+:is(
+  .faq-item,
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details
+) {
+  overflow: hidden;
+}
+
+:is(
+  .faq-item[open],
+  .method-details[open],
+  .analysis-disclosure[open],
+  .team-model-details[open]
+) {
+  border-color: rgba(126, 40, 91, 0.32);
+  box-shadow:
+    inset 3px 0 0 rgba(234, 168, 202, 0.42),
+    inset -3px 0 0 rgba(159, 212, 207, 0.24),
+    var(--pv-shadow);
+}
+
+:is(
+  .faq-item summary,
+  .method-details > summary,
+  .analysis-disclosure > summary,
+  .team-model-details > summary
+) {
+  min-height: 52px;
+  color: var(--pv-ink);
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 250, 253, 0.9),
+      rgba(246, 237, 250, 0.72)
+    );
+  border-color: var(--pv-seam);
+  font-size: 17px;
+  font-weight: 610;
+  line-height: 1.35;
+}
+
+/*
+ * Dark satin is the companion material, using the same tailoring as porcelain.
+ */
+:is(.panel-dark, .home-support > div:first-child) {
+  position: relative;
+  color: #fff7fc;
+  background:
+    radial-gradient(
+      ellipse 20rem 8rem at 92% -18%,
+      rgba(237, 167, 205, 0.14),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 14rem 7rem at 0 108%,
+      rgba(136, 193, 188, 0.11),
+      transparent 74%
+    ),
+    linear-gradient(138deg, #351129, #4d193d 58%, #2d1b35);
+  border: 1px solid rgba(255, 220, 240, 0.2);
+  border-radius: var(--pv-radius);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 3px rgba(255, 225, 242, 0.035),
+    0 14px 30px rgba(55, 10, 42, 0.16);
+}
+
+:is(.panel-dark, .home-support > div:first-child) :is(p, .muted) {
+  color: #efd8e7;
+}
+
+:is(.panel-dark, .home-support > div:first-child) .eyebrow {
+  color: #f4b8d7;
+}
+
+/*
+ * All ordinary controls are one family of satin vanity buttons. Primary and
+ * selected controls use rouge lacquer; quiet controls retain the same shell.
+ */
+body .button {
+  min-height: 44px;
+  padding: 9px 17px;
+  color: #4b1b3b;
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 82% -38%,
+      rgba(255, 255, 255, 0.9),
+      transparent 72%
+    ),
+    linear-gradient(135deg, var(--pv-control), var(--pv-control-2));
+  border: 1px solid rgba(103, 34, 79, 0.24);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -2px 0 rgba(89, 25, 67, 0.045),
+    0 5px 13px rgba(73, 17, 57, 0.07);
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 610;
+  letter-spacing: 0.002em;
+  line-height: 1.25;
+  text-shadow: none;
+}
+
+body .button:hover {
+  color: #351126;
+  border-color: rgba(103, 34, 79, 0.4);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 0 rgba(89, 25, 67, 0.055),
+    0 8px 17px rgba(73, 17, 57, 0.11);
+  transform: translateY(-1px);
+}
+
+body :is(
+  .button-primary,
+  .button-dark,
+  .record-tabs .button[aria-pressed="true"],
+  .record-tabs .button[aria-selected="true"],
+  .toggle-group .button[aria-pressed="true"],
+  .toggle-group .button[aria-selected="true"]
+) {
+  color: #fff8fc;
+  background:
+    radial-gradient(
+      ellipse 8rem 3rem at 84% -35%,
+      rgba(255, 222, 240, 0.22),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      #9a3970,
+      var(--pv-lacquer) 56%,
+      var(--pv-lacquer-deep)
+    );
+  border-color: rgba(255, 222, 241, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 0 3px rgba(255, 229, 243, 0.05),
+    0 8px 18px rgba(69, 14, 52, 0.15);
+  text-shadow: none;
+}
+
+body .button-quiet {
+  color: var(--pv-link);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 250, 253, 0.72),
+      rgba(245, 238, 250, 0.66)
+    );
+}
+
+body .record-tabs {
+  gap: 9px;
+  margin-bottom: 22px;
+  padding: 6px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 248, 252, 0.88),
+      rgba(244, 235, 249, 0.76)
+    );
+  border: 1px solid var(--pv-border);
+  border-radius: 25px;
+  box-shadow:
+    inset 0 1px 2px rgba(79, 23, 61, 0.06),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.42);
+}
+
+body .record-tabs .button:nth-child(n) {
+  min-height: 44px;
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 82% -38%,
+      rgba(255, 255, 255, 0.9),
+      transparent 72%
+    ),
+    linear-gradient(135deg, var(--pv-control), var(--pv-control-2));
+}
+
+body .record-tabs .button[aria-pressed="true"],
+body .record-tabs .button[aria-selected="true"] {
+  background:
+    radial-gradient(
+      ellipse 8rem 3rem at 84% -35%,
+      rgba(255, 222, 240, 0.22),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      #9a3970,
+      var(--pv-lacquer) 56%,
+      var(--pv-lacquer-deep)
+    );
+}
+
+body .record-tabs::before,
+body .record-tabs::after {
+  width: 0;
+  height: 0;
+  background: none;
+  box-shadow: none;
+  content: none;
+}
+
+/*
+ * The homepage hero actions are the same three-piece midnight-satin set. Each
+ * has the same pearl stud and construction; only its fine ribbon colour varies.
+ */
+body[data-route="home"] .home-intro .hero-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(700px, 100%);
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action {
+  --pv-action-ribbon: var(--pv-rose);
+  position: relative;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 50px;
+  padding: 11px 19px 11px 16px;
+  color: #fff8fc;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--pv-action-ribbon) 16% 84%,
+      transparent
+    )
+    center bottom / calc(100% - 30px) 3px no-repeat,
+    radial-gradient(
+      ellipse 10rem 4rem at 84% -32%,
+      rgba(255, 220, 240, 0.17),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #843362, #65234f 56%, #38203a);
+  border-color: rgba(255, 224, 241, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 0 0 3px rgba(255, 229, 243, 0.04),
+    0 9px 19px rgba(52, 9, 40, 0.17);
+  font-size: 16px;
+  font-weight: 610;
+  text-shadow: none;
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action::before {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: 1;
+  display: block;
+  align-self: center;
+  width: 11px;
+  height: 11px;
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      #fff 0 18%,
+      transparent 23%
+    ),
+    linear-gradient(145deg, #fffafd, #efd7e6 58%, #cfa9c1);
+  border: 1px solid rgba(255, 222, 240, 0.48);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px rgba(255, 237, 247, 0.08),
+    0 2px 5px rgba(20, 2, 15, 0.22);
+  content: "";
+  transform: none;
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action::after {
+  content: none;
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action-rankings {
+  --pv-action-ribbon: #f0a7ca;
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action-fixtures {
+  --pv-action-ribbon: #cab7e6;
+}
+
+body[data-route="home"] .home-intro .hero-actions .home-action-predict {
+  --pv-action-ribbon: #9fd4cf;
+  grid-column: 1 / -1;
+}
+
+/*
+ * Homepage information is promoted to readable desktop size.
+ */
+body[data-route="home"] .home-facts dt {
+  color: #f2dce9;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 610;
+  line-height: 1.3;
+  letter-spacing: 0.005em;
+}
+
+body[data-route="home"] .home-facts dd {
+  color: #cdebe7;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+body[data-route="home"] .home-explore-links {
+  gap: 14px;
+}
+
+body[data-route="home"] .home-explore-links a {
+  min-height: 112px;
+  padding: 18px 19px;
+  color: var(--pv-ink);
+  background:
+    radial-gradient(
+      ellipse 10rem 4rem at 92% -18%,
+      rgba(255, 255, 255, 0.92),
+      transparent 72%
+    ),
+    linear-gradient(
+      138deg,
+      rgba(255, 246, 251, 0.94),
+      rgba(245, 239, 252, 0.86) 62%,
+      rgba(238, 250, 248, 0.82)
+    );
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius-small);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.18),
+    var(--pv-shadow-small);
+}
+
+body[data-route="home"] .home-explore-links b {
+  color: var(--pv-ink);
+  font-family: var(--font-display);
+  font-size: 18.5px;
+  font-weight: 620;
+  line-height: 1.24;
+}
+
+body[data-route="home"] .home-explore-links span {
+  margin-top: 7px;
+  color: var(--pv-muted);
+  font-size: 14.5px;
+  line-height: 1.42;
+}
+
+/*
+ * Highest-rated matches: compact two-line rows on desktop, and a true
+ * Team V Team line plus one metadata line on phones. No word becomes a column.
+ */
+body[data-route="home"] .home-records {
+  padding: 21px;
+}
+
+body[data-route="home"] .home-records ol {
+  width: min(530px, 100%);
+  margin-inline: auto;
+}
+
+body[data-route="home"] .home-records li {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr) 64px;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 3px;
+}
+
+body[data-route="home"] .home-records li > div {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    19px
+    minmax(0, 1fr);
+  gap: 3px;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+}
+
+body[data-route="home"] .home-records li > div > a {
+  min-width: 0;
+  color: var(--pv-ink);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.22;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-route="home"] .home-records li > div > a:first-of-type {
+  text-align: right;
+}
+
+body[data-route="home"] .home-records li > div > i {
+  display: inline-grid;
+  align-items: center;
+  justify-items: center;
+  width: 19px;
+  height: 19px;
+  color: #5d2449;
+  background: linear-gradient(145deg, #fffafd, #eadbea);
+  border: 1px solid rgba(99, 34, 77, 0.2);
+  border-radius: 50%;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 820;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+body[data-route="home"] .home-records li > div > small {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 2px 9px;
+  color: #5b2147;
+  background: linear-gradient(135deg, #fff9fc, #f0dfea);
+  border: 1px solid rgba(107, 36, 81, 0.21);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  font-family: var(--font-numeric);
+  font-size: 14px;
+  font-weight: 780;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+body[data-route="home"] .home-records li > strong {
+  min-width: 60px;
+  padding: 5px 7px;
+  font-size: 13.5px;
+}
+
+/*
+ * FAQ, Methodology and About are one editorial suite. Text receives a reading
+ * measure; tools, technical tables and two-column panels receive the wider lane.
+ */
+:is(
+  .faq-page,
+  .methodology-page,
+  body[data-route="about"] .page-narrow
+) {
+  box-sizing: border-box;
+  width: min(var(--pv-shell), calc(100vw - 48px));
+  max-width: none;
+}
+
+:is(
+  .faq-page,
+  .methodology-page,
+  body[data-route="about"] .page-narrow
+) > :is(.eyebrow, h1, .lede) {
+  width: min(var(--pv-lane), 100%);
+  margin-inline: auto;
+}
+
+.faq-page > :is(.faq-tools, #faq-count, .faq-list, .faq-more),
+.methodology-page > .method-contents,
+.methodology-page > .method-section,
+body[data-route="about"] .page-narrow > .split {
+  width: min(var(--pv-lane), 100%);
+  margin-inline: auto;
+}
+
+body[data-route="about"] .page-narrow > article.prose {
+  width: min(var(--pv-reading), 100%);
+  max-width: var(--pv-reading);
+  margin-inline: auto;
+}
+
+.faq-tools,
+.methodology-page .method-contents,
+body[data-route="about"] .page-narrow > .split > .panel {
+  border-radius: var(--pv-radius);
+  box-shadow:
+    inset 0 1px 0 var(--pv-highlight),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.18),
+    var(--pv-shadow);
+}
+
+.faq-answer,
+.faq-answer > p {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: none;
+  width: 100%;
+  max-width: none;
+}
+
+.faq-item summary {
+  padding-block: 16px;
+}
+
+.faq-answer {
+  color: var(--pv-muted);
+  font-size: 16.5px;
+  line-height: 1.72;
+}
+
+.methodology-page .method-contents {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px 16px 19px;
+}
+
+.methodology-page .method-contents a {
+  min-height: 46px;
+  padding-block: 10px;
+  color: var(--pv-link);
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.methodology-page .method-section > :is(h2, h3, p, ul, ol) {
+  max-inline-size: 76ch;
+}
+
+.methodology-page .table-shell,
+.methodology-page .method-details {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.methodology-page .formula,
+.methodology-page .method-details .formula {
+  box-sizing: border-box;
+  inline-size: fit-content;
+  width: fit-content;
+  max-inline-size: min(var(--pv-formula), 100%);
+  max-width: min(var(--pv-formula), 100%);
+  min-inline-size: min(320px, 100%);
+  margin-block: 18px;
+  padding: 16px 19px;
+  overflow-x: auto;
+  color: #fff8fc;
+  background:
+    radial-gradient(
+      ellipse 16rem 6rem at 92% -18%,
+      rgba(238, 177, 211, 0.16),
+      transparent 70%
+    ),
+    linear-gradient(135deg, #38132f, #512040 58%, #30203a);
+  border: 1px solid rgba(255, 224, 241, 0.24);
+  border-radius: var(--pv-radius-small);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 0 0 3px rgba(255, 225, 241, 0.035),
+    0 8px 18px rgba(55, 10, 42, 0.1);
+  font-size: 14.5px;
+  line-height: 1.68;
+}
+
+body[data-route="about"] .page-narrow > .split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+body[data-route="about"] .page-narrow > .split > .panel {
+  padding: clamp(25px, 3vw, 32px);
+}
+
+/*
+ * Supporting controls and compact metrics inherit the same readable scale.
+ */
+:is(
+  .field label,
+  .team-picker label,
+  .comparison-team-row label,
+  .comparison-add-panel label,
+  .chart-year-form label
+) {
+  color: var(--pv-muted);
+  font-size: 13px;
+  font-weight: 740;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+}
+
+:is(input, select, textarea) {
+  font-size: 16px;
+}
+
+:is(.metric-grid > div, .venue-profile-highlights > div) {
+  border-color: var(--pv-seam);
+  border-radius: var(--pv-radius-small);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    var(--pv-shadow-small);
+}
+
+:is(
+  .ranking-card-rank,
+  .ranking-card-snapshot > div > span:first-child,
+  .metric-grid span,
+  .rating-sub
+) {
+  font-size: 13px;
+}
+
+.ranking-card-team {
+  font-family: var(--font-display);
+  font-weight: 610;
+}
+
+.record-note.team-lineage-note {
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 10px 16px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.record-note.team-lineage-note > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Dark mode reasserts both the site's semantic tokens and this finishing
+ * system after every earlier light layer, then remaps the shared materials.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --ink: #fff6fc;
+    --ink-soft: #e8cede;
+    --paper: #140911;
+    --paper-deep: #402037;
+    --surface: #27101f;
+    --surface-subtle: #3a1a30;
+    --surface-glass: rgba(39, 16, 31, 0.96);
+    --navy: #170913;
+    --navy-2: #4f1c40;
+    --header-bg: rgba(21, 8, 17, 0.98);
+    --eyebrow: #f1b0d9;
+    --link: #f3a9d8;
+    --focus: #ff9bd2;
+    --gold: #ff9bd2;
+    --control-border: #9d7992;
+    --border: rgba(244, 208, 230, 0.23);
+    --grid-line: rgba(244, 209, 231, 0.19);
+    --pv-ink: #fff6fc;
+    --pv-muted: #e8cede;
+    --pv-link: #f3a9d8;
+    --pv-surface: #27101f;
+    --pv-surface-lilac: #32162a;
+    --pv-surface-sea: #1d302e;
+    --pv-control: #432038;
+    --pv-control-2: #311728;
+    --pv-border: rgba(244, 208, 230, 0.25);
+    --pv-seam: rgba(246, 203, 228, 0.22);
+    --pv-highlight: rgba(255, 255, 255, 0.06);
+    --pv-shadow:
+      0 13px 29px rgba(0, 0, 0, 0.28),
+      0 2px 8px rgba(0, 0, 0, 0.18);
+    --pv-shadow-small:
+      0 8px 18px rgba(0, 0, 0, 0.23),
+      0 1px 5px rgba(0, 0, 0, 0.16);
+  }
+
+  html,
+  body,
+  main {
+    color: var(--ink);
+    background-color: var(--paper);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .toolbar,
+    .team-picker,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-team-row,
+    .comparison-add-panel,
+    .comparison-summary-table,
+    .comparison-head-summary,
+    .comparison-pair-picker,
+    .record-note.team-lineage-note
+  ) {
+    color: var(--pv-ink);
+    background:
+      radial-gradient(
+        ellipse 18rem 7rem at 96% -20%,
+        rgba(255, 218, 239, 0.07),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 14rem 6rem at -8% 108%,
+        rgba(123, 176, 171, 0.06),
+        transparent 72%
+      ),
+      linear-gradient(
+        138deg,
+        rgba(65, 27, 52, 0.94),
+        rgba(49, 24, 43, 0.94) 58%,
+        rgba(29, 48, 46, 0.7)
+      ),
+      var(--pv-surface);
+    border-color: var(--pv-border);
+    box-shadow:
+      inset 0 1px 0 var(--pv-highlight),
+      inset 0 0 0 3px rgba(255, 226, 242, 0.018),
+      var(--pv-shadow);
+  }
+
+  :is(
+    .faq-item summary,
+    .method-details > summary,
+    .analysis-disclosure > summary,
+    .team-model-details > summary
+  ) {
+    color: var(--pv-ink);
+    background:
+      linear-gradient(
+        100deg,
+        rgba(79, 31, 62, 0.9),
+        rgba(54, 32, 58, 0.82)
+      );
+    border-color: var(--pv-seam);
+  }
+
+  body .button,
+  body .record-tabs .button:nth-child(n) {
+    color: #fff5fb;
+    background:
+      radial-gradient(
+        ellipse 7rem 3rem at 82% -38%,
+        rgba(255, 220, 240, 0.09),
+        transparent 72%
+      ),
+      linear-gradient(135deg, var(--pv-control), var(--pv-control-2));
+    border-color: rgba(255, 218, 239, 0.25);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+      0 6px 14px rgba(0, 0, 0, 0.22);
+  }
+
+  body :is(
+    .button-primary,
+    .button-dark,
+    .record-tabs .button[aria-pressed="true"],
+    .record-tabs .button[aria-selected="true"],
+    .toggle-group .button[aria-pressed="true"],
+    .toggle-group .button[aria-selected="true"]
+  ) {
+    color: #fff8fc;
+    background:
+      radial-gradient(
+        ellipse 8rem 3rem at 84% -35%,
+        rgba(255, 222, 240, 0.16),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #9b3d72, #762852 58%, #4d2747);
+    border-color: rgba(255, 220, 239, 0.34);
+  }
+
+  body .record-tabs {
+    background:
+      linear-gradient(
+        135deg,
+        rgba(62, 27, 50, 0.94),
+        rgba(44, 25, 45, 0.9)
+      );
+    border-color: var(--pv-border);
+  }
+
+  body[data-route="home"] .home-explore-links a {
+    color: var(--pv-ink);
+    background:
+      radial-gradient(
+        ellipse 10rem 4rem at 92% -18%,
+        rgba(255, 219, 239, 0.07),
+        transparent 72%
+      ),
+      linear-gradient(
+        138deg,
+        rgba(75, 31, 59, 0.94),
+        rgba(48, 30, 53, 0.9) 62%,
+        rgba(27, 52, 49, 0.82)
+      );
+    border-color: var(--pv-border);
+  }
+
+  body[data-route="home"] .home-explore-links b,
+  body[data-route="home"] .home-records li > div > a {
+    color: var(--pv-ink);
+  }
+
+  body[data-route="home"] .home-explore-links span {
+    color: var(--pv-muted);
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    color: #ffeaf6;
+    background: linear-gradient(145deg, #63304f, #3e2947);
+    border-color: rgba(255, 218, 239, 0.25);
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    color: #ffe9f5;
+    background: linear-gradient(135deg, #57233f, #3d253d);
+    border-color: rgba(255, 218, 239, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .faq-answer {
+    color: var(--pv-muted);
+  }
+
+  body .site-header a.brand > span > small {
+    color: #fff0f8;
+    font-weight: 610;
+    text-shadow: none;
+  }
+}
+
+/*
+ * Tablet keeps two useful columns where they help and removes ornamental
+ * stretching where a single column reads better.
+ */
+@media (min-width: 721px) and (max-width: 1024px) {
+  body[data-route="home"] .home-explore-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :is(
+    .faq-page,
+    .methodology-page,
+    body[data-route="about"] .page-narrow
+  ) {
+    width: min(960px, calc(100vw - 34px));
+  }
+}
+
+/*
+ * Phone layout preserves the materials but removes spare space. Matchups use
+ * five compact columns and two rows: rank, Team V Team, rating; then the date.
+ */
+@media (max-width: 720px) {
+  body[data-route="home"] .home-intro .hero-actions {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  body[data-route="home"] .home-intro .hero-actions .home-action-predict {
+    grid-column: 1;
+  }
+
+  body[data-route="home"] .home-facts dt {
+    font-size: 13.5px;
+  }
+
+  body[data-route="home"] .home-facts dd {
+    font-size: 17px;
+  }
+
+  body[data-route="home"] .home-explore-links {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  body[data-route="home"] .home-explore-links a {
+    min-height: 0;
+    padding: 15px 16px;
+  }
+
+  body[data-route="home"] .home-explore-links b {
+    font-size: 18px;
+  }
+
+  body[data-route="home"] .home-explore-links span {
+    font-size: 14px;
+  }
+
+  :is(
+    .faq-page,
+    .methodology-page,
+    body[data-route="about"] .page-narrow
+  ) {
+    width: calc(100vw - 24px);
+  }
+
+  .methodology-page .method-contents,
+  body[data-route="about"] .page-narrow > .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .methodology-page .formula,
+  .methodology-page .method-details .formula {
+    inline-size: 100%;
+    width: 100%;
+    max-inline-size: 100%;
+    max-width: 100%;
+    min-inline-size: 0;
+  }
+
+  body .record-tabs {
+    border-radius: var(--pv-radius-small);
+  }
+
+  .record-note.team-lineage-note {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+}
+
+@media (max-width: 520px) {
+  body[data-route="home"] .home-records {
+    padding: 15px 12px;
+  }
+
+  body[data-route="home"] .home-records ol {
+    width: 100%;
+  }
+
+  body[data-route="home"] .home-records li {
+    grid-template-columns:
+      22px
+      minmax(0, 1fr)
+      17px
+      minmax(0, 1fr)
+      55px;
+    grid-template-rows: auto auto;
+    gap: 3px 4px;
+    min-height: 0;
+    padding: 6px 1px;
+  }
+
+  body[data-route="home"] .home-records li > span {
+    grid-column: 1;
+    grid-row-start: 1;
+    grid-row-end: 3;
+    align-self: center;
+    justify-self: start;
+  }
+
+  body[data-route="home"] .home-records li > div {
+    display: contents;
+  }
+
+  body[data-route="home"] .home-records li > div > a {
+    width: auto;
+    min-width: 0;
+    font-size: clamp(12px, 3.65vw, 14.5px);
+    line-height: 1.18;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: keep-all;
+  }
+
+  body[data-route="home"] .home-records li > div > a:first-of-type {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-self: center;
+    width: 17px;
+    height: 17px;
+  }
+
+  body[data-route="home"] .home-records li > div > a:last-of-type {
+    grid-column: 4;
+    grid-row: 1;
+    text-align: left;
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    grid-column: 2 / 5;
+    grid-row: 2;
+    justify-self: center;
+    margin: 0;
+    padding: 1px 7px;
+    font-size: 12.5px;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    grid-column: 5;
+    grid-row-start: 1;
+    grid-row-end: 3;
+    align-self: center;
+    justify-self: end;
+    min-width: 55px;
+    padding: 4px 5px;
+    font-size: 12.5px;
+  }
+
+  .faq-answer {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  :is(
+    .faq-item summary,
+    .method-details > summary,
+    .analysis-disclosure > summary,
+    .team-model-details > summary
+  ) {
+    font-size: 16px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body .button,
+  .methodology-page .method-contents a,
+  :is(
+    .faq-item summary,
+    .method-details > summary,
+    .analysis-disclosure > summary,
+    .team-model-details > summary
+  ) {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .toolbar,
+    .team-picker,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .record-note.team-lineage-note
+  ) {
+    background: var(--pv-surface);
+  }
+
+  :is(.panel-dark, .home-support > div:first-child) {
+    background: var(--pv-lacquer-deep);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .record-note.team-lineage-note,
+    .home-explore-links a,
+    .button
+  ) {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+
+  body .eyebrow {
+    text-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .record-note.team-lineage-note,
+    .home-explore-links a
+  ) {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  body .button {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  body[data-route="home"] .home-intro .hero-actions .home-action::before {
+    content: none;
+  }
+}
+
+@media print {
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .record-note.team-lineage-note,
+    .home-explore-links a,
+    .methodology-page .formula,
+    .button
+  ) {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+    text-shadow: none;
+  }
+}
