@@ -13668,3 +13668,979 @@ body[data-route="about"] .page-narrow > article.prose h2::after {
     content: none;
   }
 }
+
+/*
+ * Unified pearl atelier finishing system.
+ *
+ * This authoritative final layer gives the existing rosewater, fairy,
+ * mermaid, ballet and keepsake details one shared visual grammar. Pearl
+ * studs, grosgrain hems, shell-jewel colour, tulle-soft light and lace-fine
+ * seams are used as construction details rather than pasted-on pictures.
+ * Information remains primary: result colours, model output, content and
+ * the pearl-football identity are not changed.
+ */
+
+:root {
+  --atelier-ink: #3f1833;
+  --atelier-rose: #e7a0c4;
+  --atelier-lilac: #c8b2e3;
+  --atelier-periwinkle: #b8bee8;
+  --atelier-sea-pearl: #b9ddd9;
+  --atelier-champagne: #ead9bd;
+  --atelier-pearl: #fff8fc;
+  --atelier-seam: rgba(112, 37, 85, 0.25);
+  --atelier-shadow: rgba(69, 14, 52, 0.11);
+  --atelier-formula: 680px;
+  --venue-home-bg: #f1d6e7;
+  --venue-home-ink: #572746;
+  --venue-home-border: #c785aa;
+  --venue-away-bg: #deddf5;
+  --venue-away-ink: #373765;
+  --venue-away-border: #999bd0;
+  --venue-neutral-bg: #f1e4d2;
+  --venue-neutral-ink: #59452e;
+  --venue-neutral-border: #c6aa80;
+}
+
+/*
+ * Identity copy remains quiet and legible. The logo files themselves stay
+ * byte-for-byte locked by the release tests and workflow.
+ */
+body .site-header a.brand > span > small {
+  color: #f8e8f2;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  line-height: 1.24;
+  text-shadow: 0 1px 1px rgba(22, 3, 17, 0.42);
+}
+
+.home-intro .home-intro-copy > .eyebrow {
+  font-weight: 610;
+  letter-spacing: 0.105em;
+}
+
+/*
+ * All three hero journeys are members of one midnight-satin vanity set.
+ * Their only colour difference is a narrow grosgrain hem. Every button has
+ * the same visible pearl stud, including the primary Rankings action.
+ */
+.home-intro .hero-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(690px, 100%);
+}
+
+.home-intro .hero-actions .home-action {
+  --action-ribbon: var(--atelier-rose);
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 50px;
+  overflow: hidden;
+  padding: 11px 20px 12px;
+  color: #fff8fc;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--action-ribbon) 16% 84%,
+      transparent
+    )
+    center bottom / calc(100% - 28px) 3px no-repeat,
+    radial-gradient(
+      ellipse 9rem 4rem at 82% -42%,
+      rgba(255, 221, 240, 0.23),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #6f2a5b, #542046 56%, #442044);
+  border: 1px solid rgba(255, 222, 241, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -3px 0 rgba(22, 3, 17, 0.15),
+    0 9px 19px rgba(41, 5, 31, 0.24);
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  font-variation-settings:
+    "opsz" 24,
+    "SOFT" 88,
+    "WONK" 1;
+  font-weight: 610;
+  letter-spacing: 0.004em;
+  line-height: 1.22;
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(18, 2, 14, 0.42);
+}
+
+.home-intro .hero-actions .home-action::before {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 33% 27%,
+      #fff 0 18%,
+      transparent 24%
+    ),
+    linear-gradient(145deg, #fffafd, #eed9e7 58%, #cda6bf);
+  border: 1px solid rgba(255, 231, 245, 0.64);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px rgba(255, 239, 248, 0.09),
+    0 2px 5px rgba(20, 2, 15, 0.3);
+  content: "";
+}
+
+.home-intro .hero-actions .home-action::after {
+  position: absolute;
+  top: 4px;
+  right: 14%;
+  left: 14%;
+  height: 1px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.62) 26% 74%,
+      transparent
+    );
+  border-radius: 999px;
+  box-shadow: none;
+  content: "";
+}
+
+.home-intro .hero-actions .home-action-rankings {
+  --action-ribbon: #f0a7ca;
+}
+
+.home-intro .hero-actions .home-action-fixtures {
+  --action-ribbon: #cab5ea;
+}
+
+.home-intro .hero-actions .home-action-predict {
+  --action-ribbon: #acd9d5;
+  grid-column: 1 / -1;
+}
+
+.home-intro .hero-actions .home-action:hover {
+  color: #fff;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--action-ribbon) 16% 84%,
+      transparent
+    )
+    center bottom / calc(100% - 28px) 3px no-repeat,
+    radial-gradient(
+      ellipse 9rem 4rem at 82% -42%,
+      rgba(255, 226, 242, 0.29),
+      transparent 72%
+    ),
+    linear-gradient(135deg, #7b3065, #60244f 56%, #4b254c);
+  border-color: rgba(255, 228, 244, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.23),
+    inset 0 -3px 0 rgba(22, 3, 17, 0.16),
+    0 12px 24px rgba(41, 5, 31, 0.3);
+}
+
+/*
+ * The homepage now uses one exact two-column frame. The four dashboard and
+ * support panels share outside edges and a centre seam instead of the lower
+ * pair floating inside an indented wrapper.
+ */
+body[data-route="home"] :is(.home-dashboard, .home-support) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  align-items: stretch;
+}
+
+body[data-route="home"] :is(.home-dashboard, .home-support) > * {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 100%;
+  justify-self: stretch;
+}
+
+body[data-route="home"] .home-records {
+  padding: 23px;
+}
+
+body[data-route="home"] .home-records ol {
+  width: min(520px, 100%);
+  margin-inline: auto;
+}
+
+body[data-route="home"] .home-records li {
+  grid-template-columns: 28px minmax(0, 1fr) 68px;
+  justify-content: stretch;
+  gap: 9px;
+  min-width: 0;
+  min-height: 0;
+  padding-block: 9px;
+}
+
+body[data-route="home"] .home-records li > span {
+  align-self: center;
+}
+
+body[data-route="home"] .home-records li > div {
+  grid-template-columns:
+    minmax(0, 1fr)
+    22px
+    minmax(0, 1fr);
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+
+body[data-route="home"] .home-records li > div > a {
+  min-width: 0;
+  font-size: 15.5px;
+  line-height: 1.28;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+body[data-route="home"] .home-records li > div > i {
+  width: 22px;
+  height: 22px;
+}
+
+body[data-route="home"] .home-records li > strong {
+  align-self: center;
+  min-width: 64px;
+  padding-inline: 7px;
+}
+
+/*
+ * FAQ, Methodology and About keep the same editorial shell. This repeats the
+ * intended geometry at the end of the cascade so no older reading measure
+ * can narrow a whole technical page or an FAQ answer.
+ */
+:is(
+  .faq-page,
+  .methodology-page,
+  body[data-route="about"] .page-narrow
+) {
+  width: min(1040px, calc(100vw - 48px));
+  max-width: none;
+}
+
+:is(
+  .faq-page,
+  .methodology-page,
+  body[data-route="about"] .page-narrow
+) > :is(.eyebrow, h1, .lede) {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+
+.faq-page > :is(.faq-tools, #faq-count, .faq-list, .faq-more),
+.methodology-page > .method-contents,
+.methodology-page > .method-section,
+body[data-route="about"] .page-narrow > .split {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+
+.faq-answer,
+.faq-answer > p {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: none;
+  width: 100%;
+  max-width: none;
+}
+
+/*
+ * Formulae are powder compacts rather than banners. Fit-content lets the
+ * shorter formulae remain dainty; 680px gives Starting strength enough room
+ * on desktop, while genuinely longer expressions still scroll internally.
+ */
+.methodology-page .formula,
+.methodology-page .method-details .formula {
+  box-sizing: border-box;
+  inline-size: fit-content;
+  width: fit-content;
+  max-inline-size: min(var(--atelier-formula), 100%);
+  max-width: min(var(--atelier-formula), 100%);
+  min-inline-size: min(320px, 100%);
+  overflow-x: auto;
+  border-color: rgba(255, 225, 241, 0.25);
+  border-radius: 17px 11px 17px 11px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 0 3px rgba(255, 225, 241, 0.035),
+    0 9px 21px rgba(58, 12, 43, 0.11);
+}
+
+/*
+ * Venue is a location category, never a result signal. Home uses a pale
+ * rose-mauve oval and Away a pale periwinkle jewel; neither borrows the
+ * saturated green/red used by wins and losses. Shape and letters remain
+ * redundant cues for visitors who do not distinguish the hues.
+ */
+.venue-code {
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  font-size: 12.5px;
+  font-weight: 850;
+  text-shadow: none;
+}
+
+.venue-code.venue-H {
+  color: var(--venue-home-ink);
+  background:
+    radial-gradient(
+      circle at 34% 27%,
+      rgba(255, 255, 255, 0.92) 0 18%,
+      transparent 24%
+    ),
+    var(--venue-home-bg);
+  border: 2px solid var(--venue-home-border);
+  border-radius: 56% 44% 56% 44% / 48% 56% 44% 52%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 0 0 1px rgba(99, 38, 78, 0.09);
+}
+
+.venue-code.venue-A {
+  color: var(--venue-away-ink);
+  background:
+    radial-gradient(
+      circle at 34% 27%,
+      rgba(255, 255, 255, 0.9) 0 18%,
+      transparent 24%
+    ),
+    var(--venue-away-bg);
+  border: 2px solid var(--venue-away-border);
+  border-radius: 8px 14px 8px 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 0 0 1px rgba(48, 50, 99, 0.08);
+}
+
+.venue-code.venue-N {
+  color: var(--venue-neutral-ink);
+  background:
+    radial-gradient(
+      circle at 34% 27%,
+      rgba(255, 255, 255, 0.9) 0 18%,
+      transparent 24%
+    ),
+    var(--venue-neutral-bg);
+  border: 2px solid var(--venue-neutral-border);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 0 1px rgba(84, 63, 39, 0.08);
+}
+
+/*
+ * Country cards use a compact two-column information hierarchy on phones.
+ * Fraunces belongs to the country name at full size; the rating is a precise
+ * numeric counterweight, not a large empty column.
+ */
+.ranking-card-team .team-link {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.ranking-card,
+.method-details,
+.faq-item,
+.team-lineage-note {
+  border-color: var(--atelier-seam);
+}
+
+/*
+ * Team lineage is an archive ribbon inside a pearl keepsake, not a bright
+ * full-width alert. The grid permits Germany, Russia and other long public
+ * lineages to wrap naturally without label/content overlap.
+ */
+.record-note.team-lineage-note {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 10px 16px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  color: var(--ink);
+  background:
+    radial-gradient(
+      ellipse 18rem 7rem at 96% -20%,
+      rgba(255, 255, 255, 0.86),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 239, 248, 0.88),
+      rgba(241, 235, 252, 0.78) 58%,
+      rgba(238, 249, 248, 0.72)
+    ),
+    var(--surface);
+  border: 1px solid var(--atelier-seam);
+  border-radius: 17px 25px 17px 25px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.22),
+    0 10px 24px var(--atelier-shadow);
+  background-image:
+    radial-gradient(
+      circle at 6px 5px,
+      rgba(136, 49, 103, 0.28) 0 1px,
+      transparent 1.4px
+    ),
+    radial-gradient(
+      ellipse 18rem 7rem at 96% -20%,
+      rgba(255, 255, 255, 0.86),
+      transparent 72%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 239, 248, 0.88),
+      rgba(241, 235, 252, 0.78) 58%,
+      rgba(238, 249, 248, 0.72)
+    );
+  background-position:
+    left top,
+    center,
+    center;
+  background-repeat:
+    repeat-y,
+    no-repeat,
+    no-repeat;
+  background-size:
+    8px 8px,
+    auto,
+    auto;
+}
+
+.record-note.team-lineage-note > strong {
+  display: inline-grid;
+  min-width: 0;
+  padding: 6px 12px;
+  color: #5f284c;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(239, 205, 226, 0.76)
+    );
+  border: 1px solid rgba(109, 37, 83, 0.22);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 3px 8px rgba(71, 15, 54, 0.08);
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 620;
+  line-height: 1.25;
+}
+
+.record-note.team-lineage-note > div {
+  min-width: 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.record-note.team-lineage-note > div > b {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 590;
+  line-height: 1.42;
+}
+
+/*
+ * Records controls carry their ornament on the controls themselves. There
+ * is no detached dotted rail, bow or pseudo-decoration beneath the panel.
+ */
+.record-tabs {
+  margin-bottom: 22px;
+  padding-bottom: 0;
+}
+
+.record-tabs::before,
+.record-tabs::after {
+  width: 0;
+  height: 0;
+  background: none;
+  box-shadow: none;
+  content: none;
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  body[data-route="home"] :is(.home-dashboard, .home-support) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :is(
+    .faq-page,
+    .methodology-page,
+    body[data-route="about"] .page-narrow
+  ) {
+    width: min(960px, calc(100vw - 34px));
+  }
+}
+
+@media (max-width: 720px) {
+  .home-intro .hero-actions {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .home-intro .hero-actions .home-action-predict {
+    grid-column: 1;
+  }
+
+  body[data-route="home"] :is(.home-dashboard, .home-support) {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  body[data-route="home"] .home-records {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 18px 15px;
+    justify-self: stretch;
+  }
+
+  body[data-route="home"] .home-records li {
+    grid-template-columns: 26px minmax(0, 1fr) 62px;
+    gap: 7px;
+    min-height: 0;
+    padding-block: 8px;
+  }
+
+  body[data-route="home"] .home-records li > div {
+    grid-template-columns:
+      minmax(0, 1fr)
+      20px
+      minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  body[data-route="home"] .home-records li > div > a {
+    font-size: 14.5px;
+    line-height: 1.24;
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    width: 20px;
+    height: 20px;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    min-width: 58px;
+    font-size: 13.5px;
+  }
+
+  :is(
+    .faq-page,
+    .methodology-page,
+    body[data-route="about"] .page-narrow
+  ) {
+    width: calc(100vw - 24px);
+  }
+
+  .methodology-page .formula,
+  .methodology-page .method-details .formula {
+    inline-size: 100%;
+    width: 100%;
+    max-inline-size: 100%;
+    max-width: 100%;
+    min-inline-size: 0;
+  }
+
+  .ranking-cards {
+    gap: 10px;
+  }
+
+  .ranking-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(76px, auto);
+    grid-template-areas:
+      "team rating"
+      "rank rating"
+      "snapshot snapshot"
+      "details details";
+    gap: 2px 12px;
+    min-height: 0;
+    padding: 14px;
+    border-radius: 16px 22px 16px 22px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      inset 0 0 0 3px rgba(255, 241, 249, 0.15),
+      0 8px 18px rgba(70, 17, 54, 0.08);
+  }
+
+  .ranking-card-heading {
+    display: contents;
+  }
+
+  .ranking-card-rank {
+    grid-area: rank;
+    align-self: start;
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  .ranking-card-rating {
+    grid-area: rating;
+    align-self: center;
+    min-width: 76px;
+  }
+
+  .ranking-card-rating strong {
+    font-size: 25px;
+    line-height: 1.05;
+  }
+
+  .ranking-card-rating small {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .ranking-card-team {
+    grid-area: team;
+    align-self: end;
+    min-width: 0;
+    margin: 0;
+    padding-right: 4px;
+    font-family: var(--font-display);
+    font-size: clamp(21px, 6vw, 24px);
+    font-weight: 610;
+    line-height: 1.14;
+    letter-spacing: -0.012em;
+  }
+
+  .ranking-card-snapshot {
+    grid-area: snapshot;
+    gap: 8px;
+    margin-top: 11px;
+    padding-top: 10px;
+  }
+
+  .ranking-card-snapshot > div {
+    gap: 4px;
+  }
+
+  .ranking-card-snapshot > div > span:first-child {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .ranking-card-details {
+    grid-area: details;
+    margin: 11px -14px -14px;
+  }
+
+  .ranking-card-details summary {
+    min-height: 44px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+  }
+
+  .record-note.team-lineage-note {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    padding: 13px 14px 14px;
+  }
+
+  .record-note.team-lineage-note > strong {
+    width: max-content;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  /*
+   * The rank and rating share one compact metadata row. The matchup then
+   * receives the full card width, so long country names no longer collapse
+   * into one-word columns. V remains visually between the two teams.
+   */
+  body[data-route="home"] .home-records li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 10px;
+    min-height: 0;
+    padding-block: 9px;
+  }
+
+  body[data-route="home"] .home-records li > span {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-width: 58px;
+  }
+
+  body[data-route="home"] .home-records li > div {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    width: 100%;
+    min-width: 0;
+    padding-top: 3px;
+  }
+
+  body[data-route="home"] .home-records li > div > a:first-of-type {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > div > i {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    justify-self: center;
+    width: 19px;
+    height: 19px;
+  }
+
+  body[data-route="home"] .home-records li > div > a:last-of-type {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > div > small {
+    grid-column: 1;
+    grid-row: 4;
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  body[data-route="home"] .home-records li > div > a {
+    width: 100%;
+    font-size: 15.5px;
+    line-height: 1.18;
+    text-wrap: balance;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --atelier-seam: rgba(246, 203, 228, 0.24);
+    --atelier-shadow: rgba(4, 0, 3, 0.28);
+    --venue-home-bg: #6b456b;
+    --venue-home-ink: #fff6fc;
+    --venue-home-border: #c98bb1;
+    --venue-away-bg: #455f86;
+    --venue-away-ink: #f6f3ff;
+    --venue-away-border: #93a6d1;
+    --venue-neutral-bg: #66584b;
+    --venue-neutral-ink: #fff8ed;
+    --venue-neutral-border: #bca789;
+  }
+
+  body .site-header a.brand > span > small {
+    color: #fff0f8;
+  }
+
+  .home-intro .hero-actions .home-action {
+    color: #fff8fc;
+    background:
+      linear-gradient(
+        90deg,
+        transparent,
+        var(--action-ribbon) 16% 84%,
+        transparent
+      )
+      center bottom / calc(100% - 28px) 3px no-repeat,
+      radial-gradient(
+        ellipse 9rem 4rem at 82% -42%,
+        rgba(255, 217, 239, 0.2),
+        transparent 72%
+      ),
+      linear-gradient(135deg, #74305f, #542146 56%, #39203b);
+    border-color: rgba(255, 224, 242, 0.29);
+  }
+
+  .record-note.team-lineage-note {
+    color: var(--ink);
+    background-image:
+      radial-gradient(
+        circle at 6px 5px,
+        rgba(246, 202, 226, 0.36) 0 1px,
+        transparent 1.4px
+      ),
+      radial-gradient(
+        ellipse 18rem 7rem at 96% -20%,
+        rgba(255, 218, 239, 0.07),
+        transparent 72%
+      ),
+      linear-gradient(
+        135deg,
+        rgba(102, 38, 78, 0.18),
+        rgba(73, 55, 92, 0.14) 58%,
+        rgba(42, 78, 76, 0.1)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.055),
+      inset 0 0 0 3px rgba(255, 226, 242, 0.025),
+      0 11px 26px var(--atelier-shadow);
+  }
+
+  .record-note.team-lineage-note > strong {
+    color: #ffeaf6;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(130, 57, 99, 0.82),
+        rgba(81, 54, 97, 0.82)
+      );
+    border-color: rgba(255, 218, 239, 0.23);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 4px 9px rgba(3, 0, 2, 0.22);
+  }
+
+  .ranking-card {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      inset 0 0 0 3px rgba(255, 226, 242, 0.02),
+      0 9px 20px rgba(4, 0, 3, 0.2);
+  }
+
+  .venue-code.venue-H,
+  .venue-code.venue-A,
+  .venue-code.venue-N {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 0 0 1px rgba(0, 0, 0, 0.18);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .home-intro .hero-actions .home-action {
+    background: #592249;
+  }
+
+  .record-note.team-lineage-note {
+    background: var(--surface);
+  }
+
+  .venue-code.venue-H {
+    background: var(--venue-home-bg);
+  }
+
+  .venue-code.venue-A {
+    background: var(--venue-away-bg);
+  }
+
+  .venue-code.venue-N {
+    background: var(--venue-neutral-bg);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .home-intro .hero-actions .home-action,
+  .record-note.team-lineage-note,
+  .venue-code.venue-H,
+  .venue-code.venue-A,
+  .venue-code.venue-N,
+  .ranking-card {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+}
+
+@media (forced-colors: active) {
+  body .site-header a.brand > span > small {
+    color: LinkText;
+    text-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .record-note.team-lineage-note,
+  .venue-code.venue-H,
+  .venue-code.venue-A,
+  .venue-code.venue-N,
+  .ranking-card {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+}
+
+@media print {
+  body .site-header a.brand > span > small,
+  .home-intro .hero-actions .home-action,
+  .record-note.team-lineage-note,
+  .venue-code.venue-H,
+  .venue-code.venue-A,
+  .venue-code.venue-N,
+  .ranking-card,
+  .methodology-page .formula {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .home-intro .hero-actions .home-action::before,
+  .home-intro .hero-actions .home-action::after {
+    content: none;
+  }
+}
