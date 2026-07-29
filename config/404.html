@@ -307,6 +307,71 @@
           box-shadow: none;
         }
       }
+      /* Couture alphabet echo for the standalone route. */
+      :root {
+        --alphabet-rose: #ef9ecb;
+        --alphabet-lilac: #cbb7e6;
+        --alphabet-aqua: #b8dedd;
+        --alphabet-lacquer: #8d296b;
+        --alphabet-seam: rgba(181, 86, 143, .34);
+      }
+      main {
+        background:
+          radial-gradient(ellipse 21rem 10rem at 8% 8%, rgba(239, 158, 203, .14), transparent 72%),
+          radial-gradient(ellipse 18rem 9rem at 92% 22%, rgba(203, 183, 230, .13), transparent 74%),
+          linear-gradient(118deg, transparent 0 54%, rgba(255, 255, 255, .16) 64%, transparent 75%),
+          var(--surface);
+        border-color: var(--alphabet-seam);
+      }
+      h1 {
+        text-wrap: balance;
+      }
+      p {
+        max-width: 48ch;
+        text-wrap: pretty;
+      }
+      a:focus-visible {
+        outline: 3px solid var(--alphabet-lacquer);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 2px var(--surface);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --alphabet-rose: #cc6ea4;
+          --alphabet-lilac: #9d80be;
+          --alphabet-aqua: #6aa8a5;
+          --alphabet-lacquer: #ff91cf;
+          --alphabet-seam: rgba(239, 177, 214, .24);
+        }
+        main {
+          background:
+            radial-gradient(ellipse 21rem 10rem at 8% 8%, rgba(204, 110, 164, .08), transparent 74%),
+            radial-gradient(ellipse 18rem 9rem at 92% 22%, rgba(157, 128, 190, .07), transparent 76%),
+            linear-gradient(118deg, transparent 0 54%, rgba(255, 224, 242, .025) 64%, transparent 75%),
+            var(--surface);
+        }
+      }
+      @media (hover: none), (pointer: coarse) {
+        a { min-height: 48px; }
+      }
+      @media (prefers-contrast: more) {
+        main { border-color: currentColor; }
+        a { border-color: currentColor; }
+      }
+      @media (forced-colors: active) {
+        body, main, a {
+          color: CanvasText;
+          background: Canvas;
+          border-color: CanvasText;
+          box-shadow: none;
+        }
+      }
+      @media print {
+        main {
+          color: #000;
+          background: #fff;
+        }
+      }
     </style>
   </head>
   <body>

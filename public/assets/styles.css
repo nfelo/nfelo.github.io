@@ -7999,3 +7999,737 @@ body[data-route] main::after {
     animation: none;
   }
 }
+
+/*
+ * Couture alphabet: twenty-six new feminine, functional refinements.
+ *
+ * Beauty editorials, bridal tailoring, perfume packaging and grown-up
+ * fairy/mermaid styling inform this layer.  The references are translated
+ * into hierarchy, material and proportion rather than literal decorative
+ * art.  Every treatment remains subordinate to the football information.
+ */
+:root {
+  --alphabet-rose: #ef9ecb;
+  --alphabet-lilac: #cbb7e6;
+  --alphabet-aqua: #b8dedd;
+  --alphabet-champagne: #e8c8ad;
+  --alphabet-lacquer: #8d296b;
+  --alphabet-velvet: #321128;
+  --alphabet-seam: color-mix(
+    in srgb,
+    var(--alphabet-rose) 46%,
+    var(--border)
+  );
+  --alphabet-whisper: color-mix(
+    in srgb,
+    var(--surface) 84%,
+    var(--alphabet-lilac)
+  );
+  --alphabet-glass: color-mix(
+    in srgb,
+    var(--surface-glass) 90%,
+    var(--alphabet-rose)
+  );
+}
+
+/* A. Airy editorial measure keeps romantic typography effortless to read. */
+.prose {
+  max-width: 74ch;
+}
+
+:is(
+  .prose p,
+  .lede,
+  .record-note > div,
+  .callout,
+  .venue-profile-copy > p,
+  .home-support p
+) {
+  text-wrap: pretty;
+}
+
+:is(.page-heading h1, .section-heading h2, .compact-heading h2) {
+  text-wrap: balance;
+}
+
+/* B. Beauty-counter labelling makes every field delicate but unmistakable. */
+:is(
+  .field label,
+  .team-picker label,
+  .comparison-team-row label,
+  .comparison-add-panel label,
+  .chart-year-form label
+) {
+  color: color-mix(in srgb, var(--ink-soft) 84%, var(--alphabet-lacquer));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  line-height: 1.35;
+}
+
+/* C. Corsetry seams give complex comparison and prediction tools structure. */
+:is(
+  .comparison-selection,
+  .predictor,
+  .comparison-pair-picker,
+  .forecast,
+  .venue-profile
+) {
+  border-inline: 3px double var(--alphabet-seam);
+}
+
+/* D. Dewdrop active states use polish only where selection has meaning. */
+:is(.record-tabs, .toggle-group) .button[aria-pressed="true"],
+.chart-legend-item[aria-pressed="true"],
+.site-nav a[aria-current="page"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -3px 0 color-mix(
+      in srgb,
+      var(--alphabet-aqua) 74%,
+      var(--alphabet-lacquer)
+    ),
+    0 7px 18px rgba(92, 35, 78, 0.11);
+}
+
+/* E. Eau-de-rose route rails make orientation visible without extra icons. */
+.nav-submenu a[aria-current="page"],
+.footer-links a[aria-current="page"] {
+  border-inline-start: 3px solid var(--alphabet-rose);
+}
+
+.record-tabs[role="tablist"] {
+  border-block-end-color: var(--alphabet-seam);
+}
+
+:is(
+  .button,
+  button,
+  input,
+  select,
+  summary,
+  .chart-legend-item,
+  .rating-chart,
+  a
+):focus-visible {
+  outline: 3px solid var(--alphabet-lacquer);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* F. Frosted-blush worktops group filters without making another heavy box. */
+:is(
+  .toolbar,
+  .comparison-selection,
+  .comparison-pair-picker,
+  .analysis-disclosure > summary
+) {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--alphabet-glass) 88%, transparent),
+      color-mix(in srgb, var(--surface-glass) 96%, var(--alphabet-lilac))
+    );
+  backdrop-filter: blur(14px) saturate(1.06);
+}
+
+/* G. Gossamer double rules separate chapters while preserving white space. */
+.section + .section {
+  padding-top: clamp(16px, 2vw, 22px);
+  border-top: 3px double color-mix(
+    in srgb,
+    var(--alphabet-seam) 72%,
+    transparent
+  );
+}
+
+.prose hr {
+  height: 3px;
+  margin-block: 42px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--alphabet-seam) 18% 82%,
+      transparent
+    );
+  border: 0;
+}
+
+/* H. Haloed priority gives first-place and selected summaries quiet ceremony. */
+:is(
+  .home-ranking-list li:first-child,
+  .ranking-table tbody tr:first-child,
+  .ranking-card:first-child
+) {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--alphabet-rose) 16%, transparent),
+    color-mix(in srgb, var(--alphabet-lilac) 10%, transparent),
+    transparent 78%
+  );
+  box-shadow: inset 3px 0 0 color-mix(
+    in srgb,
+    var(--alphabet-lacquer) 72%,
+    var(--alphabet-rose)
+  );
+}
+
+/* I. Intaglio microtype gives supporting labels a printed, tactile clarity. */
+:is(
+  .eyebrow,
+  .ranking-card-rank,
+  .forecast-outcome span,
+  .metric-grid span,
+  .rating-sub
+) {
+  font-kerning: normal;
+  text-shadow: 0 1px 0 color-mix(
+    in srgb,
+    var(--surface) 76%,
+    transparent
+  );
+}
+
+/* J. Jewellery-casket tabs read as one ordered family of controls. */
+:is(.record-tabs, .toggle-group) {
+  padding: 5px;
+  background: color-mix(
+    in srgb,
+    var(--surface) 88%,
+    var(--alphabet-lilac)
+  );
+  border: 1px solid var(--alphabet-seam);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 2px rgba(92, 35, 78, 0.08),
+    inset 0 0 0 3px color-mix(
+      in srgb,
+      var(--surface) 72%,
+      transparent
+    );
+}
+
+/* K. Kiss-cut chips make compact statuses feel finished, never toy-like. */
+:is(
+  .venue-code,
+  .home-rank,
+  .movement b,
+  .comparison-team-count,
+  .chart-range
+) {
+  border: 1px solid color-mix(
+    in srgb,
+    currentColor 24%,
+    var(--alphabet-seam)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 3px 8px rgba(78, 26, 69, 0.07);
+}
+
+.movement b {
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+/* L. Letterpress notes turn explanations into calm editorial annotations. */
+:is(.record-note, .callout) {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--note-bg) 88%, var(--alphabet-rose)),
+      color-mix(in srgb, var(--note-bg) 92%, var(--alphabet-lilac))
+    );
+  border-block: 1px solid color-mix(
+    in srgb,
+    var(--alphabet-seam) 72%,
+    transparent
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 7px 18px rgba(78, 26, 69, 0.06);
+}
+
+/* M. Marquise markers turn chart identity into fine-jewellery geometry. */
+:is(
+  .comparison-series-swatch,
+  .chart-inspector-value > i
+) {
+  border-radius: 70% 30% 70% 30% / 58% 42% 58% 42%;
+}
+
+.chart-marker {
+  stroke-linejoin: round;
+}
+
+/* N. Nacreous table light keeps dense headers polished and legible. */
+thead {
+  background:
+    linear-gradient(
+      112deg,
+      color-mix(in srgb, var(--surface-subtle) 86%, var(--alphabet-rose)),
+      color-mix(in srgb, var(--surface-subtle) 88%, var(--alphabet-aqua)),
+      color-mix(in srgb, var(--surface-subtle) 90%, var(--alphabet-lilac))
+    );
+}
+
+thead th {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--control-border) 62%,
+    var(--alphabet-lacquer)
+  );
+}
+
+/* O. Opera-programme rhythm aligns ranks, records and dates precisely. */
+:is(
+  .home-ranking-list,
+  .home-records,
+  .leader-grid,
+  .ranking-table,
+  .record-table
+) {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+:is(.home-ranking-list li, .home-records li) {
+  padding-inline: 5px;
+}
+
+/* P. Perfume-blotter callouts use one slender accent instead of decoration. */
+.callout {
+  border-left-width: 5px;
+  border-left-color: color-mix(
+    in srgb,
+    var(--callout-border) 76%,
+    var(--alphabet-lilac)
+  );
+  border-radius: 3px 18px 18px 3px;
+}
+
+.forecast-explanation {
+  max-width: 82ch;
+}
+
+/* Q. Quilted metric compartments make related figures easier to scan. */
+:is(
+  .metric-grid,
+  .venue-profile-highlights,
+  .score-profile-highlights,
+  .forecast-meta
+) {
+  gap: 10px;
+}
+
+:is(
+  .metric-grid > div,
+  .venue-profile-highlights > div,
+  .score-profile-highlights > div
+) {
+  outline: 1px solid color-mix(
+    in srgb,
+    var(--alphabet-seam) 46%,
+    transparent
+  );
+  outline-offset: -4px;
+}
+
+/* R. Rouge-lacquer primary actions keep a grown-up beauty-counter finish. */
+.button-primary:not(.home-action) {
+  color: var(--on-dark);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--alphabet-lacquer) 82%, var(--coral)),
+      color-mix(in srgb, var(--alphabet-lacquer) 76%, var(--navy-2))
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--alphabet-lacquer) 74%,
+    var(--alphabet-champagne)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 0 rgba(58, 13, 45, 0.18),
+    0 9px 20px rgba(92, 35, 78, 0.14);
+}
+
+/* S. Silk-thread links remain recognisable without harsh default underlines. */
+:is(
+  .prose a,
+  .record-note a,
+  .callout a,
+  .compact-heading > a,
+  .home-help-links a
+) {
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--alphabet-rose) 72%,
+    currentColor
+  );
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.24em;
+}
+
+/* T. Tulle title veils soften page openings without adding another panel. */
+.page-heading {
+  background:
+    radial-gradient(
+      ellipse 24rem 8rem at 9% 28%,
+      color-mix(in srgb, var(--alphabet-rose) 11%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 20rem 7rem at 42% 70%,
+      color-mix(in srgb, var(--alphabet-lilac) 10%, transparent),
+      transparent 74%
+    );
+  border-radius: 24px;
+}
+
+/* U. Ultrafine data hairlines preserve density while guiding the eye. */
+tbody tr {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--border) 76%,
+    var(--alphabet-lilac)
+  );
+}
+
+tbody tr:nth-child(even) {
+  background-color: color-mix(
+    in srgb,
+    var(--surface-subtle) 26%,
+    transparent
+  );
+}
+
+/* V. Velvet dark mode keeps the same femininity without muddy grey or glare. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --alphabet-rose: #cc6ea4;
+    --alphabet-lilac: #9d80be;
+    --alphabet-aqua: #6aa8a5;
+    --alphabet-champagne: #bb8f75;
+    --alphabet-lacquer: #ff91cf;
+    --alphabet-velvet: #220a1a;
+    --alphabet-whisper: color-mix(
+      in srgb,
+      var(--surface) 88%,
+      var(--alphabet-lilac)
+    );
+    --alphabet-glass: color-mix(
+      in srgb,
+      var(--surface-glass) 94%,
+      var(--alphabet-rose)
+    );
+  }
+
+  :is(
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .analysis-disclosure > summary
+  ) {
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--surface) 94%, var(--alphabet-rose)),
+        color-mix(in srgb, var(--surface) 95%, var(--alphabet-lilac))
+      );
+  }
+
+  :is(.record-tabs, .toggle-group) {
+    background: color-mix(
+      in srgb,
+      var(--surface) 92%,
+      var(--alphabet-lilac)
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 0 0 3px rgba(255, 255, 255, 0.018);
+  }
+
+  thead {
+    background:
+      linear-gradient(
+        112deg,
+        color-mix(in srgb, var(--surface-subtle) 93%, var(--alphabet-rose)),
+        color-mix(in srgb, var(--surface-subtle) 94%, var(--alphabet-aqua)),
+        color-mix(in srgb, var(--surface-subtle) 94%, var(--alphabet-lilac))
+      );
+  }
+
+  :is(.record-note, .callout) {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 9px 22px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* W. Waterline chart inspection makes exact values easier to locate. */
+.chart-crosshair {
+  stroke-width: 2;
+  stroke-dasharray: 2 4;
+}
+
+.has-chart-selection .chart-stage {
+  box-shadow:
+    inset 0 0 0 2px color-mix(
+      in srgb,
+      var(--alphabet-rose) 54%,
+      var(--border)
+    ),
+    inset 0 0 0 6px color-mix(
+      in srgb,
+      var(--surface) 68%,
+      transparent
+    );
+}
+
+.chart-inspector-value strong {
+  min-width: 4.8ch;
+  text-align: end;
+}
+
+/* X. eXpressive scale is protected by readable minima and even numerals. */
+:is(
+  .team-rating strong,
+  .ranking-card-rating strong,
+  .forecast-outcome strong,
+  .metric-grid strong,
+  .chart-inspector-value strong,
+  .rating-main,
+  .score,
+  .numeric
+) {
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+:is(
+  .muted,
+  .small,
+  .rating-sub,
+  .chart-help,
+  .chart-summary,
+  .table-hint
+) {
+  line-height: 1.45;
+}
+
+/* Y. Yoked tool layouts keep labels, inputs and actions visually connected. */
+:is(.toolbar, .history-date-actions, .chart-controls) {
+  row-gap: 14px;
+}
+
+:is(
+  .field input,
+  .field select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .comparison-pair-picker select,
+  .chart-year-form input
+) {
+  min-height: 44px;
+}
+
+/* Z. Zero-clutter responsive and preference modes retain every function. */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .section + .section {
+    padding-top: 18px;
+  }
+
+  :is(.toolbar, .comparison-selection, .comparison-pair-picker) {
+    border-radius: 18px;
+  }
+
+  .page-heading {
+    background-size: 72% 100%, 58% 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .prose {
+    max-width: none;
+  }
+
+  .section + .section {
+    padding-top: 14px;
+  }
+
+  :is(.record-tabs, .toggle-group) {
+    padding: 4px;
+    border-radius: 16px;
+  }
+
+  :is(.record-tabs, .toggle-group) .button {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .page-heading {
+    background-size: 92% 100%, 82% 100%;
+    border-radius: 18px;
+  }
+
+  :is(
+    .comparison-selection,
+    .predictor,
+    .comparison-pair-picker,
+    .forecast,
+    .venue-profile
+  ) {
+    border-inline-width: 2px;
+  }
+
+  :is(.home-ranking-list li, .home-records li) {
+    padding-inline: 3px;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --content: calc(100vw - 24px);
+  }
+
+  :is(.toolbar, .comparison-selection, .comparison-pair-picker) {
+    padding-inline: 12px;
+  }
+
+  :is(.record-tabs, .toggle-group) {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .page-heading h1 {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary,
+    .chart-legend-item,
+    .site-nav a,
+    .footer-links a
+  ) {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :is(
+    .site-header,
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .analysis-disclosure > summary
+  ) {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+
+  .site-header {
+    color: var(--on-dark);
+    background: var(--navy);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --alphabet-seam: var(--control-border);
+  }
+
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary,
+    .chart-legend-item,
+    .ranking-card,
+    .toolbar,
+    .table-shell
+  ) {
+    border-color: currentColor;
+  }
+
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary,
+    .chart-legend-item,
+    .rating-chart,
+    a
+  ):focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+
+  tbody tr:nth-child(even) {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.button, button, summary, input, select, a) {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :is(
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .record-tabs,
+    .toggle-group,
+    .record-note,
+    .callout,
+    .page-heading
+  ) {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  :is(
+    .home-ranking-list li:first-child,
+    .ranking-table tbody tr:first-child,
+    .ranking-card:first-child
+  ) {
+    background: Canvas;
+    box-shadow: inset 3px 0 0 Highlight;
+  }
+}
+
+@media print {
+  .page-heading,
+  :is(
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .record-note,
+    .callout,
+    thead
+  ) {
+    color: #000;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .section + .section {
+    padding-top: 18px;
+    border-top: 1px solid #777;
+  }
+}
