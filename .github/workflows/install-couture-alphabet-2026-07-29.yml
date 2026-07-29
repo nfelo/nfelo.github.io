@@ -1,0 +1,475 @@
+name: Install couture alphabet A-Z
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: nfelo-couture-alphabet-installer
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify the exact release base
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          installer_path=".github/workflows/install-couture-alphabet-2026-07-29.yml"
+          test -f "$installer_path" || {
+            echo "::error::Save this workflow at $installer_path before running it."
+            exit 1
+          }
+
+          test "$(git branch --show-current)" = "main" || {
+            echo "::error::This installer must run on main."
+            exit 1
+          }
+
+          current_styles="$(git hash-object public/assets/styles.css)"
+          current_not_found="$(git hash-object config/404.html)"
+          old_styles="ae957092a0311aad42eb43469100107e8f746baf"
+          old_not_found="11331d6011725a042049622a55bba14261fa55e6"
+          new_styles="4d702a6e3b48100c067367f9a915e9a494fff62c"
+          new_not_found="02f49b5cdca01e9e1b238083ae6a0f2c4abea30f"
+
+          if [ "$current_styles" = "$new_styles" ] &&
+             [ "$current_not_found" = "$new_not_found" ]; then
+            echo "The couture alphabet is already installed."
+          elif [ "$current_styles" = "$old_styles" ] &&
+               [ "$current_not_found" = "$old_not_found" ]; then
+            echo "The verified release base is present."
+          else
+            echo "::error::The presentation files have changed since this release was prepared."
+            echo "::error::Current styles blob: $current_styles"
+            echo "::error::Current 404 blob: $current_not_found"
+            exit 1
+          fi
+
+          sha256sum \
+            public/assets/app.js \
+            scripts/model.py \
+            scripts/build_site.py \
+            config/elo_matches.json \
+            config/forecast_layer.json \
+            config/venue_effects.json \
+            > "$RUNNER_TEMP/couture-protected.before"
+
+      - name: Decode the compact audited release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > "$RUNNER_TEMP/couture-alphabet.b64" <<'PAYLOAD'
+          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
+          WVo=
+          PAYLOAD
+
+          tr -d '[:space:]' < "$RUNNER_TEMP/couture-alphabet.b64" |
+            base64 --decode > "$RUNNER_TEMP/couture-alphabet.tar.xz"
+
+          echo \
+            "371e412ed6bf7f31f11baec6bac7ef191331c1e1760b04bd43f7502ad5e1f8cb  $RUNNER_TEMP/couture-alphabet.tar.xz" |
+            sha256sum --check -
+
+          mkdir "$RUNNER_TEMP/couture-alphabet"
+          tar -xJf "$RUNNER_TEMP/couture-alphabet.tar.xz" \
+            -C "$RUNNER_TEMP/couture-alphabet"
+
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path(__import__("os").environ["RUNNER_TEMP"])
+          actual = {
+              path.name
+              for path in (root / "couture-alphabet").iterdir()
+              if path.is_file()
+          }
+          expected = {
+              "couture-alphabet.css",
+              "not-found-alphabet.css",
+              "test_couture_alphabet.py",
+          }
+          if actual != expected:
+              raise SystemExit(
+                  f"Unexpected release contents: {sorted(actual)}"
+              )
+          PY
+
+      - name: Install the presentation-only release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import os
+          import re
+          from pathlib import Path
+
+
+          root = Path.cwd()
+          payload = Path(os.environ["RUNNER_TEMP"]) / "couture-alphabet"
+          styles_path = root / "public" / "assets" / "styles.css"
+          not_found_path = root / "config" / "404.html"
+          test_path = root / "tests" / "test_couture_alphabet.py"
+
+          styles_marker = (
+              "Couture alphabet: twenty-six new feminine, "
+              "functional refinements."
+          )
+          styles = styles_path.read_text(encoding="utf-8")
+          if styles_marker not in styles:
+              addition = (
+                  payload / "couture-alphabet.css"
+              ).read_text(encoding="utf-8").strip()
+              styles_path.write_text(
+                  styles.rstrip() + "\n\n" + addition + "\n",
+                  encoding="utf-8",
+              )
+
+          not_found_marker = (
+              "Couture alphabet echo for the standalone route."
+          )
+          not_found = not_found_path.read_text(encoding="utf-8")
+          if not_found_marker not in not_found:
+              addition = (
+                  payload / "not-found-alphabet.css"
+              ).read_text(encoding="utf-8").rstrip()
+              closing = "    </style>"
+              if not_found.count(closing) != 1:
+                  raise SystemExit(
+                      "The standalone stylesheet boundary changed."
+                  )
+              not_found_path.write_text(
+                  not_found.replace(
+                      closing,
+                      addition + "\n" + closing,
+                  ),
+                  encoding="utf-8",
+              )
+
+          test_path.write_text(
+              (
+                  payload / "test_couture_alphabet.py"
+              ).read_text(encoding="utf-8"),
+              encoding="utf-8",
+          )
+
+          styles_hash = hashlib.sha256(
+              styles_path.read_bytes()
+          ).hexdigest()[:12]
+          expected_hash = "b6b6a4ba2ca2"
+          if styles_hash != expected_hash:
+              raise SystemExit(
+                  "Installed stylesheet has an unexpected hash: "
+                  f"{styles_hash}"
+              )
+
+          pattern = re.compile(
+              r"assets/styles\.css\?v=[0-9a-f]{12}"
+          )
+          routes = sorted((root / "public").rglob("index.html"))
+          if len(routes) < 250:
+              raise SystemExit(
+                  f"Only {len(routes)} clean routes were found."
+              )
+          for route in routes:
+              html = route.read_text(encoding="utf-8")
+              replacement = (
+                  f"assets/styles.css?v={styles_hash}"
+              )
+              updated, count = pattern.subn(replacement, html)
+              if count != 1:
+                  raise SystemExit(
+                      f"{route} has {count} stylesheet references."
+                  )
+              route.write_text(updated, encoding="utf-8")
+          PY
+
+          test \
+            "$(git hash-object public/assets/styles.css)" = \
+            "4d702a6e3b48100c067367f9a915e9a494fff62c"
+          test \
+            "$(git hash-object config/404.html)" = \
+            "02f49b5cdca01e9e1b238083ae6a0f2c4abea30f"
+          test \
+            "$(git hash-object tests/test_couture_alphabet.py)" = \
+            "d3cd826f4ad5da609c2014f67481c9bfaba2ed62"
+
+      - name: Verify presentation, accessibility and browser boot
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m unittest \
+            tests.test_presentation \
+            tests.test_actual_final_presentation \
+            tests.test_couture_alphabet \
+            --verbose
+          node --check public/assets/app.js
+          node scripts/smoke_browser_boot.js public
+          git diff --check
+          sha256sum --check \
+            "$RUNNER_TEMP/couture-protected.before"
+
+      - name: Enforce presentation-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          installer_path=".github/workflows/install-couture-alphabet-2026-07-29.yml"
+          rm -- "$installer_path"
+
+          python - <<'PY'
+          from __future__ import annotations
+
+          import subprocess
+
+
+          installer = (
+              ".github/workflows/"
+              "install-couture-alphabet-2026-07-29.yml"
+          )
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only"],
+                  text=True,
+              ).splitlines()
+          )
+          changed.update(
+              subprocess.check_output(
+                  [
+                      "git",
+                      "ls-files",
+                      "--others",
+                      "--exclude-standard",
+                  ],
+                  text=True,
+              ).splitlines()
+          )
+
+          exact = {
+              "config/404.html",
+              "public/assets/styles.css",
+              "tests/test_couture_alphabet.py",
+              installer,
+          }
+
+          def allowed(path: str) -> bool:
+              return (
+                  path in exact
+                  or (
+                      path.startswith("public/")
+                      and path.endswith("/index.html")
+                  )
+                  or path == "public/index.html"
+              )
+
+          unexpected = sorted(
+              path for path in changed if not allowed(path)
+          )
+          if unexpected:
+              raise SystemExit(
+                  "Unexpected files changed: "
+                  + ", ".join(unexpected)
+              )
+          if len(
+              [
+                  path
+                  for path in changed
+                  if path == "public/index.html"
+                  or (
+                      path.startswith("public/")
+                      and path.endswith("/index.html")
+                  )
+              ]
+          ) < 250:
+              raise SystemExit(
+                  "Not every clean route received the new asset hash."
+              )
+          PY
+
+          git diff --check
+
+      - name: Commit and publish the installer result
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A -- \
+            .github/workflows/install-couture-alphabet-2026-07-29.yml \
+            config/404.html \
+            public \
+            tests/test_couture_alphabet.py
+
+          git commit -m \
+            "style: add accessible couture alphabet presentation [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Start the normal Pages deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          dispatched=false
+          for attempt in 1 2 3; do
+            if gh workflow run pages.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref main \
+              --field refresh_source=false \
+              --field full_refresh=false; then
+              dispatched=true
+              break
+            fi
+            sleep 5
+          done
+
+          if [ "$dispatched" != "true" ]; then
+            echo "::error::The release was committed, but Pages could not be started."
+            echo "::error::Run 'Refresh ratings and deploy Pages' manually with source refresh off."
+            exit 1
+          fi
+
+          {
+            echo "### Couture alphabet installed"
+            echo
+            echo "- Presentation-only files changed."
+            echo "- The installer removed itself."
+            echo "- The normal Pages workflow has been started."
+          } >> "$GITHUB_STEP_SUMMARY"
