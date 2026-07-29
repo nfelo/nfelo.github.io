@@ -57,22 +57,22 @@ class PresentationReleaseTests(unittest.TestCase):
         ).hexdigest()[:12]
         required = (
             (
-                '<meta name="theme-color" content="#4a183f" '
+                '<meta name="theme-color" content="#3b1232" '
                 'media="(prefers-color-scheme: light)">'
             ),
             (
                 '<meta name="theme-color" content="#170b14" '
                 'media="(prefers-color-scheme: dark)">'
             ),
-            "favicon-2026.ico?v=20260728f3",
-            "favicon-2026.svg?v=20260728f3",
-            "apple-touch-icon-2026.png?v=20260728f3",
-            "site.webmanifest?v=20260728f3",
-            "social-card.png?v=20260728f3",
+            "favicon-2026.ico?v=20260729l1",
+            "favicon-2026.svg?v=20260729l1",
+            "apple-touch-icon-2026.png?v=20260729l1",
+            "site.webmanifest?v=20260729l1",
+            "social-card.png?v=20260729l1",
             f"assets/styles.css?v={stylesheet_hash}",
             (
                 '<img class="brand-mark" '
-                'src="favicon-2026.svg?v=20260728f3"'
+                'src="favicon-2026.svg?v=20260729l1"'
             ),
         )
         obsolete = (
@@ -596,38 +596,42 @@ class PresentationReleaseTests(unittest.TestCase):
         for marker in (
             'aria-label="Network Football Elo"',
             '<radialGradient id="pearl"',
+            '<linearGradient id="aurora"',
+            '<linearGradient id="rim"',
             '<linearGradient id="monogram"',
-            'd="M21.5 44V21l21 23V21"',
-            '<circle cx="49.2" cy="15.2"',
+            'd="M21 44.5V20.5l21.5 24V20.5"',
+            '<circle cx="49.5" cy="15"',
+            'd="M15.5 25.5c9.5-5.5 22.5-5.5 32 0"',
         ):
             self.assertIn(marker, primary_svg)
-        self.assertEqual(primary_svg.count("<ellipse"), 2)
+        self.assertEqual(primary_svg.count("<circle"), 4)
         self.assertNotIn('<radialGradient id="petal">', primary_svg)
         self.assertNotIn("l1.5 4.5L56 15", primary_svg)
         maskable_svg = (
             PUBLIC / "icon-maskable-2026.svg"
         ).read_text(encoding="utf-8")
-        self.assertIn('<rect width="64" height="64" fill="#3b1234"/>', maskable_svg)
-        self.assertIn('d="M21.5 44V21l21 23V21"', maskable_svg)
+        self.assertIn('<rect width="64" height="64" fill="#321329"/>', maskable_svg)
+        self.assertIn('d="M21 44.5V20.5l21.5 24V20.5"', maskable_svg)
         social_svg = (PUBLIC / "social-card.svg").read_text(
             encoding="utf-8"
         )
         self.assertIn("Fraunces, Corbel, Candara", social_svg)
         self.assertIn('<radialGradient id="pearl"', social_svg)
-        self.assertIn('d="M43 92V44l46 48V44"', social_svg)
+        self.assertIn('d="M45 96V44l46 52V44"', social_svg)
+        self.assertIn('<radialGradient id="aqua-glow">', social_svg)
         self.assertNotIn('<g id="flower">', social_svg)
         self.assertIn("International ratings, results", social_svg)
 
         manifest = json.loads(
             (PUBLIC / "site.webmanifest").read_text(encoding="utf-8")
         )
-        self.assertEqual(manifest["background_color"], "#fff6fb")
-        self.assertEqual(manifest["theme_color"], "#4a183f")
+        self.assertEqual(manifest["background_color"], "#fff8fc")
+        self.assertEqual(manifest["theme_color"], "#3b1232")
         self.assertEqual(
             {icon["src"] for icon in manifest["icons"]},
             {
-                "icon-192-2026.png?v=20260728f3",
-                "icon-512-2026.png?v=20260728f3",
+                "icon-192-2026.png?v=20260729l1",
+                "icon-512-2026.png?v=20260729l1",
             },
         )
         self.assertTrue(
@@ -642,10 +646,10 @@ class PresentationReleaseTests(unittest.TestCase):
             encoding="utf-8"
         )
         for marker in (
-            'content="#4a183f"',
+            'content="#3b1232"',
             'content="#170b14"',
-            "favicon-2026.svg?v=20260728f3",
-            "apple-touch-icon-2026.png?v=20260728f3",
+            "favicon-2026.svg?v=20260729l1",
+            "apple-touch-icon-2026.png?v=20260729l1",
             "font-variant-numeric: lining-nums tabular-nums",
             'font-family: "Fraunces Variable", Candara, Corbel',
             "linear-gradient(118deg",

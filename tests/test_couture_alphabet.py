@@ -73,7 +73,7 @@ class CoutureAlphabetTests(unittest.TestCase):
             "Eau-de-rose route rails",
             "Frosted-blush worktops",
             "Gossamer double rules",
-            "Haloed priority",
+            "Honest hierarchy",
             "Intaglio microtype",
             "Jewellery-casket tabs",
             "Kiss-cut chips",

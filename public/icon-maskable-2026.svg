@@ -1,35 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Network Football Elo">
   <defs>
-    <linearGradient id="velvet" x1="7" y1="4" x2="58" y2="61" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#a75591"/>
-      <stop offset=".48" stop-color="#70265f"/>
-      <stop offset="1" stop-color="#3b1234"/>
+    <linearGradient id="aurora" x1="7" y1="4" x2="59" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c65c9e"/>
+      <stop offset=".38" stop-color="#8e4c91"/>
+      <stop offset=".68" stop-color="#4d777d"/>
+      <stop offset="1" stop-color="#321329"/>
     </linearGradient>
-    <radialGradient id="pearl" cx=".32" cy=".22" r=".88">
-      <stop stop-color="#fff9fc"/>
-      <stop offset=".42" stop-color="#ffe7f3"/>
-      <stop offset=".76" stop-color="#ead9f3"/>
-      <stop offset="1" stop-color="#d5bedf"/>
+    <radialGradient id="pearl" cx=".3" cy=".22" r=".9">
+      <stop stop-color="#fffefe"/>
+      <stop offset=".36" stop-color="#ffe9f4"/>
+      <stop offset=".68" stop-color="#eadff5"/>
+      <stop offset=".86" stop-color="#d6eceb"/>
+      <stop offset="1" stop-color="#e2bed6"/>
     </radialGradient>
-    <linearGradient id="monogram" x1="20" y1="18" x2="45" y2="46" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#a94382"/>
-      <stop offset=".52" stop-color="#76285f"/>
-      <stop offset="1" stop-color="#4a183f"/>
+    <linearGradient id="rim" x1="14" y1="12" x2="51" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f3b8d7"/>
+      <stop offset=".48" stop-color="#cdb9e6"/>
+      <stop offset=".76" stop-color="#a8d6d4"/>
+      <stop offset="1" stop-color="#c46b9f"/>
     </linearGradient>
-    <radialGradient id="gem">
-      <stop stop-color="#fff2dc"/>
-      <stop offset=".38" stop-color="#f7b8d8"/>
-      <stop offset="1" stop-color="#d078b6"/>
+    <linearGradient id="monogram" x1="20" y1="18" x2="45" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9b2d72"/>
+      <stop offset=".53" stop-color="#6d285f"/>
+      <stop offset="1" stop-color="#35213f"/>
+    </linearGradient>
+    <radialGradient id="moonstone">
+      <stop stop-color="#fffdf2"/>
+      <stop offset=".34" stop-color="#ffd9eb"/>
+      <stop offset=".66" stop-color="#d9c8ef"/>
+      <stop offset="1" stop-color="#8fc6c5"/>
     </radialGradient>
   </defs>
-  <rect width="64" height="64" fill="#3b1234"/>
-  <rect x="1.5" y="1.5" width="61" height="61" rx="18" fill="url(#velvet)"/>
-  <rect x="4.5" y="4.5" width="55" height="55" rx="15" fill="none" stroke="#ffe1f1" stroke-opacity=".36"/>
-  <path d="M8 15C22 4 43 3 56 16" fill="none" stroke="#ffd5ea" stroke-linecap="round" stroke-opacity=".13" stroke-width="5"/>
-  <ellipse cx="32" cy="32.5" rx="21.8" ry="25.5" fill="url(#pearl)" stroke="#f3bbd9" stroke-width="1.4"/>
-  <ellipse cx="32" cy="32.5" rx="18.2" ry="22.1" fill="none" stroke="#ba5d99" stroke-opacity=".3"/>
-  <path d="M21.5 44V21l21 23V21" fill="none" stroke="url(#monogram)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.2"/>
-  <path d="M19.3 46.3c8.4 2.8 17 2.8 25.4 0" fill="none" stroke="#fff4fb" stroke-linecap="round" stroke-opacity=".4"/>
-  <circle cx="49.2" cy="15.2" r="4.1" fill="#83306f" stroke="#ffdeef" stroke-width="1"/>
-  <circle cx="49.2" cy="15.2" r="2.5" fill="url(#gem)"/>
+  <rect width="64" height="64" fill="#321329"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="18" fill="url(#aurora)"/>
+  <rect x="4.5" y="4.5" width="55" height="55" rx="15" fill="none" stroke="#fff0f8" stroke-opacity=".4"/>
+  <path d="M8 14.5C21 4.8 43 3.8 56 15.7" fill="none" stroke="#ffe3f2" stroke-linecap="round" stroke-opacity=".16" stroke-width="5"/>
+  <circle cx="31.5" cy="32.5" r="23.2" fill="url(#pearl)" stroke="url(#rim)" stroke-width="1.6"/>
+  <circle cx="31.5" cy="32.5" r="19.5" fill="none" stroke="#9f5c91" stroke-opacity=".24"/>
+  <g fill="none" stroke="#78618f" stroke-linecap="round" stroke-opacity=".18">
+    <path d="M15.5 25.5c9.5-5.5 22.5-5.5 32 0"/>
+    <path d="M15.8 39.8c9.2 5.6 22.1 5.6 31.4 0"/>
+    <path d="M24.5 11.3c-4.3 12.8-4.3 29.2 0 42.3"/>
+    <path d="M39 11.8c4 12.7 4 28.7 0 41.5"/>
+  </g>
+  <path d="M21 44.5V20.5l21.5 24V20.5" fill="none" stroke="url(#monogram)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.4"/>
+  <path d="M18.7 47c8.6 3 17.7 3 26.2 0" fill="none" stroke="#fff9fd" stroke-linecap="round" stroke-opacity=".52"/>
+  <circle cx="49.5" cy="15" r="4.8" fill="#6c315f" stroke="#ffe9f5" stroke-width="1.1"/>
+  <circle cx="49.5" cy="15" r="3" fill="url(#moonstone)"/>
 </svg>
