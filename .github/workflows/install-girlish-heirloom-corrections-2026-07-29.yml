@@ -1,0 +1,298 @@
+name: Install girlish heirloom corrections
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: install-girlish-heirloom-corrections
+  cancel-in-progress: false
+
+jobs:
+  install:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Verify the audited baseline and lock the logo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(sha256sum public/assets/styles.css | cut -d' ' -f1)" = \
+            "dea38435b0ad7d7aa3e7e1ddb5466fe2af3a1693f1920a4945d068cbef23f07f"
+          test "$(sha256sum config/404.html | cut -d' ' -f1)" = \
+            "a794d697aa56974775cd1acc9b31bd0ce930540e9799d7abe119979d2466439b"
+          grep -Fq \
+            "Editorial keepsake corrective finishing system." \
+            public/assets/styles.css
+          test \
+            "$(grep -Fc "Girlish heirloom corrective finish." \
+              public/assets/styles.css || true)" \
+            -eq 0
+
+          route_count="$(find public -type f -name index.html | wc -l)"
+          test "$route_count" -eq 260
+
+          sha256sum --check <<'SHA256'
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon-2026.svg
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon.svg
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon-2026.ico
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon.ico
+          cb6431e450e087b89060fe432246563fbf75f7b0dfd77204fcda95acfa7b6d86  public/apple-touch-icon-2026.png
+          8cdb242ebbc757fcfe7ba37b707dda392fc55b618342ddf927c030d1dd8c2987  public/icon-192-2026.png
+          cc648859f5f6dbebcbb0fa862b4e510c2212137df76659cba517f182d699c38b  public/icon-512-2026.png
+          87d39efb6f49ba8725a742b99bdbada6018e2ca7aa631597e1627667c6cd74a6  public/icon-maskable-2026.svg
+          ddd65437e8c70d129eb53ad362a50f9740af54335c05f05fdabd5d9573ca8558  public/social-card.svg
+          0a96079b8755dae00361ce74a76a3e0fb2f0d6d346ee2bab66639ed2fd700b73  public/social-card.png
+          76f0094e761fd804591ff44320648ec8ef42a9139f193c23b3f4eb273a560364  public/site.webmanifest
+          SHA256
+
+      - name: Restore the audited corrective release
+        shell: bash
+        env:
+          RELEASE_ARCHIVE_B64: |
+            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
+            xGf7AgAAAAAEWVo=
+        run: |
+          set -euo pipefail
+
+          release_dir="$RUNNER_TEMP/girlish-heirloom-release"
+          archive="$RUNNER_TEMP/girlish-heirloom-release.tar.xz"
+          mkdir -p "$release_dir"
+          printf '%s' "$RELEASE_ARCHIVE_B64" | base64 --decode > "$archive"
+          echo \
+            "e12729ddf5985eb6aa2ec94597a74f10169363d03ddc21f067b48e9d5bdbb335  $archive" \
+            | sha256sum --check
+
+          actual_files="$(tar -tJf "$archive" | LC_ALL=C sort)"
+          expected_files="$(
+            printf '%s\n' \
+              girlish-heirloom.css \
+              install_release.py \
+              test_girlish_heirloom.py
+          )"
+          test "$actual_files" = "$expected_files"
+
+          tar -xJf "$archive" -C "$release_dir"
+          python "$release_dir/install_release.py" \
+            --repo "$GITHUB_WORKSPACE" \
+            --payload "$release_dir"
+
+      - name: Verify layout, accessibility and browser contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python tests/test_girlish_heirloom.py -v
+          python tests/test_editorial_keepsake.py -v
+          python tests/test_ribbon_atelier.py -v
+          python tests/test_presentation.py -v
+          python tests/test_luminous_fairytale_redesign.py -v
+          python tests/test_couture_alphabet.py -v
+          python tests/test_actual_final_presentation.py -v
+          node --check public/assets/app.js
+          node scripts/smoke_browser_boot.js public
+          git diff --check
+
+          test "$(sha256sum public/assets/styles.css | cut -d' ' -f1)" = \
+            "fe826fe66b208cd1e2a5823473a8de66c71de611011f2a43ea452f0fe75fe820"
+
+          sha256sum --check <<'SHA256'
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon-2026.svg
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon.svg
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon-2026.ico
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon.ico
+          cb6431e450e087b89060fe432246563fbf75f7b0dfd77204fcda95acfa7b6d86  public/apple-touch-icon-2026.png
+          8cdb242ebbc757fcfe7ba37b707dda392fc55b618342ddf927c030d1dd8c2987  public/icon-192-2026.png
+          cc648859f5f6dbebcbb0fa862b4e510c2212137df76659cba517f182d699c38b  public/icon-512-2026.png
+          87d39efb6f49ba8725a742b99bdbada6018e2ca7aa631597e1627667c6cd74a6  public/icon-maskable-2026.svg
+          ddd65437e8c70d129eb53ad362a50f9740af54335c05f05fdabd5d9573ca8558  public/social-card.svg
+          0a96079b8755dae00361ce74a76a3e0fb2f0d6d346ee2bab66639ed2fd700b73  public/social-card.png
+          76f0094e761fd804591ff44320648ec8ef42a9139f193c23b3f4eb273a560364  public/site.webmanifest
+          SHA256
+
+      - name: Enforce presentation-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          actual="$RUNNER_TEMP/actual-change-scope.txt"
+          expected="$RUNNER_TEMP/expected-change-scope.txt"
+
+          git status --porcelain=v1 --untracked-files=all \
+            | cut -c4- \
+            | LC_ALL=C sort \
+            > "$actual"
+
+          {
+            printf '%s\n' \
+              public/assets/styles.css \
+              tests/test_girlish_heirloom.py
+            find public -type f -name index.html
+          } | LC_ALL=C sort > "$expected"
+
+          test "$(wc -l < "$actual")" -eq 262
+          diff -u "$expected" "$actual"
+
+      - name: Commit the correction and remove this installer
+        shell: bash
+        env:
+          WORKFLOW_FILE: .github/workflows/install-girlish-heirloom-corrections-2026-07-29.yml
+        run: |
+          set -euo pipefail
+
+          test -f "$WORKFLOW_FILE"
+          rm -- "$WORKFLOW_FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            public/assets/styles.css \
+            public \
+            tests/test_girlish_heirloom.py \
+            "$WORKFLOW_FILE"
+          git commit -m "style: install girlish heirloom corrections [skip ci]"
+          git push origin HEAD:main
+
+      - name: Start the normal Pages deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
