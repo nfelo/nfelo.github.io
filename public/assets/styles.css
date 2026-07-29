@@ -10011,3 +10011,2348 @@ td {
     box-shadow: none;
   }
 }
+
+/*
+ * Ribbon atelier definitive finishing system.
+ *
+ * This is the authoritative presentation layer for the audited release.
+ * It repairs layout and contrast first, then introduces playful femininity
+ * through structure: ribbon ties, picot lace, pearl light, Vichy checks,
+ * satin piping, corsetry seams, tulle veils and moonstone chart surfaces.
+ * The pearl-football N identity and the traditional W/D/L colours remain
+ * untouched.
+ *
+ * 1. Global overflow is clipped at the atmospheric canvas, not data tables.
+ * 2. Type is enlarged and Fraunces returns to team and matchup names.
+ * 3. Dark-panel and disabled-control text receive explicit readable colours.
+ * 4. Methodology separates a wide technical shell from a calm prose measure.
+ * 5. Highest-rated matches become a compact, balanced matchup composition.
+ * 6. Forms, comparison and prediction tools use content-sized tailoring.
+ * 7. Tables and charts gain legible labels and mother-of-pearl inspection.
+ * 8. Picot lace, ribbon knots, Vichy checks and gilded seams add playfulness.
+ * 9. Tablet and phone rules preserve every field without crowding.
+ * 10. Dark, contrast, motion, transparency, forced-colour and print modes
+ *     all receive deliberate ornament-free alternatives.
+ */
+
+:root {
+  --atelier-ink: #3b1732;
+  --atelier-muted: #68475e;
+  --atelier-paper: #fff8fc;
+  --atelier-surface: #fffbfd;
+  --atelier-surface-soft: #faeaf3;
+  --atelier-rose: #efadd0;
+  --atelier-rose-deep: #861e61;
+  --atelier-pink: #f7c7df;
+  --atelier-lilac: #ddceef;
+  --atelier-aqua: #cceae7;
+  --atelier-ivory: #fff9f2;
+  --atelier-champagne: #e7c5a9;
+  --atelier-cherry: #641746;
+  --atelier-velvet: #35102e;
+  --atelier-velvet-2: #64214f;
+  --atelier-border: rgba(112, 39, 88, 0.25);
+  --atelier-border-strong: rgba(112, 39, 88, 0.4);
+  --atelier-focus: #8a1d63;
+  --atelier-on-dark: #fff6fc;
+  --atelier-on-dark-soft: #f2d8e8;
+  --atelier-disabled: #6b5264;
+  --atelier-disabled-bg: #f0e4eb;
+  --atelier-disabled-border: #b9a2b2;
+  --atelier-shadow:
+    0 22px 58px rgba(73, 17, 57, 0.12),
+    0 4px 13px rgba(73, 17, 57, 0.055);
+  --atelier-shadow-small:
+    0 10px 27px rgba(73, 17, 57, 0.09),
+    0 2px 7px rgba(73, 17, 57, 0.045);
+  --atelier-vichy:
+    linear-gradient(
+      90deg,
+      rgba(128, 31, 91, 0.045) 50%,
+      transparent 50%
+    ),
+    linear-gradient(
+      rgba(128, 31, 91, 0.045) 50%,
+      transparent 50%
+    );
+  --ink: var(--atelier-ink);
+  --ink-soft: var(--atelier-muted);
+  --paper: var(--atelier-paper);
+  --paper-deep: #f1dce8;
+  --surface: var(--atelier-surface);
+  --surface-subtle: var(--atelier-surface-soft);
+  --surface-glass: rgba(255, 251, 253, 0.93);
+  --navy: var(--atelier-velvet);
+  --navy-2: var(--atelier-velvet-2);
+  --header-bg: rgba(50, 13, 42, 0.975);
+  --eyebrow: #78305f;
+  --link: #701c57;
+  --focus: var(--atelier-focus);
+  --gold: var(--atelier-focus);
+  --control-border: #927087;
+  --border: var(--atelier-border);
+  --grid-line: rgba(82, 29, 67, 0.17);
+  --shadow-color: rgba(73, 17, 57, 0.1);
+  --shadow: var(--atelier-shadow);
+  --shadow-small: var(--atelier-shadow-small);
+  --content: min(1240px, calc(100vw - 48px));
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
+html {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(
+      ellipse 51rem 31rem at -8% -4%,
+      rgba(246, 170, 211, 0.25),
+      transparent 69%
+    ),
+    radial-gradient(
+      ellipse 47rem 32rem at 108% 13%,
+      rgba(211, 188, 235, 0.23),
+      transparent 71%
+    ),
+    radial-gradient(
+      ellipse 37rem 25rem at 87% 94%,
+      rgba(180, 224, 220, 0.13),
+      transparent 73%
+    ),
+    linear-gradient(
+      180deg,
+      #fffbfe,
+      var(--paper) 54%,
+      #fff4fa
+    );
+  font-family: var(--font-body);
+  font-size: 16.5px;
+  line-height: 1.62;
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+}
+
+::selection {
+  color: #301027;
+  background: #f2b5d4;
+  text-shadow: none;
+}
+
+/*
+ * Fashion-editorial type is expressive where identity helps comprehension.
+ * Working copy, controls and every numeric column remain quiet and precise.
+ */
+:is(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .brand,
+  .team-link,
+  .comparison-team-name,
+  .ranking-card-team,
+  .home-ranking-list li > a,
+  .home-records li > div > a,
+  .leader-card h3,
+  .forecast-title,
+  .faq-item summary,
+  .analysis-disclosure > summary b,
+  .record-tabs .button
+) {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "SOFT" 92,
+    "WONK" 0,
+    "opsz" 72;
+}
+
+:is(
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  input,
+  select,
+  textarea
+) {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+}
+
+h1 {
+  max-width: 880px;
+  font-size: clamp(44px, 5.6vw, 66px);
+  font-weight: 535;
+  line-height: 1.035;
+  letter-spacing: -0.036em;
+}
+
+h2 {
+  font-size: clamp(30px, 3.25vw, 40px);
+  font-weight: 550;
+  line-height: 1.11;
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  font-size: clamp(21px, 2vw, 25px);
+  font-weight: 585;
+  line-height: 1.24;
+  letter-spacing: -0.012em;
+}
+
+.lede {
+  max-width: 720px;
+  font-size: clamp(17.5px, 1.6vw, 19.5px);
+  line-height: 1.68;
+}
+
+.prose {
+  max-width: 74ch;
+  font-size: 17px;
+  line-height: 1.76;
+}
+
+.prose :is(p, li, dd) {
+  line-height: 1.76;
+}
+
+:is(
+  .muted,
+  .small,
+  small,
+  .rating-sub,
+  .table-hint,
+  .chart-help,
+  .chart-summary,
+  .chart-status,
+  .chart-inspector-copy span,
+  .chart-inspector-value small,
+  .chart-legend-item small,
+  .home-facts dd small,
+  .home-ranking-list li small,
+  .home-upcoming time,
+  .home-upcoming small,
+  .home-records small,
+  .movement small,
+  .venue-summary small,
+  .ranking-card-rating small,
+  .ranking-card-snapshot > div > span:first-child,
+  .tournament-change,
+  .analysis-disclosure > summary small
+) {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+:is(
+  .rating-main,
+  .rating-sub,
+  .numeric,
+  .score,
+  .team-rating,
+  .forecast-outcome strong,
+  .metric-grid strong,
+  .home-facts,
+  .home-ranking-list li strong,
+  .home-records strong,
+  .ranking-card-rating,
+  .movement,
+  th,
+  td,
+  output
+) {
+  font-family: var(--font-numeric);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.team-link,
+.comparison-team-name,
+.home-ranking-list li > a,
+.home-records li > div > a {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 585;
+  line-height: 1.38;
+  letter-spacing: -0.006em;
+  overflow-wrap: anywhere;
+}
+
+.ranking-card-team {
+  font-size: 23px;
+  font-weight: 585;
+  line-height: 1.24;
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  font-size: 12.5px;
+  font-weight: 780;
+  letter-spacing: 0.13em;
+  line-height: 1.42;
+}
+
+/*
+ * Header and footer use a pearl-chain hem and a tiny satin/Vichy selection
+ * texture. The logo artwork itself is deliberately not restyled or filtered.
+ */
+.site-header {
+  min-height: 74px;
+  background:
+    radial-gradient(
+      ellipse 22rem 7rem at 9% -28%,
+      rgba(255, 198, 226, 0.17),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 24rem 8rem at 92% 122%,
+      rgba(188, 227, 223, 0.12),
+      transparent 72%
+    ),
+    linear-gradient(
+      112deg,
+      rgba(48, 12, 40, 0.985),
+      rgba(92, 28, 73, 0.98) 54%,
+      rgba(45, 13, 40, 0.985)
+    );
+  border-bottom-color: rgba(255, 218, 240, 0.25);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.055),
+    0 11px 31px rgba(45, 7, 35, 0.17);
+}
+
+.site-header::after {
+  right: 0;
+  bottom: -3px;
+  left: 0;
+  height: 6px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 3px 1px,
+      rgba(255, 231, 244, 0.78) 0 1.25px,
+      transparent 1.6px
+    )
+    left top / 8px 4px repeat-x,
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(242, 174, 211, 0.54) 24%,
+      rgba(214, 195, 235, 0.58) 52%,
+      rgba(182, 224, 220, 0.5) 76%,
+      transparent
+    )
+    left bottom / 100% 2px no-repeat;
+  content: "";
+  opacity: 0.86;
+}
+
+.brand strong {
+  font-size: 18.5px;
+  font-weight: 590;
+}
+
+.brand small {
+  color: #efd8e8;
+  font-size: 12px;
+}
+
+.site-nav a,
+.nav-group > summary {
+  min-height: 44px;
+  padding: 10px 14px;
+  color: #f2ddec;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 670;
+}
+
+:is(
+  .site-nav a:hover,
+  .site-nav a[aria-current="page"],
+  .nav-group > summary:hover,
+  .nav-group[open] > summary,
+  .nav-group.contains-current > summary
+) {
+  color: #321229;
+  background:
+    var(--atelier-vichy),
+    linear-gradient(
+      132deg,
+      #f9dbe9,
+      #efb5d2 42%,
+      #ddceef 72%,
+      #cce8e5
+    );
+  background-size:
+    12px 12px,
+    12px 12px,
+    auto;
+  border-color: rgba(255, 250, 253, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 7px 17px rgba(27, 4, 21, 0.16);
+}
+
+.nav-submenu {
+  min-width: 228px;
+  padding: 9px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(211, 183, 229, 0.035)
+    ),
+    #32102a;
+  border-color: rgba(255, 222, 242, 0.23);
+  border-radius: 18px;
+}
+
+.nav-submenu a {
+  border-radius: 12px;
+}
+
+.site-footer::before {
+  height: 7px;
+  background:
+    radial-gradient(
+      ellipse at 4px 0,
+      rgba(135, 48, 105, 0.31) 0 2.5px,
+      transparent 2.8px
+    )
+    left top / 12px 6px repeat-x;
+  content: "";
+}
+
+/*
+ * Page openings use a ribbon-tail rule with a champagne glint. It creates a
+ * warmer, more playful first impression without placing decoration in copy.
+ */
+.page {
+  padding-block: clamp(40px, 5vw, 58px) clamp(68px, 8vw, 94px);
+}
+
+.page-heading {
+  position: relative;
+  gap: clamp(26px, 4vw, 50px);
+  margin-bottom: 38px;
+  padding-bottom: 22px;
+}
+
+.page-heading h1 {
+  max-width: 780px;
+}
+
+.page-heading .lede {
+  max-width: 590px;
+  margin-bottom: 3px;
+  font-size: 17.5px;
+  line-height: 1.68;
+}
+
+.page-heading::before {
+  top: 9px;
+  bottom: 31px;
+  width: 4px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(225, 137, 184, 0.52) 18%,
+      rgba(224, 193, 168, 0.7) 51%,
+      rgba(190, 169, 222, 0.5) 82%,
+      transparent
+    );
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.46);
+}
+
+.page-heading::after {
+  right: auto;
+  bottom: 0;
+  left: clamp(13px, 2vw, 20px);
+  width: min(220px, 52vw);
+  height: 9px;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      var(--atelier-rose-deep) 0 2.5px,
+      transparent 3px
+    ),
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--atelier-rose) 12% 43%,
+      transparent 43% 47%,
+      var(--atelier-champagne) 47% 53%,
+      transparent 53% 57%,
+      var(--atelier-lilac) 57% 88%,
+      transparent
+    );
+  border-radius: 999px;
+  clip-path: polygon(
+    0 38%,
+    7% 0,
+    49% 23%,
+    50% 0,
+    51% 23%,
+    93% 0,
+    100% 38%,
+    93% 100%,
+    51% 77%,
+    50% 100%,
+    49% 77%,
+    7% 100%
+  );
+  filter: none;
+  opacity: 0.88;
+}
+
+.section {
+  margin-top: clamp(54px, 6vw, 72px);
+}
+
+.section-heading,
+.compact-heading {
+  position: relative;
+}
+
+.section-heading::after,
+.compact-heading::after {
+  height: 5px;
+  background:
+    radial-gradient(
+      circle,
+      rgba(134, 30, 97, 0.5) 0 1px,
+      transparent 1.4px
+    )
+    left center / 8px 4px repeat-x,
+    linear-gradient(
+      90deg,
+      var(--atelier-rose-deep),
+      var(--atelier-rose) 36%,
+      var(--atelier-lilac) 68%,
+      transparent
+    );
+  opacity: 0.78;
+}
+
+.compact-heading h2 {
+  font-size: clamp(25px, 2.5vw, 29px);
+  line-height: 1.16;
+}
+
+.compact-heading > a,
+.home-help-links a {
+  color: var(--link);
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.42;
+}
+
+/*
+ * Powder, pearl and tulle surfaces share one consistent construction.
+ */
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel:not(.panel-dark),
+  .bar-chart,
+  .team-picker,
+  .toolbar,
+  .faq-tools,
+  .faq-item,
+  .method-contents,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-team-row,
+  .comparison-add-panel,
+  .comparison-summary-table,
+  .comparison-head-summary,
+  .comparison-pair-picker
+) {
+  background:
+    radial-gradient(
+      ellipse 20rem 10rem at 101% -7%,
+      rgba(239, 173, 208, 0.115),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 18rem 9rem at -4% 106%,
+      rgba(204, 234, 231, 0.08),
+      transparent 75%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.42),
+      rgba(226, 202, 236, 0.055)
+    ),
+    var(--surface);
+  border-color: var(--atelier-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    var(--shadow-small);
+}
+
+:is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .panel,
+  .bar-chart,
+  .toolbar,
+  .faq-tools,
+  .method-contents,
+  .chart-shell,
+  .team-model-details,
+  .venue-profile,
+  .comparison-selection,
+  .comparison-head-summary,
+  .comparison-pair-picker
+) {
+  border-radius: 21px 29px 21px 29px;
+}
+
+:is(
+  .stat-card,
+  .faq-item,
+  .method-details,
+  .metric-grid > div,
+  .analysis-disclosure,
+  .ranking-card,
+  .comparison-team-row,
+  .comparison-summary-table
+) {
+  border-radius: 17px 23px 17px 23px;
+}
+
+.panel-dark,
+.hero,
+.home-intro,
+.team-hero,
+.forecast,
+.home-support > div:first-child {
+  color: var(--atelier-on-dark);
+  background:
+    radial-gradient(
+      ellipse 33rem 24rem at 103% -8%,
+      rgba(248, 171, 212, 0.25),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 28rem 21rem at 0 108%,
+      rgba(187, 226, 221, 0.16),
+      transparent 70%
+    ),
+    linear-gradient(
+      128deg,
+      var(--atelier-velvet),
+      var(--atelier-velvet-2) 62%,
+      #4c2c5b
+    );
+  border-color: rgba(255, 226, 243, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 28px 65px rgba(58, 10, 45, 0.17);
+}
+
+:is(
+  .panel-dark,
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .home-support > div:first-child
+) :is(h1, h2, h3, h4, p, li, dd, dt, b, strong) {
+  color: var(--atelier-on-dark);
+}
+
+:is(
+  .panel-dark,
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .home-support > div:first-child
+) :is(.muted, .small, small, .lede) {
+  color: var(--atelier-on-dark-soft);
+}
+
+:is(
+  .panel-dark,
+  .hero,
+  .home-intro,
+  .team-hero,
+  .forecast,
+  .home-support > div:first-child
+) .eyebrow {
+  color: #f8c9e3;
+}
+
+/*
+ * Controls resemble satin-trimmed vanity drawers. Disabled controls remain
+ * readable and obviously unavailable rather than becoming dark-on-dark.
+ */
+.button {
+  min-height: 44px;
+  padding: 10px 18px;
+  color: var(--ink);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.78),
+      rgba(246, 217, 232, 0.35)
+    ),
+    var(--surface);
+  border-color: var(--control-border);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 4px 11px rgba(77, 19, 60, 0.06);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+:is(
+  .button-dark,
+  .button-primary,
+  .button[aria-pressed="true"],
+  .button[aria-selected="true"]
+) {
+  color: var(--atelier-on-dark);
+  background:
+    var(--atelier-vichy),
+    linear-gradient(
+      135deg,
+      #7b2058,
+      var(--atelier-cherry) 58%,
+      #4a173d
+    );
+  background-size:
+    12px 12px,
+    12px 12px,
+    auto;
+  border-color: #6c1c4f;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 8px 18px rgba(78, 15, 58, 0.16);
+}
+
+:is(
+  .button,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  .chart-legend-item,
+  .rating-chart,
+  a
+):focus-visible {
+  outline: 3px solid var(--atelier-focus);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 6px rgba(138, 29, 99, 0.17);
+}
+
+:is(
+  .button,
+  button,
+  input,
+  select
+):disabled,
+:is(
+  .button,
+  button
+)[aria-disabled="true"] {
+  color: var(--atelier-disabled);
+  background: var(--atelier-disabled-bg);
+  border-color: var(--atelier-disabled-border);
+  cursor: not-allowed;
+  filter: none;
+  opacity: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: none;
+}
+
+:is(
+  .field input,
+  .field select,
+  .team-picker select,
+  .comparison-pair-picker select,
+  .comparison-team-row select,
+  .comparison-add-panel select,
+  .chart-year-form input
+) {
+  min-height: 48px;
+  padding: 10px 13px;
+  color: var(--ink);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.8),
+      rgba(247, 226, 237, 0.24)
+    ),
+    var(--surface);
+  border-color: var(--control-border);
+  border-radius: 11px 15px 11px 15px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(123, 45, 94, 0.045);
+  font-size: 16px;
+  line-height: 1.42;
+}
+
+:is(
+  .field label,
+  .team-picker label,
+  .comparison-team-row label,
+  .comparison-add-panel label,
+  .comparison-pair-picker label,
+  .chart-year-form label
+) {
+  color: #604052;
+  font-size: 13px;
+  font-weight: 770;
+  letter-spacing: 0.07em;
+  line-height: 1.42;
+}
+
+/*
+ * Dense data gains a larger working floor and a subtle Vichy/pleated header.
+ */
+.table-shell {
+  max-width: 100%;
+  overflow-x: auto;
+  border-color: var(--atelier-border);
+  scrollbar-color: var(--atelier-rose-deep) var(--atelier-surface-soft);
+}
+
+table {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+thead {
+  background:
+    var(--atelier-vichy),
+    linear-gradient(
+      105deg,
+      rgba(247, 200, 224, 0.54),
+      rgba(221, 206, 239, 0.48) 58%,
+      rgba(204, 234, 231, 0.42)
+    );
+  background-size:
+    14px 14px,
+    14px 14px,
+    auto;
+}
+
+th {
+  padding: 14px 12px;
+  color: #58374e;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 790;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+}
+
+td {
+  padding: 14px 12px;
+  line-height: 1.5;
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(238, 207, 224, 0.11);
+}
+
+tbody tr:hover {
+  background: rgba(235, 170, 205, 0.2);
+}
+
+.home-ranking-list li:first-child,
+.ranking-table tbody tr:first-child,
+.ranking-card:first-child {
+  background: transparent;
+  box-shadow: none;
+}
+
+.form {
+  gap: 4px;
+}
+
+.form i {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.probability {
+  min-width: 162px;
+  border-radius: 8px;
+}
+
+.probability span {
+  min-width: 34px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.venue-code {
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+}
+
+.rating-sub,
+.tournament-change {
+  font-size: 12.5px;
+}
+
+.team-stats span,
+.stat-card .label,
+.venue-highlight span {
+  font-size: 12.5px;
+}
+
+/*
+ * Homepage records use a compact match-centred composition. Empty width is
+ * removed by balancing the two support cards and capping the matchup track.
+ */
+.home-dashboard,
+.home-support {
+  gap: 22px;
+}
+
+.home-support {
+  grid-template-columns:
+    minmax(350px, 0.95fr)
+    minmax(0, 1.05fr);
+}
+
+.home-ranking-list,
+.home-upcoming,
+.home-records {
+  padding: 23px;
+}
+
+.home-ranking-list li {
+  min-height: 47px;
+}
+
+.home-records {
+  background:
+    radial-gradient(
+      ellipse 22rem 11rem at 102% -10%,
+      rgba(238, 161, 203, 0.18),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 18rem 9rem at -3% 104%,
+      rgba(195, 230, 226, 0.1),
+      transparent 74%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.42),
+      rgba(219, 197, 236, 0.07)
+    ),
+    var(--surface);
+}
+
+.home-records ol {
+  display: grid;
+}
+
+.home-records li {
+  display: grid;
+  grid-template-columns:
+    30px
+    minmax(280px, 440px)
+    74px;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60px;
+  padding-block: 9px;
+}
+
+.home-records li > span {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #64284f;
+  background:
+    radial-gradient(
+      circle at 34% 27%,
+      rgba(255, 255, 255, 0.94),
+      transparent 31%
+    ),
+    linear-gradient(145deg, #f7d5e6, #e4d2ee);
+  border: 1px solid rgba(112, 41, 88, 0.21);
+  border-radius: 58% 42% 58% 42% / 44% 58% 42% 56%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 3px 8px rgba(74, 18, 57, 0.075);
+  font-family: var(--font-numeric);
+  font-size: 12.5px;
+  font-weight: 790;
+}
+
+.home-records li > div {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    24px
+    minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+}
+
+.home-records li > div > a {
+  min-width: 0;
+  font-size: 15.5px;
+  font-weight: 585;
+  line-height: 1.34;
+  text-decoration: none;
+}
+
+.home-records li > div > a:first-of-type {
+  text-align: right;
+}
+
+.home-records li > div > i {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #6e2a58;
+  background:
+    radial-gradient(
+      circle at 35% 28%,
+      rgba(255, 255, 255, 0.8),
+      transparent 33%
+    ),
+    linear-gradient(145deg, #f3bad7, #ddceef);
+  border: 1px solid var(--atelier-border);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 570;
+}
+
+.home-records li > div > small {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  text-align: center;
+}
+
+.home-records li > strong {
+  justify-self: end;
+  min-width: 70px;
+  padding: 6px 8px;
+  color: #562044;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface) 64%, #f4ddd0),
+      color-mix(in srgb, var(--surface) 68%, var(--atelier-lilac))
+    );
+  border: 1px solid var(--atelier-border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 790;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.home-explore-links a {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-explore-links a::after {
+  position: absolute;
+  right: -9px;
+  bottom: -9px;
+  width: 25px;
+  height: 25px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 47%,
+      rgba(128, 38, 95, 0.13) 48% 54%,
+      rgba(255, 255, 255, 0.55) 55%
+    );
+  border-radius: 50% 0 0;
+  content: "";
+  transform: rotate(5deg);
+}
+
+/*
+ * FAQ keeps its calm reading column but regains editorial warmth.
+ */
+.faq-page {
+  width: min(1060px, calc(100vw - 48px));
+  max-width: none;
+}
+
+.faq-page > :is(.faq-tools, #faq-count, .faq-list, .faq-more) {
+  width: min(900px, 100%);
+  margin-inline: auto;
+}
+
+.faq-tools {
+  grid-template-columns: minmax(320px, 1fr) auto;
+  gap: 16px;
+  margin-block: 32px 10px;
+  padding: 18px;
+}
+
+.faq-tools input {
+  min-height: 50px;
+}
+
+#faq-count {
+  margin-top: 12px;
+  padding-inline: 5px;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  font-weight: 680;
+}
+
+.faq-list {
+  counter-reset: atelier-faq;
+  gap: 11px;
+}
+
+.faq-item {
+  counter-increment: atelier-faq;
+}
+
+.faq-item summary {
+  grid-template-columns: 40px minmax(0, 1fr) 34px;
+  gap: 13px;
+  min-height: 70px;
+  padding: 14px 17px;
+  color: var(--ink);
+  font-size: 17.5px;
+  font-weight: 570;
+  line-height: 1.43;
+}
+
+.faq-item summary::before {
+  display: inline-grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  color: #64274f;
+  background:
+    radial-gradient(
+      circle at 34% 26%,
+      rgba(255, 255, 255, 0.84),
+      transparent 31%
+    ),
+    linear-gradient(145deg, #f8dae9, #e5d5f0);
+  border: 1px solid rgba(113, 43, 89, 0.2);
+  border-radius: 56% 44% 58% 42% / 45% 57% 43% 55%;
+  content: counter(atelier-faq, decimal-leading-zero);
+  font-family: var(--font-numeric);
+  font-size: 12.5px;
+  font-weight: 790;
+}
+
+.faq-item summary::after {
+  width: 31px;
+  height: 31px;
+  color: #4f1b3e;
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      rgba(255, 255, 255, 0.84),
+      transparent 31%
+    ),
+    linear-gradient(
+      135deg,
+      #f4b9d5,
+      #dfcdef,
+      #cce9e5
+    );
+  border-color: var(--atelier-border);
+  line-height: 29px;
+}
+
+.faq-answer {
+  max-width: 76ch;
+  padding: 20px 24px 24px 70px;
+  color: var(--ink);
+  font-size: 16.5px;
+  line-height: 1.72;
+}
+
+/*
+ * Methodology is a wide technical document with narrow prose children.
+ * Tables, formulas and contents use the full shell on desktop.
+ */
+.methodology-page {
+  width: min(1120px, calc(100vw - 48px));
+  max-width: none;
+}
+
+.methodology-page > :is(.eyebrow, h1, .lede),
+.methodology-page .method-section > :is(h2, h3, p, ul, ol) {
+  max-width: 74ch;
+}
+
+.methodology-page .lede {
+  max-width: 70ch;
+}
+
+.methodology-page .method-contents {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-block: 32px 48px;
+  padding: 15px;
+}
+
+.methodology-page .method-contents a {
+  min-height: 48px;
+  padding: 12px 14px;
+  color: var(--link);
+  border-radius: 11px 16px 11px 16px;
+  font-size: 14px;
+  line-height: 1.42;
+}
+
+.methodology-page .method-section {
+  width: 100%;
+}
+
+.methodology-page .table-shell,
+.methodology-page .formula,
+.methodology-page .method-details {
+  width: 100%;
+  max-width: 100%;
+}
+
+.methodology-page .parameter-table table {
+  min-width: 760px;
+}
+
+.methodology-page .method-section + .method-section {
+  margin-top: 58px;
+  padding-top: 20px;
+  background:
+    radial-gradient(
+      circle,
+      rgba(130, 39, 96, 0.34) 0 1px,
+      transparent 1.4px
+    )
+    left top / 9px 4px repeat-x;
+}
+
+/*
+ * About uses equal editorial cards and explicit on-velvet text.
+ */
+.page-narrow:not(.faq-page):not(.methodology-page) {
+  width: min(980px, calc(100vw - 48px));
+}
+
+.page-narrow > .split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.page-narrow > .split > .panel {
+  min-width: 0;
+  padding: clamp(24px, 3.4vw, 34px);
+}
+
+.page-narrow > .split > .panel-dark :is(
+  p,
+  .muted,
+  .small,
+  small
+) {
+  color: var(--atelier-on-dark-soft);
+  font-size: 15.5px;
+  line-height: 1.68;
+}
+
+/*
+ * Toolbars are tailored around their content instead of becoming empty trays.
+ */
+.toolbar:has(#match-search) {
+  display: grid;
+  grid-template-columns:
+    minmax(135px, 0.65fr)
+    minmax(180px, 1fr)
+    minmax(145px, 0.72fr)
+    minmax(280px, 1.65fr);
+  align-items: end;
+}
+
+.toolbar:has(#match-search) .field {
+  min-width: 0;
+}
+
+.predict-date-toolbar {
+  width: min(780px, 100%);
+  margin-right: auto;
+}
+
+.predictor {
+  grid-template-columns:
+    minmax(0, 1fr)
+    50px
+    minmax(0, 1fr);
+  gap: 14px;
+}
+
+.team-picker {
+  min-width: 0;
+  padding: 22px;
+}
+
+.versus {
+  width: 50px;
+  height: 50px;
+  color: #fff6fc;
+  background:
+    radial-gradient(
+      circle at 34% 27%,
+      rgba(255, 255, 255, 0.18),
+      transparent 31%
+    ),
+    linear-gradient(145deg, #a43d7d, #66315f);
+  border: 1px solid rgba(255, 225, 242, 0.29);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 18px rgba(73, 17, 57, 0.16);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-style: italic;
+}
+
+.predict-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 320px));
+  justify-content: start;
+  width: min(700px, 100%);
+  margin-top: 16px;
+  margin-right: auto;
+  padding: 16px;
+}
+
+.predict-options .field {
+  min-width: 0;
+}
+
+.analysis-disclosure {
+  margin-top: 30px;
+}
+
+.analysis-disclosure > summary {
+  min-height: 92px;
+  padding: 20px 22px;
+}
+
+.analysis-disclosure > summary small {
+  font-size: 13.5px;
+  line-height: 1.48;
+}
+
+.comparison-selection {
+  padding: 22px;
+}
+
+#comparison-team-count {
+  min-width: max-content;
+  padding: 6px 10px;
+  color: #5e354f;
+  background: color-mix(
+    in srgb,
+    var(--surface) 72%,
+    var(--atelier-lilac)
+  );
+  border: 1px solid var(--atelier-border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 740;
+}
+
+/*
+ * Records receive a genuine ribbon tie at the end of the tab rail.
+ */
+.record-tabs {
+  position: relative;
+  gap: 9px;
+  margin-bottom: 24px;
+  padding-bottom: 17px;
+}
+
+.record-tabs::before {
+  position: absolute;
+  right: 0;
+  bottom: 5px;
+  left: 0;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(133, 39, 97, 0.28) 12% 88%,
+      transparent
+    );
+  content: "";
+}
+
+.record-tabs::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 38px;
+  height: 12px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 31% 50%,
+      var(--atelier-pink) 0 36%,
+      transparent 39%
+    ),
+    radial-gradient(
+      ellipse at 69% 50%,
+      var(--atelier-lilac) 0 36%,
+      transparent 39%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      var(--atelier-rose-deep) 0 3px,
+      transparent 3.5px
+    );
+  content: "";
+  transform: translateX(-50%);
+}
+
+.record-tabs .button {
+  font-size: 15px;
+  font-weight: 590;
+}
+
+/*
+ * Charts use a moonstone waterline and larger exact-value typography.
+ */
+.chart-shell {
+  padding: clamp(18px, 3vw, 27px);
+}
+
+.chart-stage {
+  background:
+    radial-gradient(
+      ellipse 31rem 14rem at 5% 0,
+      rgba(245, 185, 217, 0.18),
+      transparent 73%
+    ),
+    radial-gradient(
+      ellipse 29rem 14rem at 100% 100%,
+      rgba(189, 229, 226, 0.18),
+      transparent 73%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.55),
+      rgba(218, 203, 236, 0.12)
+    ),
+    var(--surface-subtle);
+  border-color: var(--atelier-border);
+  border-radius: 16px 22px 16px 22px;
+}
+
+.rating-chart .grid {
+  stroke: color-mix(in srgb, var(--grid-line) 68%, transparent);
+  stroke-dasharray: 2 5;
+}
+
+.rating-chart text {
+  fill: var(--ink-soft);
+  font-family: var(--font-numeric);
+  font-size: 12.5px;
+}
+
+.chart-crosshair {
+  stroke-width: 2;
+  stroke-dasharray: 3 4;
+}
+
+.chart-marker {
+  filter: drop-shadow(0 2px 3px rgba(64, 14, 49, 0.14));
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(45deg);
+}
+
+.chart-help,
+.chart-status {
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.chart-inspector {
+  min-height: 78px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(245, 190, 220, 0.34),
+      rgba(220, 205, 238, 0.34) 56%,
+      rgba(202, 234, 231, 0.31)
+    ),
+    var(--surface);
+  border: 1px solid var(--atelier-border);
+  border-radius: 15px 21px 15px 21px;
+  box-shadow:
+    inset 0 0 0 3px rgba(231, 197, 169, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.chart-inspector-copy span,
+.chart-inspector-value small,
+.chart-legend-item small {
+  font-size: 12px;
+}
+
+.chart-inspector-value strong {
+  font-size: 23px;
+}
+
+.chart-legend-item {
+  min-height: 44px;
+}
+
+.chart-legend-item[aria-pressed="true"] {
+  background:
+    var(--atelier-vichy),
+    color-mix(
+      in srgb,
+      var(--surface) 74%,
+      var(--atelier-lilac)
+    );
+  background-size:
+    12px 12px,
+    12px 12px,
+    auto;
+  border-color: var(--series-colour);
+}
+
+/*
+ * Tablet mode trades ceremony for room while keeping every functional field.
+ */
+@media (min-width: 721px) and (max-width: 1024px) {
+  :root {
+    --content: min(100% - 34px, 990px);
+  }
+
+  .page {
+    padding-block: 38px 78px;
+  }
+
+  .page-heading {
+    gap: 28px;
+  }
+
+  .page-heading h1 {
+    font-size: clamp(43px, 6.4vw, 58px);
+  }
+
+  .home-support {
+    grid-template-columns: 1fr;
+  }
+
+  .home-records li {
+    grid-template-columns:
+      30px
+      minmax(300px, 560px)
+      74px;
+  }
+
+  .faq-page,
+  .methodology-page,
+  .page-narrow:not(.faq-page):not(.methodology-page) {
+    width: min(100% - 34px, 990px);
+  }
+
+  .methodology-page .method-contents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toolbar:has(#match-search) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-narrow > .split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Phone mode uses one-column tools, scrollable records tabs and full-width
+ * reading without hiding content.
+ */
+@media (max-width: 720px) {
+  :root {
+    --content: calc(100vw - 24px);
+  }
+
+  body {
+    font-size: 16px;
+    line-height: 1.64;
+  }
+
+  .page {
+    padding-block: 30px 68px;
+  }
+
+  .page-heading {
+    display: block;
+    margin-bottom: 30px;
+    padding-bottom: 18px;
+  }
+
+  .page-heading h1,
+  h1 {
+    font-size: clamp(39px, 11vw, 50px);
+    line-height: 1.055;
+  }
+
+  h2 {
+    font-size: clamp(28px, 8vw, 35px);
+  }
+
+  .lede,
+  .page-heading .lede {
+    margin-top: 16px;
+    font-size: 17px;
+    line-height: 1.68;
+  }
+
+  .prose {
+    max-width: none;
+    font-size: 16.5px;
+    line-height: 1.74;
+  }
+
+  .page-heading::before {
+    top: 5px;
+    bottom: 24px;
+    width: 3px;
+  }
+
+  .page-heading::after {
+    width: min(180px, 58vw);
+  }
+
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records {
+    padding: 19px 16px;
+  }
+
+  .home-records li {
+    grid-template-columns: 28px minmax(0, 1fr) 68px;
+    gap: 8px;
+    min-height: 68px;
+  }
+
+  .home-records li > div {
+    grid-template-columns:
+      minmax(0, 1fr)
+      21px
+      minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .home-records li > div > a {
+    font-size: 14.5px;
+  }
+
+  .home-records li > div > i {
+    width: 21px;
+    height: 21px;
+  }
+
+  .faq-page,
+  .methodology-page,
+  .page-narrow:not(.faq-page):not(.methodology-page) {
+    width: var(--content);
+  }
+
+  .faq-tools {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .faq-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .faq-actions .button {
+    min-width: 0;
+  }
+
+  .faq-item summary {
+    grid-template-columns: 35px minmax(0, 1fr) 31px;
+    gap: 10px;
+    min-height: 68px;
+    padding: 13px;
+    font-size: 17px;
+  }
+
+  .faq-answer {
+    max-width: none;
+    padding: 18px;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .methodology-page .method-contents {
+    grid-template-columns: 1fr;
+    margin-bottom: 36px;
+    padding: 11px;
+  }
+
+  .methodology-page .method-section > :is(h2, h3, p, ul, ol) {
+    max-width: none;
+  }
+
+  .methodology-page .formula {
+    overflow-x: auto;
+  }
+
+  .page-narrow > .split {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar:has(#match-search) {
+    grid-template-columns: 1fr;
+  }
+
+  .predict-date-toolbar,
+  .predict-options {
+    width: 100%;
+  }
+
+  .predictor {
+    grid-template-columns: 1fr;
+  }
+
+  .versus {
+    margin: -4px auto;
+  }
+
+  .predict-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analysis-disclosure > summary {
+    min-height: 86px;
+    padding: 18px;
+  }
+
+  .record-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 2px 19px;
+    scroll-padding-inline: 2px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .record-tabs .button {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .record-tabs::before,
+  .record-tabs::after {
+    content: none;
+  }
+
+  .button {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  :is(
+    .field input,
+    .field select,
+    .team-picker select,
+    .comparison-pair-picker select,
+    .comparison-team-row select,
+    .comparison-add-panel select,
+    .chart-year-form input
+  ) {
+    min-height: 50px;
+  }
+
+  table {
+    font-size: 14.5px;
+  }
+
+  th {
+    font-size: 12.5px;
+  }
+
+  .rating-chart text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --content: calc(100vw - 20px);
+  }
+
+  .home-records li {
+    grid-template-columns: 27px minmax(0, 1fr);
+    padding-block: 12px;
+  }
+
+  .home-records li > strong {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: 3px;
+  }
+
+  .faq-item summary {
+    grid-template-columns: 31px minmax(0, 1fr) 29px;
+    gap: 8px;
+    padding-inline: 11px;
+  }
+
+  .faq-item summary::before {
+    width: 29px;
+    height: 29px;
+    font-size: 12px;
+  }
+
+  .faq-item summary::after {
+    width: 29px;
+    height: 29px;
+    line-height: 27px;
+  }
+
+  .predict-options {
+    grid-template-columns: 1fr;
+  }
+
+  .team-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-inspector-value strong {
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 360px) {
+  :root {
+    --content: calc(100vw - 16px);
+  }
+
+  .page-heading h1,
+  h1 {
+    font-size: 38px;
+  }
+
+  .home-records li > div {
+    grid-template-columns:
+      minmax(0, 1fr)
+      20px
+      minmax(0, 1fr);
+  }
+
+  .faq-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-selection,
+  .team-picker,
+  .toolbar {
+    padding: 13px;
+  }
+}
+
+/*
+ * Moonlit velvet keeps pearl contrast and removes murky grey inheritance.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --atelier-ink: #fff6fc;
+    --atelier-muted: #e8cede;
+    --atelier-paper: #140911;
+    --atelier-surface: #27101f;
+    --atelier-surface-soft: #3a1a30;
+    --atelier-rose: #d977ad;
+    --atelier-rose-deep: #ff9bd2;
+    --atelier-pink: #d67cac;
+    --atelier-lilac: #a98ac8;
+    --atelier-aqua: #72aaa5;
+    --atelier-ivory: #f7e8ef;
+    --atelier-champagne: #c69b7e;
+    --atelier-cherry: #8d2f68;
+    --atelier-velvet: #170913;
+    --atelier-velvet-2: #4f1c40;
+    --atelier-border: rgba(244, 208, 230, 0.23);
+    --atelier-border-strong: rgba(247, 214, 234, 0.38);
+    --atelier-focus: #ff9bd2;
+    --atelier-disabled: #d1b9c8;
+    --atelier-disabled-bg: #35232f;
+    --atelier-disabled-border: #70566a;
+    --ink: var(--atelier-ink);
+    --ink-soft: var(--atelier-muted);
+    --paper: var(--atelier-paper);
+    --paper-deep: #402037;
+    --surface: var(--atelier-surface);
+    --surface-subtle: var(--atelier-surface-soft);
+    --surface-glass: rgba(39, 16, 31, 0.94);
+    --navy: var(--atelier-velvet);
+    --navy-2: var(--atelier-velvet-2);
+    --header-bg: rgba(21, 8, 17, 0.98);
+    --eyebrow: #f1b0d9;
+    --link: #f3a9d8;
+    --focus: var(--atelier-focus);
+    --gold: var(--atelier-focus);
+    --control-border: #9d7992;
+    --border: var(--atelier-border);
+    --grid-line: rgba(244, 209, 231, 0.19);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow:
+      0 24px 58px rgba(0, 0, 0, 0.38),
+      0 4px 13px rgba(0, 0, 0, 0.24);
+    --shadow-small:
+      0 10px 27px rgba(0, 0, 0, 0.29),
+      0 2px 7px rgba(0, 0, 0, 0.2);
+    --atelier-vichy:
+      linear-gradient(
+        90deg,
+        rgba(255, 219, 239, 0.035) 50%,
+        transparent 50%
+      ),
+      linear-gradient(
+        rgba(255, 219, 239, 0.035) 50%,
+        transparent 50%
+      );
+  }
+
+  body {
+    background:
+      radial-gradient(
+        ellipse 47rem 30rem at -8% -5%,
+        rgba(130, 40, 95, 0.19),
+        transparent 71%
+      ),
+      radial-gradient(
+        ellipse 43rem 31rem at 108% 14%,
+        rgba(91, 59, 123, 0.18),
+        transparent 73%
+      ),
+      radial-gradient(
+        ellipse 34rem 23rem at 87% 94%,
+        rgba(60, 120, 115, 0.075),
+        transparent 75%
+      ),
+      var(--paper);
+  }
+
+  :is(
+    .home-ranking-list,
+    .home-upcoming,
+    .home-records,
+    .home-explore,
+    .panel:not(.panel-dark),
+    .bar-chart,
+    .team-picker,
+    .toolbar,
+    .faq-tools,
+    .faq-item,
+    .method-contents,
+    .method-details,
+    .metric-grid > div,
+    .analysis-disclosure,
+    .ranking-card,
+    .chart-shell,
+    .team-model-details,
+    .venue-profile,
+    .comparison-selection,
+    .comparison-team-row,
+    .comparison-add-panel,
+    .comparison-summary-table,
+    .comparison-head-summary,
+    .comparison-pair-picker
+  ) {
+    background:
+      radial-gradient(
+        ellipse 20rem 10rem at 101% -7%,
+        rgba(217, 119, 173, 0.075),
+        transparent 75%
+      ),
+      radial-gradient(
+        ellipse 18rem 9rem at -4% 106%,
+        rgba(114, 170, 165, 0.04),
+        transparent 76%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.028),
+        rgba(112, 67, 121, 0.042)
+      ),
+      var(--surface);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      var(--shadow-small);
+  }
+
+  .button {
+    color: var(--ink);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(182, 105, 151, 0.035)
+      ),
+      var(--surface);
+  }
+
+  :is(
+    .button-dark,
+    .button-primary,
+    .button[aria-pressed="true"],
+    .button[aria-selected="true"]
+  ) {
+    color: #fff6fc;
+    background:
+      var(--atelier-vichy),
+      linear-gradient(135deg, #8e356a, #5b204a);
+    background-size:
+      12px 12px,
+      12px 12px,
+      auto;
+  }
+
+  :is(
+    .field input,
+    .field select,
+    .team-picker select,
+    .comparison-pair-picker select,
+    .comparison-team-row select,
+    .comparison-add-panel select,
+    .chart-year-form input
+  ) {
+    color: var(--ink);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.045),
+        rgba(210, 116, 171, 0.025)
+      ),
+      var(--surface);
+  }
+
+  :is(
+    .field label,
+    .team-picker label,
+    .comparison-team-row label,
+    .comparison-add-panel label,
+    .comparison-pair-picker label,
+    .chart-year-form label
+  ) {
+    color: #e8cada;
+  }
+
+  thead {
+    background:
+      var(--atelier-vichy),
+      linear-gradient(
+        105deg,
+        rgba(124, 50, 93, 0.46),
+        rgba(88, 59, 111, 0.42) 58%,
+        rgba(57, 101, 98, 0.34)
+      );
+    background-size:
+      14px 14px,
+      14px 14px,
+      auto;
+  }
+
+  th {
+    color: #edd5e4;
+  }
+
+  tbody tr:nth-child(even) {
+    background: rgba(255, 225, 241, 0.025);
+  }
+
+  tbody tr:hover {
+    background: rgba(218, 117, 172, 0.1);
+  }
+
+  .home-records li > span,
+  .faq-item summary::before {
+    color: #fff6fc;
+    background:
+      radial-gradient(
+        circle at 34% 27%,
+        rgba(255, 255, 255, 0.12),
+        transparent 31%
+      ),
+      linear-gradient(145deg, #76375f, #514064);
+  }
+
+  .home-records li > div > i,
+  .faq-item summary::after {
+    color: #fff6fc;
+    background:
+      linear-gradient(135deg, #7b3d65, #584164, #385c59);
+  }
+
+  .home-records li > strong {
+    color: #fff2fa;
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--surface) 82%, #9c6958),
+        color-mix(in srgb, var(--surface) 82%, var(--atelier-lilac))
+      );
+  }
+
+  #comparison-team-count {
+    color: #f2dce9;
+  }
+
+  .chart-stage,
+  .chart-inspector {
+    background:
+      radial-gradient(
+        ellipse 28rem 13rem at 4% 0,
+        rgba(215, 119, 172, 0.075),
+        transparent 74%
+      ),
+      radial-gradient(
+        ellipse 26rem 13rem at 100% 100%,
+        rgba(112, 169, 164, 0.055),
+        transparent 74%
+      ),
+      var(--surface-subtle);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary,
+    .chart-legend-item,
+    .site-nav a,
+    .footer-links a
+  ) {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body {
+    background: var(--paper);
+  }
+
+  :is(
+    .site-header,
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .chart-shell
+  ) {
+    background-color: var(--surface);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: currentColor;
+    --atelier-border: currentColor;
+    --atelier-border-strong: currentColor;
+    --control-border: currentColor;
+  }
+
+  body {
+    background: var(--paper);
+  }
+
+  :is(
+    .button,
+    input,
+    select,
+    summary,
+    .ranking-card,
+    .faq-item,
+    .table-shell,
+    .panel,
+    .toolbar
+  ) {
+    border-color: currentColor;
+  }
+
+  :is(
+    .page-heading::after,
+    .section-heading::after,
+    .compact-heading::after,
+    .record-tabs::before,
+    .record-tabs::after,
+    .home-explore-links a::after
+  ) {
+    content: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .button,
+    button,
+    input,
+    select,
+    summary,
+    a,
+    tbody tr,
+    .chart-marker
+  ) {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  body,
+  :is(
+    .home-records,
+    .faq-tools,
+    .faq-item,
+    .home-records li > span,
+    .home-records li > strong,
+    .home-records li > div > i,
+    .faq-item summary::before,
+    .faq-item summary::after,
+    .panel,
+    .toolbar,
+    .chart-stage,
+    .chart-inspector
+  ) {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .home-ranking-list li:first-child,
+  .ranking-table tbody tr:first-child,
+  .ranking-card:first-child {
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  :is(
+    .site-header::after,
+    .site-footer::before,
+    .page-heading::before,
+    .page-heading::after,
+    .section-heading::after,
+    .compact-heading::after,
+    .record-tabs::before,
+    .record-tabs::after,
+    .home-explore-links a::after
+  ) {
+    content: none;
+  }
+}
+
+@media print {
+  html,
+  body {
+    overflow: visible;
+  }
+
+  body,
+  :is(
+    .home-records,
+    .faq-tools,
+    .faq-item,
+    .panel,
+    .toolbar,
+    .chart-stage,
+    .chart-inspector
+  ) {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+  }
+
+  :is(
+    .site-header::after,
+    .site-footer::before,
+    .page-heading::before,
+    .page-heading::after,
+    .section-heading::after,
+    .compact-heading::after,
+    .record-tabs::before,
+    .record-tabs::after,
+    .home-explore-links a::after
+  ) {
+    content: none;
+  }
+}

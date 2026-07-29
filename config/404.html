@@ -625,6 +625,339 @@
           box-shadow: none;
         }
       }
+
+      /*
+       * Ribbon atelier definitive echo for the standalone 404 route.
+       * The logo assets remain external and byte-identical; this block only
+       * brings the page surface, type, ribbon seam and accessible modes into
+       * the final presentation system.
+       */
+      :root {
+        --ribbon-ink: #3b1732;
+        --ribbon-muted: #68475e;
+        --ribbon-paper: #fff8fc;
+        --ribbon-surface: #fffbfd;
+        --ribbon-rose: #efadd0;
+        --ribbon-lilac: #ddceef;
+        --ribbon-aqua: #cceae7;
+        --ribbon-champagne: #e7c5a9;
+        --ribbon-focus: #8a1d63;
+        --ribbon-edge: rgba(112, 39, 88, .27);
+      }
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+      body {
+        color: var(--ribbon-ink);
+        background:
+          radial-gradient(
+            ellipse 35rem 24rem at -7% -4%,
+            rgba(246, 170, 211, .27),
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse 33rem 23rem at 107% 16%,
+            rgba(211, 188, 235, .24),
+            transparent 72%
+          ),
+          radial-gradient(
+            ellipse 28rem 19rem at 87% 94%,
+            rgba(180, 224, 220, .14),
+            transparent 74%
+          ),
+          var(--ribbon-paper);
+      }
+      main {
+        width: min(680px, calc(100vw - 36px));
+        padding: clamp(32px, 6vw, 58px);
+        color: var(--ribbon-ink);
+        background:
+          radial-gradient(
+            ellipse 20rem 10rem at 102% -7%,
+            rgba(239, 173, 208, .16),
+            transparent 74%
+          ),
+          radial-gradient(
+            ellipse 18rem 9rem at -4% 106%,
+            rgba(204, 234, 231, .1),
+            transparent 75%
+          ),
+          linear-gradient(
+            145deg,
+            rgba(255, 255, 255, .48),
+            rgba(226, 202, 236, .07)
+          ),
+          var(--ribbon-surface);
+        border: 3px double var(--ribbon-edge);
+        border-radius: 28px 39px 28px 39px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .76),
+          0 24px 58px rgba(73, 17, 57, .12);
+      }
+      main::before {
+        inset: 8px;
+        border: 1px solid rgba(112, 39, 88, .13);
+        border-radius: 21px 31px 21px 31px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+      }
+      main::after {
+        top: -68px;
+        right: -56px;
+        width: 205px;
+        background:
+          radial-gradient(
+            ellipse at center,
+            rgba(239, 173, 208, .19),
+            rgba(204, 234, 231, .085) 50%,
+            transparent 72%
+          );
+        border: 0;
+        border-radius: 62% 38% 57% 43% / 45% 61% 39% 55%;
+        box-shadow: none;
+        filter: blur(3px);
+      }
+      h1 {
+        margin-bottom: 15px;
+        font-size: clamp(42px, 8vw, 62px);
+        font-weight: 535;
+        font-variation-settings:
+          "SOFT" 92,
+          "WONK" 0,
+          "opsz" 72;
+        line-height: 1.035;
+        letter-spacing: -.036em;
+      }
+      p {
+        position: relative;
+        max-width: 49ch;
+        margin-bottom: 26px;
+        padding-bottom: 24px;
+        color: var(--ribbon-muted);
+        font-size: 17px;
+        line-height: 1.72;
+      }
+      p::after {
+        position: absolute;
+        right: 0;
+        bottom: 4px;
+        left: 0;
+        height: 10px;
+        background:
+          radial-gradient(
+            circle at 50% 50%,
+            #861e61 0 2.5px,
+            transparent 3px
+          ),
+          linear-gradient(
+            90deg,
+            transparent,
+            var(--ribbon-rose) 12% 43%,
+            transparent 43% 47%,
+            var(--ribbon-champagne) 47% 53%,
+            transparent 53% 57%,
+            var(--ribbon-lilac) 57% 88%,
+            transparent
+          );
+        border-radius: 999px;
+        clip-path: polygon(
+          0 38%,
+          7% 0,
+          49% 23%,
+          50% 0,
+          51% 23%,
+          93% 0,
+          100% 38%,
+          93% 100%,
+          51% 77%,
+          50% 100%,
+          49% 77%,
+          7% 100%
+        );
+        content: "";
+        opacity: .88;
+      }
+      a {
+        min-height: 48px;
+        padding: 12px 20px;
+        color: #301027;
+        background:
+          linear-gradient(
+            90deg,
+            rgba(128, 31, 91, .045) 50%,
+            transparent 50%
+          ),
+          linear-gradient(
+            rgba(128, 31, 91, .045) 50%,
+            transparent 50%
+          ),
+          linear-gradient(
+            132deg,
+            #f9dbe9,
+            var(--ribbon-rose) 42%,
+            var(--ribbon-lilac) 72%,
+            var(--ribbon-aqua)
+          );
+        background-size: 12px 12px, 12px 12px, auto;
+        border-color: rgba(105, 36, 83, .24);
+        border-radius: 999px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .78),
+          0 9px 21px rgba(73, 17, 57, .13);
+        font-size: 15.5px;
+        font-weight: 730;
+        line-height: 1.45;
+      }
+      a:focus-visible {
+        outline: 3px solid var(--ribbon-focus);
+        outline-offset: 3px;
+        box-shadow:
+          0 0 0 2px var(--ribbon-surface),
+          0 0 0 6px rgba(138, 29, 99, .17);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ribbon-ink: #fff6fc;
+          --ribbon-muted: #e8cede;
+          --ribbon-paper: #140911;
+          --ribbon-surface: #27101f;
+          --ribbon-rose: #d977ad;
+          --ribbon-lilac: #a98ac8;
+          --ribbon-aqua: #72aaa5;
+          --ribbon-champagne: #c69b7e;
+          --ribbon-focus: #ff9bd2;
+          --ribbon-edge: rgba(244, 208, 230, .24);
+        }
+        body {
+          background:
+            radial-gradient(
+              ellipse 34rem 24rem at -7% -4%,
+              rgba(130, 40, 95, .19),
+              transparent 71%
+            ),
+            radial-gradient(
+              ellipse 32rem 23rem at 106% 16%,
+              rgba(91, 59, 123, .18),
+              transparent 73%
+            ),
+            radial-gradient(
+              ellipse 27rem 18rem at 87% 94%,
+              rgba(60, 120, 115, .075),
+              transparent 75%
+            ),
+            var(--ribbon-paper);
+        }
+        main {
+          background:
+            radial-gradient(
+              ellipse 20rem 10rem at 102% -7%,
+              rgba(217, 119, 173, .075),
+              transparent 75%
+            ),
+            radial-gradient(
+              ellipse 18rem 9rem at -4% 106%,
+              rgba(114, 170, 165, .04),
+              transparent 76%
+            ),
+            linear-gradient(
+              145deg,
+              rgba(255, 255, 255, .028),
+              rgba(112, 67, 121, .042)
+            ),
+            var(--ribbon-surface);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .045),
+            0 24px 58px rgba(0, 0, 0, .3);
+        }
+        p {
+          color: var(--ribbon-muted);
+        }
+      }
+      @media (max-width: 480px) {
+        body {
+          padding: 12px;
+        }
+        main {
+          width: 100%;
+          padding: 29px 21px;
+          border-radius: 23px 31px 23px 31px;
+        }
+        main::before {
+          border-radius: 17px 24px 17px 24px;
+        }
+        h1 {
+          font-size: clamp(39px, 12vw, 49px);
+        }
+        p {
+          font-size: 16px;
+          line-height: 1.7;
+        }
+        a {
+          width: 100%;
+          font-size: 16px;
+          text-align: center;
+        }
+      }
+      @media (prefers-reduced-transparency: reduce) {
+        body {
+          background: var(--ribbon-paper);
+        }
+        main {
+          background: var(--ribbon-surface);
+        }
+      }
+      @media (prefers-contrast: more) {
+        body {
+          background: var(--ribbon-paper);
+        }
+        main,
+        a {
+          border-color: currentColor;
+        }
+        p::after {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        a {
+          transition: none;
+        }
+      }
+      @media (forced-colors: active) {
+        body,
+        main,
+        a {
+          color: CanvasText;
+          background: Canvas;
+          border-color: CanvasText;
+          box-shadow: none;
+        }
+        main::after,
+        p::after {
+          display: none;
+        }
+        a:focus-visible {
+          outline: 3px solid Highlight;
+          box-shadow: none;
+        }
+      }
+      @media print {
+        html,
+        body {
+          overflow: visible;
+        }
+        body,
+        main {
+          color: #000;
+          background: #fff;
+          box-shadow: none;
+        }
+        main::after,
+        p::after {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
