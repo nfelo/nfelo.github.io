@@ -1,0 +1,251 @@
+name: Install final consistency polish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: install-final-consistency-polish
+  cancel-in-progress: false
+
+jobs:
+  install:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Verify the audited pearl baseline and lock the identity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(sha256sum public/assets/styles.css | cut -d' ' -f1)" = \
+            "7fd661819053f53c6254280073ae0674f9ea8ebdca77b787040114783f519409"
+          test "$(sha256sum public/assets/app.js | cut -d' ' -f1)" = \
+            "94140b04942cbbfe4c7d83ef3a22eb814a58ec52656d3849d4534467dd67e00e"
+          test "$(sha256sum config/404.html | cut -d' ' -f1)" = \
+            "a794d697aa56974775cd1acc9b31bd0ce930540e9799d7abe119979d2466439b"
+          grep -Fq \
+            "Pearl vanity unification finale." \
+            public/assets/styles.css
+          test \
+            "$(grep -Fc "Final consistency polish." \
+              public/assets/styles.css || true)" \
+            -eq 0
+
+          route_count="$(find public -type f -name index.html | wc -l)"
+          test "$route_count" -eq 260
+
+          python - <<'PY'
+          from pathlib import Path
+
+          routes = sorted(Path("public").rglob("index.html"))
+          assert len(routes) == 260
+          reference = "assets/styles.css?v=7fd661819053"
+          for route in routes:
+              html = route.read_text(encoding="utf-8")
+              assert html.count(reference) == 1, route
+          PY
+
+          sha256sum --check <<'SHA256'
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon-2026.svg
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon.svg
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon-2026.ico
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon.ico
+          cb6431e450e087b89060fe432246563fbf75f7b0dfd77204fcda95acfa7b6d86  public/apple-touch-icon-2026.png
+          8cdb242ebbc757fcfe7ba37b707dda392fc55b618342ddf927c030d1dd8c2987  public/icon-192-2026.png
+          cc648859f5f6dbebcbb0fa862b4e510c2212137df76659cba517f182d699c38b  public/icon-512-2026.png
+          87d39efb6f49ba8725a742b99bdbada6018e2ca7aa631597e1627667c6cd74a6  public/icon-maskable-2026.svg
+          ddd65437e8c70d129eb53ad362a50f9740af54335c05f05fdabd5d9573ca8558  public/social-card.svg
+          0a96079b8755dae00361ce74a76a3e0fb2f0d6d346ee2bab66639ed2fd700b73  public/social-card.png
+          76f0094e761fd804591ff44320648ec8ef42a9139f193c23b3f4eb273a560364  public/site.webmanifest
+          SHA256
+
+      - name: Restore the audited consistency release
+        shell: bash
+        env:
+          RELEASE_ARCHIVE_B64: |
+            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
+        run: |
+          set -euo pipefail
+
+          release_dir="$RUNNER_TEMP/final-consistency-polish-release"
+          archive="$RUNNER_TEMP/final-consistency-polish-release.tar.xz"
+          mkdir -p "$release_dir"
+          printf '%s' "$RELEASE_ARCHIVE_B64" | base64 --decode > "$archive"
+          echo \
+            "2e7900f8c3237b19c2eb249f334d22208eb1ee0078a2e500e7aef6039a724f34  $archive" \
+            | sha256sum --check
+
+          actual_files="$(tar -tJf "$archive" | LC_ALL=C sort)"
+          expected_files="$(
+            printf '%s\n' \
+              final-consistency-polish.css \
+              install_release.py \
+              test_final_consistency_polish.py
+          )"
+          test "$actual_files" = "$expected_files"
+
+          tar -xJf "$archive" -C "$release_dir"
+          python "$release_dir/install_release.py" \
+            --repo "$GITHUB_WORKSPACE" \
+            --payload "$release_dir"
+
+      - name: Verify the complete presentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python tests/test_final_consistency_polish.py -v
+          python tests/test_pearl_vanity_finale.py -v
+          python tests/test_moonlit_matchbook.py -v
+          python tests/test_unified_pearl_atelier.py -v
+          python tests/test_girlish_heirloom.py -v
+          python tests/test_editorial_keepsake.py -v
+          python tests/test_ribbon_atelier.py -v
+          python tests/test_presentation.py -v
+          python tests/test_luminous_fairytale_redesign.py -v
+          python tests/test_couture_alphabet.py -v
+          python tests/test_actual_final_presentation.py -v
+          node --check public/assets/app.js
+          node scripts/smoke_browser_boot.js public
+          git diff --check
+
+          test "$(sha256sum public/assets/styles.css | cut -d' ' -f1)" = \
+            "d2d442d15a6d2160175e7ce4fcf0b3dec9c1122ec8508399c03de50737c19942"
+          test "$(sha256sum public/assets/app.js | cut -d' ' -f1)" = \
+            "94140b04942cbbfe4c7d83ef3a22eb814a58ec52656d3849d4534467dd67e00e"
+          test "$(sha256sum config/404.html | cut -d' ' -f1)" = \
+            "a794d697aa56974775cd1acc9b31bd0ce930540e9799d7abe119979d2466439b"
+
+          sha256sum --check <<'SHA256'
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon-2026.svg
+          649147e32d2ae5e000a6cc44b2bc9d5ab1e1f2ec32b62fd3d0b04a7734fed1ff  public/favicon.svg
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon-2026.ico
+          0f0bc225dd59f4b5b840b660f20149c61c39536546452acfd807be57807e61d7  public/favicon.ico
+          cb6431e450e087b89060fe432246563fbf75f7b0dfd77204fcda95acfa7b6d86  public/apple-touch-icon-2026.png
+          8cdb242ebbc757fcfe7ba37b707dda392fc55b618342ddf927c030d1dd8c2987  public/icon-192-2026.png
+          cc648859f5f6dbebcbb0fa862b4e510c2212137df76659cba517f182d699c38b  public/icon-512-2026.png
+          87d39efb6f49ba8725a742b99bdbada6018e2ca7aa631597e1627667c6cd74a6  public/icon-maskable-2026.svg
+          ddd65437e8c70d129eb53ad362a50f9740af54335c05f05fdabd5d9573ca8558  public/social-card.svg
+          0a96079b8755dae00361ce74a76a3e0fb2f0d6d346ee2bab66639ed2fd700b73  public/social-card.png
+          76f0094e761fd804591ff44320648ec8ef42a9139f193c23b3f4eb273a560364  public/site.webmanifest
+          SHA256
+
+      - name: Enforce presentation-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          actual="$RUNNER_TEMP/actual-change-scope.txt"
+          expected="$RUNNER_TEMP/expected-change-scope.txt"
+
+          git status --porcelain=v1 --untracked-files=all \
+            | cut -c4- \
+            | LC_ALL=C sort \
+            > "$actual"
+
+          {
+            printf '%s\n' \
+              public/assets/styles.css \
+              tests/test_final_consistency_polish.py
+            find public -type f -name index.html
+          } | LC_ALL=C sort > "$expected"
+
+          test "$(wc -l < "$actual")" -eq 262
+          diff -u "$expected" "$actual"
+
+      - name: Commit the polish and remove this installer
+        shell: bash
+        env:
+          WORKFLOW_FILE: .github/workflows/install-final-consistency-polish-2026-07-29.yml
+        run: |
+          set -euo pipefail
+
+          test -f "$WORKFLOW_FILE"
+          rm -- "$WORKFLOW_FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            public/assets/styles.css \
+            public \
+            tests/test_final_consistency_polish.py \
+            "$WORKFLOW_FILE"
+          git commit -m "style: finish the presentation consistency audit [skip ci]"
+          git push origin HEAD:main
+
+      - name: Start the normal Pages deployment
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run pages.yml \
+            --ref main \
+            -f refresh_source=false \
+            -f full_refresh=false
