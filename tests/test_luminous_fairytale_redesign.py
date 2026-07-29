@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 CSS_PATH = PUBLIC / "assets" / "styles.css"
-MARKER = "Luminous fairytale editorial redesign."
+MARKER = "Rosewater couture hybrid."
 ASSET_VERSION = "20260729l1"
 
 
@@ -50,12 +50,12 @@ def png_dimensions(path: Path) -> tuple[int, int]:
     )
 
 
-class LuminousFairytaleRedesignTests(unittest.TestCase):
+class RosewaterCoutureHybridTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.css = CSS_PATH.read_text(encoding="utf-8")
         if MARKER not in cls.css:
-            raise AssertionError("The final redesign marker is missing.")
+            raise AssertionError("The rosewater hybrid marker is missing.")
         cls.finish = cls.css.split(MARKER, 1)[1]
 
     def test_number_one_is_data_not_a_selected_state(self) -> None:
@@ -72,18 +72,9 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
         ):
             self.assertIn(selector, self.finish)
         self.assertIn(
-            ".ranking-card,\n.ranking-card:first-child {",
-            self.finish,
-        )
-        self.assertIn(
-            ".home-ranking-list li,\n"
-            ".home-ranking-list li:first-child {\n"
-            "  background: transparent;\n"
-            "  box-shadow: none;",
-            self.finish,
-        )
-        self.assertIn(
-            ".ranking-table tbody tr:first-child {\n"
+            ".home-ranking-list li:first-child,\n"
+            ".ranking-table tbody tr:first-child,\n"
+            ".ranking-card:first-child {\n"
             "  background: transparent;\n"
             "  box-shadow: none;",
             self.finish,
@@ -91,14 +82,15 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
 
     def test_palette_is_feminine_without_recolouring_results(self) -> None:
         for marker in (
-            "--luminous-rose:",
-            "--luminous-lilac:",
-            "--luminous-aqua:",
-            "--luminous-champagne:",
-            "--luminous-pearl:",
-            "--luminous-velvet:",
-            "Rose quartz, lavender tulle, moonstone aqua",
-            "Moonlit velvet retains colour and contrast",
+            "--hybrid-rose:",
+            "--hybrid-lilac:",
+            "--hybrid-aqua:",
+            "--hybrid-apricot:",
+            "--hybrid-champagne:",
+            "--hybrid-velvet:",
+            "rose-porcelain",
+            "macaron and fine-seam presentation",
+            "rosewater materials remain luminous",
         ):
             self.assertIn(marker, self.finish)
         for forbidden in (
@@ -112,10 +104,10 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
     def test_reading_system_has_clear_minima_and_measure(self) -> None:
         for marker in (
             "font-size: 16px;",
-            "line-height: 1.58;",
-            "max-width: 70ch;",
+            "line-height: 1.6;",
+            "max-width: 72ch;",
             "font-size: 17px;",
-            "line-height: 1.76;",
+            "line-height: 1.74;",
             "min-height: 46px;",
             "min-height: 48px;",
             "font-variant-numeric: lining-nums tabular-nums;",
@@ -134,16 +126,16 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
 
     def test_light_and_dark_text_pairs_exceed_wcag_aa(self) -> None:
         pairs = (
-            ("#34152d", "#fffcfe"),
-            ("#6a4a60", "#fffcfe"),
-            ("#71215e", "#fffcfe"),
-            ("#fff5fb", "#3b1232"),
-            ("#f4deed", "#3b1232"),
-            ("#34152d", "#efb4d2"),
-            ("#fff4fb", "#27131f"),
-            ("#ead1e1", "#27131f"),
-            ("#ffb1da", "#27131f"),
-            ("#fff5fb", "#632452"),
+            ("#3d1835", "#fffafd"),
+            ("#69475f", "#fffafd"),
+            ("#701d59", "#fffafd"),
+            ("#7b3265", "#fffafd"),
+            ("#5e3b53", "#fffafd"),
+            ("#fff5fb", "#29121f"),
+            ("#efd7e7", "#29121f"),
+            ("#ffaddb", "#29121f"),
+            ("#ebcfe1", "#29121f"),
+            ("#ead0e1", "#29121f"),
         )
         for foreground, background in pairs:
             with self.subTest(
@@ -160,7 +152,6 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
             "@media (min-width: 721px) and (max-width: 1024px)",
             "@media (max-width: 720px)",
             "@media (max-width: 430px)",
-            "@media (max-width: 360px)",
             "@media (hover: none), (pointer: coarse)",
             "@media (prefers-color-scheme: dark)",
             "@media (prefers-reduced-transparency: reduce)",
@@ -182,6 +173,45 @@ class LuminousFairytaleRedesignTests(unittest.TestCase):
             "animation:",
         ):
             self.assertNotIn(forbidden, self.finish)
+
+    def test_editorial_type_is_separate_from_working_type(self) -> None:
+        for marker in (
+            "Fraunces is an editorial accent, not the working typeface.",
+            ".faq-item summary,\n  .team-picker select,",
+            "font-family: var(--font-body);",
+            "font-family: var(--font-display);",
+            "font-size: clamp(42px, 5.5vw, 64px);",
+            "font-size: 12.5px;",
+        ):
+            self.assertIn(marker, self.finish)
+
+    def test_home_matchups_are_an_aligned_readable_grid(self) -> None:
+        for marker in (
+            "make the record list read as five",
+            "grid-template-columns: 31px minmax(0, 1fr) 76px;",
+            "grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr);",
+            ".home-records li > div > a:first-of-type {\n  text-align: right;",
+            ".home-records li > div > small {\n  grid-column: 1 / -1;",
+            ".home-records li > strong {\n  justify-self: end;",
+            "@media (max-width: 430px)",
+        ):
+            self.assertIn(marker, self.finish)
+
+    def test_faq_has_a_calm_desktop_column_and_mobile_layout(self) -> None:
+        for marker in (
+            "FAQ desktop: a centred editorial reading column",
+            "width: min(1040px, calc(100vw - 44px));",
+            "width: min(860px, 100%);",
+            "grid-template-columns: minmax(300px, 1fr) auto;",
+            "counter-reset: hybrid-faq;",
+            "content: counter(hybrid-faq, decimal-leading-zero);",
+            "font-family: var(--font-body);",
+            "font-size: 17px;",
+            "@media (max-width: 720px)",
+            ".faq-tools {\n    grid-template-columns: 1fr;",
+            ".faq-actions {\n    display: grid;\n    grid-template-columns: 1fr 1fr;",
+        ):
+            self.assertIn(marker, self.finish)
 
     def test_all_brand_outputs_come_from_one_updated_identity(self) -> None:
         primary = (PUBLIC / "favicon-2026.svg").read_text(
