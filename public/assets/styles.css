@@ -16303,3 +16303,147 @@ body[data-route="about"] .page-narrow > .split > .panel {
     text-shadow: none;
   }
 }
+
+/*
+ * Final consistency polish.
+ *
+ * The full route audit found three surviving pieces of pre-vanity micro-UI:
+ * the Compare team counter, the labels inside team technical disclosures and
+ * the disclosure triggers themselves.  They now share the final readable
+ * scale and pearl-control grammar without changing any football semantics.
+ */
+
+.comparison-add-area > .button span {
+  color: var(--pv-muted);
+  font-size: 12.5px;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.venue-detail-grid span {
+  color: var(--pv-muted);
+  font-size: 12.5px;
+  font-weight: 740;
+  letter-spacing: 0.035em;
+  line-height: 1.35;
+}
+
+.venue-profile-details > summary {
+  box-sizing: border-box;
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  justify-content: space-between;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin-top: 13px;
+  padding: 9px 10px 9px 15px;
+  color: var(--pv-link);
+  background:
+    radial-gradient(
+      ellipse 7rem 3rem at 82% -38%,
+      rgba(255, 255, 255, 0.82),
+      transparent 72%
+    ),
+    linear-gradient(135deg, var(--pv-control), var(--pv-control-2));
+  border: 1px solid var(--pv-border);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 var(--pv-highlight),
+    var(--pv-shadow-small);
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 610;
+  line-height: 1.3;
+  list-style: none;
+}
+
+.venue-profile-details > summary::after {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--pv-link);
+  background:
+    linear-gradient(
+      145deg,
+      var(--pv-surface-lilac),
+      var(--pv-surface-sea)
+    );
+  border: 1px solid var(--pv-border);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 var(--pv-highlight);
+  font-family: var(--font-numeric);
+  font-size: 15px;
+  font-weight: 760;
+  line-height: 1;
+  content: "+";
+}
+
+.venue-profile-details[open] > summary::after {
+  content: "−";
+}
+
+.venue-profile-details > summary:hover {
+  color: var(--pv-ink);
+  border-color: rgba(103, 34, 79, 0.4);
+  transform: translateY(-1px);
+}
+
+.venue-profile-details > summary:focus-visible {
+  border-radius: 999px;
+  outline-offset: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .venue-profile-details > summary {
+    color: #fff5fb;
+    border-color: var(--pv-border);
+  }
+
+  .venue-profile-details > summary::after {
+    color: #ffe9f5;
+    border-color: var(--pv-border);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .venue-profile-details > summary {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .venue-profile-details > summary {
+    background: var(--pv-surface);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .venue-profile-details > summary {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .venue-profile-details > summary,
+  .venue-profile-details > summary::after {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  .venue-profile-details > summary,
+  .venue-profile-details > summary::after {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+  }
+}
