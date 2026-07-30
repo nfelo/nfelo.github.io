@@ -1,0 +1,1020 @@
+name: Install balanced interface unification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nfelo-balanced-interface-unification-2026-07-30
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Confirm compatible presentation baseline
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import subprocess
+          from pathlib import Path
+
+          expected = {
+              Path("public/assets/styles.css"):
+                  "fd1c0c4d7b93da4e5968e37b0149885b78b72a7a",
+              Path("public/assets/app.js"):
+                  "4813176c0ebc4ff4dc864a004c84fa359170de94",
+          }
+          for path, wanted in expected.items():
+              if not path.is_file():
+                  raise SystemExit(f"Required file is missing: {path}")
+              actual = subprocess.check_output(
+                  ["git", "hash-object", str(path)],
+                  text=True,
+              ).strip()
+              if actual != wanted:
+                  raise SystemExit(
+                      f"{path} has changed since this release was audited "
+                      f"({actual} != {wanted}). Refusing to overwrite it."
+                  )
+          PY
+
+      - name: Install the unified responsive presentation
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import re
+          import textwrap
+          from pathlib import Path
+
+          root = Path(".")
+          public = root / "public"
+          css_path = public / "assets" / "styles.css"
+          app_path = public / "assets" / "app.js"
+          test_path = root / "tests" / "test_balanced_interface_unification.py"
+
+          marker = "Balanced interface unification 2026-07-30."
+          css = css_path.read_text(encoding="utf-8")
+          if marker in css:
+              raise SystemExit("The balanced interface layer is already installed.")
+
+          css_layer = r'''
+
+          /*
+           * Balanced interface unification 2026-07-30.
+           *
+           * This authoritative finishing layer removes asymmetrical table
+           * gutters, aligns date/filter controls, gives homepage records the
+           * same match grammar as Upcoming, and extends the FAQ's jewel-toned
+           * disclosure language to technical sections without changing data.
+           */
+
+          /* Tables must meet both borders evenly when no scrollbar is needed. */
+          body .table-shell {
+            box-sizing: border-box;
+            max-width: 100%;
+            scrollbar-gutter: auto;
+          }
+
+          body .table-shell > table {
+            margin-inline: 0;
+          }
+
+          /* Empty validation slots must not lift otherwise aligned controls. */
+          .field-error:empty {
+            display: none;
+          }
+
+          @media (min-width: 1025px) {
+            body .history-toolbar,
+            body #number-one-filters {
+              flex-wrap: nowrap;
+              align-items: flex-end;
+            }
+
+            body .history-toolbar :is(
+              input:not(.native-date-proxy),
+              .button
+            ),
+            body #number-one-filters :is(
+              input:not(.native-date-proxy),
+              .button
+            ) {
+              box-sizing: border-box;
+              min-height: 48px;
+              height: 48px;
+            }
+
+            body .history-toolbar .field,
+            body #number-one-filters .field {
+              min-width: 0;
+            }
+          }
+
+          /*
+           * The third hero action is centred but no longer consumes the whole
+           * double column. Its shorter label also remains one line on phones.
+           */
+          body[data-route="home"] .home-intro .hero-actions
+          .home-action-predict {
+            grid-column: 1 / -1;
+            justify-self: center;
+            width: min(430px, 100%);
+            max-width: 100%;
+          }
+
+          /*
+           * Highest-rated matches now use the same calm match hierarchy as
+           * Upcoming: balanced teams, a quiet date and one aligned value.
+           */
+          body[data-route="home"] .home-records ol {
+            display: grid;
+            gap: 0;
+            width: 100%;
+          }
+
+          body[data-route="home"] .home-records li {
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr) minmax(76px, auto);
+            grid-template-rows: auto auto;
+            gap: 3px 12px;
+            align-items: center;
+            min-height: 0;
+            padding: 11px 0;
+          }
+
+          body[data-route="home"] .home-records .home-record-rank {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            align-self: center;
+            justify-self: start;
+          }
+
+          body[data-route="home"] .home-records .home-record-match {
+            display: grid;
+            grid-column: 2;
+            grid-row: 1 / 3;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 3px;
+            min-width: 0;
+          }
+
+          body[data-route="home"] .home-records .home-record-teams {
+            display: flex;
+            gap: 7px;
+            align-items: baseline;
+            justify-content: center;
+            min-width: 0;
+            color: var(--pv-ink);
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+            white-space: nowrap;
+          }
+
+          body[data-route="home"] .home-records
+          .home-record-teams > a {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: hidden;
+            color: var(--pv-ink);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          body[data-route="home"] .home-records
+          .home-record-teams > a:first-child {
+            text-align: right;
+          }
+
+          body[data-route="home"] .home-records
+          .home-record-teams > a:last-child {
+            text-align: left;
+          }
+
+          body[data-route="home"] .home-records
+          .home-record-teams > i {
+            display: inline;
+            flex: 0 0 auto;
+            width: auto;
+            height: auto;
+            padding: 0;
+            color: var(--pv-muted);
+            background: none;
+            border: 0;
+            box-shadow: none;
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-style: normal;
+            font-weight: 760;
+            line-height: 1;
+          }
+
+          body[data-route="home"] .home-records
+          .home-record-match > time {
+            justify-self: center;
+            margin: 0;
+            color: var(--pv-muted);
+            font-family: var(--font-numeric);
+            font-size: 12.5px;
+            font-weight: 700;
+            font-variant-numeric: lining-nums tabular-nums;
+            line-height: 1.25;
+          }
+
+          body[data-route="home"] .home-records li > strong {
+            display: grid;
+            grid-column: 3;
+            grid-row: 1 / 3;
+            gap: 1px;
+            align-self: center;
+            justify-self: end;
+            min-width: 76px;
+            padding: 5px 8px;
+            color: var(--pv-ink);
+            background:
+              linear-gradient(
+                135deg,
+                var(--pv-surface-lilac),
+                var(--pv-surface-sea)
+              );
+            border: 1px solid var(--pv-border);
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 var(--pv-highlight);
+            font-family: var(--font-numeric);
+            font-variant-numeric: lining-nums tabular-nums;
+            line-height: 1.1;
+            text-align: center;
+          }
+
+          body[data-route="home"] .home-records li > strong > small {
+            color: var(--pv-muted);
+            font-family: var(--font-body);
+            font-size: 12px;
+            font-weight: 720;
+            letter-spacing: 0.01em;
+            line-height: 1.1;
+          }
+
+          body[data-route="home"] .home-records li > strong > span {
+            font-size: 14.5px;
+            font-weight: 760;
+          }
+
+          /*
+           * Carry the FAQ's multicolour expand/collapse jewel into Predict,
+           * Methodology and team details. Each family receives a related,
+           * slightly different palette so the controls stay useful, not cloned.
+           */
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details,
+            .venue-profile-details
+          ) {
+            --bu-disc-a: var(--pv-rose);
+            --bu-disc-b: var(--pv-lilac);
+            --bu-disc-c: var(--pv-aqua);
+          }
+
+          body .method-details:nth-of-type(4n + 2) {
+            --bu-disc-a: #e5b391;
+            --bu-disc-b: #efb7d3;
+            --bu-disc-c: #b9dcd7;
+          }
+
+          body .method-details:nth-of-type(4n + 3) {
+            --bu-disc-a: #c9b4e6;
+            --bu-disc-b: #eab0cf;
+            --bu-disc-c: #a8d8d3;
+          }
+
+          body .method-details:nth-of-type(4n) {
+            --bu-disc-a: #a9d7d2;
+            --bu-disc-b: #d6bce9;
+            --bu-disc-c: #edb6cd;
+          }
+
+          body .analysis-disclosure:nth-of-type(even) {
+            --bu-disc-a: #a7d8d3;
+            --bu-disc-b: #c7b5e6;
+            --bu-disc-c: #ebb1cd;
+          }
+
+          body .score-profile-details {
+            --bu-disc-a: #9ed5d0;
+            --bu-disc-b: #c8b5e7;
+            --bu-disc-c: #edb0ce;
+          }
+
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details
+          ) > summary,
+          body .venue-profile-details > summary {
+            position: relative;
+            box-sizing: border-box;
+            min-height: 48px;
+            color: var(--pv-ink);
+            background:
+              radial-gradient(
+                ellipse 9rem 3rem at 88% -25%,
+                color-mix(in srgb, var(--bu-disc-a) 34%, transparent),
+                transparent 72%
+              ),
+              linear-gradient(
+                105deg,
+                color-mix(
+                  in srgb,
+                  var(--pv-surface) 88%,
+                  var(--bu-disc-a)
+                ),
+                color-mix(
+                  in srgb,
+                  var(--pv-surface) 88%,
+                  var(--bu-disc-b)
+                ) 58%,
+                color-mix(
+                  in srgb,
+                  var(--pv-surface) 90%,
+                  var(--bu-disc-c)
+                )
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--pv-border) 64%,
+              var(--bu-disc-b)
+            );
+            box-shadow:
+              inset 0 1px 0 var(--pv-highlight),
+              inset 3px 0 0 color-mix(
+                in srgb,
+                var(--bu-disc-a) 64%,
+                transparent
+              );
+            list-style: none;
+          }
+
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details
+          ) > summary {
+            padding-right: 62px;
+          }
+
+          body .venue-profile-details > summary {
+            gap: 10px;
+            padding-right: 48px;
+          }
+
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details,
+            .venue-profile-details
+          ) > summary::after {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            display: grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            padding: 0;
+            color: #4a1939;
+            background:
+              linear-gradient(
+                135deg,
+                var(--bu-disc-a),
+                var(--bu-disc-b) 53%,
+                var(--bu-disc-c)
+              );
+            border: 1px solid color-mix(
+              in srgb,
+              var(--pv-border) 62%,
+              var(--bu-disc-b)
+            );
+            border-radius: 50%;
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.74),
+              0 3px 8px rgba(79, 22, 61, 0.08);
+            font-family: var(--font-numeric);
+            font-size: 18px;
+            font-weight: 760;
+            line-height: 1;
+            content: "+";
+            transform: translateY(-50%);
+          }
+
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details,
+            .venue-profile-details
+          )[open] > summary::after {
+            content: "−";
+          }
+
+          body :is(
+            .method-details,
+            .analysis-disclosure,
+            .team-model-details,
+            .venue-profile-details
+          ) > summary:hover {
+            border-color: color-mix(
+              in srgb,
+              var(--pv-border) 38%,
+              var(--bu-disc-a)
+            );
+          }
+
+          /*
+           * Phones receive deliberate edge-to-edge Records tables. The outer
+           * route owns the bleed, while the table shell itself remains exactly
+           * as wide as that route: neither left-heavy nor right-short.
+           */
+          @media (max-width: 720px) {
+            body[data-route="records"] #record-table {
+              box-sizing: border-box;
+              width: calc(100% + 24px);
+              max-width: none;
+              margin-inline: -12px;
+            }
+
+            body[data-route="records"] #record-table > .table-shell {
+              width: 100%;
+              max-width: none;
+              margin-inline: 0;
+              border-right: 0;
+              border-left: 0;
+              border-radius: 0;
+            }
+
+            body[data-route="home"] .home-intro .hero-actions
+            .home-action-predict {
+              width: 100%;
+              padding-right: 13px;
+              padding-left: 13px;
+              font-size: clamp(14px, 4vw, 15.5px);
+              letter-spacing: -0.006em;
+              white-space: nowrap;
+            }
+
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details
+            ) > summary {
+              padding-right: 56px;
+              font-size: 16px;
+            }
+
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary::after {
+              right: 12px;
+              width: 28px;
+              height: 28px;
+            }
+          }
+
+          @media (max-width: 520px) {
+            body[data-route="home"] .home-records {
+              padding-right: 12px;
+              padding-left: 12px;
+            }
+
+            body[data-route="home"] .home-records li {
+              grid-template-columns: 24px minmax(0, 1fr) 64px;
+              gap: 3px 6px;
+              padding: 8px 0;
+            }
+
+            body[data-route="home"] .home-records
+            .home-record-teams {
+              gap: 5px;
+              font-size: clamp(13px, 3.7vw, 14.5px);
+            }
+
+            body[data-route="home"] .home-records
+            .home-record-teams > i {
+              font-size: 12px;
+            }
+
+            body[data-route="home"] .home-records
+            .home-record-match > time {
+              font-size: 12px;
+            }
+
+            body[data-route="home"] .home-records li > strong {
+              min-width: 64px;
+              padding: 4px;
+            }
+
+            body[data-route="home"] .home-records
+            li > strong > small {
+              font-size: 12px;
+              letter-spacing: -0.015em;
+            }
+
+            body[data-route="home"] .home-records
+            li > strong > span {
+              font-size: 13px;
+            }
+          }
+
+          @media (prefers-color-scheme: dark) {
+            body[data-route="home"] .home-records
+            .home-record-teams,
+            body[data-route="home"] .home-records
+            .home-record-teams > a,
+            body[data-route="home"] .home-records li > strong {
+              color: #fff4fb;
+            }
+
+            body[data-route="home"] .home-records
+            .home-record-match > time,
+            body[data-route="home"] .home-records
+            li > strong > small {
+              color: #ead2e2;
+            }
+
+            body[data-route="home"] .home-records li > strong {
+              background:
+                linear-gradient(
+                  135deg,
+                  rgba(92, 47, 86, 0.92),
+                  rgba(45, 76, 73, 0.82)
+                );
+              border-color: rgba(255, 218, 239, 0.24);
+            }
+
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary {
+              color: #fff4fb;
+              background:
+                radial-gradient(
+                  ellipse 9rem 3rem at 88% -25%,
+                  color-mix(in srgb, var(--bu-disc-a) 16%, transparent),
+                  transparent 72%
+                ),
+                linear-gradient(
+                  105deg,
+                  color-mix(
+                    in srgb,
+                    var(--pv-surface) 89%,
+                    var(--bu-disc-a)
+                  ),
+                  color-mix(
+                    in srgb,
+                    var(--pv-surface) 89%,
+                    var(--bu-disc-b)
+                  ) 58%,
+                  color-mix(
+                    in srgb,
+                    var(--pv-surface) 91%,
+                    var(--bu-disc-c)
+                  )
+                );
+            }
+
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary::after {
+              color: #fff7fc;
+              background:
+                linear-gradient(
+                  135deg,
+                  color-mix(in srgb, var(--bu-disc-a) 58%, #4b2444),
+                  color-mix(in srgb, var(--bu-disc-b) 52%, #392b4d),
+                  color-mix(in srgb, var(--bu-disc-c) 50%, #244b48)
+                );
+              border-color: rgba(255, 220, 240, 0.28);
+              box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.13),
+                0 4px 9px rgba(0, 0, 0, 0.18);
+            }
+          }
+
+          @media (hover: none) and (pointer: coarse) {
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary {
+              min-height: 48px;
+            }
+          }
+
+          @media (prefers-reduced-transparency: reduce) {
+            body[data-route="home"] .home-records li > strong,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary {
+              background: var(--pv-surface);
+            }
+          }
+
+          @media (prefers-contrast: more) {
+            body .table-shell,
+            body[data-route="home"] .home-records li > strong,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary::after {
+              border: 2px solid currentColor;
+              box-shadow: none;
+            }
+          }
+
+          @media (forced-colors: active) {
+            body[data-route="home"] .home-records li > strong,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary::after {
+              color: ButtonText;
+              background: ButtonFace;
+              border-color: ButtonText;
+              box-shadow: none;
+            }
+          }
+
+          @media print {
+            body[data-route="home"] .home-records li > strong,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary,
+            body :is(
+              .method-details,
+              .analysis-disclosure,
+              .team-model-details,
+              .venue-profile-details
+            ) > summary::after {
+              color: #000;
+              background: #fff;
+              border-color: #777;
+              box-shadow: none;
+            }
+          }
+          '''
+
+          css_path.write_text(
+              css.rstrip() + "\n" + css_layer.strip() + "\n",
+              encoding="utf-8",
+          )
+
+          app = app_path.read_text(encoding="utf-8")
+          old_label = "Predict any historical or current matchup"
+          new_label = "Predict a past or current matchup"
+          if app.count(old_label) != 1:
+              raise SystemExit(
+                  "The homepage prediction label did not match the "
+                  "audited application."
+              )
+          app = app.replace(old_label, new_label, 1)
+
+          old_record = (
+              '<li><span>${index + 1}</span><div>'
+              '${teamLink(match.code1, match.team1)} <i>v</i> '
+              '${teamLink(match.code2, match.team2)}'
+              '<small>${validDate(match.date)}</small></div>'
+              '<strong>${rating(match.combined)}</strong></li>'
+          )
+          new_record = (
+              '<li><span class="home-record-rank">${index + 1}</span>'
+              '<div class="home-record-match">'
+              '<span class="home-record-teams">'
+              '${teamLink(match.code1, match.team1)} <i>v</i> '
+              '${teamLink(match.code2, match.team2)}</span>'
+              '<time datetime="${match.date}">${validDate(match.date)}</time>'
+              '</div><strong><small>Combined</small>'
+              '<span>${rating(match.combined)}</span></strong></li>'
+          )
+          if app.count(old_record) != 1:
+              raise SystemExit(
+                  "The homepage record template did not match the "
+                  "audited application."
+              )
+          app_path.write_text(
+              app.replace(old_record, new_record, 1),
+              encoding="utf-8",
+          )
+
+          test_source = r'''from __future__ import annotations
+
+          import hashlib
+          import re
+          import unittest
+          from pathlib import Path
+
+
+          ROOT = Path(__file__).resolve().parents[1]
+          PUBLIC = ROOT / "public"
+          CSS_PATH = PUBLIC / "assets" / "styles.css"
+          APP_PATH = PUBLIC / "assets" / "app.js"
+          MARKER = "Balanced interface unification 2026-07-30."
+
+
+          class BalancedInterfaceUnificationTests(unittest.TestCase):
+              @classmethod
+              def setUpClass(cls) -> None:
+                  cls.css = CSS_PATH.read_text(encoding="utf-8")
+                  cls.app = APP_PATH.read_text(encoding="utf-8")
+                  if MARKER not in cls.css:
+                      raise AssertionError("Balanced-interface marker missing.")
+                  cls.finish = cls.css.split(MARKER, 1)[1]
+
+              def test_layer_is_unique_last_and_balanced(self) -> None:
+                  self.assertEqual(self.css.count(MARKER), 1)
+                  self.assertIn("Final consistency polish.", self.css)
+                  self.assertGreater(
+                      self.css.index(MARKER),
+                      self.css.index("Final consistency polish."),
+                  )
+                  depth = 0
+                  for character in self.css:
+                      if character == "{":
+                          depth += 1
+                      elif character == "}":
+                          depth -= 1
+                      self.assertGreaterEqual(depth, 0)
+                  self.assertEqual(depth, 0)
+                  self.assertTrue(self.css.rstrip().endswith("}"))
+
+              def test_tables_have_no_asymmetric_reserved_gutter(self) -> None:
+                  for marker in (
+                      "body .table-shell {",
+                      "scrollbar-gutter: auto;",
+                      'body[data-route="records"] #record-table {',
+                      "width: calc(100% + 24px);",
+                      "margin-inline: -12px;",
+                      '#record-table > .table-shell {',
+                      "margin-inline: 0;",
+                  ):
+                      self.assertIn(marker, self.finish)
+
+              def test_history_and_chronology_controls_align(self) -> None:
+                  for marker in (
+                      ".field-error:empty {",
+                      "display: none;",
+                      "@media (min-width: 1025px)",
+                      "body .history-toolbar,",
+                      "body #number-one-filters {",
+                      "flex-wrap: nowrap;",
+                      "align-items: flex-end;",
+                      "min-height: 48px;",
+                      "height: 48px;",
+                  ):
+                      self.assertIn(marker, self.finish)
+
+              def test_homepage_actions_and_matches_are_rebuilt(self) -> None:
+                  self.assertNotIn(
+                      "Predict any historical or current matchup",
+                      self.app,
+                  )
+                  self.assertIn(
+                      "Predict a past or current matchup",
+                      self.app,
+                  )
+                  for marker in (
+                      'class="home-record-rank"',
+                      'class="home-record-match"',
+                      'class="home-record-teams"',
+                      '<time datetime="${match.date}">',
+                      "<small>Combined</small>",
+                  ):
+                      self.assertIn(marker, self.app)
+                  for marker in (
+                      ".home-action-predict {",
+                      "justify-self: center;",
+                      "width: min(430px, 100%);",
+                      ".home-record-teams {",
+                      "white-space: nowrap;",
+                      ".home-record-match > time {",
+                      "font-variant-numeric: lining-nums tabular-nums;",
+                  ):
+                      self.assertIn(marker, self.finish)
+
+              def test_faq_jewel_language_reaches_other_disclosures(self) -> None:
+                  for marker in (
+                      ".method-details,",
+                      ".analysis-disclosure,",
+                      ".team-model-details,",
+                      ".venue-profile-details",
+                      "--bu-disc-a: var(--pv-rose);",
+                      ".method-details:nth-of-type(4n + 2)",
+                      ".analysis-disclosure:nth-of-type(even)",
+                      ".score-profile-details {",
+                      "> summary::after {",
+                      'content: "+";',
+                      ")[open] > summary::after {",
+                      'content: "−";',
+                  ):
+                      self.assertIn(marker, self.finish)
+
+              def test_every_display_mode_has_an_explicit_contract(self) -> None:
+                  for marker in (
+                      "@media (max-width: 720px)",
+                      "@media (max-width: 520px)",
+                      "@media (prefers-color-scheme: dark)",
+                      "@media (hover: none) and (pointer: coarse)",
+                      "@media (prefers-reduced-transparency: reduce)",
+                      "@media (prefers-contrast: more)",
+                      "@media (forced-colors: active)",
+                      "color: ButtonText;",
+                      "background: ButtonFace;",
+                      "@media print",
+                  ):
+                      self.assertIn(marker, self.finish)
+
+              def test_finishing_layer_stays_asset_and_motion_neutral(self) -> None:
+                  for forbidden in (
+                      "url(",
+                      ".svg",
+                      ".png",
+                      "animation:",
+                      "--result-",
+                  ):
+                      self.assertNotIn(forbidden, self.finish)
+                  tiny = [
+                      float(value)
+                      for value in re.findall(
+                          r"font-size:\s*([0-9]+(?:\.[0-9]+)?)px",
+                          self.finish,
+                      )
+                      if float(value) < 12
+                  ]
+                  self.assertEqual(tiny, [])
+
+              def test_every_route_has_current_asset_hashes(self) -> None:
+                  css_hash = hashlib.sha256(
+                      CSS_PATH.read_bytes()
+                  ).hexdigest()[:12]
+                  app_hash = hashlib.sha256(
+                      APP_PATH.read_bytes()
+                  ).hexdigest()[:12]
+                  routes = sorted(PUBLIC.rglob("index.html"))
+                  self.assertEqual(len(routes), 260)
+                  for route in routes:
+                      html = route.read_text(encoding="utf-8")
+                      self.assertIn(
+                          f"assets/styles.css?v={css_hash}",
+                          html,
+                          route,
+                      )
+                      self.assertIn(
+                          f"assets/app.js?v={app_hash}",
+                          html,
+                          route,
+                      )
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          '''
+          test_path.write_text(
+              textwrap.dedent(test_source).lstrip(),
+              encoding="utf-8",
+          )
+
+          revisions = {
+              "assets/styles.css": hashlib.sha256(
+                  css_path.read_bytes()
+              ).hexdigest()[:12],
+              "assets/app.js": hashlib.sha256(
+                  app_path.read_bytes()
+              ).hexdigest()[:12],
+          }
+          html_paths = sorted(public.rglob("*.html"))
+          if len(list(public.rglob("index.html"))) != 260:
+              raise SystemExit("Unexpected route count before cache update.")
+          for html_path in html_paths:
+              html = html_path.read_text(encoding="utf-8")
+              original = html
+              for asset, revision in revisions.items():
+                  html = re.sub(
+                      rf'{re.escape(asset)}(?:\?v=[^"\']*)?',
+                      f"{asset}?v={revision}",
+                      html,
+                  )
+              if html != original:
+                  html_path.write_text(html, encoding="utf-8")
+          PY
+
+      - name: Verify presentation scope and fast checks
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import subprocess
+          from pathlib import Path
+
+          changed = {
+              line.strip()
+              for line in subprocess.check_output(
+                  ["git", "diff", "--name-only"],
+                  text=True,
+              ).splitlines()
+              if line.strip()
+          }
+          allowed_exact = {
+              "public/assets/styles.css",
+              "public/assets/app.js",
+              "tests/test_balanced_interface_unification.py",
+          }
+          unexpected = sorted(
+              path
+              for path in changed
+              if path not in allowed_exact
+              and not (
+                  path.startswith("public/")
+                  and path.endswith(".html")
+              )
+          )
+          if unexpected:
+              raise SystemExit(
+                  "Unexpected files changed: " + ", ".join(unexpected)
+              )
+          for required in allowed_exact:
+              if required not in changed:
+                  raise SystemExit(f"Expected change is missing: {required}")
+          PY
+
+          python -m unittest discover \
+            --start-directory tests \
+            --pattern "test_balanced_interface_unification.py" \
+            --verbose
+          python -m unittest discover \
+            --start-directory tests \
+            --pattern "test_final_consistency_polish.py" \
+            --verbose
+          node --check public/assets/app.js
+
+      - name: Commit the verified release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            public \
+            tests/test_balanced_interface_unification.py
+          if git diff --cached --quiet; then
+            echo "The balanced interface release is already installed."
+            exit 0
+          fi
+          git commit -m "style: unify balanced responsive presentation"
+          git push
