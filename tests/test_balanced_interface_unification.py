@@ -54,7 +54,9 @@ class BalancedInterfaceUnificationTests(unittest.TestCase):
     def test_history_and_chronology_controls_align(self) -> None:
         for marker in (
             ".field-error:empty {",
-            "display: none;",
+            "position: absolute;",
+            "inline-size: 0;",
+            "block-size: 0;",
             "@media (min-width: 1025px)",
             "body .history-toolbar,",
             "body #number-one-filters {",
