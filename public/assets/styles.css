@@ -17085,6 +17085,26 @@ body :is(
   }
 }
 /*
+ * Mobile Methodology tables edge-to-edge 2026-07-30.
+ *
+ * The Methodology page is inset by 12px on each side on phones.
+ * Its two parameter tables deliberately reclaim exactly that 24px,
+ * meeting both viewport edges without affecting any other content.
+ */
+@media (max-width: 720px) {
+  body[data-route="methodology"] .methodology-page
+  > .method-section > .table-shell {
+    box-sizing: border-box;
+    width: calc(100% + 24px);
+    max-width: none;
+    margin-inline: -12px;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+}
+
+/*
  * Mobile Records country width 2026-07-30.
  *
  * Country links stay intact on phones and every Records cell
