@@ -1,0 +1,1590 @@
+name: Install romantic editorial feminine redesign
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_changes:
+        description: Commit the validated redesign to the selected branch
+        type: boolean
+        default: true
+      run_full_test_suite:
+        description: Run every Python test before committing
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nfelo-romantic-editorial-feminine-redesign-2026-07-30
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out the selected branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install the repository runtime
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Confirm the audited starting point
+        id: preflight
+        env:
+          EXPECTED_CSS_BLOB: 178aabebcd9a636dfbab8d8ecd650c61b8dc8426
+          EXPECTED_APP_BLOB: e1d5102fc1a9d57fe76ab0ae11e7ff872a780cd5
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import subprocess
+          from pathlib import Path
+
+          css_path = Path("public/assets/styles.css")
+          app_path = Path("public/assets/app.js")
+          test_path = Path(
+              "tests/test_romantic_editorial_feminine_redesign.py"
+          )
+          required_assets = (
+              Path("public/assets/botanical-sprig-2026.svg"),
+              Path("public/assets/floral-divider-2026.svg"),
+          )
+          css_marker = "Romantic editorial feminine redesign 2026-07-30."
+          app_marker = "Romantic editorial feminine redesign 2026-07-30."
+
+          for path in (css_path, app_path, *required_assets):
+              if not path.is_file():
+                  raise SystemExit(f"Required current-system file is missing: {path}")
+
+          css = css_path.read_text(encoding="utf-8")
+          app = app_path.read_text(encoding="utf-8")
+          installed = (
+              css_marker in css,
+              app_marker in app,
+              test_path.is_file(),
+          )
+
+          if all(installed):
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                  output.write("already_installed=true\n")
+              print("The redesign is already installed; validation will still run.")
+              raise SystemExit(0)
+
+          if any(installed):
+              raise SystemExit(
+                  "A partial installation was found. Restore the branch or finish "
+                  "the existing installation before running this workflow again."
+              )
+
+          expected = {
+              css_path: os.environ["EXPECTED_CSS_BLOB"],
+              app_path: os.environ["EXPECTED_APP_BLOB"],
+          }
+          for path, wanted in expected.items():
+              actual = subprocess.check_output(
+                  ["git", "hash-object", str(path)],
+                  text=True,
+              ).strip()
+              if actual != wanted:
+                  raise SystemExit(
+                      f"{path} has changed since this redesign was audited "
+                      f"({actual} != {wanted}). Review the new CSS/JS before "
+                      "loosening this guard."
+                  )
+
+          for required_marker in (
+              "Refined rose-and-lavender presentation system",
+              "Floral editorial presentation system",
+          ):
+              if required_marker not in css:
+                  raise SystemExit(
+                      "The current feminine presentation layer is missing: "
+                      + required_marker
+                  )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("already_installed=false\n")
+          PY
+
+      - name: Install the responsive romantic editorial layer
+        if: steps.preflight.outputs.already_installed != 'true'
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import re
+          import textwrap
+          from pathlib import Path
+
+          public = Path("public")
+          css_path = public / "assets" / "styles.css"
+          app_path = public / "assets" / "app.js"
+          test_path = Path(
+              "tests/test_romantic_editorial_feminine_redesign.py"
+          )
+          marker = "Romantic editorial feminine redesign 2026-07-30."
+
+          css = css_path.read_text(encoding="utf-8")
+          app = app_path.read_text(encoding="utf-8")
+          if marker in css or marker in app or test_path.exists():
+              raise SystemExit("Refusing to create a duplicate redesign layer.")
+
+          css_layer = r'''
+
+          /*
+           * Romantic editorial feminine redesign 2026-07-30.
+           *
+           * This finishing layer deepens the existing rose, lavender and
+           * botanical identity without removing any current feminine details.
+           * It gives the home and editorial routes the richest treatment,
+           * keeps analytical routes disciplined, creates a deliberate tablet
+           * mode, improves mobile table discovery and supports light, dark,
+           * reduced-motion, high-contrast and very narrow screens.
+           */
+          :root {
+            --romantic-cream: #fffaf3;
+            --romantic-pearl: #fff7fc;
+            --romantic-rosewater: #fce3f0;
+            --romantic-blush: #f4bfd8;
+            --romantic-dusty-rose: #cf719d;
+            --romantic-mauve: #9d5a8b;
+            --romantic-aubergine: #421536;
+            --romantic-champagne: #e7c98e;
+            --romantic-sage: #b9d4c3;
+            --romantic-powder-blue: #c8d9ef;
+            --romantic-lace: rgba(164, 70, 128, 0.20);
+            --romantic-pearl-line: rgba(255, 255, 255, 0.72);
+            --romantic-panel-shadow:
+              0 1px 0 var(--romantic-pearl-line) inset,
+              0 18px 46px rgba(88, 29, 72, 0.12);
+            --romantic-small-shadow:
+              0 1px 0 var(--romantic-pearl-line) inset,
+              0 9px 24px rgba(88, 29, 72, 0.10);
+          }
+
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --romantic-cream: #25131f;
+              --romantic-pearl: #2f1728;
+              --romantic-rosewater: #4b233d;
+              --romantic-blush: #773859;
+              --romantic-dusty-rose: #e78ab9;
+              --romantic-mauve: #d69ac8;
+              --romantic-aubergine: #160910;
+              --romantic-champagne: #e2c58f;
+              --romantic-sage: #91c7aa;
+              --romantic-powder-blue: #9ebde1;
+              --romantic-lace: rgba(255, 166, 216, 0.22);
+              --romantic-pearl-line: rgba(255, 236, 248, 0.10);
+              --romantic-panel-shadow:
+                0 1px 0 var(--romantic-pearl-line) inset,
+                0 22px 54px rgba(3, 1, 4, 0.40);
+              --romantic-small-shadow:
+                0 1px 0 var(--romantic-pearl-line) inset,
+                0 10px 26px rgba(3, 1, 4, 0.34);
+            }
+          }
+
+          html,
+          body {
+            max-width: 100%;
+          }
+
+          body {
+            overflow-x: clip;
+            background:
+              radial-gradient(
+                circle at 7% 3%,
+                color-mix(in srgb, var(--romantic-blush) 42%, transparent),
+                transparent 27rem
+              ),
+              radial-gradient(
+                circle at 94% 16%,
+                color-mix(in srgb, var(--romantic-powder-blue) 30%, transparent),
+                transparent 31rem
+              ),
+              radial-gradient(
+                circle at 48% 78%,
+                color-mix(in srgb, var(--romantic-sage) 18%, transparent),
+                transparent 38rem
+              ),
+              repeating-radial-gradient(
+                circle at 0 0,
+                rgba(121, 48, 96, 0.026) 0 0.55px,
+                transparent 0.65px 4px
+              ),
+              linear-gradient(
+                180deg,
+                var(--paper),
+                color-mix(in srgb, var(--paper) 88%, var(--romantic-cream))
+              );
+          }
+
+          body::before,
+          body::after {
+            opacity: 0.29;
+            filter: saturate(1.08) drop-shadow(0 5px 14px rgba(98, 32, 79, 0.08));
+          }
+
+          .site-header {
+            background:
+              linear-gradient(
+                90deg,
+                color-mix(in srgb, var(--header-bg) 92%, var(--romantic-aubergine)),
+                var(--header-bg) 52%,
+                color-mix(in srgb, var(--header-bg) 91%, var(--romantic-mauve))
+              );
+            border-bottom-color: color-mix(
+              in srgb,
+              var(--romantic-blush) 34%,
+              var(--dark-line)
+            );
+            box-shadow:
+              0 1px 0 rgba(255, 228, 244, 0.08) inset,
+              0 10px 30px rgba(38, 10, 31, 0.16);
+          }
+
+          .brand-mark {
+            filter:
+              drop-shadow(0 0 9px rgba(255, 150, 208, 0.20))
+              drop-shadow(0 4px 8px rgba(25, 5, 20, 0.20));
+          }
+
+          .brand strong {
+            letter-spacing: -0.025em;
+          }
+
+          .brand small {
+            color: color-mix(in srgb, var(--mint) 82%, var(--romantic-champagne));
+            letter-spacing: 0.18em;
+          }
+
+          .site-nav a,
+          .nav-group > summary,
+          .menu-button {
+            border: 1px solid transparent;
+          }
+
+          .site-nav a:hover,
+          .site-nav a[aria-current="page"],
+          .nav-group > summary:hover,
+          .nav-group[open] > summary,
+          .nav-group.contains-current > summary {
+            border-color: rgba(255, 255, 255, 0.30);
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--lime) 88%, white),
+                color-mix(in srgb, var(--lime) 76%, var(--romantic-champagne))
+              );
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.72) inset,
+              0 6px 14px rgba(34, 8, 28, 0.18);
+          }
+
+          h1,
+          h2,
+          h3 {
+            text-wrap: balance;
+          }
+
+          h1 {
+            font-size: clamp(2.55rem, 5.8vw, 5.55rem);
+            line-height: 0.98;
+          }
+
+          h2 {
+            line-height: 1.08;
+          }
+
+          p,
+          .lede {
+            text-wrap: pretty;
+          }
+
+          .eyebrow {
+            width: fit-content;
+            max-width: 100%;
+            padding: 5px 10px 5px 7px;
+            background:
+              linear-gradient(
+                90deg,
+                color-mix(in srgb, var(--romantic-rosewater) 78%, transparent),
+                transparent
+              );
+            border: 1px solid color-mix(
+              in srgb,
+              var(--romantic-dusty-rose) 27%,
+              transparent
+            );
+            border-radius: 999px 18px 999px 18px;
+          }
+
+          .page-heading {
+            position: relative;
+            isolation: isolate;
+          }
+
+          .page-heading::before {
+            position: absolute;
+            z-index: -1;
+            top: -22px;
+            right: -24px;
+            width: min(300px, 36vw);
+            height: 150px;
+            pointer-events: none;
+            background:
+              url("botanical-sprig-2026.svg") right center / contain no-repeat;
+            content: "";
+            opacity: 0.13;
+            transform: rotate(-5deg);
+          }
+
+          :where(
+            .home-ranking-list,
+            .home-upcoming,
+            .home-records,
+            .home-explore,
+            .panel,
+            .stat-card,
+            .bar-chart,
+            .team-picker,
+            .team-stats > div,
+            .toolbar,
+            .faq-tools,
+            .faq-item,
+            .method-contents,
+            .method-details,
+            .metric-grid > div,
+            .analysis-disclosure,
+            .ranking-card,
+            .chart-shell,
+            .team-model-details,
+            .venue-profile,
+            .comparison-selection,
+            .comparison-team-row,
+            .comparison-add-panel,
+            .comparison-summary-table,
+            .comparison-head-summary
+          ) {
+            border-color: color-mix(
+              in srgb,
+              var(--border) 68%,
+              var(--romantic-dusty-rose)
+            );
+            box-shadow: var(--romantic-small-shadow);
+          }
+
+          body[data-route="home"] .home-intro {
+            position: relative;
+            overflow: hidden;
+            background:
+              url("botanical-sprig-2026.svg") calc(100% + 68px) -26px / 280px auto no-repeat,
+              radial-gradient(
+                circle at 84% 10%,
+                color-mix(in srgb, var(--romantic-powder-blue) 27%, transparent),
+                transparent 18rem
+              ),
+              radial-gradient(
+                circle at 8% 96%,
+                color-mix(in srgb, var(--romantic-sage) 22%, transparent),
+                transparent 19rem
+              ),
+              linear-gradient(
+                145deg,
+                color-mix(in srgb, var(--navy) 88%, var(--romantic-aubergine)),
+                color-mix(in srgb, var(--navy-2) 78%, var(--romantic-mauve))
+              );
+            border: 1px solid color-mix(
+              in srgb,
+              var(--romantic-dusty-rose) 40%,
+              var(--border)
+            );
+            box-shadow:
+              0 0 0 1px var(--romantic-pearl-line) inset,
+              0 0 0 7px color-mix(
+                in srgb,
+                var(--romantic-rosewater) 25%,
+                transparent
+              ),
+              var(--romantic-panel-shadow);
+          }
+
+          body[data-route="home"] .home-intro h1 {
+            max-width: 12ch;
+            color: color-mix(in srgb, var(--on-dark) 92%, var(--romantic-champagne));
+          }
+
+          body[data-route="home"] .home-intro .lede {
+            max-width: 63ch;
+            font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+          }
+
+          body[data-route="home"] .home-facts {
+            background:
+              linear-gradient(
+                145deg,
+                color-mix(in srgb, var(--dark-panel) 86%, var(--romantic-mauve)),
+                var(--dark-panel)
+              );
+            border: 1px solid color-mix(
+              in srgb,
+              var(--dark-panel-border) 74%,
+              var(--romantic-blush)
+            );
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.10) inset;
+          }
+
+          body[data-route="home"] .home-facts dd {
+            color: color-mix(in srgb, var(--on-dark) 90%, var(--romantic-champagne));
+          }
+
+          .compact-heading h2::after,
+          .section-heading h2::after {
+            opacity: 0.92;
+            filter: drop-shadow(0 2px 4px rgba(91, 30, 74, 0.14));
+          }
+
+          .home-explore-links a {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid color-mix(
+              in srgb,
+              var(--romantic-dusty-rose) 25%,
+              var(--border)
+            );
+            background:
+              linear-gradient(
+                145deg,
+                color-mix(in srgb, var(--accent-soft) 76%, var(--romantic-cream)),
+                color-mix(in srgb, var(--accent-soft) 88%, var(--romantic-rosewater))
+              );
+            box-shadow: 0 1px 0 var(--romantic-pearl-line) inset;
+          }
+
+          .home-explore-links a::before {
+            position: absolute;
+            right: -26px;
+            bottom: -29px;
+            width: 92px;
+            height: 92px;
+            pointer-events: none;
+            background:
+              radial-gradient(
+                ellipse at center,
+                color-mix(in srgb, var(--romantic-blush) 42%, transparent) 0 16%,
+                transparent 17%
+              ) 0 0 / 30px 30px;
+            content: "";
+            opacity: 0.42;
+            transform: rotate(14deg);
+          }
+
+          .button {
+            border-color: color-mix(
+              in srgb,
+              var(--control-border) 72%,
+              var(--romantic-dusty-rose)
+            );
+            box-shadow: 0 1px 0 var(--romantic-pearl-line) inset;
+          }
+
+          .button-primary {
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--lime) 88%, white),
+                color-mix(in srgb, var(--lime) 76%, var(--romantic-champagne))
+              );
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.78) inset,
+              0 8px 19px color-mix(
+                in srgb,
+                var(--romantic-dusty-rose) 24%,
+                transparent
+              );
+          }
+
+          .field input,
+          .field select,
+          .team-picker select,
+          .comparison-pair-picker select,
+          .chart-year-form input {
+            max-width: 100%;
+            border-color: color-mix(
+              in srgb,
+              var(--control-border) 72%,
+              var(--romantic-mauve)
+            );
+            background:
+              linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--surface) 94%, var(--romantic-pearl)),
+                var(--surface)
+              );
+            box-shadow:
+              0 1px 0 var(--romantic-pearl-line) inset,
+              0 5px 13px rgba(88, 29, 72, 0.05);
+          }
+
+          :where(
+            .field input,
+            .field select,
+            .team-picker select,
+            .comparison-pair-picker select,
+            .chart-year-form input
+          ):focus {
+            border-color: var(--focus);
+            box-shadow:
+              0 0 0 4px color-mix(in srgb, var(--focus) 20%, transparent),
+              0 1px 0 var(--romantic-pearl-line) inset;
+          }
+
+          .table-shell {
+            position: relative;
+            background:
+              linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--surface) 96%, var(--romantic-pearl)),
+                var(--surface)
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--border) 72%,
+              var(--romantic-dusty-rose)
+            );
+            box-shadow: var(--romantic-small-shadow);
+          }
+
+          thead th {
+            background:
+              linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--surface-subtle) 79%, var(--romantic-rosewater)),
+                color-mix(in srgb, var(--surface-subtle) 93%, var(--romantic-pearl))
+              );
+            border-bottom-color: color-mix(
+              in srgb,
+              var(--border) 64%,
+              var(--romantic-dusty-rose)
+            );
+          }
+
+          tbody tr:nth-child(even) td {
+            background: color-mix(
+              in srgb,
+              var(--romantic-rosewater) 15%,
+              transparent
+            );
+          }
+
+          tbody tr:hover td {
+            background: color-mix(
+              in srgb,
+              var(--romantic-blush) 19%,
+              var(--surface)
+            );
+          }
+
+          .table-scroll-hint {
+            display: flex;
+            width: fit-content;
+            max-width: 100%;
+            align-items: center;
+            gap: 7px;
+            margin: 8px 0 7px auto;
+            padding: 6px 10px;
+            color: var(--ink-soft);
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--surface) 82%, var(--romantic-rosewater)),
+                color-mix(in srgb, var(--surface) 88%, var(--romantic-powder-blue))
+              );
+            border: 1px solid color-mix(
+              in srgb,
+              var(--romantic-dusty-rose) 28%,
+              var(--border)
+            );
+            border-radius: 999px;
+            box-shadow: 0 1px 0 var(--romantic-pearl-line) inset;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.2;
+          }
+
+          .table-scroll-hint::before {
+            width: 13px;
+            height: 13px;
+            flex: 0 0 auto;
+            background: linear-gradient(
+              145deg,
+              var(--romantic-dusty-rose),
+              var(--romantic-mauve)
+            );
+            content: "";
+            -webkit-mask: var(--flower-mask) center / contain no-repeat;
+            mask: var(--flower-mask) center / contain no-repeat;
+          }
+
+          .chart-stage {
+            background:
+              linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--surface-subtle) 82%, var(--romantic-powder-blue)),
+                color-mix(in srgb, var(--surface-subtle) 94%, var(--romantic-rosewater))
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--border) 66%,
+              var(--romantic-mauve)
+            );
+            box-shadow: 0 1px 0 var(--romantic-pearl-line) inset;
+          }
+
+          .rating-chart .grid {
+            stroke: color-mix(in srgb, var(--grid-line) 69%, var(--romantic-mauve));
+            stroke-dasharray: 2 6;
+          }
+
+          .rating-history-line {
+            stroke-width: 3.15;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 2px 3px rgba(57, 18, 48, 0.16));
+          }
+
+          .chart-marker {
+            stroke: var(--surface);
+            stroke-width: 3;
+            filter: drop-shadow(0 2px 4px rgba(57, 18, 48, 0.22));
+          }
+
+          .chart-crosshair {
+            stroke: color-mix(in srgb, var(--chart-cursor) 76%, var(--romantic-dusty-rose));
+            stroke-dasharray: 4 4;
+          }
+
+          .record-note,
+          .note,
+          .callout {
+            border-color: color-mix(
+              in srgb,
+              var(--callout-border) 70%,
+              var(--romantic-champagne)
+            );
+            box-shadow: 0 1px 0 var(--romantic-pearl-line) inset;
+          }
+
+          body:is(
+            [data-route="rankings"],
+            [data-route="history"],
+            [data-route="tournaments"],
+            [data-route="matches"],
+            [data-route="fixtures"],
+            [data-route="records"],
+            [data-route="compare"],
+            [data-route="predict"],
+            [data-route="team"]
+          ) :where(.table-shell, .toolbar, .chart-shell, .panel) {
+            box-shadow:
+              0 1px 0 var(--romantic-pearl-line) inset,
+              0 10px 28px rgba(76, 24, 62, 0.08);
+          }
+
+          body:is(
+            [data-route="methodology"],
+            [data-route="faq"],
+            [data-route="about"]
+          ) .prose > h2 {
+            position: relative;
+            padding-inline-start: 23px;
+          }
+
+          body:is(
+            [data-route="methodology"],
+            [data-route="faq"],
+            [data-route="about"]
+          ) .prose > h2::before {
+            position: absolute;
+            top: 0.2em;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(
+              145deg,
+              var(--romantic-dusty-rose),
+              var(--romantic-mauve)
+            );
+            content: "";
+            -webkit-mask: var(--flower-mask) center / contain no-repeat;
+            mask: var(--flower-mask) center / contain no-repeat;
+          }
+
+          .site-footer {
+            background:
+              url("botanical-sprig-2026.svg") calc(100% + 80px) -35px / 270px auto no-repeat,
+              radial-gradient(
+                circle at 12% 100%,
+                rgba(255, 150, 208, 0.12),
+                transparent 23rem
+              ),
+              linear-gradient(
+                135deg,
+                var(--navy),
+                color-mix(in srgb, var(--navy) 78%, var(--romantic-mauve))
+              );
+          }
+
+          .site-footer a {
+            text-decoration-color: color-mix(
+              in srgb,
+              currentColor 58%,
+              transparent
+            );
+            text-underline-offset: 3px;
+          }
+
+          @media (prefers-color-scheme: dark) {
+            body {
+              background:
+                radial-gradient(
+                  circle at 7% 3%,
+                  rgba(255, 120, 197, 0.11),
+                  transparent 27rem
+                ),
+                radial-gradient(
+                  circle at 94% 16%,
+                  rgba(135, 169, 220, 0.08),
+                  transparent 31rem
+                ),
+                radial-gradient(
+                  circle at 48% 78%,
+                  rgba(111, 178, 140, 0.055),
+                  transparent 38rem
+                ),
+                repeating-radial-gradient(
+                  circle at 0 0,
+                  rgba(255, 230, 246, 0.014) 0 0.55px,
+                  transparent 0.65px 4px
+                ),
+                linear-gradient(180deg, var(--paper), #10070d);
+            }
+
+            body::before,
+            body::after {
+              opacity: 0.20;
+              filter: saturate(1.12) drop-shadow(0 6px 17px rgba(0, 0, 0, 0.24));
+            }
+
+            body[data-route="home"] .home-intro {
+              background:
+                url("botanical-sprig-2026.svg") calc(100% + 68px) -26px / 280px auto no-repeat,
+                radial-gradient(
+                  circle at 84% 10%,
+                  rgba(129, 165, 219, 0.09),
+                  transparent 18rem
+                ),
+                radial-gradient(
+                  circle at 8% 96%,
+                  rgba(112, 182, 144, 0.07),
+                  transparent 19rem
+                ),
+                linear-gradient(
+                  145deg,
+                  color-mix(in srgb, var(--navy) 90%, #240c1d),
+                  color-mix(in srgb, var(--navy-2) 76%, #5a2348)
+                );
+            }
+
+            thead th {
+              background:
+                linear-gradient(
+                  180deg,
+                  color-mix(in srgb, var(--surface-subtle) 88%, #5a2547),
+                  color-mix(in srgb, var(--surface-subtle) 94%, #25101e)
+                );
+            }
+
+            tbody tr:nth-child(even) td {
+              background: rgba(255, 143, 206, 0.035);
+            }
+
+            tbody tr:hover td {
+              background: rgba(255, 143, 206, 0.09);
+            }
+          }
+
+          @media (min-width: 901px) and (max-width: 1180px) {
+            :root {
+              --content: min(1040px, calc(100vw - 32px));
+            }
+
+            .ranking-desktop {
+              display: none;
+            }
+
+            .ranking-cards {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 14px;
+              margin: 0;
+              padding: 0;
+              list-style: none;
+            }
+
+            .toolbar {
+              display: grid;
+              grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+              align-items: end;
+            }
+
+            .toolbar > *,
+            .ranking-card,
+            .home-dashboard > *,
+            .home-support > * {
+              min-width: 0;
+            }
+
+            .toolbar .toggle-group {
+              grid-column: 1 / -1;
+            }
+
+            .home-explore-links {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .site-footer {
+              display: grid;
+              grid-template-columns: minmax(0, 1fr) minmax(280px, 0.65fr);
+            }
+          }
+
+          @media (min-width: 721px) and (max-width: 900px) {
+            :root {
+              --content: min(820px, calc(100vw - 28px));
+            }
+
+            .toolbar,
+            .record-filters,
+            .comparison-selection {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .toolbar > *,
+            .record-filters > *,
+            .comparison-selection > * {
+              min-width: 0;
+            }
+
+            .home-facts {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .home-facts div:nth-child(2n) {
+              border-right: 0;
+            }
+
+            .site-footer {
+              display: grid;
+              grid-template-columns: 1fr;
+            }
+          }
+
+          @media (max-width: 720px) {
+            :root {
+              --content: calc(100vw - 24px);
+            }
+
+            .page {
+              padding-top: 34px;
+              padding-bottom: 58px;
+            }
+
+            h1 {
+              font-size: clamp(2.35rem, 12vw, 3.75rem);
+              overflow-wrap: anywhere;
+            }
+
+            h2,
+            h3,
+            .team-link,
+            .comparison-team-name {
+              overflow-wrap: anywhere;
+            }
+
+            .page-heading::before {
+              top: -6px;
+              right: -58px;
+              width: 220px;
+              height: 112px;
+              opacity: 0.10;
+            }
+
+            body[data-route="home"] .home-intro {
+              padding: 27px 19px;
+              background-position: calc(100% + 95px) -38px, 84% 10%, 8% 96%, 0 0;
+              background-size: 235px auto, auto, auto, auto;
+              border-radius: 22px 28px 22px 28px;
+              box-shadow:
+                0 0 0 1px var(--romantic-pearl-line) inset,
+                var(--romantic-panel-shadow);
+            }
+
+            body[data-route="home"] .home-intro h1 {
+              max-width: 11ch;
+            }
+
+            .home-facts {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .home-facts div:nth-child(2n) {
+              border-right: 0;
+            }
+
+            .toolbar,
+            .record-filters,
+            .comparison-selection,
+            .predict-options {
+              display: grid;
+              grid-template-columns: minmax(0, 1fr);
+            }
+
+            .toolbar > *,
+            .record-filters > *,
+            .comparison-selection > *,
+            .predict-options > *,
+            .field,
+            .toggle-group,
+            .button,
+            select,
+            input {
+              min-width: 0;
+              max-width: 100%;
+            }
+
+            .table-scroll-hint {
+              margin-inline: 0 4px;
+            }
+
+            .site-footer {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 18px;
+              padding-inline: 16px;
+            }
+
+            .site-footer p,
+            .site-footer .footer-links {
+              max-width: none;
+            }
+          }
+
+          @media (max-width: 430px) {
+            :root {
+              --content: calc(100vw - 20px);
+            }
+
+            .brand {
+              gap: 9px;
+            }
+
+            .brand strong {
+              font-size: 17px;
+            }
+
+            .brand small {
+              font-size: 10px;
+              letter-spacing: 0.13em;
+            }
+
+            .home-facts {
+              grid-template-columns: minmax(0, 1fr);
+            }
+
+            .home-facts div {
+              border-right: 0;
+              border-bottom: 1px solid var(--dark-line);
+            }
+
+            .home-facts div:last-child {
+              border-bottom: 0;
+            }
+
+            .eyebrow {
+              padding-inline-end: 8px;
+              font-size: 11px;
+              letter-spacing: 0.105em;
+            }
+
+            .home-explore-links a,
+            .ranking-card,
+            .panel,
+            .faq-item,
+            .analysis-disclosure {
+              border-radius: 16px 21px 16px 21px;
+            }
+          }
+
+          @media (max-width: 360px) {
+            :root {
+              --content: calc(100vw - 16px);
+            }
+
+            .site-header {
+              padding-inline: 9px;
+            }
+
+            .brand span {
+              max-width: 145px;
+            }
+
+            .menu-button {
+              padding-inline: 9px;
+            }
+
+            body[data-route="home"] .home-intro {
+              padding-inline: 15px;
+            }
+
+            .button,
+            .field input,
+            .field select,
+            .team-picker select {
+              width: 100%;
+            }
+          }
+
+          @media (prefers-reduced-motion: no-preference) {
+            @keyframes romantic-editorial-rise {
+              from {
+                opacity: 0;
+                transform: translateY(9px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            body[data-route="home"] .home-intro,
+            body[data-route="home"] .home-dashboard,
+            body[data-route="home"] .home-support,
+            body[data-route="home"] .home-explore {
+              animation: romantic-editorial-rise 460ms ease-out both;
+            }
+
+            body[data-route="home"] .home-dashboard {
+              animation-delay: 55ms;
+            }
+
+            body[data-route="home"] .home-support {
+              animation-delay: 105ms;
+            }
+
+            body[data-route="home"] .home-explore {
+              animation-delay: 155ms;
+            }
+
+            .home-explore-links a,
+            .button,
+            .ranking-card,
+            .faq-item,
+            .analysis-disclosure {
+              transition:
+                transform 180ms ease,
+                box-shadow 180ms ease,
+                border-color 180ms ease,
+                background-color 180ms ease;
+            }
+
+            .home-explore-links a:hover,
+            .ranking-card:hover {
+              transform: translateY(-2px);
+              box-shadow: var(--romantic-panel-shadow);
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+              scroll-behavior: auto !important;
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important;
+            }
+          }
+
+          @media (forced-colors: active) {
+            body,
+            .site-header,
+            .site-footer,
+            body[data-route="home"] .home-intro,
+            .table-shell,
+            .chart-stage {
+              background-image: none;
+            }
+
+            body::before,
+            body::after,
+            .page-heading::before,
+            .home-explore-links a::before {
+              display: none;
+            }
+          }
+          '''
+
+          css_path.write_text(
+              css.rstrip() + "\n" + textwrap.dedent(css_layer).lstrip(),
+              encoding="utf-8",
+          )
+
+          app_anchor = '  "use strict";\n'
+          if app.count(app_anchor) != 1:
+              raise SystemExit("Could not locate the JavaScript strict-mode anchor.")
+          app = app.replace(
+              app_anchor,
+              app_anchor
+              + "\n  /* Romantic editorial feminine redesign 2026-07-30. */\n",
+              1,
+          )
+
+          copy_replacements = {
+              "A predictive rating, rebuilt from 1872":
+                  "A living football archive, modelled from 1872",
+              "International football, ranked in context.":
+                  "International football, ranked through history.",
+              "What makes it different":
+                  "The story beneath the score",
+              "Opponents—and their opponents—matter.":
+                  "Every opponent leaves a trace.",
+              "More ways to explore":
+                  "Follow the story",
+              '<h2 id="home-explore-title">Explore</h2>':
+                  '<h2 id="home-explore-title">Explore the archive</h2>',
+          }
+          for old, new in copy_replacements.items():
+              if app.count(old) != 1:
+                  raise SystemExit(
+                      f"Expected one homepage copy anchor, found {app.count(old)}: {old}"
+                  )
+              app = app.replace(old, new, 1)
+
+          function_anchor = (
+              'const filteredEmptyState = (subject) => (\n'
+              '  `<div class="empty"><h2>No ${subject} match these filters.</h2>`\n'
+              '  + "<p>Change or clear the filters to see results.</p></div>"\n'
+              ');\n'
+          )
+          if app.count(function_anchor) != 1:
+              raise SystemExit("Could not locate the table enhancement anchor.")
+
+          enhancement = r'''
+
+            const enhanceScrollableTables = () => {
+              const compactViewport = window.matchMedia(
+                "(max-width: 1180px)",
+              ).matches;
+              document.querySelectorAll(".table-shell").forEach((shell) => {
+                const table = shell.querySelector(":scope > table");
+                if (!table) return;
+                const scrollable = shell.scrollWidth > shell.clientWidth + 2;
+                const previous = shell.previousElementSibling;
+                const existingHint = previous?.classList.contains(
+                  "table-scroll-hint",
+                ) ? previous : null;
+
+                shell.classList.toggle(
+                  "is-horizontally-scrollable",
+                  scrollable,
+                );
+                if (!scrollable || !compactViewport) {
+                  existingHint?.remove();
+                  if (shell.dataset.scrollRegion === "true") {
+                    shell.removeAttribute("tabindex");
+                    shell.removeAttribute("role");
+                    shell.removeAttribute("aria-label");
+                    delete shell.dataset.scrollRegion;
+                  }
+                  return;
+                }
+
+                const caption = table.querySelector("caption")
+                  ?.textContent?.trim();
+                const label = table.getAttribute("aria-label")
+                  || caption
+                  || "Data table";
+                shell.dataset.scrollRegion = "true";
+                shell.setAttribute("tabindex", "0");
+                shell.setAttribute("role", "region");
+                shell.setAttribute(
+                  "aria-label",
+                  `${label}. Scroll horizontally for more columns.`,
+                );
+
+                const hint = existingHint || document.createElement("p");
+                hint.className = "table-scroll-hint";
+                hint.textContent = "Scroll or swipe to see more";
+                hint.setAttribute("aria-hidden", "true");
+                if (!existingHint) shell.before(hint);
+
+                if (shell.dataset.scrollHintBound !== "true") {
+                  shell.dataset.scrollHintBound = "true";
+                  shell.addEventListener("scroll", () => {
+                    const activeHint = shell.previousElementSibling;
+                    if (
+                      shell.scrollLeft > 10
+                      && activeHint?.classList.contains("table-scroll-hint")
+                    ) {
+                      activeHint.remove();
+                    }
+                  }, { passive: true });
+                }
+              });
+            };
+          '''
+          app = app.replace(
+              function_anchor,
+              function_anchor
+              + textwrap.indent(
+                  textwrap.dedent(enhancement).strip() + "\n",
+                  "  ",
+              ),
+              1,
+          )
+
+          route_anchor = '''      setRouteMetadata(current);
+                content.setAttribute("aria-busy", "false");
+          '''
+          if app.count(route_anchor) != 1:
+              raise SystemExit("Could not locate the route enhancement anchor.")
+          app = app.replace(
+              route_anchor,
+              '''      setRouteMetadata(current);
+                enhanceScrollableTables();
+                content.setAttribute("aria-busy", "false");
+          ''',
+              1,
+          )
+
+          resize_anchor = '''  window.addEventListener("online", syncConnectionState);
+            window.addEventListener("offline", syncConnectionState);
+          '''
+          if app.count(resize_anchor) != 1:
+              raise SystemExit("Could not locate the window-listener anchor.")
+          app = app.replace(
+              resize_anchor,
+              '''  window.addEventListener("online", syncConnectionState);
+            window.addEventListener("offline", syncConnectionState);
+            window.addEventListener("resize", enhanceScrollableTables);
+          ''',
+              1,
+          )
+          app_path.write_text(app, encoding="utf-8")
+
+          test_source = r'''
+          from __future__ import annotations
+
+          import hashlib
+          import re
+          import unittest
+          from pathlib import Path
+
+
+          ROOT = Path(__file__).resolve().parents[1]
+          PUBLIC = ROOT / "public"
+          CSS_PATH = PUBLIC / "assets" / "styles.css"
+          APP_PATH = PUBLIC / "assets" / "app.js"
+          MARKER = "Romantic editorial feminine redesign 2026-07-30."
+
+
+          class RomanticEditorialFeminineRedesignTests(unittest.TestCase):
+              @classmethod
+              def setUpClass(cls) -> None:
+                  cls.css = CSS_PATH.read_text(encoding="utf-8")
+                  cls.app = APP_PATH.read_text(encoding="utf-8")
+                  cls.layer = cls.css[cls.css.index(MARKER):]
+
+              def test_layer_and_javascript_markers_are_unique(self) -> None:
+                  self.assertEqual(self.css.count(MARKER), 1)
+                  self.assertEqual(self.app.count(MARKER), 1)
+
+              def test_existing_feminine_system_is_preserved(self) -> None:
+                  for expected in (
+                      "Refined rose-and-lavender presentation system",
+                      "Floral editorial presentation system",
+                      "botanical-sprig-2026.svg",
+                      "floral-divider-2026.svg",
+                      "--flower-mask",
+                  ):
+                      self.assertIn(expected, self.css)
+
+              def test_palette_adds_variety_without_abandoning_rose(self) -> None:
+                  for expected in (
+                      "--romantic-rosewater",
+                      "--romantic-blush",
+                      "--romantic-dusty-rose",
+                      "--romantic-mauve",
+                      "--romantic-aubergine",
+                      "--romantic-champagne",
+                      "--romantic-sage",
+                      "--romantic-powder-blue",
+                  ):
+                      self.assertIn(expected, self.layer)
+
+              def test_light_dark_and_accessibility_modes_are_explicit(self) -> None:
+                  for expected in (
+                      "@media (prefers-color-scheme: dark)",
+                      "@media (prefers-reduced-motion: no-preference)",
+                      "@media (prefers-reduced-motion: reduce)",
+                      "@media (forced-colors: active)",
+                  ):
+                      self.assertIn(expected, self.layer)
+
+              def test_desktop_tablet_phone_and_tiny_breakpoints_exist(self) -> None:
+                  for expected in (
+                      "(min-width: 901px) and (max-width: 1180px)",
+                      "(min-width: 721px) and (max-width: 900px)",
+                      "@media (max-width: 720px)",
+                      "@media (max-width: 430px)",
+                      "@media (max-width: 360px)",
+                  ):
+                      self.assertIn(expected, self.layer)
+                  self.assertIn(".ranking-desktop", self.layer)
+                  self.assertIn(".ranking-cards", self.layer)
+
+              def test_tables_and_charts_receive_accessible_refinement(self) -> None:
+                  for expected in (
+                      ".table-scroll-hint",
+                      ".rating-history-line",
+                      ".chart-marker",
+                      "stroke-linecap: round",
+                      "tbody tr:nth-child(even) td",
+                  ):
+                      self.assertIn(expected, self.layer)
+                  for expected in (
+                      "const enhanceScrollableTables = () =>",
+                      'shell.setAttribute("tabindex", "0")',
+                      'shell.setAttribute("role", "region")',
+                      "Scroll horizontally for more columns.",
+                      "enhanceScrollableTables();",
+                      'window.addEventListener("resize", enhanceScrollableTables)',
+                  ):
+                      self.assertIn(expected, self.app)
+
+              def test_editorial_home_copy_remains_clear_and_specific(self) -> None:
+                  for expected in (
+                      "A living football archive, modelled from 1872",
+                      "International football, ranked through history.",
+                      "The story beneath the score",
+                      "Every opponent leaves a trace.",
+                      "Follow the story",
+                      "Explore the archive",
+                  ):
+                      self.assertIn(expected, self.app)
+
+              def test_stylesheet_braces_are_balanced(self) -> None:
+                  depth = 0
+                  for character in self.css:
+                      if character == "{":
+                          depth += 1
+                      elif character == "}":
+                          depth -= 1
+                      self.assertGreaterEqual(depth, 0)
+                  self.assertEqual(depth, 0)
+
+              def test_all_static_routes_use_current_asset_revisions(self) -> None:
+                  css_revision = hashlib.sha256(
+                      CSS_PATH.read_bytes()
+                  ).hexdigest()[:12]
+                  app_revision = hashlib.sha256(
+                      APP_PATH.read_bytes()
+                  ).hexdigest()[:12]
+                  html_paths = sorted(PUBLIC.rglob("*.html"))
+                  self.assertGreaterEqual(len(html_paths), 250)
+                  for path in html_paths:
+                      html = path.read_text(encoding="utf-8")
+                      self.assertRegex(
+                          html,
+                          rf'assets/styles\.css\?v={re.escape(css_revision)}["\']',
+                          str(path),
+                      )
+                      self.assertRegex(
+                          html,
+                          rf'assets/app\.js\?v={re.escape(app_revision)}["\']',
+                          str(path),
+                      )
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          '''
+          test_path.write_text(
+              textwrap.dedent(test_source).lstrip(),
+              encoding="utf-8",
+          )
+
+          css_revision = hashlib.sha256(css_path.read_bytes()).hexdigest()[:12]
+          app_revision = hashlib.sha256(app_path.read_bytes()).hexdigest()[:12]
+          html_paths = sorted(public.rglob("*.html"))
+          if len(html_paths) < 250:
+              raise SystemExit(
+                  f"Unexpectedly small static route set: {len(html_paths)} HTML files."
+              )
+
+          changed_html = 0
+          for html_path in html_paths:
+              html = html_path.read_text(encoding="utf-8")
+              updated = re.sub(
+                  r'assets/styles\.css(?:\?v=[^"\']*)?',
+                  f"assets/styles.css?v={css_revision}",
+                  html,
+              )
+              updated = re.sub(
+                  r'assets/app\.js(?:\?v=[^"\']*)?',
+                  f"assets/app.js?v={app_revision}",
+                  updated,
+              )
+              if updated != html:
+                  html_path.write_text(updated, encoding="utf-8")
+                  changed_html += 1
+          if changed_html == 0:
+              raise SystemExit("No static HTML asset revisions were updated.")
+          print(
+              f"Installed redesign; updated {changed_html} HTML files "
+              f"to CSS {css_revision} and JS {app_revision}."
+          )
+          PY
+
+      - name: Check browser code and the focused redesign test
+        run: |
+          node --check public/assets/app.js
+          python -m unittest discover \
+            --start-directory tests \
+            --pattern "test_romantic_editorial_feminine_redesign.py" \
+            --verbose
+
+      - name: Run the complete repository test suite
+        if: inputs.run_full_test_suite
+        run: python -m unittest discover --start-directory tests --verbose
+
+      - name: Verify the installation changed only presentation files
+        if: steps.preflight.outputs.already_installed != 'true'
+        run: |
+          git diff --check
+          python - <<'PY'
+          from __future__ import annotations
+
+          import subprocess
+
+          status = subprocess.check_output(
+              [
+                  "git",
+                  "status",
+                  "--porcelain=v1",
+                  "--untracked-files=all",
+              ],
+              text=True,
+          )
+          changed: set[str] = set()
+          for line in status.splitlines():
+              if not line:
+                  continue
+              path = line[3:]
+              if " -> " in path:
+                  path = path.split(" -> ", 1)[1]
+              changed.add(path)
+
+          required = {
+              "public/assets/styles.css",
+              "public/assets/app.js",
+              "tests/test_romantic_editorial_feminine_redesign.py",
+          }
+          missing = sorted(required - changed)
+          if missing:
+              raise SystemExit(
+                  "Expected redesign files are missing: " + ", ".join(missing)
+              )
+
+          unexpected = sorted(
+              path
+              for path in changed
+              if path not in required
+              and not (
+                  path.startswith("public/")
+                  and path.endswith(".html")
+              )
+          )
+          if unexpected:
+              raise SystemExit(
+                  "Unexpected non-presentation files changed: "
+                  + ", ".join(unexpected)
+              )
+
+          forbidden_prefixes = (
+              "source/",
+              "config/",
+              "scripts/",
+              "public/data/",
+          )
+          forbidden = sorted(
+              path
+              for path in changed
+              if path.startswith(forbidden_prefixes)
+          )
+          if forbidden:
+              raise SystemExit(
+                  "Model or source files must not change: " + ", ".join(forbidden)
+              )
+          PY
+
+      - name: Create a reviewable patch when commit is disabled
+        if: ${{ !inputs.commit_changes && steps.preflight.outputs.already_installed != 'true' }}
+        run: git diff --binary > romantic-editorial-feminine-redesign.patch
+
+      - name: Upload the reviewable patch
+        if: ${{ !inputs.commit_changes && steps.preflight.outputs.already_installed != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: romantic-editorial-feminine-redesign
+          path: romantic-editorial-feminine-redesign.patch
+          if-no-files-found: error
+
+      - name: Commit the validated redesign and trigger Pages
+        if: ${{ inputs.commit_changes && steps.preflight.outputs.already_installed != 'true' }}
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            public \
+            tests/test_romantic_editorial_feminine_redesign.py
+          if git diff --cached --quiet; then
+            echo "The romantic editorial redesign is already installed."
+            exit 0
+          fi
+          git commit -m "style: deepen the romantic editorial design"
+          git push origin "HEAD:${BRANCH_NAME}"
