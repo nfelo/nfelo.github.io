@@ -17084,3 +17084,26 @@ body :is(
     box-shadow: none;
   }
 }
+/*
+ * Mobile Records country width 2026-07-30.
+ *
+ * Country links stay intact on phones and every Records cell
+ * containing one receives a readable width. Tournament links,
+ * desktop tables and all non-Records routes remain unchanged.
+ */
+@media (max-width: 720px) {
+  body[data-route="records"] #record-table
+  td:has(a.team-link[href^="#/team/"]) {
+    min-inline-size: 13rem;
+  }
+
+  body[data-route="records"] #record-table
+  a.team-link[href^="#/team/"] {
+    display: inline-block;
+    max-inline-size: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+}
