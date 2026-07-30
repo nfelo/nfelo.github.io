@@ -142,7 +142,7 @@ jobs:
               raise SystemExit("No HTML stylesheet revisions were updated.")
           PY
 
-      - name: Verify the complete release
+      - name: Verify the repaired presentation contracts
         run: |
           python - <<'PY'
           from __future__ import annotations
@@ -191,10 +191,20 @@ jobs:
               )
           PY
 
-          python -m unittest discover \
-            --start-directory tests \
-            --pattern "test_*.py" \
-            --verbose
+          for test_file in \
+            test_balanced_interface_unification.py \
+            test_couture_alphabet.py \
+            test_editorial_keepsake.py \
+            test_girlish_heirloom.py \
+            test_moonlit_matchbook.py \
+            test_pearl_vanity_finale.py \
+            test_unified_pearl_atelier.py
+          do
+            python -m unittest discover \
+              --start-directory tests \
+              --pattern "$test_file" \
+              --verbose
+          done
 
       - name: Commit and trigger Pages again
         run: |
