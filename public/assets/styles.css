@@ -16447,3 +16447,636 @@ body[data-route="about"] .page-narrow > .split > .panel {
     box-shadow: none;
   }
 }
+/*
+ * Balanced interface unification 2026-07-30.
+ *
+ * This authoritative finishing layer removes asymmetrical table
+ * gutters, aligns date/filter controls, gives homepage records the
+ * same match grammar as Upcoming, and extends the FAQ's jewel-toned
+ * disclosure language to technical sections without changing data.
+ */
+
+/* Tables must meet both borders evenly when no scrollbar is needed. */
+body .table-shell {
+  box-sizing: border-box;
+  max-width: 100%;
+  scrollbar-gutter: auto;
+}
+
+body .table-shell > table {
+  margin-inline: 0;
+}
+
+/* Empty validation slots must not lift otherwise aligned controls. */
+.field-error:empty {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  body .history-toolbar,
+  body #number-one-filters {
+    flex-wrap: nowrap;
+    align-items: flex-end;
+  }
+
+  body .history-toolbar :is(
+    input:not(.native-date-proxy),
+    .button
+  ),
+  body #number-one-filters :is(
+    input:not(.native-date-proxy),
+    .button
+  ) {
+    box-sizing: border-box;
+    min-height: 48px;
+    height: 48px;
+  }
+
+  body .history-toolbar .field,
+  body #number-one-filters .field {
+    min-width: 0;
+  }
+}
+
+/*
+ * The third hero action is centred but no longer consumes the whole
+ * double column. Its shorter label also remains one line on phones.
+ */
+body[data-route="home"] .home-intro .hero-actions
+.home-action-predict {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(430px, 100%);
+  max-width: 100%;
+}
+
+/*
+ * Highest-rated matches now use the same calm match hierarchy as
+ * Upcoming: balanced teams, a quiet date and one aligned value.
+ */
+body[data-route="home"] .home-records ol {
+  display: grid;
+  gap: 0;
+  width: 100%;
+}
+
+body[data-route="home"] .home-records li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(76px, auto);
+  grid-template-rows: auto auto;
+  gap: 3px 12px;
+  align-items: center;
+  min-height: 0;
+  padding: 11px 0;
+}
+
+body[data-route="home"] .home-records .home-record-rank {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+  justify-self: start;
+}
+
+body[data-route="home"] .home-records .home-record-match {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  min-width: 0;
+}
+
+body[data-route="home"] .home-records .home-record-teams {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 0;
+  color: var(--pv-ink);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+body[data-route="home"] .home-records
+.home-record-teams > a {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pv-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-route="home"] .home-records
+.home-record-teams > a:first-child {
+  text-align: right;
+}
+
+body[data-route="home"] .home-records
+.home-record-teams > a:last-child {
+  text-align: left;
+}
+
+body[data-route="home"] .home-records
+.home-record-teams > i {
+  display: inline;
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  padding: 0;
+  color: var(--pv-muted);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1;
+}
+
+body[data-route="home"] .home-records
+.home-record-match > time {
+  justify-self: center;
+  margin: 0;
+  color: var(--pv-muted);
+  font-family: var(--font-numeric);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.25;
+}
+
+body[data-route="home"] .home-records li > strong {
+  display: grid;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  gap: 1px;
+  align-self: center;
+  justify-self: end;
+  min-width: 76px;
+  padding: 5px 8px;
+  color: var(--pv-ink);
+  background:
+    linear-gradient(
+      135deg,
+      var(--pv-surface-lilac),
+      var(--pv-surface-sea)
+    );
+  border: 1px solid var(--pv-border);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 var(--pv-highlight);
+  font-family: var(--font-numeric);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.1;
+  text-align: center;
+}
+
+body[data-route="home"] .home-records li > strong > small {
+  color: var(--pv-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+body[data-route="home"] .home-records li > strong > span {
+  font-size: 14.5px;
+  font-weight: 760;
+}
+
+/*
+ * Carry the FAQ's multicolour expand/collapse jewel into Predict,
+ * Methodology and team details. Each family receives a related,
+ * slightly different palette so the controls stay useful, not cloned.
+ */
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details
+) {
+  --bu-disc-a: var(--pv-rose);
+  --bu-disc-b: var(--pv-lilac);
+  --bu-disc-c: var(--pv-aqua);
+}
+
+body .method-details:nth-of-type(4n + 2) {
+  --bu-disc-a: #e5b391;
+  --bu-disc-b: #efb7d3;
+  --bu-disc-c: #b9dcd7;
+}
+
+body .method-details:nth-of-type(4n + 3) {
+  --bu-disc-a: #c9b4e6;
+  --bu-disc-b: #eab0cf;
+  --bu-disc-c: #a8d8d3;
+}
+
+body .method-details:nth-of-type(4n) {
+  --bu-disc-a: #a9d7d2;
+  --bu-disc-b: #d6bce9;
+  --bu-disc-c: #edb6cd;
+}
+
+body .analysis-disclosure:nth-of-type(even) {
+  --bu-disc-a: #a7d8d3;
+  --bu-disc-b: #c7b5e6;
+  --bu-disc-c: #ebb1cd;
+}
+
+body .score-profile-details {
+  --bu-disc-a: #9ed5d0;
+  --bu-disc-b: #c8b5e7;
+  --bu-disc-c: #edb0ce;
+}
+
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details
+) > summary,
+body .venue-profile-details > summary {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 48px;
+  color: var(--pv-ink);
+  background:
+    radial-gradient(
+      ellipse 9rem 3rem at 88% -25%,
+      color-mix(in srgb, var(--bu-disc-a) 34%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      105deg,
+      color-mix(
+        in srgb,
+        var(--pv-surface) 88%,
+        var(--bu-disc-a)
+      ),
+      color-mix(
+        in srgb,
+        var(--pv-surface) 88%,
+        var(--bu-disc-b)
+      ) 58%,
+      color-mix(
+        in srgb,
+        var(--pv-surface) 90%,
+        var(--bu-disc-c)
+      )
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--pv-border) 64%,
+    var(--bu-disc-b)
+  );
+  box-shadow:
+    inset 0 1px 0 var(--pv-highlight),
+    inset 3px 0 0 color-mix(
+      in srgb,
+      var(--bu-disc-a) 64%,
+      transparent
+    );
+  list-style: none;
+}
+
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details
+) > summary {
+  padding-right: 62px;
+}
+
+body .venue-profile-details > summary {
+  gap: 10px;
+  padding-right: 48px;
+}
+
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details
+) > summary::after {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  color: #4a1939;
+  background:
+    linear-gradient(
+      135deg,
+      var(--bu-disc-a),
+      var(--bu-disc-b) 53%,
+      var(--bu-disc-c)
+    );
+  border: 1px solid color-mix(
+    in srgb,
+    var(--pv-border) 62%,
+    var(--bu-disc-b)
+  );
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 3px 8px rgba(79, 22, 61, 0.08);
+  font-family: var(--font-numeric);
+  font-size: 18px;
+  font-weight: 760;
+  line-height: 1;
+  content: "+";
+  transform: translateY(-50%);
+}
+
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details
+)[open] > summary::after {
+  content: "−";
+}
+
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details
+) > summary:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--pv-border) 38%,
+    var(--bu-disc-a)
+  );
+}
+
+/*
+ * Phones receive deliberate edge-to-edge Records tables. The outer
+ * route owns the bleed, while the table shell itself remains exactly
+ * as wide as that route: neither left-heavy nor right-short.
+ */
+@media (max-width: 720px) {
+  body[data-route="records"] #record-table {
+    box-sizing: border-box;
+    width: calc(100% + 24px);
+    max-width: none;
+    margin-inline: -12px;
+  }
+
+  body[data-route="records"] #record-table > .table-shell {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  body[data-route="home"] .home-intro .hero-actions
+  .home-action-predict {
+    width: 100%;
+    padding-right: 13px;
+    padding-left: 13px;
+    font-size: clamp(14px, 4vw, 15.5px);
+    letter-spacing: -0.006em;
+    white-space: nowrap;
+  }
+
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details
+  ) > summary {
+    padding-right: 56px;
+    font-size: 16px;
+  }
+
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary::after {
+    right: 12px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 520px) {
+  body[data-route="home"] .home-records {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  body[data-route="home"] .home-records li {
+    grid-template-columns: 24px minmax(0, 1fr) 64px;
+    gap: 3px 6px;
+    padding: 8px 0;
+  }
+
+  body[data-route="home"] .home-records
+  .home-record-teams {
+    gap: 5px;
+    font-size: clamp(13px, 3.7vw, 14.5px);
+  }
+
+  body[data-route="home"] .home-records
+  .home-record-teams > i {
+    font-size: 12px;
+  }
+
+  body[data-route="home"] .home-records
+  .home-record-match > time {
+    font-size: 12px;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    min-width: 64px;
+    padding: 4px;
+  }
+
+  body[data-route="home"] .home-records
+  li > strong > small {
+    font-size: 12px;
+    letter-spacing: -0.015em;
+  }
+
+  body[data-route="home"] .home-records
+  li > strong > span {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-route="home"] .home-records
+  .home-record-teams,
+  body[data-route="home"] .home-records
+  .home-record-teams > a,
+  body[data-route="home"] .home-records li > strong {
+    color: #fff4fb;
+  }
+
+  body[data-route="home"] .home-records
+  .home-record-match > time,
+  body[data-route="home"] .home-records
+  li > strong > small {
+    color: #ead2e2;
+  }
+
+  body[data-route="home"] .home-records li > strong {
+    background:
+      linear-gradient(
+        135deg,
+        rgba(92, 47, 86, 0.92),
+        rgba(45, 76, 73, 0.82)
+      );
+    border-color: rgba(255, 218, 239, 0.24);
+  }
+
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary {
+    color: #fff4fb;
+    background:
+      radial-gradient(
+        ellipse 9rem 3rem at 88% -25%,
+        color-mix(in srgb, var(--bu-disc-a) 16%, transparent),
+        transparent 72%
+      ),
+      linear-gradient(
+        105deg,
+        color-mix(
+          in srgb,
+          var(--pv-surface) 89%,
+          var(--bu-disc-a)
+        ),
+        color-mix(
+          in srgb,
+          var(--pv-surface) 89%,
+          var(--bu-disc-b)
+        ) 58%,
+        color-mix(
+          in srgb,
+          var(--pv-surface) 91%,
+          var(--bu-disc-c)
+        )
+      );
+  }
+
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary::after {
+    color: #fff7fc;
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--bu-disc-a) 58%, #4b2444),
+        color-mix(in srgb, var(--bu-disc-b) 52%, #392b4d),
+        color-mix(in srgb, var(--bu-disc-c) 50%, #244b48)
+      );
+    border-color: rgba(255, 220, 240, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      0 4px 9px rgba(0, 0, 0, 0.18);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary {
+    min-height: 48px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-route="home"] .home-records li > strong,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary {
+    background: var(--pv-surface);
+  }
+}
+
+@media (prefers-contrast: more) {
+  body .table-shell,
+  body[data-route="home"] .home-records li > strong,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary::after {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+
+@media (forced-colors: active) {
+  body[data-route="home"] .home-records li > strong,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary::after {
+    color: ButtonText;
+    background: ButtonFace;
+    border-color: ButtonText;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  body[data-route="home"] .home-records li > strong,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary,
+  body :is(
+    .method-details,
+    .analysis-disclosure,
+    .team-model-details,
+    .venue-profile-details
+  ) > summary::after {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+  }
+}

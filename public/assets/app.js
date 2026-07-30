@@ -710,7 +710,7 @@ const filteredEmptyState = (subject) => (
           <div class="hero-actions">
             <a class="button button-primary home-action home-action-rankings" href="#/rankings">See the rankings</a>
             <a class="button home-action home-action-fixtures" href="#/fixtures">Upcoming matches</a>
-            <a class="button home-action home-action-predict" href="#/predict">Predict any historical or current matchup</a>
+            <a class="button home-action home-action-predict" href="#/predict">Predict a past or current matchup</a>
           </div>
           </div>
           <dl class="home-facts">
@@ -743,7 +743,7 @@ const filteredEmptyState = (subject) => (
           </div>
           <div class="home-records">
             <div class="compact-heading"><div><p class="eyebrow">Record book</p><h2>Highest-rated matches</h2></div><a href="#/records">All records →</a></div>
-            <ol>${summary.top_matches.slice(0, 5).map((match, index) => `<li><span>${index + 1}</span><div>${teamLink(match.code1, match.team1)} <i>v</i> ${teamLink(match.code2, match.team2)}<small>${validDate(match.date)}</small></div><strong>${rating(match.combined)}</strong></li>`).join("")}</ol>
+            <ol>${summary.top_matches.slice(0, 5).map((match, index) => `<li><span class="home-record-rank">${index + 1}</span><div class="home-record-match"><span class="home-record-teams">${teamLink(match.code1, match.team1)} <i>v</i> ${teamLink(match.code2, match.team2)}</span><time datetime="${match.date}">${validDate(match.date)}</time></div><strong><small>Combined</small><span>${rating(match.combined)}</span></strong></li>`).join("")}</ol>
           </div>
         </section>
 
