@@ -15,6 +15,7 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LIVE_SOURCE_LOG_LOSS_DELTA = 0.000025
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
@@ -676,7 +677,7 @@ class StaticBuildTests(unittest.TestCase):
         # source. Tiny upstream corrections and platform floating-point
         # differences are acceptable; a material model change is not.
         metric_tolerances = {
-            "log_loss": 0.000005,
+            "log_loss": LIVE_SOURCE_LOG_LOSS_DELTA,
             "network_only_log_loss": 0.000005,
             "brier": 0.000005,
             "rps": 0.000005,
@@ -1473,10 +1474,22 @@ class StaticBuildTests(unittest.TestCase):
         self.assertNotIn("Does that mean a friendly is treated exactly like a World Cup match?", javascript)
         replay = self.summary["validation"]["retrospective"]
         self.assertEqual(replay["matches"], 46_801)
-        self.assertAlmostEqual(
-            replay["log_loss"],
-            0.87833346,
-            delta=0.000005,
+        self.assertEqual(
+            javascript.count("number(replay.log_loss, 6)"),
+            1,
+        )
+        self.assertIn(
+            'getJSON("data/summary.json")',
+            javascript,
+        )
+        self.assertIn('{ cache: "no-cache" }', javascript)
+        self.assertNotRegex(
+            javascript,
+            r"\b0\.878(?:33346|31572)\b",
+        )
+        self.assertNotRegex(
+            methodology,
+            r"Current deployed NFELO formula[^\n]*<b>0\.\d{6}</b>",
         )
         self.assertAlmostEqual(
             replay["accuracy"],

@@ -17084,6 +17084,437 @@ body :is(
     box-shadow: none;
   }
 }
+/* Romantic editorial feminine tablet v8 2026-08-02. */
+:root {
+  --q8-champagne: #e7c98e;
+  --q8-sage: #b9d4c3;
+  --q8-powder-blue: #c8d9ef;
+  --q8-rose-petal: #efafd0;
+  --q8-lilac-mist: #d8c6ed;
+}
+
+body[data-route="home"] .home-intro::after {
+  position: absolute;
+  z-index: 0;
+  top: -24px;
+  right: -34px;
+  width: min(300px, 31vw);
+  height: 174px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 62% 48% at 76% 32%,
+      color-mix(in srgb, var(--q8-rose-petal) 32%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 48% 62% at 42% 68%,
+      color-mix(in srgb, var(--q8-sage) 23%, transparent),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 38% 44% at 58% 48%,
+      color-mix(in srgb, var(--q8-lilac-mist) 25%, transparent),
+      transparent 72%
+    );
+  border-radius: 58% 42% 61% 39% / 42% 58% 44% 56%;
+  content: "";
+  opacity: 0.72;
+  transform: rotate(-5deg);
+}
+
+body[data-route="home"] .home-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+body:is(
+  [data-route="methodology"],
+  [data-route="faq"],
+  [data-route="about"]
+) .page-heading > div {
+  position: relative;
+  isolation: isolate;
+}
+
+body:is(
+  [data-route="methodology"],
+  [data-route="faq"],
+  [data-route="about"]
+) .page-heading > div::after {
+  position: absolute;
+  z-index: 0;
+  top: -26px;
+  left: calc(100% - 38px);
+  width: 190px;
+  height: 112px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 56% 44% at 72% 34%,
+      color-mix(in srgb, var(--q8-powder-blue) 26%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 48% 56% at 38% 68%,
+      color-mix(in srgb, var(--q8-rose-petal) 24%, transparent),
+      transparent 74%
+    );
+  border-radius: 62% 38% 52% 48% / 44% 58% 42% 56%;
+  content: "";
+  opacity: 0.64;
+  transform: rotate(-7deg);
+}
+
+body:is(
+  [data-route="methodology"],
+  [data-route="faq"],
+  [data-route="about"]
+) .page-heading > div > * {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-route="home"] .home-explore-links a {
+  --q8-tile-accent: var(--q8-rose-petal);
+  border-block-start-width: 2px;
+  border-block-start-style: solid;
+  border-block-start-color: color-mix(
+    in srgb,
+    var(--q8-tile-accent) 72%,
+    var(--border)
+  );
+}
+
+body[data-route="home"]
+.home-explore-links a:nth-child(4n + 2) {
+  --q8-tile-accent: var(--q8-champagne);
+}
+
+body[data-route="home"]
+.home-explore-links a:nth-child(4n + 3) {
+  --q8-tile-accent: var(--q8-sage);
+}
+
+body[data-route="home"]
+.home-explore-links a:nth-child(4n) {
+  --q8-tile-accent: var(--q8-powder-blue);
+}
+
+body .record-note {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface) 92%, var(--q8-champagne)),
+      color-mix(in srgb, var(--surface) 94%, var(--q8-rose-petal)) 52%,
+      color-mix(in srgb, var(--surface) 95%, var(--q8-lilac-mist))
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--border) 78%,
+    var(--q8-champagne)
+  );
+}
+
+body .chart-stage {
+  background:
+    radial-gradient(
+      ellipse 28rem 14rem at 6% 0,
+      color-mix(in srgb, var(--q8-sage) 15%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 26rem 13rem at 96% 8%,
+      color-mix(in srgb, var(--q8-powder-blue) 14%, transparent),
+      transparent 74%
+    ),
+    color-mix(in srgb, var(--surface-subtle) 96%, var(--q8-lilac-mist));
+  border-color: color-mix(in srgb, var(--border) 80%, var(--q8-sage));
+}
+
+body :is(
+  .toolbar,
+  .comparison-selection,
+  .comparison-pair-picker
+) {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface) 94%, var(--q8-powder-blue)),
+      color-mix(in srgb, var(--surface) 96%, var(--q8-lilac-mist)) 54%,
+      color-mix(in srgb, var(--surface) 96%, var(--q8-rose-petal))
+    );
+  border-color: color-mix(
+    in srgb,
+    var(--border) 82%,
+    var(--q8-powder-blue)
+  );
+}
+
+.table-shell[data-nfelo-scroll-region="true"] {
+  outline: 3px solid transparent;
+  outline-offset: -3px;
+  transition: outline-color 160ms ease;
+}
+
+.table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+  outline-color: color-mix(in srgb, var(--focus) 82%, white);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --q8-champagne: #e2c58f;
+    --q8-sage: #91c7aa;
+    --q8-powder-blue: #9ebde1;
+    --q8-rose-petal: #db83b5;
+    --q8-lilac-mist: #ad91ca;
+  }
+
+  .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+    outline-color: #ff9bd2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-shell[data-nfelo-scroll-region="true"] {
+    transition: none;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  :root {
+    --content: min(1040px, calc(100vw - 32px));
+  }
+
+  body[data-route="rankings"]
+  .ranking-cards[data-q8-tablet="true"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  body[data-route="rankings"] .ranking-card {
+    --q8-card-accent: var(--q8-champagne);
+    min-width: 0;
+    background:
+      radial-gradient(
+        ellipse 15rem 7rem at 102% -12%,
+        color-mix(in srgb, var(--q8-card-accent) 18%, transparent),
+        transparent 72%
+      ),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--pv-surface) 96%, var(--q8-card-accent)),
+        var(--pv-surface)
+      );
+    border-color: color-mix(
+      in srgb,
+      var(--pv-border) 68%,
+      var(--q8-card-accent)
+    );
+    box-shadow:
+      inset 4px 0 0 color-mix(
+        in srgb,
+        var(--q8-card-accent) 62%,
+        transparent
+      ),
+      inset 0 1px 0 var(--pv-highlight),
+      var(--pv-shadow-small);
+  }
+
+  body[data-route="rankings"]
+  .ranking-card:nth-child(3n + 2) {
+    --q8-card-accent: var(--q8-sage);
+  }
+
+  body[data-route="rankings"]
+  .ranking-card:nth-child(3n) {
+    --q8-card-accent: var(--q8-powder-blue);
+  }
+
+  body[data-route="rankings"] .toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+    align-items: end;
+  }
+
+  body[data-route="rankings"] .toolbar > * {
+    min-width: 0;
+  }
+
+  body[data-route="rankings"] .toolbar .toggle-group {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  body[data-route="home"] .home-explore-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-route="home"] :is(
+    .home-dashboard,
+    .home-support
+  ) > * {
+    min-width: 0;
+  }
+
+  .site-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
+    align-items: start;
+  }
+
+  .site-footer > p:last-of-type {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  body[data-route="home"] .home-intro::after {
+    top: -16px;
+    right: -58px;
+    width: 220px;
+    height: 128px;
+    opacity: 0.52;
+  }
+
+  body:is(
+    [data-route="methodology"],
+    [data-route="faq"],
+    [data-route="about"]
+  ) .page-heading > div::after {
+    top: -14px;
+    right: -60px;
+    left: auto;
+    width: 168px;
+    height: 100px;
+    opacity: 0.46;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-route="home"] .home-intro::after,
+  body:is(
+    [data-route="methodology"],
+    [data-route="faq"],
+    [data-route="about"]
+  ) .page-heading > div::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body[data-route="rankings"] .ranking-card,
+  body :is(
+    .record-note,
+    .chart-stage,
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker
+  ) {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-contrast: more) {
+  body[data-route="home"] .home-intro::after,
+  body:is(
+    [data-route="methodology"],
+    [data-route="faq"],
+    [data-route="about"]
+  ) .page-heading > div::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body :is(
+    .record-note,
+    .chart-stage,
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .ranking-card,
+    .home-explore-links a
+  ) {
+    background: var(--surface);
+    border-color: currentColor;
+  }
+
+  .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+    outline-width: 4px;
+    outline-color: currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  body[data-route="home"] .home-intro::after,
+  body:is(
+    [data-route="methodology"],
+    [data-route="faq"],
+    [data-route="about"]
+  ) .page-heading > div::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body :is(
+    .record-note,
+    .chart-stage,
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .ranking-card,
+    .home-explore-links a
+  ) {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
+@media print {
+  body[data-route="home"] .home-intro::after,
+  body:is(
+    [data-route="methodology"],
+    [data-route="faq"],
+    [data-route="about"]
+  ) .page-heading > div::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body :is(
+    .record-note,
+    .chart-stage,
+    .toolbar,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .ranking-card,
+    .home-explore-links a
+  ) {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
+  }
+
+  .table-shell[data-nfelo-scroll-region="true"] {
+    outline: 0;
+  }
+}
+
 /*
  * Mobile Methodology tables edge-to-edge 2026-07-30.
  *

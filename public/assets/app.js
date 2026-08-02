@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  /* Romantic editorial feminine tablet v8 2026-08-02. */
+
   window.__nfeloBoot = window.__nfeloBoot || {};
   if (window.__nfeloBoot.started) return;
   window.__nfeloBoot.started = true;
@@ -101,6 +103,84 @@ const filteredEmptyState = (subject) => (
   `<div class="empty"><h2>No ${subject} match these filters.</h2>`
   + "<p>Change or clear the filters to see results.</p></div>"
 );
+
+const syncScrollableTableRegions = () => {
+  if (typeof document.querySelectorAll !== "function") return;
+  document.querySelectorAll(".table-shell").forEach((shell) => {
+    const table = shell.querySelector(":scope > table");
+    if (!table) return;
+    const active = shell.scrollWidth > shell.clientWidth + 2;
+    const ownedTabindex = shell.dataset.nfeloOwnedTabindex === "true";
+    const ownedRole = shell.dataset.nfeloOwnedRole === "true";
+    const ownedLabel = shell.dataset.nfeloOwnedLabel === "true";
+
+    if (!active) {
+      shell.removeAttribute("data-nfelo-scroll-region");
+      if (ownedTabindex) shell.removeAttribute("tabindex");
+      if (ownedRole) shell.removeAttribute("role");
+      if (ownedLabel) shell.removeAttribute("aria-label");
+      delete shell.dataset.nfeloOwnedTabindex;
+      delete shell.dataset.nfeloOwnedRole;
+      delete shell.dataset.nfeloOwnedLabel;
+      return;
+    }
+
+    shell.dataset.nfeloScrollRegion = "true";
+    if (!shell.hasAttribute("tabindex")) {
+      shell.setAttribute("tabindex", "0");
+      shell.dataset.nfeloOwnedTabindex = "true";
+    }
+    if (!shell.hasAttribute("role")) {
+      shell.setAttribute("role", "region");
+      shell.dataset.nfeloOwnedRole = "true";
+    }
+    if (!shell.hasAttribute("aria-label")) {
+      const caption = table.querySelector("caption")?.textContent?.trim();
+      const label = table.getAttribute("aria-label")
+        || caption
+        || "Scrollable data table";
+      shell.setAttribute(
+        "aria-label",
+        `${label}. Scroll horizontally for more columns.`,
+      );
+      shell.dataset.nfeloOwnedLabel = "true";
+    }
+  });
+};
+
+const syncTabletRankingPresentation = () => {
+  if (typeof document.querySelector !== "function") return;
+  const desktop = document.querySelector(
+    'body[data-route="rankings"] .ranking-desktop',
+  );
+  const cards = document.querySelector(
+    'body[data-route="rankings"] .ranking-cards',
+  );
+  if (!desktop || !cards) return;
+  if (
+    typeof desktop.toggleAttribute !== "function"
+    || typeof cards.toggleAttribute !== "function"
+  ) return;
+  const tablet = typeof window.matchMedia === "function"
+    && window.matchMedia("(min-width: 901px) and (max-width: 1180px)").matches;
+  desktop.toggleAttribute("hidden", tablet);
+  cards.toggleAttribute("data-q8-tablet", tablet);
+};
+
+let q8ResponsiveFrame = 0;
+const queueQ8ResponsivePresentation = () => {
+  if (
+    q8ResponsiveFrame
+    && typeof window.cancelAnimationFrame === "function"
+  ) {
+    window.cancelAnimationFrame(q8ResponsiveFrame);
+  }
+  q8ResponsiveFrame = window.requestAnimationFrame(() => {
+    q8ResponsiveFrame = 0;
+    syncScrollableTableRegions();
+    syncTabletRankingPresentation();
+  });
+};
 
   const initialiseTeamAliasSearch = () => {
     teamAliasSearch = new Map(
@@ -4690,6 +4770,8 @@ function renderFAQ() {
         default: renderNotFound();
       }
       setRouteMetadata(current);
+      syncScrollableTableRegions();
+      syncTabletRankingPresentation();
       content.setAttribute("aria-busy", "false");
       if (location.hash.startsWith("#/")) {
         history.replaceState(
@@ -4805,6 +4887,7 @@ function renderFAQ() {
   }
   window.addEventListener("online", syncConnectionState);
   window.addEventListener("offline", syncConnectionState);
+  window.addEventListener("resize", queueQ8ResponsivePresentation);
   syncConnectionState();
   window.addEventListener(
     "hashchange",
