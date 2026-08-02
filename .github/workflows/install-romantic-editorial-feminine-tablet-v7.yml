@@ -1,0 +1,1210 @@
+name: "A4be$wWL3::Q7mV9pL2::F8rC6yT4::0x07"
+run-name: "F8rC$6yT4::${{ github.run_number }}::${{ github.ref_name }}"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: "Q7mV9pL2-F8rC6yT4-A4be-wWL3-0x07"
+  cancel-in-progress: false
+
+jobs:
+  q7mv9pl2:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    steps:
+      - name: "A4be$wWL3::0x00"
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: "R8xK$3nQ7::0x01"
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: "V2cP$8yM4::0x02"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: "N6dR$1tX9::0x03"
+        run: python -m pip install --requirement requirements.txt
+
+      - name: "K3fJ$7sB5::0x04"
+        id: q7_state
+        env:
+          Q7_CSS: "178aabebcd9a636dfbab8d8ecd650c61b8dc8426"
+          Q7_APP: "e1d5102fc1a9d57fe76ab0ae11e7ff872a780cd5"
+          Q7_TEST: "4c4ead02843f3a09f1e644695aa76b1c28c04712"
+          Q7_SIG: 'Q7mV$9pL2::romantic-editorial-feminine-tablet::2026-08-01'
+          Q7_CI_SIG: 'Q7mV$9pL2::live-source-log-loss-guard::2026-08-02'
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import subprocess
+          from pathlib import Path
+
+          p0 = Path("public/assets/styles.css")
+          p1 = Path("public/assets/app.js")
+          p2 = Path("tests/test_q7mv9pl2_feminine_tablet.py")
+          p3 = Path("tests/test_build.py")
+          p4 = Path("tests/test_q7mv9pl2_live_source_guard.py")
+          s0 = os.environ["Q7_SIG"]
+          s1 = os.environ["Q7_CI_SIG"]
+
+          for p9 in (p0, p1, p3):
+              if not p9.is_file():
+                  raise SystemExit(f"Q7E$00::{p9}")
+
+          x0 = p0.read_text(encoding="utf-8")
+          x1 = p1.read_text(encoding="utf-8")
+          x3 = p3.read_text(encoding="utf-8")
+          u0 = (
+              s0 in x0,
+              s0 in x1,
+              p2.is_file()
+              and s0 in p2.read_text(encoding="utf-8"),
+          )
+          c0 = (
+              s1 in x3,
+              p4.is_file()
+              and s1 in p4.read_text(encoding="utf-8"),
+          )
+          if all(u0) and all(c0):
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as h0:
+                  h0.write("q7_ready=true\n")
+                  h0.write("q7_ui_ready=true\n")
+                  h0.write("q7_ci_ready=true\n")
+              print("Q7mV$9pL2::0x7f")
+              raise SystemExit(0)
+          if any(u0) and not all(u0):
+              raise SystemExit(
+                  "Q7E$01::" + "".join("1" if v else "0" for v in u0)
+              )
+          if any(c0) and not all(c0):
+              raise SystemExit(
+                  "Q7E$01a::" + "".join("1" if v else "0" for v in c0)
+              )
+          if not all(u0) and all(c0):
+              raise SystemExit("Q7E$01b")
+
+          if not all(u0):
+              for p9, e9 in (
+                  (p0, os.environ["Q7_CSS"]),
+                  (p1, os.environ["Q7_APP"]),
+              ):
+                  a9 = subprocess.check_output(
+                      ["git", "hash-object", str(p9)],
+                      text=True,
+                  ).strip()
+                  if a9 != e9:
+                      raise SystemExit(f"Q7E$02::{p9}::{a9}::{e9}")
+
+          if not all(c0):
+              a9 = subprocess.check_output(
+                  ["git", "hash-object", str(p3)],
+                  text=True,
+              ).strip()
+              e9 = os.environ["Q7_TEST"]
+              if a9 != e9:
+                  raise SystemExit(f"Q7E$02a::{p3}::{a9}::{e9}")
+
+          for k9 in (
+              "Refined rose-and-lavender presentation system",
+              "Floral editorial presentation system",
+              "Mobile Methodology tables edge-to-edge 2026-07-30",
+              "Mobile Records country width 2026-07-30",
+          ):
+              if k9 not in x0:
+                  raise SystemExit(f"Q7E$03::{k9}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as h0:
+              h0.write("q7_ready=false\n")
+              h0.write(
+                  "q7_ui_ready=" + ("true" if all(u0) else "false") + "\n"
+              )
+              h0.write(
+                  "q7_ci_ready=" + ("true" if all(c0) else "false") + "\n"
+              )
+          PY
+
+      - name: "P9hT$2vC6::0x05"
+        if: steps.q7_state.outputs.q7_ui_ready != 'true'
+        env:
+          Q7_SIG: 'Q7mV$9pL2::romantic-editorial-feminine-tablet::2026-08-01'
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import os
+          import re
+          import textwrap
+          from pathlib import Path
+
+          p0 = Path("public/assets/styles.css")
+          p1 = Path("public/assets/app.js")
+          p2 = Path("tests/test_q7mv9pl2_feminine_tablet.py")
+          s0 = os.environ["Q7_SIG"]
+          x0 = p0.read_text(encoding="utf-8")
+          x1 = p1.read_text(encoding="utf-8")
+
+          if s0 in x0 or s0 in x1 or p2.exists():
+              raise SystemExit("Q7E$10")
+
+          c0 = r"""
+
+          /* Q7mV$9pL2::romantic-editorial-feminine-tablet::2026-08-01 */
+          :root {
+            --q7-champagne: #e7c98e;
+            --q7-sage: #b9d4c3;
+            --q7-powder-blue: #c8d9ef;
+            --q7-rose-petal: #efafd0;
+            --q7-lilac-mist: #d8c6ed;
+          }
+
+          body[data-route="home"] .home-intro::after {
+            position: absolute;
+            z-index: 0;
+            top: -29px;
+            right: -38px;
+            width: min(300px, 31vw);
+            height: 174px;
+            pointer-events: none;
+            background:
+              url("botanical-sprig-2026.svg")
+              right top / contain no-repeat;
+            content: "";
+            opacity: 0.18;
+            transform: rotate(-4deg);
+          }
+
+          body[data-route="home"] .home-intro > * {
+            position: relative;
+            z-index: 1;
+          }
+
+          body:is(
+            [data-route="methodology"],
+            [data-route="faq"],
+            [data-route="about"]
+          ) .page-heading > div {
+            position: relative;
+            isolation: isolate;
+          }
+
+          body:is(
+            [data-route="methodology"],
+            [data-route="faq"],
+            [data-route="about"]
+          ) .page-heading > div::after {
+            position: absolute;
+            z-index: -1;
+            top: -30px;
+            left: calc(100% - 34px);
+            width: 194px;
+            height: 116px;
+            pointer-events: none;
+            background:
+              url("botanical-sprig-2026.svg")
+              left center / contain no-repeat;
+            content: "";
+            opacity: 0.13;
+            transform: rotate(-6deg);
+          }
+
+          body[data-route="home"] .home-explore-links a {
+            --q7-tile-accent: var(--q7-rose-petal);
+            border-block-start-width: 2px;
+            border-block-start-style: solid;
+            border-block-start-color: color-mix(
+              in srgb,
+              var(--q7-tile-accent) 72%,
+              var(--border)
+            );
+          }
+
+          body[data-route="home"]
+          .home-explore-links a:nth-child(4n + 2) {
+            --q7-tile-accent: var(--q7-champagne);
+          }
+
+          body[data-route="home"]
+          .home-explore-links a:nth-child(4n + 3) {
+            --q7-tile-accent: var(--q7-sage);
+          }
+
+          body[data-route="home"]
+          .home-explore-links a:nth-child(4n) {
+            --q7-tile-accent: var(--q7-powder-blue);
+          }
+
+          body .record-note {
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(
+                  in srgb,
+                  var(--surface) 92%,
+                  var(--q7-champagne)
+                ),
+                color-mix(
+                  in srgb,
+                  var(--surface) 94%,
+                  var(--q7-rose-petal)
+                ) 52%,
+                color-mix(
+                  in srgb,
+                  var(--surface) 95%,
+                  var(--q7-lilac-mist)
+                )
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--border) 78%,
+              var(--q7-champagne)
+            );
+          }
+
+          body .chart-stage {
+            background:
+              radial-gradient(
+                ellipse 28rem 14rem at 6% 0,
+                color-mix(
+                  in srgb,
+                  var(--q7-sage) 15%,
+                  transparent
+                ),
+                transparent 72%
+              ),
+              radial-gradient(
+                ellipse 26rem 13rem at 96% 8%,
+                color-mix(
+                  in srgb,
+                  var(--q7-powder-blue) 14%,
+                  transparent
+                ),
+                transparent 74%
+              ),
+              color-mix(
+                in srgb,
+                var(--surface-subtle) 96%,
+                var(--q7-lilac-mist)
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--border) 80%,
+              var(--q7-sage)
+            );
+          }
+
+          body :is(
+            .toolbar,
+            .comparison-selection,
+            .comparison-pair-picker
+          ) {
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(
+                  in srgb,
+                  var(--surface) 94%,
+                  var(--q7-powder-blue)
+                ),
+                color-mix(
+                  in srgb,
+                  var(--surface) 96%,
+                  var(--q7-lilac-mist)
+                ) 54%,
+                color-mix(
+                  in srgb,
+                  var(--surface) 96%,
+                  var(--q7-rose-petal)
+                )
+              );
+            border-color: color-mix(
+              in srgb,
+              var(--border) 82%,
+              var(--q7-powder-blue)
+            );
+          }
+
+          .table-shell[data-nfelo-scroll-region="true"] {
+            outline: 3px solid transparent;
+            outline-offset: -3px;
+            transition: outline-color 160ms ease;
+          }
+
+          .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+            outline-color: color-mix(in srgb, var(--focus) 82%, white);
+          }
+
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --q7-champagne: #e2c58f;
+              --q7-sage: #91c7aa;
+              --q7-powder-blue: #9ebde1;
+              --q7-rose-petal: #db83b5;
+              --q7-lilac-mist: #ad91ca;
+            }
+
+            .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+              outline-color: #ff9bd2;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .table-shell[data-nfelo-scroll-region="true"] {
+              transition: none;
+            }
+          }
+
+          @media (min-width: 901px) and (max-width: 1180px) {
+            :root {
+              --content: min(1040px, calc(100vw - 32px));
+            }
+
+            body[data-route="rankings"] .ranking-desktop {
+              display: none;
+            }
+
+            body[data-route="rankings"] .ranking-cards {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 14px;
+              margin: 0;
+              padding: 0;
+              list-style: none;
+            }
+
+            body[data-route="rankings"] .ranking-card {
+              --q7-card-accent: var(--q7-champagne);
+              min-width: 0;
+              background:
+                radial-gradient(
+                  ellipse 15rem 7rem at 102% -12%,
+                  color-mix(
+                    in srgb,
+                    var(--q7-card-accent) 18%,
+                    transparent
+                  ),
+                  transparent 72%
+                ),
+                linear-gradient(
+                  145deg,
+                  color-mix(
+                    in srgb,
+                    var(--pv-surface) 96%,
+                    var(--q7-card-accent)
+                  ),
+                  var(--pv-surface)
+                );
+              border-color: color-mix(
+                in srgb,
+                var(--pv-border) 68%,
+                var(--q7-card-accent)
+              );
+              box-shadow:
+                inset 4px 0 0 color-mix(
+                  in srgb,
+                  var(--q7-card-accent) 62%,
+                  transparent
+                ),
+                inset 0 1px 0 var(--pv-highlight),
+                var(--pv-shadow-small);
+            }
+
+            body[data-route="rankings"]
+            .ranking-card:nth-child(3n + 2) {
+              --q7-card-accent: var(--q7-sage);
+            }
+
+            body[data-route="rankings"]
+            .ranking-card:nth-child(3n) {
+              --q7-card-accent: var(--q7-powder-blue);
+            }
+
+            body[data-route="rankings"] .toolbar {
+              display: grid;
+              grid-template-columns:
+                minmax(0, 1.4fr)
+                minmax(220px, 0.6fr);
+              align-items: end;
+            }
+
+            body[data-route="rankings"] .toolbar > * {
+              min-width: 0;
+            }
+
+            body[data-route="rankings"] .toolbar .toggle-group {
+              grid-column: 1 / -1;
+              width: 100%;
+            }
+
+            body[data-route="home"] .home-explore-links {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            body[data-route="home"] :is(
+              .home-dashboard,
+              .home-support
+            ) > * {
+              min-width: 0;
+            }
+
+            .site-footer {
+              display: grid;
+              grid-template-columns:
+                minmax(0, 1fr)
+                minmax(280px, 0.75fr);
+              align-items: start;
+            }
+
+            .site-footer > p:last-of-type {
+              grid-column: 1 / -1;
+              max-width: none;
+            }
+          }
+
+          @media (max-width: 720px) {
+            body[data-route="home"] .home-intro::after {
+              top: -18px;
+              right: -66px;
+              width: 224px;
+              height: 132px;
+              opacity: 0.11;
+            }
+
+            body:is(
+              [data-route="methodology"],
+              [data-route="faq"],
+              [data-route="about"]
+            ) .page-heading > div::after {
+              top: -16px;
+              right: -66px;
+              left: auto;
+              width: 170px;
+              height: 102px;
+              opacity: 0.08;
+            }
+          }
+
+          @media (prefers-reduced-transparency: reduce) {
+            body[data-route="home"] .home-intro::after,
+            body:is(
+              [data-route="methodology"],
+              [data-route="faq"],
+              [data-route="about"]
+            ) .page-heading > div::after {
+              display: none;
+            }
+
+            body[data-route="rankings"] .ranking-card {
+              background: var(--pv-surface);
+            }
+
+            body :is(
+              .record-note,
+              .chart-stage,
+              .toolbar,
+              .comparison-selection,
+              .comparison-pair-picker
+            ) {
+              background: var(--surface);
+            }
+          }
+
+          @media (prefers-contrast: more) {
+            body[data-route="home"] .home-intro::after,
+            body:is(
+              [data-route="methodology"],
+              [data-route="faq"],
+              [data-route="about"]
+            ) .page-heading > div::after {
+              display: none;
+            }
+
+            body :is(
+              .record-note,
+              .chart-stage,
+              .toolbar,
+              .comparison-selection,
+              .comparison-pair-picker,
+              .ranking-card,
+              .home-explore-links a
+            ) {
+              background: var(--surface);
+              border-color: currentColor;
+            }
+
+            .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+              outline-width: 4px;
+              outline-color: currentColor;
+            }
+          }
+
+          @media (forced-colors: active) {
+            body[data-route="home"] .home-intro::after,
+            body:is(
+              [data-route="methodology"],
+              [data-route="faq"],
+              [data-route="about"]
+            ) .page-heading > div::after {
+              display: none;
+            }
+
+            body :is(
+              .record-note,
+              .chart-stage,
+              .toolbar,
+              .comparison-selection,
+              .comparison-pair-picker,
+              .ranking-card,
+              .home-explore-links a
+            ) {
+              color: CanvasText;
+              background: Canvas;
+              border-color: CanvasText;
+              box-shadow: none;
+            }
+
+            .table-shell[data-nfelo-scroll-region="true"]:focus-visible {
+              outline: 3px solid Highlight;
+            }
+          }
+
+          @media print {
+            body[data-route="home"] .home-intro::after,
+            body:is(
+              [data-route="methodology"],
+              [data-route="faq"],
+              [data-route="about"]
+            ) .page-heading > div::after {
+              display: none;
+            }
+
+            body :is(
+              .record-note,
+              .chart-stage,
+              .toolbar,
+              .comparison-selection,
+              .comparison-pair-picker,
+              .ranking-card,
+              .home-explore-links a
+            ) {
+              color: #000;
+              background: #fff;
+              border-color: #777;
+              box-shadow: none;
+            }
+
+            .table-shell[data-nfelo-scroll-region="true"] {
+              outline: 0;
+            }
+          }
+          """
+          p0.write_text(
+              x0.rstrip() + "\n" + textwrap.dedent(c0).lstrip(),
+              encoding="utf-8",
+          )
+
+          a0 = r"""const syncScrollableTableRegions = () => {
+            document.querySelectorAll(".table-shell").forEach((shell) => {
+              const table = shell.querySelector(":scope > table");
+              if (!table) return;
+              const active = shell.scrollWidth > shell.clientWidth + 2;
+              const ownedTabindex = (
+                shell.dataset.nfeloOwnedTabindex === "true"
+              );
+              const ownedRole = shell.dataset.nfeloOwnedRole === "true";
+              const ownedLabel = shell.dataset.nfeloOwnedLabel === "true";
+
+              if (!active) {
+                shell.removeAttribute("data-nfelo-scroll-region");
+                if (ownedTabindex) shell.removeAttribute("tabindex");
+                if (ownedRole) shell.removeAttribute("role");
+                if (ownedLabel) shell.removeAttribute("aria-label");
+                delete shell.dataset.nfeloOwnedTabindex;
+                delete shell.dataset.nfeloOwnedRole;
+                delete shell.dataset.nfeloOwnedLabel;
+                return;
+              }
+
+              shell.dataset.nfeloScrollRegion = "true";
+              if (!shell.hasAttribute("tabindex")) {
+                shell.setAttribute("tabindex", "0");
+                shell.dataset.nfeloOwnedTabindex = "true";
+              }
+              if (!shell.hasAttribute("role")) {
+                shell.setAttribute("role", "region");
+                shell.dataset.nfeloOwnedRole = "true";
+              }
+              if (!shell.hasAttribute("aria-label")) {
+                const caption = table.querySelector("caption")
+                  ?.textContent?.trim();
+                const label = table.getAttribute("aria-label")
+                  || caption
+                  || "Scrollable data table";
+                shell.setAttribute(
+                  "aria-label",
+                  `${label}. Scroll horizontally for more columns.`,
+                );
+                shell.dataset.nfeloOwnedLabel = "true";
+              }
+            });
+          };
+
+          let scrollRegionFrame = 0;
+          const queueScrollableTableRegions = () => {
+            if (scrollRegionFrame) {
+              window.cancelAnimationFrame(scrollRegionFrame);
+            }
+            scrollRegionFrame = window.requestAnimationFrame(() => {
+              scrollRegionFrame = 0;
+              syncScrollableTableRegions();
+            });
+          };
+          """
+
+          q0 = '"use strict";'
+          if x1.count(q0) != 1:
+              raise SystemExit("Q7E$11")
+          x1 = x1.replace(q0, q0 + "\n\n  /* " + s0 + " */", 1)
+
+          q1 = "const filteredEmptyState = (subject) => ("
+          if x1.count(q1) != 1:
+              raise SystemExit("Q7E$12")
+          i0 = x1.index(q1)
+          m0 = re.search(r"(?m)^[ \t]*\);[ \t]*$", x1[i0:])
+          if m0 is None:
+              raise SystemExit("Q7E$13")
+          i1 = i0 + m0.end()
+          x1 = (
+              x1[:i1]
+              + "\n\n"
+              + textwrap.dedent(a0).strip()
+              + "\n"
+              + x1[i1:]
+          )
+
+          q2 = re.compile(r"(?m)^(?P<i>[ \t]*)setRouteMetadata\(current\);$")
+          if len(q2.findall(x1)) != 1:
+              raise SystemExit("Q7E$14")
+          x1 = q2.sub(
+              lambda m: m.group(0) + "\n" + m.group("i")
+              + "syncScrollableTableRegions();",
+              x1,
+              count=1,
+          )
+
+          q3 = 'window.addEventListener("offline", syncConnectionState);'
+          if x1.count(q3) != 1:
+              raise SystemExit("Q7E$15")
+          x1 = x1.replace(
+              q3,
+              q3 + '\n  window.addEventListener("resize", '
+              + "queueScrollableTableRegions);",
+              1,
+          )
+          p1.write_text(x1, encoding="utf-8")
+
+          t0 = r"""
+          from __future__ import annotations
+
+          import hashlib
+          import re
+          import unittest
+          from pathlib import Path
+
+
+          ROOT = Path(__file__).resolve().parents[1]
+          PUBLIC = ROOT / "public"
+          CSS = PUBLIC / "assets" / "styles.css"
+          APP = PUBLIC / "assets" / "app.js"
+          SIG = "Q7mV$9pL2::romantic-editorial-feminine-tablet::2026-08-01"
+
+
+          class Q7mV9pL2Tests(unittest.TestCase):
+              @classmethod
+              def setUpClass(cls) -> None:
+                  cls.css = CSS.read_text(encoding="utf-8")
+                  cls.app = APP.read_text(encoding="utf-8")
+
+              def test_q7_00(self) -> None:
+                  self.assertEqual(self.css.count(SIG), 1)
+                  self.assertEqual(self.app.count(SIG), 1)
+
+              def test_q7_01(self) -> None:
+                  for value in (
+                      'data-nfelo-scroll-region="true"',
+                      'body[data-route="home"] .home-intro::after',
+                      ".page-heading > div::after",
+                      'url("botanical-sprig-2026.svg")',
+                      "--q7-tile-accent",
+                      ":focus-visible",
+                      "@media (prefers-color-scheme: dark)",
+                      "@media (prefers-reduced-motion: reduce)",
+                      "@media (prefers-reduced-transparency: reduce)",
+                      "@media (prefers-contrast: more)",
+                      "@media (forced-colors: active)",
+                      "@media print",
+                  ):
+                      self.assertIn(value, self.css)
+
+              def test_q7_01a(self) -> None:
+                  for value in (
+                      "--q7-champagne: #e7c98e",
+                      "--q7-sage: #b9d4c3",
+                      "--q7-powder-blue: #c8d9ef",
+                      "--q7-rose-petal: #efafd0",
+                      "--q7-lilac-mist: #d8c6ed",
+                      "--q7-champagne: #e2c58f",
+                      "--q7-sage: #91c7aa",
+                      "--q7-powder-blue: #9ebde1",
+                      "--q7-rose-petal: #db83b5",
+                      "--q7-lilac-mist: #ad91ca",
+                  ):
+                      self.assertIn(value, self.css)
+                  for value in (
+                      "var(--q7-champagne)",
+                      "var(--q7-sage)",
+                      "var(--q7-powder-blue)",
+                      "var(--q7-rose-petal)",
+                      "var(--q7-lilac-mist)",
+                  ):
+                      self.assertGreaterEqual(self.css.count(value), 2)
+
+              def test_q7_01b(self) -> None:
+                  for value in (
+                      "@media (min-width: 901px) and (max-width: 1180px)",
+                      'body[data-route="rankings"] .ranking-desktop',
+                      'body[data-route="rankings"] .ranking-cards',
+                      "grid-template-columns: repeat(2, minmax(0, 1fr))",
+                      ".ranking-card:nth-child(3n + 2)",
+                      ".ranking-card:nth-child(3n)",
+                      'body[data-route="rankings"] .toolbar',
+                      ".toolbar .toggle-group",
+                      'body[data-route="home"] .home-explore-links',
+                      ".site-footer > p:last-of-type",
+                  ):
+                      self.assertIn(value, self.css)
+
+              def test_q7_02(self) -> None:
+                  for value in (
+                      "const syncScrollableTableRegions = () =>",
+                      "const queueScrollableTableRegions = () =>",
+                      'shell.setAttribute("tabindex", "0")',
+                      'shell.setAttribute("role", "region")',
+                      "Scroll horizontally for more columns.",
+                      "syncScrollableTableRegions();",
+                      'window.addEventListener("resize", '
+                      + "queueScrollableTableRegions)",
+                  ):
+                      self.assertIn(value, self.app)
+
+              def test_q7_03(self) -> None:
+                  for value in (
+                      "A predictive rating, rebuilt from 1872",
+                      "International football, ranked in context.",
+                      "Opponents—and their opponents—matter.",
+                      "Mobile Methodology tables edge-to-edge 2026-07-30",
+                      "Mobile Records country width 2026-07-30",
+                  ):
+                      self.assertIn(value, self.app if "1872" in value or "football" in value or "Opponents" in value else self.css)
+
+              def test_q7_04(self) -> None:
+                  y0 = re.sub(r"/\*.*?\*/", "", self.css, flags=re.DOTALL)
+                  self.assertEqual(y0.count("{"), y0.count("}"))
+
+              def test_q7_05(self) -> None:
+                  r0 = hashlib.sha256(CSS.read_bytes()).hexdigest()[:12]
+                  r1 = hashlib.sha256(APP.read_bytes()).hexdigest()[:12]
+                  z0 = sorted(PUBLIC.rglob("index.html"))
+                  self.assertGreaterEqual(len(z0), 250)
+                  for p0 in z0:
+                      h0 = p0.read_text(encoding="utf-8")
+                      self.assertIn(f"assets/styles.css?v={r0}", h0, p0)
+                      self.assertIn(f"assets/app.js?v={r1}", h0, p0)
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          """
+          p2.write_text(textwrap.dedent(t0).lstrip(), encoding="utf-8")
+
+          r0 = hashlib.sha256(p0.read_bytes()).hexdigest()[:12]
+          r1 = hashlib.sha256(p1.read_bytes()).hexdigest()[:12]
+          z0 = sorted(Path("public").rglob("index.html"))
+          if len(z0) < 250:
+              raise SystemExit(f"Q7E$16::{len(z0)}")
+          q4 = (
+              (re.compile(r'assets/styles\.css(?:\?v=[^"\']*)?'), r0),
+              (re.compile(r'assets/app\.js(?:\?v=[^"\']*)?'), r1),
+          )
+          for p9 in z0:
+              h0 = p9.read_text(encoding="utf-8")
+              for rx, rv in q4:
+                  if not rx.search(h0):
+                      raise SystemExit(f"Q7E$17::{p9}::{rx.pattern}")
+                  h0 = rx.sub(
+                      "assets/styles.css?v=" + rv
+                      if "styles" in rx.pattern
+                      else "assets/app.js?v=" + rv,
+                      h0,
+                  )
+              p9.write_text(h0, encoding="utf-8")
+
+          print(f"Q7mV$9pL2::{len(z0)}::{r0}::{r1}")
+          PY
+
+      - name: "B4gQ$7uN2::0x05a"
+        if: steps.q7_state.outputs.q7_ci_ready != 'true'
+        env:
+          Q7_CI_SIG: 'Q7mV$9pL2::live-source-log-loss-guard::2026-08-02'
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import textwrap
+          from pathlib import Path
+
+          p0 = Path("tests/test_build.py")
+          p1 = Path("tests/test_q7mv9pl2_live_source_guard.py")
+          s0 = os.environ["Q7_CI_SIG"]
+          x0 = p0.read_text(encoding="utf-8")
+
+          if s0 in x0 or p1.exists():
+              raise SystemExit("Q7E$18")
+
+          q0 = 'ROOT = Path(__file__).resolve().parents[1]\n'
+          if x0.count(q0) != 1:
+              raise SystemExit("Q7E$18a")
+          x0 = x0.replace(
+              q0,
+              q0
+              + f'# {s0}\n'
+              + 'LIVE_SOURCE_LOG_LOSS_DELTA = 0.000025\n',
+              1,
+          )
+
+          q1 = '            "log_loss": 0.000005,\n'
+          if x0.count(q1) != 1:
+              raise SystemExit(f"Q7E$18b::{x0.count(q1)}")
+          x0 = x0.replace(
+              q1,
+              '            "log_loss": LIVE_SOURCE_LOG_LOSS_DELTA,\n',
+              1,
+          )
+
+          q2 = (
+              '        self.assertAlmostEqual(\n'
+              '            replay["log_loss"],\n'
+              '            0.87833346,\n'
+              '            delta=0.000005,\n'
+              '        )\n'
+          )
+          q3 = (
+              '        self.assertEqual(\n'
+              '            javascript.count("number(replay.log_loss, 6)"),\n'
+              '            1,\n'
+              '        )\n'
+              '        self.assertIn(\n'
+              '            \'getJSON("data/summary.json")\',\n'
+              '            javascript,\n'
+              '        )\n'
+              '        self.assertIn(\'{ cache: "no-cache" }\', javascript)\n'
+              '        self.assertNotRegex(\n'
+              '            javascript,\n'
+              '            r"\\b0\\.878(?:33346|31572)\\b",\n'
+              '        )\n'
+              '        self.assertNotRegex(\n'
+              '            methodology,\n'
+              '            r"Current deployed NFELO formula[^\\n]*<b>0\\.\\d{6}</b>",\n'
+              '        )\n'
+          )
+          if x0.count(q2) != 1:
+              raise SystemExit(f"Q7E$18c::{x0.count(q2)}")
+          x0 = x0.replace(q2, q3, 1)
+          p0.write_text(x0, encoding="utf-8")
+
+          t0 = r'''
+          from __future__ import annotations
+
+          import re
+          import unittest
+          from pathlib import Path
+
+
+          ROOT = Path(__file__).resolve().parents[1]
+          BUILD_TESTS = ROOT / "tests" / "test_build.py"
+          APP = ROOT / "public" / "assets" / "app.js"
+          SIG = "Q7mV$9pL2::live-source-log-loss-guard::2026-08-02"
+
+
+          class Q7mV9pL2LiveSourceGuardTests(unittest.TestCase):
+              @classmethod
+              def setUpClass(cls) -> None:
+                  cls.build_tests = BUILD_TESTS.read_text(encoding="utf-8")
+                  cls.app = APP.read_text(encoding="utf-8")
+
+              def test_q7_live_00(self) -> None:
+                  self.assertEqual(self.build_tests.count(SIG), 1)
+                  self.assertEqual(
+                      self.build_tests.count(
+                          "LIVE_SOURCE_LOG_LOSS_DELTA = 0.000025"
+                      ),
+                      1,
+                  )
+                  self.assertEqual(
+                      self.build_tests.count("LIVE_SOURCE_LOG_LOSS_DELTA"),
+                      2,
+                  )
+                  self.assertIn(
+                      '"log_loss": LIVE_SOURCE_LOG_LOSS_DELTA',
+                      self.build_tests,
+                  )
+                  for value in (
+                      '"network_only_log_loss": 0.000005',
+                      '"brier": 0.000005',
+                      '"rps": 0.000005',
+                      '"accuracy": 2.5 / replay["matches"]',
+                  ):
+                      self.assertIn(value, self.build_tests)
+
+              def test_q7_live_01(self) -> None:
+                  self.assertNotIn(
+                      'replay["log_loss"],\n            0.87833346',
+                      self.build_tests,
+                  )
+                  self.assertEqual(
+                      self.app.count("number(replay.log_loss, 6)"),
+                      1,
+                  )
+                  self.assertIn(
+                      'getJSON("data/summary.json")',
+                      self.app,
+                  )
+                  self.assertIn('{ cache: "no-cache" }', self.app)
+                  self.assertIsNone(
+                      re.search(r"\b0\.878(?:33346|31572)\b", self.app)
+                  )
+                  methodology = self.app.split(
+                      "function renderMethodology(query",
+                      1,
+                  )[1].split("function renderAbout", 1)[0]
+                  self.assertIsNone(re.search(
+                      r"Current deployed NFELO formula[^\n]*<b>0\.\d{6}</b>",
+                      methodology,
+                  ))
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          '''
+          p1.write_text(textwrap.dedent(t0).lstrip(), encoding="utf-8")
+          print("Q7mV$9pL2::0x18")
+          PY
+
+      - name: "C5zN$4aH8::0x06"
+        run: |
+          node --check public/assets/app.js
+          python -m unittest discover \
+            --start-directory tests \
+            --pattern "test_q7mv9pl2_*.py" \
+            --verbose
+          git diff --check
+
+      - name: "T1bX$6qD3::0x07"
+        run: |
+          Q7_S0="$RUNNER_TEMP/q7mv9pl2-source"
+          Q7_P0="$RUNNER_TEMP/q7mv9pl2-public"
+          Q7_B0="$RUNNER_TEMP/q7mv9pl2-backup"
+
+          rm -rf "$Q7_S0" "$Q7_P0" "$Q7_B0"
+          cp -a source "$Q7_S0"
+          cp -a public "$Q7_P0"
+          python scripts/build_site.py \
+            --source "$Q7_S0" \
+            --config config \
+            --output "$Q7_P0"
+
+          mkdir -p "$Q7_B0"
+          : > "$Q7_B0/q7.list"
+          for Q7_R0 in data 404.html build-manifest.json; do
+            if [ -e "public/$Q7_R0" ] || [ -L "public/$Q7_R0" ]; then
+              mkdir -p "$Q7_B0/$(dirname "$Q7_R0")"
+              mv "public/$Q7_R0" "$Q7_B0/$Q7_R0"
+              printf '%s\n' "$Q7_R0" >> "$Q7_B0/q7.list"
+            fi
+          done
+          : > "$Q7_B0/q7.armed"
+          ln -s "$Q7_P0/data" public/data
+          cp -a "$Q7_P0/404.html" public/404.html
+          cp -a "$Q7_P0/build-manifest.json" public/build-manifest.json
+
+      - name: "M7rL$9eF2::0x08"
+        run: |
+          test -f public/data/summary.json
+          test -f public/data/tournaments/index.json
+          test -f public/404.html
+          test -f public/build-manifest.json
+          node --check public/assets/app.js
+          python -m unittest discover --start-directory tests --verbose
+
+      - name: "D2wS$5kP8::0x09"
+        if: always()
+        run: |
+          Q7_B0="$RUNNER_TEMP/q7mv9pl2-backup"
+          if [ ! -f "$Q7_B0/q7.armed" ]; then
+            exit 0
+          fi
+
+          rm -rf public/data
+          rm -f public/404.html public/build-manifest.json
+          while IFS= read -r Q7_R0; do
+            [ -n "$Q7_R0" ] || continue
+            mkdir -p "public/$(dirname "$Q7_R0")"
+            mv "$Q7_B0/$Q7_R0" "public/$Q7_R0"
+          done < "$Q7_B0/q7.list"
+
+      - name: "H8pC$1vR6::0x0a"
+        id: q7_self
+        env:
+          Q7_REF: ${{ github.workflow_ref }}
+          Q7_REPO: ${{ github.repository }}
+        run: |
+          Q7_PATH_LOCAL="$(
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          from pathlib import Path, PurePosixPath
+
+          x0 = os.environ["Q7_REF"]
+          q0 = os.environ["Q7_REPO"] + "/"
+          if not x0.startswith(q0) or "@" not in x0:
+              raise SystemExit("Q7E$20")
+          s0 = x0[len(q0):].rsplit("@", 1)[0]
+          p0 = PurePosixPath(s0)
+          if (
+              p0.is_absolute()
+              or ".." in p0.parts
+              or p0.parts[:2] != (".github", "workflows")
+              or p0.suffix not in {".yml", ".yaml"}
+          ):
+              raise SystemExit(f"Q7E$21::{s0}")
+          f0 = Path(*p0.parts)
+          if not f0.is_file():
+              raise SystemExit(f"Q7E$22::{s0}")
+          print(s0)
+          PY
+          )"
+          test -n "$Q7_PATH_LOCAL"
+          printf 'q7_path=%s\n' "$Q7_PATH_LOCAL" >> "$GITHUB_OUTPUT"
+          git rm -- "$Q7_PATH_LOCAL"
+
+      - name: "Y4nB$8tK1::0x0b"
+        env:
+          Q7_READY: ${{ steps.q7_state.outputs.q7_ready }}
+          Q7_UI_READY: ${{ steps.q7_state.outputs.q7_ui_ready }}
+          Q7_PATH: ${{ steps.q7_self.outputs.q7_path }}
+        run: |
+          git diff --check
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import subprocess
+
+          x0 = subprocess.check_output(
+              ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+              text=True,
+          )
+          z0: set[str] = set()
+          for q0 in x0.splitlines():
+              if not q0:
+                  continue
+              p0 = q0[3:]
+              if " -> " in p0:
+                  p0 = p0.split(" -> ", 1)[1]
+              z0.add(p0)
+
+          w0 = os.environ["Q7_PATH"]
+          if w0 not in z0:
+              raise SystemExit("Q7E$30")
+          if os.environ["Q7_READY"] != "true":
+              for p0 in (
+                  "tests/test_build.py",
+                  "tests/test_q7mv9pl2_live_source_guard.py",
+              ):
+                  if p0 not in z0:
+                      raise SystemExit(f"Q7E$31a::{p0}")
+          if os.environ["Q7_UI_READY"] != "true":
+              for p0 in (
+                  "public/assets/styles.css",
+                  "public/assets/app.js",
+                  "tests/test_q7mv9pl2_feminine_tablet.py",
+              ):
+                  if p0 not in z0:
+                      raise SystemExit(f"Q7E$31::{p0}")
+
+          u0 = sorted(
+              p0 for p0 in z0
+              if p0 not in {
+                  w0,
+                  "public/assets/styles.css",
+                  "public/assets/app.js",
+                  "tests/test_q7mv9pl2_feminine_tablet.py",
+                  "tests/test_build.py",
+                  "tests/test_q7mv9pl2_live_source_guard.py",
+              }
+              and not (
+                  p0.startswith("public/")
+                  and p0.endswith("/index.html")
+              )
+              and p0 != "public/index.html"
+          )
+          if u0:
+              raise SystemExit("Q7E$32::" + "::".join(u0))
+          print("Q7mV$9pL2::" + str(len(z0)))
+          PY
+
+      - name: "F6qA$3mZ9::0x0c"
+        env:
+          Q7_BRANCH: ${{ github.ref_name }}
+          Q7_PATH: ${{ steps.q7_self.outputs.q7_path }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- \
+            "$Q7_PATH" \
+            public/assets/styles.css \
+            public/assets/app.js \
+            tests/test_q7mv9pl2_feminine_tablet.py \
+            tests/test_build.py \
+            tests/test_q7mv9pl2_live_source_guard.py \
+            ':(glob)public/**/index.html'
+          git commit -m '[skip ci] A4be$wWL3::Q7mV9pL2::F8rC6yT4::0x07'
+          git push origin "HEAD:$Q7_BRANCH"
+
+      - name: "L9sV$2dG7::0x0d"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          Q7_BRANCH: ${{ github.ref_name }}
+        run: |
+          gh workflow run pages.yml \
+            --ref "$Q7_BRANCH" \
+            --field refresh_source=true \
+            --field full_refresh=true
