@@ -11,10 +11,12 @@ import io
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unicodedata
 from urllib.request import Request, urlopen
 
+from fetch_sources import UpstreamHtmlChallengeError, is_html_challenge
 from ledger import canonical, read_successors
 
 
@@ -92,6 +94,10 @@ def download(
         if response.status_code != 200:
             raise ValueError(f"Open results request returned HTTP {response.status_code}")
         text = response.text.lstrip("\ufeff")
+        if is_html_challenge(text):
+            raise UpstreamHtmlChallengeError(
+                f"TSV endpoint returned an HTML browser challenge for {url}"
+            )
         if len(text) < minimum_size:
             raise ValueError(f"Open results response is unexpectedly small: {len(text)} bytes")
         return text
@@ -106,6 +112,10 @@ def download(
     )
     with urlopen(request, timeout=60) as response:
         text = response.read().decode("utf-8-sig")
+    if is_html_challenge(text):
+        raise UpstreamHtmlChallengeError(
+            f"TSV endpoint returned an HTML browser challenge for {url}"
+        )
     if len(text) < minimum_size:
         raise ValueError(f"Open results response is unexpectedly small: {len(text)} bytes")
     return text
@@ -208,6 +218,63 @@ def merge_record(
         if old_scores != new_scores:
             raise ValueError(f"Conflicting scores from result sources for {key}: {old_scores} vs {new_scores}")
     target[key] = item
+
+
+def retain_stored_upcoming_fixtures(
+    path: Path,
+    fixture_map: dict[tuple[str, tuple[str, str]], dict[str, object]],
+    result_map: dict[tuple[str, tuple[str, str]], dict[str, object]],
+    tournament_names: dict[str, str],
+    team_names: dict[str, str],
+    today: date,
+    horizon: date,
+) -> int:
+    if not path.is_file():
+        raise RuntimeError(
+            "Eloratings fixtures returned an HTML challenge and no stored "
+            "upcoming-fixture snapshot is available"
+        )
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = payload.get("fixtures")
+    if not isinstance(rows, list):
+        raise ValueError("Stored upcoming-fixture snapshot has no fixture list")
+    required = {
+        "date",
+        "team1_code",
+        "team2_code",
+        "team1_name",
+        "team2_name",
+        "tournament_code",
+        "tournament_name",
+        "city",
+        "country",
+        "neutral",
+        "home_sign",
+    }
+    retained = 0
+    for index, item in enumerate(rows):
+        if not isinstance(item, dict) or not required.issubset(item):
+            raise ValueError(f"Stored upcoming fixture {index} is incomplete")
+        try:
+            match_date = date.fromisoformat(str(item["date"]))
+        except ValueError as exc:
+            raise ValueError(
+                f"Stored upcoming fixture {index} has an invalid date"
+            ) from exc
+        if match_date < today or match_date > horizon:
+            continue
+        if any(str(item[key]) not in team_names for key in ("team1_code", "team2_code")):
+            continue
+        key = record_key(item)
+        if key in result_map or key in fixture_map:
+            continue
+        merge_record(fixture_map, item)
+        tournament_names.setdefault(
+            str(item["tournament_code"]),
+            str(item["tournament_name"]),
+        )
+        retained += 1
+    return retained
 
 
 def integer_score(value: object) -> int | None:
@@ -445,12 +512,22 @@ def main() -> None:
     # covering all confederations and friendlies.  It complements the
     # competition-specific API above, which cannot discover unscheduled league
     # IDs or one-off internationals.
-    wfe_text = download(
-        args.wfe_fixtures_url,
-        minimum_size=1_000,
-        user_agent="curl/8.5.0",
-        accept="*/*",
-    )
+    wfe_challenge_fallback = False
+    try:
+        wfe_text = download(
+            args.wfe_fixtures_url,
+            minimum_size=1_000,
+            user_agent="curl/8.5.0",
+            accept="*/*",
+        )
+    except UpstreamHtmlChallengeError:
+        wfe_challenge_fallback = True
+        wfe_text = ""
+        print(
+            "Eloratings fixtures returned an HTML browser challenge; "
+            "retaining validated stored upcoming fixtures",
+            file=sys.stderr,
+        )
     wfe_rows = 0
     for line_number, line in enumerate(wfe_text.splitlines(), start=1):
         if not line.strip():
@@ -491,6 +568,18 @@ def main() -> None:
         if record_key(fixture) not in result_map and record_key(fixture) not in fixture_map:
             merge_record(fixture_map, fixture)
             wfe_rows += 1
+
+    retained_stored_fixtures = 0
+    if wfe_challenge_fallback:
+        retained_stored_fixtures = retain_stored_upcoming_fixtures(
+            source / "upcoming_fixtures.json",
+            fixture_map,
+            result_map,
+            tournament_names,
+            team_names,
+            today,
+            horizon,
+        )
 
     for key in result_map:
         fixture_map.pop(key, None)
@@ -565,7 +654,18 @@ def main() -> None:
         "sportsdb_fixture_events": sportsdb_events,
         "sportsdb_requests": len(sportsdb_urls),
         "wfe_fixture_rows": wfe_rows,
-        "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
+        "wfe_fixture_source": (
+            "stored validated upcoming-fixture snapshot"
+            if wfe_challenge_fallback
+            else "live Eloratings fixtures TSV"
+        ),
+        "retained_stored_fixture_rows": retained_stored_fixtures,
+        "integrity": (
+            "Independent feeds passed validation; stored Eloratings fixtures "
+            "were revalidated after an upstream HTML challenge"
+            if wfe_challenge_fallback
+            else "All result and fixture sources passed schema, size, date, score, alias and conflict checks"
+        ),
         "base_snapshot": base_snapshot,
     }
     old_status_path.write_text(

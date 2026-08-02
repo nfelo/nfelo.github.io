@@ -17515,6 +17515,158 @@ body :is(
   }
 }
 
+/* Pastel five-band undertone 2026-08-02. */
+:root {
+  --q9-sky-blue: #5bcefa;
+  --q9-blush-pink: #f5a9b8;
+  --q9-soft-white: #ffffff;
+  --q9-five-band:
+    linear-gradient(
+      180deg,
+      var(--q9-sky-blue) 0 20%,
+      var(--q9-blush-pink) 20% 40%,
+      var(--q9-soft-white) 40% 60%,
+      var(--q9-blush-pink) 60% 80%,
+      var(--q9-sky-blue) 80% 100%
+    );
+}
+
+body[data-route="home"] .hero-actions {
+  position: relative;
+}
+
+body[data-route="home"] .hero-actions::after {
+  position: absolute;
+  right: 20%;
+  bottom: -10px;
+  left: 20%;
+  height: 5px;
+  pointer-events: none;
+  background: var(--q9-five-band);
+  border-radius: 999px;
+  content: "";
+  opacity: 0.24;
+}
+
+.site-footer::before {
+  background:
+    var(--q9-five-band) center top / min(360px, 64vw) 5px no-repeat,
+    radial-gradient(
+      ellipse at 50% 0,
+      var(--keepsake-lace) 0 43%,
+      var(--keepsake-lace-shadow) 45% 50%,
+      transparent 52%
+    ) left top / 14px 6px repeat-x;
+}
+
+body .faq-item {
+  --q9-question-accent: var(--q9-sky-blue);
+  border-inline-start: 3px solid color-mix(
+    in srgb,
+    var(--q9-question-accent) 46%,
+    var(--border)
+  );
+}
+
+body .faq-item:nth-child(5n + 2),
+body .faq-item:nth-child(5n + 4) {
+  --q9-question-accent: var(--q9-blush-pink);
+}
+
+body .faq-item:nth-child(5n + 3) {
+  --q9-question-accent: var(--q9-soft-white);
+}
+
+body[data-route="home"] .home-explore-links a,
+body[data-route="rankings"] .ranking-card {
+  --q9-card-undertone: var(--q9-sky-blue);
+  border-block-end-color: color-mix(
+    in srgb,
+    var(--q9-card-undertone) 32%,
+    var(--border)
+  );
+}
+
+body[data-route="home"] .home-explore-links a:nth-child(5n + 2),
+body[data-route="home"] .home-explore-links a:nth-child(5n + 4),
+body[data-route="rankings"] .ranking-card:nth-child(5n + 2),
+body[data-route="rankings"] .ranking-card:nth-child(5n + 4) {
+  --q9-card-undertone: var(--q9-blush-pink);
+}
+
+body[data-route="home"] .home-explore-links a:nth-child(5n + 3),
+body[data-route="rankings"] .ranking-card:nth-child(5n + 3) {
+  --q9-card-undertone: var(--q9-soft-white);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --q9-sky-blue: #79d8f5;
+    --q9-blush-pink: #eaa4b4;
+    --q9-soft-white: #fff8fc;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-route="home"] .hero-actions::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  .site-footer::before {
+    background:
+      radial-gradient(
+        ellipse at 50% 0,
+        var(--keepsake-lace) 0 43%,
+        var(--keepsake-lace-shadow) 45% 50%,
+        transparent 52%
+      ) left top / 14px 6px repeat-x;
+  }
+}
+
+@media (prefers-contrast: more) {
+  body[data-route="home"] .hero-actions::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body .faq-item,
+  body[data-route="home"] .home-explore-links a,
+  body[data-route="rankings"] .ranking-card {
+    border-color: currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  body[data-route="home"] .hero-actions::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body .faq-item,
+  body[data-route="home"] .home-explore-links a,
+  body[data-route="rankings"] .ranking-card {
+    border-color: CanvasText;
+  }
+}
+
+@media print {
+  body[data-route="home"] .hero-actions::after {
+    background: none;
+    content: normal;
+    opacity: 0;
+  }
+
+  body .faq-item,
+  body[data-route="home"] .home-explore-links a,
+  body[data-route="rankings"] .ranking-card {
+    border-color: #777;
+  }
+}
+
 /*
  * Mobile Methodology tables edge-to-edge 2026-07-30.
  *

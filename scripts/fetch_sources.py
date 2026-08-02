@@ -14,7 +14,7 @@ import sys
 import tempfile
 import time
 import unicodedata
-from urllib.parse import quote
+from urllib.parse import quote, unquote, urlsplit
 from urllib.request import Request, urlopen
 
 from ledger import canonical, read_successors
@@ -30,6 +30,21 @@ REFERENCE_FILES = (
 )
 
 
+class UpstreamHtmlChallengeError(RuntimeError):
+    """The TSV endpoint returned an HTML browser challenge with HTTP 200."""
+
+
+def is_html_challenge(text: str) -> bool:
+    sample = text.lstrip()[:16_384].casefold()
+    return (
+        sample.startswith("<!doctype html")
+        or sample.startswith("<html")
+    ) and (
+        "<title>one moment, please" in sample
+        or "window.location.reload" in sample
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=Path("source"))
@@ -42,9 +57,13 @@ def parse_args() -> argparse.Namespace:
 
 
 class PublicTsvClient:
-    def __init__(self, rate: float) -> None:
+    def __init__(self, rate: float, *, stored_source: Path | None = None) -> None:
         self.interval = 1.0 / rate if rate > 0 else 0.0
         self.last_request = 0.0
+        self.stored_source = stored_source
+        self.challenge_fallback_active = False
+        self.challenge_url: str | None = None
+        self.stored_fallback_files = 0
         self.user_agent = (
             "NetworkFootballEloPages/1.0 "
             f"(+https://github.com/{os.environ.get('GITHUB_REPOSITORY', 'scheduled-static-site')})"
@@ -56,7 +75,35 @@ class PublicTsvClient:
         except ImportError:
             self.session = None
 
+    def _stored_text(self, url: str) -> str:
+        if self.stored_source is None:
+            raise RuntimeError(
+                "Eloratings returned an HTML challenge and no stored source "
+                "snapshot is configured"
+            )
+        filename = Path(unquote(urlsplit(url).path)).name
+        if not filename.endswith(".tsv"):
+            raise RuntimeError(f"Refusing stored fallback for non-TSV URL: {url}")
+        parent = (
+            self.stored_source
+            if filename in REFERENCE_FILES
+            else self.stored_source / "elo_pages"
+        )
+        path = parent / filename
+        if not path.is_file():
+            raise RuntimeError(
+                f"Eloratings returned an HTML challenge and stored fallback "
+                f"is unavailable for {filename}"
+            )
+        text = path.read_text(encoding="utf-8")
+        if not text.strip():
+            raise RuntimeError(f"Stored fallback is empty for {filename}")
+        self.stored_fallback_files += 1
+        return text
+
     def get(self, url: str) -> str:
+        if self.challenge_fallback_active:
+            return self._stored_text(url)
         last_error: Exception | None = None
         for attempt in range(4):
             elapsed = time.monotonic() - self.last_request
@@ -79,11 +126,24 @@ class PublicTsvClient:
                         text = response.read().decode("utf-8")
                 if not text.strip():
                     raise RuntimeError(f"Empty response from {url}")
+                if is_html_challenge(text):
+                    raise UpstreamHtmlChallengeError(
+                        f"Eloratings returned an HTML browser challenge for {url}"
+                    )
                 return text
             except Exception as error:  # network failures are retried, then fail closed
                 last_error = error
                 if attempt < 3:
                     time.sleep(2**attempt)
+        if isinstance(last_error, UpstreamHtmlChallengeError):
+            self.challenge_fallback_active = True
+            self.challenge_url = url
+            print(
+                "Eloratings returned an HTML browser challenge; "
+                "using the repository's last validated first-party snapshot",
+                file=sys.stderr,
+            )
+            return self._stored_text(url)
         raise RuntimeError(f"Unable to fetch {url}: {last_error}") from last_error
 
 
@@ -93,6 +153,10 @@ def normalise_name(value: str) -> str:
 
 
 def validate_world(text: str) -> list[list[str]]:
+    if is_html_challenge(text):
+        raise UpstreamHtmlChallengeError(
+            "World.tsv returned an HTML browser challenge instead of TSV"
+        )
     rows = [line.split("\t") for line in text.splitlines() if line.strip()]
     if len(rows) < 200:
         raise ValueError(f"World.tsv unexpectedly has only {len(rows)} rows")
@@ -114,7 +178,7 @@ def fetch_world_table(
     attempts: int = 4,
 ) -> tuple[str, list[list[str]]]:
     """Retry incomplete but HTTP-successful World.tsv responses, then fail closed."""
-    last_error: ValueError | None = None
+    last_error: ValueError | UpstreamHtmlChallengeError | None = None
     for attempt in range(attempts):
         retry_url = (
             url
@@ -124,7 +188,7 @@ def fetch_world_table(
         text = client.get(retry_url)
         try:
             return text, validate_world(text)
-        except ValueError as error:
+        except (ValueError, UpstreamHtmlChallengeError) as error:
             last_error = error
             if attempt + 1 < attempts:
                 delay = 2 ** attempt
@@ -140,6 +204,10 @@ def fetch_world_table(
 
 
 def validate_reference(name: str, text: str) -> None:
+    if is_html_challenge(text):
+        raise UpstreamHtmlChallengeError(
+            f"{name} returned an HTML browser challenge instead of TSV"
+        )
     lines = [line for line in text.splitlines() if line.strip()]
     minimum = 100 if name in {"en.teams.tsv", "en.tournaments.tsv", "menu.tsv"} else 20
     if len(lines) < minimum:
@@ -149,6 +217,10 @@ def validate_reference(name: str, text: str) -> None:
 
 
 def validate_team_page(text: str, slug: str) -> int:
+    if is_html_challenge(text):
+        raise UpstreamHtmlChallengeError(
+            f"{slug}.tsv returned an HTML browser challenge instead of TSV"
+        )
     rows = [line for line in text.splitlines() if line.strip()]
     if not rows:
         raise ValueError(f"{slug}.tsv is empty")
@@ -221,7 +293,7 @@ def main() -> None:
     args.source.mkdir(parents=True, exist_ok=True)
     pages = args.source / "elo_pages"
     pages.mkdir(parents=True, exist_ok=True)
-    client = PublicTsvClient(args.rate)
+    client = PublicTsvClient(args.rate, stored_source=args.source)
     base = args.base_url.rstrip("/")
 
     with tempfile.TemporaryDirectory(prefix="source-refresh-", dir=args.source) as temp_name:
@@ -294,13 +366,28 @@ def main() -> None:
             if not old_path.exists() or old_path.read_text(encoding="utf-8") != text:
                 refreshed.append(slug)
 
-        # Nothing is replaced until every response has passed validation.
-        for filename in REFERENCE_FILES:
-            os.replace(staging / filename, args.source / filename)
-        staged_pages = staging / "elo_pages"
-        page_paths = staged_pages.glob("*.tsv") if staged_pages.exists() else []
-        for path in page_paths:
-            os.replace(path, pages / path.name)
+        # Nothing is replaced until every response has passed validation. If
+        # any TSV endpoint presented an HTML browser challenge, abandon the
+        # whole first-party refresh and revalidate the repository snapshot so
+        # reference tables and team pages cannot drift out of sync.
+        if client.challenge_fallback_active:
+            stored_world = (args.source / "World.tsv").read_text(encoding="utf-8")
+            world_rows = validate_world(stored_world)
+            for filename in REFERENCE_FILES[1:]:
+                validate_reference(
+                    filename,
+                    (args.source / filename).read_text(encoding="utf-8"),
+                )
+            selected = []
+            refreshed = []
+            unresolved = []
+        else:
+            for filename in REFERENCE_FILES:
+                os.replace(staging / filename, args.source / filename)
+            staged_pages = staging / "elo_pages"
+            page_paths = staged_pages.glob("*.tsv") if staged_pages.exists() else []
+            for path in page_paths:
+                os.replace(path, pages / path.name)
 
     status = {
         "source_checked_at": now.replace(microsecond=0).isoformat(),
@@ -311,7 +398,18 @@ def main() -> None:
         "changed": refreshed,
         "unresolved_world_names": unresolved,
         "base_url": base,
-        "integrity": "all downloaded rows passed schema and rewrite guards",
+        "first_party_source": (
+            "stored validated snapshot after upstream HTML challenge"
+            if client.challenge_fallback_active
+            else "live Eloratings TSV responses"
+        ),
+        "first_party_challenge_url": client.challenge_url,
+        "stored_fallback_files": client.stored_fallback_files,
+        "integrity": (
+            "stored first-party snapshot revalidated; independent results refreshed"
+            if client.challenge_fallback_active
+            else "all downloaded rows passed schema and rewrite guards"
+        ),
     }
     (args.source / "status.json").write_text(
         json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
