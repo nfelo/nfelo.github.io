@@ -1,0 +1,51 @@
+name: Install centred editorial geometry repair v13
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: nfelo-centred-editorial-geometry-v13
+  cancel-in-progress: false
+
+jobs:
+  install:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out main with full history
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply, audit, self-delete, publish and deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          Q13_RUNTIME_SHA256: "5ef2d1b1785849c3190aa319fbeb3ada34b7c820db82441459dcc34d5a2f78fd"
+          Q13_PATCH_SHA256: "7e9b74c85eb0583066203ee63a3e0481efed867a4ee44949a9c106e6dd05cc6c"
+          Q13_RUNTIME_BASE85: "c-p-h+j85u_1#~A@@1t|q$TQV@2YJ!Q4;TFoYZ!@?RY#KkOU>HDN-d!+gh*xz2^V~2~x7+y-fWeQQ*PBx!>R@OV`Bnq9QLc=6Qs#H))m=nj~pXbDk#R=%`%tsbG_l{<ZvtZ}jtuidD>g{WBFu5u)AD9G5lD&+t=&h{E4wX~2Z2R<_k+&eu#o|AKgrj(+-d@#DLXpMD~9iKcTz;LmcFJYN<5@qL=zMsa#Cj(H+-8pn3Pl00Lf%|f218K<$mWa*ma+19=r44v&dwvM_-muK(KUtfK>SO8k<joL!0Ekti28QV~v5x4J7?EcK|4;|}h@$b)zH&=_d-o>XcR}1gWr!VJMfX1El>sOyXzV%*TUM{XK;mxC>Immd<0~%YW#G*p5Tpa5qClKQAck^N7js`(QPX@uv>Zx5K-^NTBd(=X?BXn7xji%9nxnsS9ZZ-xu{BnLqP=5f30|52MQviLci9KKZ<XtTOb#{67>D-{VK6x-2_J@)0_Jc8Poe~V#jJd<faOnFI>-VoO7az~g7d0ZOHfvM(F%OO#R9W3q2_X@VMuSN}r|xj-vdM5Xj^Myqz$TM^I1C1Z$RGH#;dIDK0`_68Mbp5{MiV*-qLDl9Pk{NrpY+{P5JtgCNZpY?^xX*^g#BRybIt@{#7{5JXd*ZmiKp$tTcruUN$*&O=I3m-jT6U177kA)Gj=ke(SS~;Clfz(UHIxp!^z2Xe9{MbQUAFUX^<B*_9C9Z=O$wU4wpW;b5IyYlul2^gK;zrfxpp^_5I1f^=E86?2j39LpK_Sje`W3-3G<APH&m#XW%|8^ZYc;+dAp{)4?d1j{E&_IGT>ael(a-w|^4((-9q=_(3?NW9Bw>vg?~0x&*bL>zT+Wv(aEMr6V^O(x5*Z562<spAKeVqbIY;Y{Et-ZZMfhv-<q{>dgnR)putfUuaq{GZVy(_P-CWp%9EJ3}S>=#fZulq)HIY)$5D*3-qU}#ijK7GFH6=LC*kvnYo!e4w_33!rjqP$Rd&zi6ZG0&6dR)fW#>gd8SbDWK-mxzXgn^M1GN9$vGShoZy#&3g`y&1wf=}3~%1iSm;+P7Ti`ZuCfBwyTtyR5%Qfk>3S2hoQ0p&!nHi;Mp;G10Ci%5R}|x4MRc!Pk~Gf^%IjB>nz{U}7eyYXu)#Rt^V#PG;gRNxFkr`Ex7@_C%-nQ&^%g?^fo)pia2Sx*X~|m&CC?gMBdaxBPh*~=9J`Jp+zDBbhOA>1d1TKlTn10>=+lA~O_pF{n0-Y@ox<{KH0DymkRtO!fOZ;!wZLJmnqNynnJcypDLG&<<;nbR(0o%s@}$8nq}+&uTg@Q}8vrI7rEH#I#uUb5wO@K-%oBD!JiX~w%TbyUTm=g#nR3J?<~gnb>$QPI608ywu03gYVE-+6#yUZofKP(ADBJCkHRu>3R;?>ktP&vLgYt;fTdI>X%E1IKw<2fj#RJbfB^Iq5pmM$OR0Qf|z(2ZK%tfi6);Tgnc^SLo0!{&im4%igR@5C&I!*Z;h;L5DXsCRnWWVdI*h9!6BIlj%_36O9k;@P^fA4uZ;=cGSEqTMmn(WTW{^I0X7bQ1_30|!j7M$Sfp+Y29jO8RuA%dZ@*7%O_To77-)&NQ$<XGBW_fpjq$@4T}DfApc@D3y;gYj>tC}H=W;s`Vn?JWQwo1%NNs*P~6xvQ!JA5FGOcyuRelju*SaaR1S@-+r@xvW&2vxmIH5^!IhEawde-YZCr#R*b~7M(p+@^xJugDZfn2ffDb$oi77hYbr*SQ^xpyvy!H$AU*m<&$GXpg%~LHaJPu@Bmd&5&wTElIHeRA(@8vVtR^ANOALA5dqy#OapdUFg?Re_hBlZ4kJ@8r0v!akTkk`P&iXoS7PgtUGr0Mb`3eI(~71$Vn!!Sg~O6No`KUXS>CbUpIv?U@;&(VJHwR0FKW1J6XpgLU}Y>4$1Cs&af}C>nen1XNWS8Nl$|Ndi0qAXhz<x#e5mt+)&3ZyyIzM257TO=+XMBUDNG8jF0Tm{<Wa+eUY`kO6-G>#9ZbTW;J+~P9f9iJ>-YPu09I4Y9s<TfLEiKHL*aiTa0B`A`<j55uX(<o51A~RWl2xrmz5c4mjEk8Ww!B_ggnc)$VL^Ja3d&OTQ-QUYBC)#j5Q!V-Ek@0)Rf+ZdJ|Sb7hmD=Yc2#>(kXewO;3jURbdTATo!VwQX&>+M?3X@27=%xlnL^<?pGXJW1CmJwEb5Rpe06V1U*CBi0)~fHmuhE&Z9cxiTnjx8GXuA*C7`yDv(J+u@V8krChTdryV8k-H@P#k0P&{q+L;?lBKxW1JpA@OS?QUPYL!d(uawJz*WU*rDjNGp3mSsrsq6gt!WM<A<S?Gu{A4}1DG_6^}Gm~1##2_m-bvvia=E~Myy*>Hev|<=JL|{8pfLFmtg$ivXY(3*TAVrGthR&WEfdo#;M=2coMP)2gAD6eI`W2EGa9~Zll~W=3KRfMAkw(<l{cbC$eM-%VZKzNWTSpDiQ!U&UvcChWwIRkZHrRoS#z&<!1Q(=V0i`L4bz=U^cdHRMp?<b{(~|1LaP@c`54+-Nq?JY&cAm4aXW~C^~AQ>G-p8*@ct`KPQ@2Ib0%cl(!Wuh;Bd8mmglk=ABZJt$h}TGO$TMR5@GI9#M!=p)3|*zYPdf=xoJX=;w5B!py(L2iumA>hXRB{wFq&f#=Z8rkO4KG<X9aMgu+9tQ|u8`*5{o+HO}tZp|sruXWIAiA<ygw4<uXhJ+DHAA;^YEMOHy#U3CKHUm94e#_YQv}9%ch#{>3Wy&4Bkm1OJ93T&#0Z9{wn#r_Lw3vRT@z}d}zMrm^Xkxxx<@XFfiHZTro&>f;Jc?K*>N=zp6Qadd)G-o@SxiD^EMv=F%Iy7wb)UX%;H%TDMz&YX_FneQNYPGB``}Lxr((31Ds5v)l;z@{>+1#cuVX1=J4OSCzCYqi`G}#IX2DASD6<Qcru5h-A0)Z$9RE2>a}_t&5OHEm#JEp!Q<_IrikKOB$0Jdlrk@)=n*i!o2-u$icefm#4p)e*h900!Nl+Ed8K|KIbKWF<Zwn#vfdxfQ{g^dnWZ7%0wNfNJ$5Cf{J>(+5>Y}}F+ft`C6q6w9G~2cT<ZO3$SIJ82MY*~I4F~(FU^{iwVI}E;=TEA1{;U!Q4lKLQsx&E^Ochw5hA~Q#(wU|87OK;P9<PNGX*h)Phu@5`QLErZq*JAIq+b^SC4W7l-^T2Y#q*PHmwY!TC;R#x4cQzb>D~u(ihyWkLj*{`qGVTHgiDrxWrnm%Cko|dbWX>I=`>sXKTK$?D=R6WBFQ?kVc$A&y7b~yh#r}At@hZ#`pEAf=cG#;K>#aMnHg#kyOc7RedXY9fVLklKb?0h89qg^Uejy~wwoqa_nWdZ-XjEz@^%R=7eEj`hiY&OHB%h>G`Ka)s+IbyZn#Kdp4@gCd7nI!X(7wkjrNOcni5ru19?|tbahn@Zchm@O$!!Bwxj_?ixK5O^%sUJ+~}GNi?UapD%mwMXEPCZy9dJ;#ewE-z5x!FQf958y*#Zku-B)yn(6&VBy`Q}G=Y+{yF1!%N?%h@%et%*)%sVfpt}Ci(V0g(;~^~L-(LL3yZCahyucb*b$;7`(dW$!XT8m~Hi#0~MsGcBRAw?rs{#~M+9U1=Boq|r)iN{nTCKfR=3yeUa<5&u^$ZgMexS(;!Ff~k3wb+}6G&A&;^>Tf$B=mIvRh!NatEJ)vdlr1;16}bYf~9r#I>L1H%1}x?6s1{R<B5`Yz-ZbxjGumPG;`R{p+4{{()PBlcX4&w&hJT#@1*3q2>Xga89+{ECpXCxDw&z<;zINt&MvxvqZ73#Vy~EfZq`Hza%6FdxZ|3`#w-E6|!deDh*QzmC(o2gvH`nk~f7|;dh$xC6|PLSiF9FDhG_eXS^mSYUMD=aE5yL0^A{q`o>yGU}Z9>XMN@xkZk^}FZmnSgBgp=h4z%xZoCCx$Zac6mE3cspJ$<Q;_j7O8nAU~iiO*HBPS*qim5Yfj0!~&=jCnat5OQho7Y}>k1Vgb8`p|zv!h%GvpL3u{%ON&eW<-|%}tsd0Ck(7JJ*LL{{45QH6{2TQx233Y}0Yct5^Dja{kebN_u{b0n&&U@Cz*tLr<zE(=vc?q3^IN%^E?;!fpxetCT+`rm`!S-3(qR$@)Q#0OiOVvl&<(1s5n-8HaFc4|4H5j4hrg<ErN&5uR6uS2fT-`X9w|pZE"
+          Q13_PATCH_BASE85: "c-pO4ZFAc;68^4VfpV@jS&6hHzeYYKaXrqpb9r$c_fsarf+Q&6Oc4wK+1920@3#w(5-Ev}oU3ONTfpvO-|*}MB|J@u?@zcUbibHK8ISj=QcSCTS`@*56p6MjcX*z#2Xc5gIF9MbFbEE!Xm~IjGBW7*j}H$!zVEkK>~y=`Hmk2+6MyjHuy;(l`0L=9z)CD~rHNYP@yA$-ETd7z-UvCHXY`s)IP8)!aXm7ANxpUnA&=f!hdjc+PIv!ja=~&fSwdLCwUC@<WWvOZX}KVh6_iUd><^Fq{;A(T2*}U-o$l(qUl~n!KDp*mB=Ub%YOBM#gz%KO_?r;DD40k|BI5ZB&J4cHnOuBi8H?fE^DHAjjK{=D=XtEbXU8i2_1A`8EE(18n&uO>Ma2WJ^<3s>_@VVI*9i(bVgA$xK&Au73sNC3X*_k^a&;91A>~q_^de({WHWKcuB0fK)C<?~{XAuv@TEzF&-0Au%<;~wuFY3z;Tl|k3|00fO#dS0IsSc-ac~v)-AWUaSJMmbd7`J}pJY&rvVMj%Nf~d=)zYXD3Y1C4dy%jUk!z4u%di`6r;<+46!y@$lyniKQp{Xy1iW8)ty~Xs$TQ7kS#d&K2^%Jla^?R^G9W+wWLKt)Po^4|dRC|DWx_O6<W<nf$PY`Of{f)8J#ERx9akK#!dsSN#@|sr4Q4!dgCJNLn9;&rb20;YubG6>(zWrmGDRQ0X-cBPc3bw^;a#b_*=-!<k$o~Ge!X>!cMW@rrYmDh&-%Spz#ARZYdW!Xu-W8*JIfBQ>e<riy=wo@e|%l}6KL^<Kd{6ddXL4!pN#?|26Z2?U^V!<LFCfVt+(LCm1GLcP`ueq{K6i15=_=$VbvbXq$Nz<YEjg$O2dL{kajpcLZlrY9raFDKnsF%_WS8IQw4nHhy!h&67r=c_eRng7O8(`_nL@pf-mtJ+kJ~j6V#V?q7{i7W?GY5N>x(<13&8b`xyCA|6pK4uaXI=guy1?oc|7Cu2%y><^N?LBE{q#lVrSBg)${MyI+%ZpG>J22rK8t7O6^q8vviemU;!iOp`^Rr!4=5O=AMn0_c}B<KaixVr4S!VSJ1GfF{Z19q7E}3JykGv$tSM)ij<WLP6^%?G(XWBo)MJlP0XTN~*vPkLhuo9tOei;Pl|d;3RsAD%8}s(S_Q!p$w-l4i9<<KpM;+hkYz*B$5Tep@%*7DWRH{ce`BjVZ_Na6Zd0B%Q<sCk5b6C@=NTf$~j#WkZv_1xyV^r87vNx3n<Yu2?lByt#cC5jOH;Yf-{=?2sA`<4JXGmCnApL#ez^M74##y`1lb5dLSCALO4vT(o16tRaHQ4ri{!ORde*lA{Qxy;-;@}87ma1Goq#x1uVjm2<i?%iaW+u6}|O@YQi8(3lc%+-4=r9x(6PC{89f$gdGZpB!nt(G#9>#B`;v6(kzQ;d~2d5@0gy7L}X&JAZ6+yLYaV0o{)sAI1}iz0t@%nJL6|u=2ey)hCXn0W-MY#NI?;9U>F-S><-o-n?xfFsM0lKC!=x#QkuonoX1ceNINsG0oSulvc{DxDcU*;Mi@9kJ2t>p<<W?y=#{a7(`-cUsC2hl>!CHTZqD|p6m!kS&TN%A=Q9avAALM@+1$PF(X}f+G7z4rr7i3C406U-G1Ivg-|ywxN#+1Er$+?Gx6Mv*=a+@{dI$_ZTJ(omUwYvqqE@-ANiW4plWhX60ll8V&85Vx**F>YiwDno`uD`Uj2J^J=h{YWYkTV&kLYj%jWtsMhWLMow}ruV370SwRxlI*jzqi5c5r|J&jm06_FRFq1@V6Q69gyGadenOu|e<sgx&4u^DHaDdiS#sz5BgBAb0N+AA6lH(r*%m=^Q8x3q!(Zg^&<zo(ntM6c(*q#X*(vsMIO|$lz0@as?lklJlHvbO@C@-Rln@Zh)zvgbQauuwm%IbX6jQIqbommdJTO4L*0eSAYES_O}a=HcI=%v7-oHV*twG)%ne@Xvqq}uANX0{<)e`Abfsx^`x+U0fXSX^Xq?KUW1tPtjXfo$l?raRx|0cQmh!$4Hm|&auMLi3#ynmvR(JuXxsj^D+x;pxcEnLfje%TDUbLs$$OZEqly#*>C7w%7?Ua`hN*;_J!ltTS>Qz+J9C}-r;gXugSheORc2>*y^Jo9gH>k-s>rx@ZSnv?JX5<>5T+R=&|e5Q<SK+50D}r)c7)X+cHzyKZVM0B11y!)mtW>IGlJ&O7~Zzkp@>`Fx0JBT&sH*_mTJyd2Xr=<A05xzi1%K?d2sj4Fc0nMQDF*nTil1`q&LZ4-pSS+z<2;?&E^c41#wsFhA-~;jmhdAWq<ab_5H=(nzpn3TY&XLoNs;~(4w*a_}>tF@)iEH^u|kjBQ@=B)%85=wLDrk^7Yg^%4tpRvtJ%{Q{Jd)w$|Uj;pB&YDw`P^b^AR4xi!~zBUS4Wt*%VnzqTWtC)l4;zki#Tu0{w#!*fH!X+y|eSaRC1<R&3<+9$7^s-FCtw{Gvd`Qk<g{l6S%Z|9O%@vNnACzRR7;Wqkq7h<`gv;)iB&}pTO-`D>w&4f>#aQSoz?dvAQb^<yS=2S{?zuV+`FHBzt#)Pk?EX$mhDs0hOzP5a$|BWkP-i)E?C1~{&_#ezy6~=Rkv??^L2R0B4@r#}|?_t6&rSLmtOZEb|PQ#;Pw@Edk1)PlE&`#My!YAN`>wOvxhM!mF0Aijn*JL0&m^0xa=TX2fp$3-K1#*&!$aM@~4yJmRnZevT;4=VJYYEzOc-&vR3}y>2gOyopCo~TZn7!SY(^emv+m+#xS)|U!cP_8)#$W5T0q)V;v~jRy&3L-D{`Yui=`(s(FY|WK2D^J^-Wn;qM{;O?c#Ys!eqlJHJP$*stj3Z~<Fe~@{s*W+gj@"
+        run: |
+          python - <<'PY'
+          import base64, hashlib, os, zlib
+          b = "".join(os.environ["Q13_RUNTIME_BASE85"].split()).encode("ascii")
+          s = zlib.decompress(base64.b85decode(b))
+          if hashlib.sha256(s).hexdigest() != os.environ["Q13_RUNTIME_SHA256"]:
+              raise SystemExit("Encoded installer runtime failed its SHA-256 check.")
+          exec(compile(s, "<centred-editorial-geometry-v13>", "exec"))
+          PY
