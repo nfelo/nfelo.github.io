@@ -18943,3 +18943,40 @@ body .formula[data-nfelo-formula-overflow="true"]:focus-visible {
     hyphens: none;
   }
 }
+
+/*
+ * Centred editorial geometry repair 2026-08-03.
+ *
+ * A balanced multi-line title can occupy a wider CSS box than its visible
+ * lines. The measured inline position keeps the shared ribbon beneath the
+ * visible title at every breakpoint, with 50% retained as a no-script fallback.
+ * Methodology formula cards and disclosures now share the centred reading axis;
+ * wide parameter and evidence tables retain the larger technical lane.
+ */
+body .page-heading h1 {
+  --nfelo-ribbon-inline: 50%;
+}
+
+body .page-heading h1::after {
+  left: var(--nfelo-ribbon-inline, 50%);
+}
+
+body[data-route="methodology"] .methodology-page .formula,
+body[data-route="methodology"] .methodology-page .method-details .formula {
+  margin-inline: auto;
+}
+
+body[data-route="methodology"] .methodology-page .method-details {
+  width: min(var(--pv-reading), 100%);
+  max-inline-size: var(--pv-reading);
+  max-width: var(--pv-reading);
+  margin-inline: auto;
+}
+
+@media (max-width: 720px) {
+  body[data-route="methodology"] .methodology-page .method-details {
+    width: 100%;
+    max-inline-size: 100%;
+    max-width: 100%;
+  }
+}

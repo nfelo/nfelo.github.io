@@ -194,6 +194,36 @@ const syncScrollableFormulaRegions = () => {
   });
 };
 
+/* Centred editorial geometry repair 2026-08-03. */
+const syncHeadingRibbonGeometry = () => {
+  if (
+    typeof document.querySelectorAll !== "function"
+    || typeof document.createRange !== "function"
+  ) return;
+  document.querySelectorAll(".page-heading h1").forEach((heading) => {
+    heading.style.removeProperty("--nfelo-ribbon-inline");
+    const headingRect = heading.getBoundingClientRect();
+    if (headingRect.width < 1) return;
+
+    const range = document.createRange();
+    range.selectNodeContents(heading);
+    const fragments = Array.from(range.getClientRects()).filter(
+      (rect) => rect.width > 1 && rect.height > 1,
+    );
+    range.detach?.();
+    if (!fragments.length) return;
+
+    const visibleLeft = Math.min(...fragments.map((rect) => rect.left));
+    const visibleRight = Math.max(...fragments.map((rect) => rect.right));
+    const visibleCentre = (visibleLeft + visibleRight) / 2 - headingRect.left;
+    const safeCentre = Math.max(0, Math.min(headingRect.width, visibleCentre));
+    heading.style.setProperty(
+      "--nfelo-ribbon-inline",
+      `${safeCentre.toFixed(2)}px`,
+    );
+  });
+};
+
 const syncTabletRankingPresentation = () => {
   if (typeof document.querySelector !== "function") return;
   const desktop = document.querySelector(
@@ -225,6 +255,7 @@ const queueQ8ResponsivePresentation = () => {
     q8ResponsiveFrame = 0;
     syncScrollableTableRegions();
     syncScrollableFormulaRegions();
+    syncHeadingRibbonGeometry();
     syncTabletRankingPresentation();
   });
 };
@@ -5000,6 +5031,7 @@ function renderFAQ() {
   if (typeof ResizeObserver === "function") {
     new ResizeObserver(queueQ8ResponsivePresentation).observe(content);
   }
+  document.fonts?.ready.then(queueQ8ResponsivePresentation);
   syncConnectionState();
   window.addEventListener(
     "hashchange",
