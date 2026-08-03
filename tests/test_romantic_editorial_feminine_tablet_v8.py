@@ -12,7 +12,7 @@ CSS = PUBLIC / "assets" / "styles.css"
 APP = PUBLIC / "assets" / "app.js"
 BUILD_TESTS = ROOT / "tests" / "test_build.py"
 SIGNATURE = "Romantic editorial feminine tablet v8 2026-08-02."
-END_MARKER = "Mobile Methodology tables edge-to-edge 2026-07-30."
+END_MARKER = "Velvet botanical ledger unified system 2026-08-03."
 
 
 class RomanticEditorialFeminineTabletV8Tests(unittest.TestCase):

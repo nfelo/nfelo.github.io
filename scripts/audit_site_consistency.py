@@ -521,14 +521,14 @@ def main() -> None:
     )
     assert root_nav
     nav_html = root_nav.group(0)
-    root_assets = tuple(
+    root_assets = tuple(sorted(set(
         re.findall(
-            r'(?:href|src)="(assets/(?:styles\.css|app\.js)'
+            r'(?:href|src)="(assets/(?:critical\.css|styles\.css|app\.js)'
             r'(?:\?v=[^"]+)?)"',
             root_html,
         )
-    )
-    assert len(root_assets) == 2
+    )))
+    assert len(root_assets) == 3
     sitemap = (
         public / "sitemap.xml"
     ).read_text(encoding="utf-8")
@@ -544,13 +544,13 @@ def main() -> None:
         )
         assert route_nav
         assert route_nav.group(0) == nav_html
-        route_assets = tuple(
+        route_assets = tuple(sorted(set(
             re.findall(
-                r'(?:href|src)="(assets/(?:styles\.css|app\.js)'
+                r'(?:href|src)="(assets/(?:critical\.css|styles\.css|app\.js)'
                 r'(?:\?v=[^"]+)?)"',
                 html,
             )
-        )
+        )))
         assert route_assets == root_assets
         canonical = f"https://nfelo.github.io/{route}/"
         assert (

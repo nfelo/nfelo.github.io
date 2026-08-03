@@ -585,7 +585,11 @@ def sha256(path: Path) -> str:
 def version_browser_assets(output: Path) -> None:
     index = output / "index.html"
     html = index.read_text(encoding="utf-8")
-    for asset in ("assets/styles.css", "assets/app.js"):
+    for asset in (
+        "assets/critical.css",
+        "assets/styles.css",
+        "assets/app.js",
+    ):
         revision = sha256(output / asset)[:12]
         html = re.sub(
             rf'{re.escape(asset)}(?:\?v=[^"\']*)?',
@@ -824,6 +828,38 @@ def build_fixtures(
         "source": payload.get("source"),
         "fixtures": fixtures,
     }
+
+
+def homepage_fixtures(
+    fixtures: list[dict[str, Any]],
+    limit: int = 5,
+) -> list[dict[str, Any]]:
+    """Select dated homepage fixtures, strongest first within each day."""
+
+    known_dates = [
+        fixture
+        for fixture in fixtures
+        if (
+            fixture.get("date_precision", "day") == "day"
+            and complete_public_date(str(fixture.get("date", "")))
+            is not None
+        )
+    ]
+
+    def order(fixture: dict[str, Any]) -> tuple[Any, ...]:
+        try:
+            combined = float(fixture.get("combined_rating", float("-inf")))
+        except (TypeError, ValueError):
+            combined = float("-inf")
+        return (
+            str(fixture["date"]),
+            -combined,
+            str(fixture.get("team1_name", "")),
+            str(fixture.get("team2_name", "")),
+            str(fixture.get("tournament_name", "")),
+        )
+
+    return sorted(known_dates, key=order)[:limit]
 
 
 def update_prospective_ledger(
@@ -2343,6 +2379,34 @@ def main() -> None:
     build_historical_rankings(data, output)
     build_ranking_movements(output)
     write_json(data / "summary.json", output.summary)
+    write_json(
+        data / "bootstrap.json",
+        {
+            "meta": output.summary["meta"],
+            "current": output.summary["current"][:10],
+            "top_matches": output.summary["top_matches"][:5],
+            "parameters": output.summary["parameters"],
+            "validation": output.summary["validation"],
+        },
+    )
+    write_json(
+        data / "team-index.json",
+        {
+            "current": output.summary["current"],
+            "teams": output.summary["teams"],
+        },
+    )
+    write_json(
+        data / "records.json",
+        {
+            "peaks": output.summary["peaks"],
+            "top_matches": output.summary["top_matches"],
+            "upsets": output.summary["upsets"],
+            "number_ones": output.summary["number_ones"],
+            "number_one_summary": output.summary["number_one_summary"],
+            "best_tournaments": output.summary["best_tournaments"],
+        },
+    )
     write_json(data / "state.json", output.state)
     fixtures = build_fixtures(args.source, args.config, output)
     annotate_ongoing_tournament_editions(
@@ -2350,6 +2414,10 @@ def main() -> None:
         fixtures,
     )
     write_json(data / "fixtures.json", fixtures)
+    write_json(
+        data / "home.json",
+        {"fixtures": homepage_fixtures(fixtures.get("fixtures", []))},
+    )
     update_prospective_ledger(
         args.source,
         fixtures,

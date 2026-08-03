@@ -19,7 +19,6 @@
   const dataCache = new Map();
   const confidenceZ = 1.6448536269514715;
   let summary;
-  let catalog;
   let teamAliasSearch = new Map();
 
 
@@ -518,6 +517,56 @@ const queueQ8ResponsivePresentation = () => {
     return dataCache.get(path);
   }
 
+  const TEAM_DATA_ROUTES = new Set([
+    "rankings",
+    "history",
+    "tournaments",
+    "matches",
+    "fixtures",
+    "records",
+    "compare",
+    "predict",
+    "team",
+  ]);
+  const PAGE_FAMILIES = {
+    home: "cover",
+    team: "cover",
+    methodology: "salon",
+    faq: "salon",
+    about: "salon",
+  };
+
+  const loadLegacySummary = async () => {
+    summary = await getJSON("data/summary.json");
+  };
+
+  const ensureRouteData = async (section) => {
+    if (!summary) {
+      try {
+        summary = await getJSON("data/bootstrap.json");
+      } catch (error) {
+        await loadLegacySummary();
+      }
+    }
+    const needsTeams = TEAM_DATA_ROUTES.has(section) && !summary.teams;
+    const needsRecords = section === "records" && !summary.peaks;
+    if (needsTeams || needsRecords) {
+      try {
+        const [teamData, recordData] = await Promise.all([
+          needsTeams ? getJSON("data/team-index.json") : null,
+          needsRecords ? getJSON("data/records.json") : null,
+        ]);
+        if (teamData) Object.assign(summary, teamData);
+        if (recordData) Object.assign(summary, recordData);
+      } catch (error) {
+        await loadLegacySummary();
+      }
+    }
+    if (summary.teams && !teamAliasSearch.size) {
+      initialiseTeamAliasSearch();
+    }
+  };
+
   function setTitle(title) {
     document.title = title ? `${title} · Network Football Elo` : "Network Football Elo";
   }
@@ -778,7 +827,7 @@ const queueQ8ResponsivePresentation = () => {
   async function renderHome() {
     setTitle("");
     const topTen = summary.current.slice(0, 10);
-    const fixturePayload = await getJSON("data/fixtures.json");
+    const fixturePayload = await getJSON("data/home.json");
     const nextFixtures = (fixturePayload.fixtures || []).slice(0, 5);
     content.innerHTML = `
       <div class="page home-page">
@@ -3783,7 +3832,7 @@ function renderRecords(route) {
     content.innerHTML = `
       <div class="page predict-page">
         <header class="page-heading"><div><p class="eyebrow">Historical and current match calculator</p><h1>Predict a match</h1></div><p class="lede">Choose any date and two teams ranked on that date. The main forecast shows W/D/L probabilities; exact scores and projected rating effects remain available in expandable tables.</p></header>
-        ${ratingForecastExplanation()}
+        <div class="predict-explainer">${ratingForecastExplanation()}</div>
         <div class="toolbar history-toolbar predict-date-toolbar">
           <div class="history-date-actions"><div class="field history-date-field"><label for="predict-date">Prediction date</label><div class="date-combo"><input id="predict-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="DD/MM/YYYY" value="${validDate(selectedDate)}" aria-describedby="predict-date-error"><button class="button" type="button" id="predict-calendar-button" aria-label="Open prediction-date calendar">Calendar</button><input id="predict-calendar" class="native-date-proxy" type="date" min="${historyIndex.first}" max="${maximumPredictionDate}" value="${selectedDate}" tabindex="-1" aria-hidden="true"></div><span id="predict-date-error" class="field-error" role="alert"></span></div><button class="button button-dark" type="button" id="predict-apply">Apply date</button></div>
         </div>
@@ -3912,7 +3961,7 @@ function renderRecords(route) {
       initialMatchId = null;
       const options = (selected) => teams.map((team) => `<option value="${escapeHTML(team.code)}" ${team.code === selected ? "selected" : ""}>No. ${team.rank} · ${escapeHTML(team.nation)} · ${rating(team.rating)}</option>`).join("");
       body.innerHTML = `
-        <div class="predictor">
+        <div class="predictor" aria-label="Match pairing">
           <div class="team-picker"><p class="eyebrow">Team one</p><select id="predict-a" aria-label="Team one">${options(codeA)}</select></div>
           <div class="versus" aria-hidden="true">v</div>
           <div class="team-picker"><p class="eyebrow">Team two</p><select id="predict-b" aria-label="Team two">${options(codeB)}</select></div>
@@ -4492,9 +4541,7 @@ function renderFAQ() {
   setTitle("Frequently asked questions");
   content.innerHTML = `
     <article class="page page-narrow prose faq-page">
-      <p class="eyebrow">Understanding the site</p>
-      <h1>Frequently asked questions</h1>
-      <p class="lede">Straightforward answers about ratings, forecasts, historical data, tournaments, records and methodology.</p>
+      <header class="page-heading page-heading-salon"><div><p class="eyebrow">Understanding the site</p><h1>Frequently asked questions</h1></div><p class="lede">Straightforward answers about ratings, forecasts, historical data, tournaments, records and methodology.</p></header>
       <div class="faq-tools" role="search">
         <div class="field field-grow">
           <label for="faq-search">Search questions</label>
@@ -4551,9 +4598,7 @@ function renderFAQ() {
     const benchmark = summary.validation.nested;
     content.innerHTML = `
       <article class="page page-narrow prose methodology-page">
-        <p class="eyebrow">Model · evidence · limitations</p>
-        <h1>Methodology</h1>
-        <p class="lede">NFELO uses one connected model of team strength. It publishes a cautious rating for rankings and records, while match forecasts also use venue, uncertainty and team-specific scoring patterns.</p>
+        <header class="page-heading page-heading-salon"><div><p class="eyebrow">Model · evidence · limitations</p><h1>Methodology</h1></div><p class="lede">NFELO uses one connected model of team strength. It publishes a cautious rating for rankings and records, while match forecasts also use venue, uncertainty and team-specific scoring patterns.</p></header>
 
         <nav class="method-contents" aria-label="Methodology sections">
           <a href="#/methodology?section=overview">Plain-English overview</a>
@@ -4708,9 +4753,8 @@ function renderFAQ() {
     setTitle("About");
     const update = summary.meta.source_update || {};
     content.innerHTML = `
-      <div class="page page-narrow">
-        <p class="eyebrow">Data · updates · limitations</p><h1>About</h1>
-        <p class="lede">Network Football Elo is an independent, results-only international football strength and prediction system. It covers senior men's internationals from 1872 to the present and publishes its evidence limits alongside its results.</p>
+      <div class="page page-narrow prose about-page">
+        <header class="page-heading page-heading-salon"><div><p class="eyebrow">Data · updates · limitations</p><h1>About</h1></div><p class="lede">Network Football Elo is an independent, results-only international football strength and prediction system. It covers senior men's internationals from 1872 to the present and publishes its evidence limits alongside its results.</p></header>
         <section class="section split">
           <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(summary.meta.results_through)}</h2><p>${number(summary.meta.matches)} matches across ${number(summary.meta.teams)} team histories.</p><p class="muted small">Data checked: ${update.source_checked_at ? validTimestamp(update.source_checked_at) : validDate(summary.meta.results_through)}<br>Site generated: ${validTimestamp(summary.meta.generated_at)}</p></div>
           <div class="panel panel-dark"><p class="eyebrow">Automatic updates</p><h2>Checked three times daily.</h2><p class="muted">Results and fixtures are checked after the main Americas, Asia/Oceania and Europe/Africa match windows. Each update is validated and the complete rating history is rebuilt before publication. If new data fails validation, the existing site remains online unchanged.</p></div>
@@ -4748,11 +4792,14 @@ function renderFAQ() {
     disposeRatingHistoryCharts();
     const current = parseRoute();
     document.body.dataset.route = current.section;
+    document.body.dataset.pageFamily = PAGE_FAMILIES[current.section] || "ledger";
     setActiveNav(current.section);
     content.setAttribute("aria-busy", "true");
     try {
-      if (!summary) [summary, catalog] = await Promise.all([getJSON("data/summary.json"), getJSON("data/catalog.json")]);
-      if (!teamAliasSearch.size) initialiseTeamAliasSearch();
+      await Promise.all([
+        ensureRouteData(current.section),
+        window.__nfeloStyleReady || Promise.resolve(),
+      ]);
       switch (current.section) {
         case "home": await renderHome(); break;
         case "rankings": renderRankings(current); break;

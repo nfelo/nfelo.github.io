@@ -194,14 +194,14 @@ const summary = {
     retrospective: { accuracy: 0, log_loss: 0 },
   },
 };
-const catalog = { teams: [], tournaments: [] };
 const fixtures = { fixtures: [] };
 
 async function fetchMock(input) {
   const pathname = new URL(String(input)).pathname;
   let value;
-  if (pathname.endsWith("/data/summary.json")) value = summary;
-  else if (pathname.endsWith("/data/catalog.json")) value = catalog;
+  if (pathname.endsWith("/data/bootstrap.json")) value = summary;
+  else if (pathname.endsWith("/data/summary.json")) value = summary;
+  else if (pathname.endsWith("/data/home.json")) value = fixtures;
   else if (pathname.endsWith("/data/fixtures.json")) value = fixtures;
   else throw new Error(`Unexpected fetch in boot smoke test: ${pathname}`);
   return {

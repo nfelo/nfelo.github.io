@@ -1,7 +1,7 @@
 @font-face {
   font-family: "Fraunces Variable";
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
   font-weight: 400 900;
   src:
     url("fonts/fraunces-variable-latin-v38.woff2")
@@ -17844,6 +17844,942 @@ body :is(.record-note, .method-contents) {
     .venue-profile-details
   ) > summary::after {
     outline-color: transparent;
+  }
+}
+
+/* Velvet botanical ledger unified system 2026-08-03. */
+:root {
+  --q11-plum: #4a173e;
+  --q11-plum-deep: #2c1027;
+  --q11-rose: var(--q8-rose-petal);
+  --q11-lilac: var(--q8-lilac-mist);
+  --q11-sage: var(--q8-sage);
+  --q11-champagne: var(--q8-champagne);
+  --q11-powder: var(--q8-powder-blue);
+  --q11-pearl: #fffafd;
+  --q11-accent: var(--q11-rose);
+  --q11-accent-two: var(--q11-lilac);
+  --q11-route-tint: color-mix(
+    in srgb,
+    var(--q11-accent) 10%,
+    var(--surface)
+  );
+  --q11-seam: color-mix(
+    in srgb,
+    var(--q11-accent) 34%,
+    var(--border)
+  );
+  --q11-soft-shadow: 0 14px 34px rgba(74, 23, 62, 0.08);
+}
+
+body[data-route="history"],
+body[data-route="compare"] {
+  --q11-accent: var(--q11-lilac);
+  --q11-accent-two: var(--q11-powder);
+}
+
+body[data-route="records"],
+body[data-route="tournaments"] {
+  --q11-accent: var(--q11-champagne);
+  --q11-accent-two: var(--q11-rose);
+}
+
+body[data-route="methodology"],
+body[data-route="about"] {
+  --q11-accent: var(--q11-sage);
+  --q11-accent-two: var(--q11-champagne);
+}
+
+body[data-route="fixtures"],
+body[data-route="matches"],
+body[data-route="predict"] {
+  --q11-accent: var(--q11-powder);
+  --q11-accent-two: var(--q11-rose);
+}
+
+body[data-route="faq"] {
+  --q11-accent: var(--q11-rose);
+  --q11-accent-two: var(--q11-lilac);
+}
+
+body[data-page-family="ledger"] .page,
+body[data-page-family="salon"] .page {
+  padding-block-start: clamp(28px, 4vw, 54px);
+}
+
+body .page-heading {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(330px, 1.05fr);
+  align-items: end;
+  gap: clamp(28px, 5vw, 72px);
+  margin-block-end: clamp(24px, 3.2vw, 42px);
+  padding: 14px 18px 30px;
+  border-block-end: 1px solid var(--q11-seam);
+}
+
+body .page-heading::before {
+  position: absolute;
+  z-index: -1;
+  top: -22px;
+  left: -8px;
+  width: min(360px, 34vw);
+  height: 150px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 52% 44% at 26% 44%,
+      color-mix(in srgb, var(--q11-accent) 22%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 46% 52% at 68% 62%,
+      color-mix(in srgb, var(--q11-accent-two) 16%, transparent),
+      transparent 74%
+    );
+  border-radius: 64% 36% 56% 44% / 46% 58% 42% 54%;
+  content: "";
+  transform: rotate(-4deg);
+}
+
+body .page-heading::after {
+  right: auto;
+  bottom: -3px;
+  left: 18px;
+  width: clamp(116px, 18vw, 220px);
+  height: 5px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--q11-accent) 0 42%,
+      transparent 42% 46%,
+      var(--q11-champagne) 46% 49%,
+      transparent 49% 53%,
+      var(--q11-accent-two) 53% 100%
+    );
+  border: 0;
+  border-radius: 999px;
+  content: "";
+  opacity: 0.72;
+  transform: none;
+}
+
+body .page-heading > div {
+  min-width: 0;
+}
+
+body .page-heading h1 {
+  max-width: 12ch;
+  margin-block: 6px 0;
+  font-size: clamp(3rem, 6vw, 5.4rem);
+  font-weight: 560;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+body .page-heading .eyebrow {
+  color: color-mix(in srgb, var(--ink) 74%, var(--q11-accent));
+}
+
+body .page-heading .lede {
+  max-width: 61ch;
+  margin: 0;
+  font-size: clamp(1.05rem, 1.45vw, 1.3rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+body .page-heading-salon {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  max-width: 930px;
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+body .page-heading-salon h1 {
+  max-width: 15ch;
+}
+
+body .page-heading-salon .lede {
+  max-width: 66ch;
+  padding-inline-start: clamp(0px, 4vw, 58px);
+}
+
+body[data-page-family="cover"] :is(.home-intro, .team-hero) {
+  border-color: color-mix(in srgb, var(--q11-rose) 30%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 5px rgba(255, 255, 255, 0.025),
+    0 22px 54px rgba(62, 17, 52, 0.2);
+}
+
+body[data-route="home"] :is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore
+) {
+  background: color-mix(in srgb, var(--surface) 96%, var(--q11-route-tint));
+  border-color: var(--q11-seam);
+  box-shadow: var(--q11-soft-shadow);
+}
+
+body[data-route="home"] .home-dashboard > *,
+body[data-route="home"] .home-support > * {
+  min-width: 0;
+}
+
+body[data-route="home"] .home-explore-links a {
+  min-height: 132px;
+  justify-content: space-between;
+  background: color-mix(
+    in srgb,
+    var(--surface) 94%,
+    var(--q8-tile-accent)
+  );
+  border-block-start-width: 4px;
+  box-shadow: 0 8px 22px rgba(74, 23, 62, 0.055);
+}
+
+body[data-route="home"] .home-explore-links b {
+  font-size: 1.08rem;
+}
+
+body :is(
+  .toolbar,
+  .faq-tools,
+  .comparison-selection,
+  .comparison-pair-picker,
+  .comparison-add-panel,
+  .method-contents,
+  .team-picker,
+  .venue-profile,
+  .team-model-details
+) {
+  background:
+    linear-gradient(
+      142deg,
+      color-mix(in srgb, var(--surface) 96%, var(--q11-accent)),
+      color-mix(in srgb, var(--surface) 97%, var(--q11-accent-two))
+    );
+  border-color: var(--q11-seam);
+  box-shadow:
+    inset 0 1px 0 var(--pv-highlight),
+    var(--q11-soft-shadow);
+}
+
+body .toolbar {
+  border-radius: 24px;
+}
+
+body .field > label,
+body .team-picker > :is(label, .eyebrow),
+body .comparison-team-row label > span:first-child {
+  color: color-mix(in srgb, var(--ink) 76%, var(--q11-accent));
+}
+
+body :is(input, select, textarea) {
+  background-color: color-mix(in srgb, var(--surface) 97%, var(--q11-pearl));
+}
+
+body .button-primary,
+body .button-dark,
+body :is(
+  .record-tabs,
+  .toggle-group
+) .button[aria-pressed="true"],
+body :is(
+  .record-tabs,
+  .toggle-group
+) .button[aria-selected="true"] {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--q11-plum) 86%, var(--q11-rose)),
+      color-mix(in srgb, var(--q11-plum) 80%, var(--q11-lilac))
+    );
+  border-color: color-mix(in srgb, var(--q11-rose) 52%, var(--q11-plum));
+}
+
+body .button-quiet {
+  background: color-mix(in srgb, var(--surface) 94%, var(--q11-route-tint));
+}
+
+body :is(.history-date-actions, .record-filter-actions) {
+  align-items: end;
+}
+
+body :is(#history-apply, #predict-apply) {
+  min-inline-size: 118px;
+}
+
+body[data-route="predict"] .predict-explainer {
+  max-width: 930px;
+  margin: 0 auto clamp(20px, 3vw, 34px);
+}
+
+body[data-route="predict"] .predict-explainer > * {
+  margin: 0;
+}
+
+body[data-route="predict"] .predict-date-toolbar {
+  max-width: 930px;
+  margin-inline: auto;
+  background:
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--surface) 90%, var(--q11-champagne)),
+      color-mix(in srgb, var(--surface) 96%, var(--q11-rose))
+    );
+}
+
+body[data-route="predict"] .predictor {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(14px, 2.4vw, 32px);
+  margin-block: clamp(24px, 3vw, 40px);
+  padding: clamp(22px, 3vw, 38px);
+  color: #fff7fb;
+  background:
+    radial-gradient(
+      ellipse 30rem 14rem at 4% 0,
+      color-mix(in srgb, var(--q11-rose) 18%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 28rem 13rem at 98% 100%,
+      color-mix(in srgb, var(--q11-powder) 13%, transparent),
+      transparent 74%
+    ),
+    linear-gradient(132deg, var(--q11-plum-deep), var(--q11-plum));
+  border: 1px solid color-mix(in srgb, var(--q11-rose) 32%, transparent);
+  border-radius: 32px;
+  box-shadow: 0 22px 52px rgba(58, 16, 48, 0.2);
+}
+
+body[data-route="predict"] .predictor .team-picker {
+  display: grid;
+  align-content: center;
+  min-height: 132px;
+  padding: 20px;
+  color: var(--ink);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 94%, var(--q11-rose)),
+      color-mix(in srgb, var(--surface) 96%, var(--q11-powder))
+    );
+  border: 1px solid color-mix(in srgb, var(--q11-rose) 32%, var(--border));
+  border-radius: 24px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 12px 26px rgba(20, 5, 17, 0.16);
+}
+
+body[data-route="predict"] .predictor .team-picker .eyebrow {
+  color: color-mix(in srgb, var(--ink) 70%, var(--q11-rose));
+}
+
+body[data-route="predict"] .predictor select {
+  min-height: 54px;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.5vw, 1.16rem);
+  font-weight: 650;
+}
+
+body[data-route="predict"] .versus {
+  align-self: center;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: var(--q11-plum);
+  background: var(--q11-pearl);
+  border: 5px double color-mix(in srgb, var(--q11-rose) 52%, var(--q11-pearl));
+  border-radius: 50%;
+  box-shadow: 0 10px 28px rgba(18, 4, 15, 0.24);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-style: italic;
+}
+
+body[data-route="predict"] .predict-options {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+body[data-route="predict"] .forecast {
+  border-color: color-mix(in srgb, var(--q11-rose) 34%, transparent);
+  box-shadow: 0 22px 52px rgba(58, 16, 48, 0.19);
+}
+
+body[data-route="compare"] .comparison-selection {
+  padding: clamp(20px, 3vw, 34px);
+  border-radius: 28px;
+}
+
+body[data-route="compare"] .comparison-team-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+body[data-route="compare"] .comparison-team-row {
+  position: relative;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--q11-route-tint));
+  border: 1px solid color-mix(in srgb, var(--q11-lilac) 34%, var(--border));
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(74, 23, 62, 0.055);
+}
+
+body[data-route="compare"] .comparison-series-swatch {
+  width: 15px;
+  height: 15px;
+  border: 3px double color-mix(in srgb, currentColor 48%, white);
+  border-radius: 66% 34% 66% 34%;
+  transform: rotate(45deg);
+}
+
+body[data-route="compare"] .comparison-pair-picker {
+  padding: clamp(18px, 2.5vw, 30px);
+  border-radius: 28px;
+}
+
+body .table-shell {
+  overflow: auto;
+  background: color-mix(in srgb, var(--surface) 98%, var(--q11-route-tint));
+  border: 1px solid var(--q11-seam);
+  border-radius: 24px;
+  box-shadow: var(--q11-soft-shadow);
+}
+
+body .table-shell table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body .table-shell thead {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--q11-accent) 18%, var(--surface)) 0 8px,
+      color-mix(in srgb, var(--q11-accent-two) 13%, var(--surface)) 8px 16px
+    );
+}
+
+body .table-shell th {
+  color: color-mix(in srgb, var(--ink) 82%, var(--q11-plum));
+  border-block-end-color: color-mix(in srgb, var(--q11-accent) 52%, var(--border));
+}
+
+body .table-shell tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--surface) 96%, var(--q11-route-tint));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body .table-shell tbody tr:hover {
+    background-color: color-mix(in srgb, var(--surface) 88%, var(--q11-accent));
+  }
+}
+
+body .table-shell .team-link,
+body .ranking-card-team,
+body .comparison-team-name {
+  font-family: var(--font-display);
+  font-weight: 620;
+}
+
+body :is(.chart-shell, .chart-stage) {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 97%, var(--q11-powder)),
+      color-mix(in srgb, var(--surface) 98%, var(--q11-lilac))
+    );
+  border-color: var(--q11-seam);
+  box-shadow: var(--q11-soft-shadow);
+}
+
+body .chart-shell {
+  border-radius: 28px;
+}
+
+body .chart-legend-item::before,
+body .chart-series-swatch {
+  border-radius: 64% 36% 64% 36%;
+}
+
+body .chart-inspector {
+  background: color-mix(in srgb, var(--surface) 90%, var(--q11-champagne));
+  border-color: color-mix(in srgb, var(--q11-champagne) 48%, var(--border));
+}
+
+body .record-note {
+  background:
+    linear-gradient(
+      126deg,
+      color-mix(in srgb, var(--surface) 91%, var(--q11-champagne)),
+      color-mix(in srgb, var(--surface) 95%, var(--q11-accent))
+    );
+  border-inline-start: 4px solid color-mix(
+    in srgb,
+    var(--q11-accent) 62%,
+    var(--q11-plum)
+  );
+}
+
+body[data-page-family="salon"] :is(
+  .methodology-page,
+  .faq-page,
+  .about-page
+) {
+  max-width: 980px;
+}
+
+body .methodology-page {
+  counter-reset: q11-chapter;
+}
+
+body .methodology-page .method-section {
+  position: relative;
+  counter-increment: q11-chapter;
+  padding-block: clamp(34px, 5vw, 68px);
+  border-block-start: 1px solid var(--q11-seam);
+}
+
+body .methodology-page .method-section > h2:first-child {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+body .methodology-page .method-section > h2:first-child::before {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  content: counter(q11-chapter, decimal-leading-zero);
+  color: var(--q11-plum);
+  background: color-mix(in srgb, var(--q11-route-tint) 76%, white);
+  border: 3px double var(--q11-seam);
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+body .method-contents {
+  margin-block: 8px clamp(34px, 5vw, 64px);
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 26px;
+}
+
+body .method-contents a {
+  border-color: color-mix(in srgb, var(--q11-sage) 36%, var(--border));
+}
+
+body .faq-tools {
+  margin-block-start: 0;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 26px;
+}
+
+body .faq-item {
+  overflow: clip;
+  border-color: var(--q11-seam);
+  border-radius: 22px;
+  box-shadow: 0 8px 22px rgba(74, 23, 62, 0.055);
+}
+
+body .faq-item[open] {
+  background:
+    linear-gradient(
+      142deg,
+      color-mix(in srgb, var(--surface) 94%, var(--q11-rose)),
+      color-mix(in srgb, var(--surface) 97%, var(--q11-powder))
+    );
+}
+
+body .faq-item summary::after,
+body :is(
+  .method-details,
+  .analysis-disclosure,
+  .team-model-details,
+  .venue-profile-details
+) > summary::after {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--q11-rose) 30%, var(--surface)),
+      color-mix(in srgb, var(--q11-powder) 28%, var(--surface))
+    );
+  border: 3px double color-mix(in srgb, var(--q11-lilac) 48%, var(--border));
+}
+
+body .about-page > .split {
+  gap: 18px;
+}
+
+body .about-page > .prose h2 {
+  padding-block-start: 24px;
+  border-block-start: 1px solid var(--q11-seam);
+}
+
+body :is(
+  .methodology-page .method-section:not(:first-of-type),
+  .faq-list .faq-item:nth-child(n + 8),
+  .team-page > section:nth-of-type(n + 3),
+  .comparison-page > section:nth-of-type(n + 2)
+) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 540px;
+}
+
+body :is(
+  .home-ranking-list,
+  .home-upcoming,
+  .home-records,
+  .home-explore,
+  .toolbar,
+  .comparison-selection,
+  .chart-shell,
+  .table-shell
+) {
+  contain: layout paint;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --q11-plum: #5d224d;
+    --q11-plum-deep: #1d0b19;
+    --q11-pearl: #fff4fa;
+    --q11-route-tint: color-mix(
+      in srgb,
+      var(--q11-accent) 8%,
+      var(--surface)
+    );
+    --q11-seam: color-mix(
+      in srgb,
+      var(--q11-accent) 28%,
+      var(--border)
+    );
+    --q11-soft-shadow: 0 16px 34px rgba(0, 0, 0, 0.2);
+  }
+
+  body .page-heading::before {
+    opacity: 0.58;
+  }
+
+  body .button-primary,
+  body .button-dark,
+  body :is(
+    .record-tabs,
+    .toggle-group
+  ) .button[aria-pressed="true"],
+  body :is(
+    .record-tabs,
+    .toggle-group
+  ) .button[aria-selected="true"] {
+    color: #fff5fa;
+    background: linear-gradient(135deg, #7c2c65, #54305f);
+    border-color: #a65a89;
+  }
+
+  body[data-route="predict"] .predictor .team-picker {
+    background:
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--surface) 90%, var(--q11-rose)),
+        color-mix(in srgb, var(--surface) 94%, var(--q11-powder))
+      );
+  }
+
+  body[data-route="predict"] .versus {
+    color: #421334;
+  }
+
+  body .methodology-page .method-section > h2:first-child::before {
+    color: #fff1f8;
+    background: color-mix(in srgb, var(--surface) 88%, var(--q11-sage));
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  body .page-heading {
+    grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+    gap: 34px;
+  }
+
+  body .page-heading h1 {
+    font-size: clamp(3.3rem, 6vw, 4.6rem);
+  }
+
+  body[data-route="compare"] .comparison-team-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 721px) and (max-width: 900px) {
+  body .page-heading {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+  }
+
+  body .page-heading .lede {
+    max-width: 68ch;
+  }
+
+  body[data-route="compare"] .comparison-team-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-route="predict"] .predictor {
+    gap: 14px;
+    padding: 22px;
+  }
+}
+
+@media (max-width: 720px) {
+  body[data-page-family] .page {
+    padding-block-start: 18px;
+  }
+
+  body .page-heading,
+  body .page-heading-salon {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-block-end: 24px;
+    padding: 12px 0 24px;
+  }
+
+  body .page-heading::before {
+    top: -14px;
+    left: -42px;
+    width: 230px;
+    height: 110px;
+    opacity: 0.56;
+  }
+
+  body .page-heading::after {
+    left: 0;
+    width: min(180px, 58vw);
+  }
+
+  body .page-heading h1 {
+    max-width: 100%;
+    font-size: clamp(2.55rem, 13vw, 4.1rem);
+    line-height: 0.98;
+  }
+
+  body .page-heading-salon .lede {
+    padding-inline-start: 0;
+  }
+
+  body[data-route="home"] .home-explore-links a {
+    min-height: 0;
+  }
+
+  body[data-route="predict"] .predict-explainer,
+  body[data-route="predict"] .predict-date-toolbar {
+    max-width: none;
+  }
+
+  body[data-route="predict"] .predictor {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-block: 22px;
+    padding: 18px;
+    border-radius: 26px;
+  }
+
+  body[data-route="predict"] .predictor .team-picker {
+    min-height: 0;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  body[data-route="predict"] .versus {
+    width: 48px;
+    height: 48px;
+    margin-block: -4px;
+    justify-self: center;
+  }
+
+  body[data-route="predict"] .predict-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-route="compare"] .comparison-team-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-route="compare"] .comparison-team-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  body[data-route="compare"] .comparison-team-row .comparison-remove {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  body .methodology-page .method-section > h2:first-child {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .methodology-page .method-section > h2:first-child::before {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 430px) {
+  body .page-heading h1 {
+    font-size: clamp(2.35rem, 12.5vw, 3.2rem);
+  }
+
+  body :is(
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .method-contents
+  ) {
+    border-radius: 20px;
+  }
+
+  body[data-route="predict"] .predictor {
+    margin-inline: -4px;
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body .page-heading::before {
+    background: none;
+    content: normal;
+  }
+
+  body :is(
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .comparison-add-panel,
+    .method-contents,
+    .team-picker,
+    .venue-profile,
+    .team-model-details,
+    .chart-shell,
+    .chart-stage,
+    .record-note,
+    .faq-item[open]
+  ) {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-contrast: more) {
+  body .page-heading::before {
+    background: none;
+    content: normal;
+  }
+
+  body :is(
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .comparison-team-row,
+    .method-contents,
+    .team-picker,
+    .venue-profile,
+    .team-model-details,
+    .chart-shell,
+    .chart-stage,
+    .record-note,
+    .faq-item,
+    .table-shell
+  ) {
+    color: currentColor;
+    background: var(--surface);
+    border-color: currentColor;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body :is(.button, .faq-item, .comparison-team-row) {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  body .page-heading::before,
+  body .page-heading::after {
+    background: none;
+    content: normal;
+  }
+
+  body :is(
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .comparison-team-row,
+    .method-contents,
+    .team-picker,
+    .venue-profile,
+    .team-model-details,
+    .chart-shell,
+    .chart-stage,
+    .record-note,
+    .faq-item,
+    .table-shell
+  ) {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
+
+@media print {
+  body .page-heading::before,
+  body .page-heading::after {
+    background: none;
+    content: normal;
+  }
+
+  body :is(
+    .toolbar,
+    .faq-tools,
+    .comparison-selection,
+    .comparison-pair-picker,
+    .comparison-team-row,
+    .method-contents,
+    .team-picker,
+    .venue-profile,
+    .team-model-details,
+    .chart-shell,
+    .chart-stage,
+    .record-note,
+    .faq-item,
+    .table-shell
+  ) {
+    color: #000;
+    background: #fff;
+    border-color: #777;
+    box-shadow: none;
   }
 }
 

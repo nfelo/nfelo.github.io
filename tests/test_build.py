@@ -1659,6 +1659,52 @@ class StaticBuildTests(unittest.TestCase):
             self.assertIn(fixture["team2_code"], self.state["codes"])
             self.assertIn(fixture.get("date_precision", "day"), {"day", "month"})
 
+    def test_homepage_fixtures_are_dated_and_strength_sorted_within_day(self) -> None:
+        from build_site import homepage_fixtures  # noqa: PLC0415
+
+        crowded_day = [
+            {
+                "date": "2026-09-03",
+                "date_precision": "day",
+                "combined_rating": combined,
+                "team1_name": f"Team {combined}",
+                "team2_name": "Opponent",
+                "tournament_name": "International",
+            }
+            for combined in (3100, 3700, 3300, 3900, 3500, 4100)
+        ]
+        rows = [
+            {
+                "date": "2026-08-01",
+                "date_precision": "month",
+                "combined_rating": 9999,
+                "team1_name": "Undated",
+                "team2_name": "Fixture",
+                "tournament_name": "International",
+            },
+            *crowded_day,
+            {
+                "date": "2026-09-04",
+                "date_precision": "day",
+                "combined_rating": 9999,
+                "team1_name": "Later",
+                "team2_name": "Fixture",
+                "tournament_name": "International",
+            },
+        ]
+        selected = homepage_fixtures(rows)
+        self.assertEqual(len(selected), 5)
+        self.assertTrue(all(row["date_precision"] == "day" for row in selected))
+        self.assertEqual(
+            [row["combined_rating"] for row in selected],
+            [4100, 3900, 3700, 3500, 3300],
+        )
+
+        homepage = json.loads(
+            (self.data / "home.json").read_text(encoding="utf-8")
+        )["fixtures"]
+        self.assertEqual(homepage, homepage_fixtures(self.fixtures["fixtures"]))
+
     def test_historical_rankings_use_contemporary_names(self) -> None:
         history = json.loads((self.data / "rankings-history" / "1990.json").read_text(encoding="utf-8"))
         names = {row["nation"] for row in history["opening"]} | {

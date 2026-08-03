@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 CSS_PATH = PUBLIC / "assets" / "styles.css"
 SIGNATURE = "Subtle integrated pastel accents 2026-08-02."
-END_MARKER = "Mobile Methodology tables edge-to-edge 2026-07-30."
+END_MARKER = "Velvet botanical ledger unified system 2026-08-03."
 
 
 class SubtleIntegratedPastelAccentsTests(unittest.TestCase):

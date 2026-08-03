@@ -25,7 +25,21 @@
     <meta name="twitter:description" content="Cocos Islands ratings, results and historical record.">
     <meta name="twitter:image" content="https://nfelo.github.io/social-card.png?v=20260729l1">
     <title>Cocos Islands &middot; Network Football Elo</title>
-    <link rel="stylesheet" href="assets/styles.css?v=4d8eb3da3df6">
+    <script>
+      window.__nfeloStyleReady = new Promise((resolve) => {
+        window.__nfeloStyleResolve = resolve;
+      });
+    </script>
+    <link rel="stylesheet" href="assets/critical.css?v=3f241cfa91c8">
+    <link rel="preload" href="assets/styles.css?v=61bfd1929a71" as="style">
+    <link
+      id="nfelo-full-style"
+      rel="stylesheet"
+      href="assets/styles.css?v=61bfd1929a71"
+      media="print"
+      onload="this.media='all';window.__nfeloStyleResolve?.()"
+      onerror="window.__nfeloStyleResolve?.()">
+    <noscript><link rel="stylesheet" href="assets/styles.css?v=61bfd1929a71"></noscript>
     <script>
       window.__nfeloBoot = window.__nfeloBoot || {
         started: false,
@@ -75,8 +89,9 @@
       });
     </script>
     <script
-      src="assets/app.js?v=348cedde3be4"
+      src="assets/app.js?v=7a1db21bda18"
       defer
+      fetchpriority="high"
       onerror="window.__nfeloShowBootError(
         'The application script could not be loaded.'
       )">
@@ -87,6 +102,7 @@
     <script
       data-goatcounter="https://nfelo.goatcounter.com/count"
       async
+      fetchpriority="low"
       src="https://gc.zgo.at/count.js">
     </script>
   </head>

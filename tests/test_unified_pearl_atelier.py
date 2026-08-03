@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 CSS_PATH = PUBLIC / "assets" / "styles.css"
 MARKER = "Unified pearl atelier finishing system."
+END_MARKER = "Velvet botanical ledger unified system 2026-08-03."
 
 LOGO_HASHES = {
     "favicon-2026.svg":
@@ -78,7 +79,7 @@ class UnifiedPearlAtelierReleaseTests(unittest.TestCase):
         cls.css = CSS_PATH.read_text(encoding="utf-8")
         if MARKER not in cls.css:
             raise AssertionError("The unified pearl atelier marker is missing.")
-        cls.finish = cls.css.split(MARKER, 1)[1]
+        cls.finish = cls.css.split(MARKER, 1)[1].split(END_MARKER, 1)[0]
 
     def test_layer_is_unique_balanced_and_last(self) -> None:
         self.assertEqual(self.css.count(MARKER), 1)
