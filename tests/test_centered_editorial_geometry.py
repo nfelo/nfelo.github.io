@@ -10,6 +10,8 @@ PUBLIC = ROOT / "public"
 CSS_PATH = PUBLIC / "assets" / "styles.css"
 APP_PATH = PUBLIC / "assets" / "app.js"
 MARKER = "Centred editorial geometry repair 2026-08-03."
+METHODOLOGY_MARKER = "Mobile Methodology tables edge-to-edge 2026-07-30."
+RECORDS_MARKER = "Mobile Records country width 2026-07-30."
 
 
 class CentredEditorialGeometryTests(unittest.TestCase):
@@ -17,12 +19,29 @@ class CentredEditorialGeometryTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.css = CSS_PATH.read_text(encoding="utf-8")
         cls.app = APP_PATH.read_text(encoding="utf-8")
-        cls.layer = cls.css.split(MARKER, 1)[1]
+        start = cls.css.index(MARKER)
+        end = cls.css.index(METHODOLOGY_MARKER, start)
+        cls.layer = cls.css[start:end]
 
     def test_release_is_unique_and_balanced(self) -> None:
         self.assertEqual(self.css.count(MARKER), 1)
         self.assertEqual(self.app.count(MARKER), 1)
         self.assertEqual(self.layer.count("{"), self.layer.count("}"))
+
+    def test_release_precedes_both_protected_mobile_layers(self) -> None:
+        self.assertEqual(self.css.count(METHODOLOGY_MARKER), 1)
+        self.assertEqual(self.css.count(RECORDS_MARKER), 1)
+        self.assertLess(self.css.index(MARKER), self.css.index(METHODOLOGY_MARKER))
+        self.assertLess(
+            self.css.index(METHODOLOGY_MARKER),
+            self.css.index(RECORDS_MARKER),
+        )
+        methodology_layer = self.css[
+            self.css.index(METHODOLOGY_MARKER):self.css.index(RECORDS_MARKER)
+        ]
+        self.assertEqual(methodology_layer.count("@media"), 1)
+        records_layer = self.css.split(RECORDS_MARKER, 1)[1]
+        self.assertEqual(records_layer.count("@media"), 1)
 
     def test_wrapped_title_ribbons_follow_visible_text_geometry(self) -> None:
         for value in (
