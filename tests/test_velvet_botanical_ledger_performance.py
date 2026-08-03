@@ -16,7 +16,7 @@ APP_PATH = PUBLIC / "assets" / "app.js"
 INDEX_PATH = PUBLIC / "index.html"
 BUILDER_PATH = ROOT / "scripts" / "build_site.py"
 SIGNATURE = "Velvet botanical ledger unified system 2026-08-03."
-END_MARKER = "Mobile Methodology tables edge-to-edge 2026-07-30."
+END_MARKER = "Transient geometry and honest overflow repair 2026-08-03."
 
 
 def gzip_size(path: Path) -> int:

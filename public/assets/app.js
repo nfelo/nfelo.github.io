@@ -103,15 +103,24 @@ const filteredEmptyState = (subject) => (
   + "<p>Change or clear the filters to see results.</p></div>"
 );
 
+/* Transient geometry and honest overflow repair 2026-08-03. */
 const syncScrollableTableRegions = () => {
   if (typeof document.querySelectorAll !== "function") return;
   document.querySelectorAll(".table-shell").forEach((shell) => {
     const table = shell.querySelector(":scope > table");
     if (!table) return;
     const active = shell.scrollWidth > shell.clientWidth + 2;
+    const hint = shell.previousElementSibling?.matches(".table-hint")
+      ? shell.previousElementSibling
+      : null;
     const ownedTabindex = shell.dataset.nfeloOwnedTabindex === "true";
     const ownedRole = shell.dataset.nfeloOwnedRole === "true";
     const ownedLabel = shell.dataset.nfeloOwnedLabel === "true";
+
+    if (hint) {
+      hint.hidden = !active;
+      hint.toggleAttribute("data-nfelo-scroll-hint", active);
+    }
 
     if (!active) {
       shell.removeAttribute("data-nfelo-scroll-region");
@@ -147,6 +156,44 @@ const syncScrollableTableRegions = () => {
   });
 };
 
+const syncScrollableFormulaRegions = () => {
+  if (typeof document.querySelectorAll !== "function") return;
+  document.querySelectorAll(".methodology-page .formula").forEach((formula) => {
+    formula.removeAttribute("data-nfelo-formula-overflow");
+    const active = formula.scrollWidth > formula.clientWidth + 2;
+    const ownedTabindex = formula.dataset.nfeloFormulaOwnedTabindex === "true";
+    const ownedRole = formula.dataset.nfeloFormulaOwnedRole === "true";
+    const ownedLabel = formula.dataset.nfeloFormulaOwnedLabel === "true";
+
+    if (!active) {
+      if (ownedTabindex) formula.removeAttribute("tabindex");
+      if (ownedRole) formula.removeAttribute("role");
+      if (ownedLabel) formula.removeAttribute("aria-label");
+      delete formula.dataset.nfeloFormulaOwnedTabindex;
+      delete formula.dataset.nfeloFormulaOwnedRole;
+      delete formula.dataset.nfeloFormulaOwnedLabel;
+      return;
+    }
+
+    formula.dataset.nfeloFormulaOverflow = "true";
+    if (!formula.hasAttribute("tabindex")) {
+      formula.setAttribute("tabindex", "0");
+      formula.dataset.nfeloFormulaOwnedTabindex = "true";
+    }
+    if (!formula.hasAttribute("role")) {
+      formula.setAttribute("role", "region");
+      formula.dataset.nfeloFormulaOwnedRole = "true";
+    }
+    if (!formula.hasAttribute("aria-label")) {
+      formula.setAttribute(
+        "aria-label",
+        "Scrollable formula. Scroll horizontally to see the full formula.",
+      );
+      formula.dataset.nfeloFormulaOwnedLabel = "true";
+    }
+  });
+};
+
 const syncTabletRankingPresentation = () => {
   if (typeof document.querySelector !== "function") return;
   const desktop = document.querySelector(
@@ -177,6 +224,7 @@ const queueQ8ResponsivePresentation = () => {
   q8ResponsiveFrame = window.requestAnimationFrame(() => {
     q8ResponsiveFrame = 0;
     syncScrollableTableRegions();
+    syncScrollableFormulaRegions();
     syncTabletRankingPresentation();
   });
 };
@@ -4791,9 +4839,6 @@ function renderFAQ() {
   } = {}) {
     disposeRatingHistoryCharts();
     const current = parseRoute();
-    document.body.dataset.route = current.section;
-    document.body.dataset.pageFamily = PAGE_FAMILIES[current.section] || "ledger";
-    setActiveNav(current.section);
     content.setAttribute("aria-busy", "true");
     try {
       await Promise.all([
@@ -4816,8 +4861,13 @@ function renderFAQ() {
         case "about": renderAbout(); break;
         default: renderNotFound();
       }
+      document.body.dataset.pageFamily = (
+        PAGE_FAMILIES[current.section] || "ledger"
+      );
       setRouteMetadata(current);
+      setActiveNav(current.section);
       syncScrollableTableRegions();
+      syncScrollableFormulaRegions();
       syncTabletRankingPresentation();
       content.setAttribute("aria-busy", "false");
       if (location.hash.startsWith("#/")) {
@@ -4860,6 +4910,11 @@ function renderFAQ() {
     } catch (error) {
       console.error(error);
       window.__nfeloBoot.failed = true;
+      document.body.dataset.pageFamily = (
+        PAGE_FAMILIES[current.section] || "ledger"
+      );
+      setRouteMetadata(current);
+      setActiveNav(current.section);
       content.setAttribute("aria-busy", "false");
       content.innerHTML = `<div class="error-panel" role="alert"><p class="eyebrow">Build data unavailable</p><h2>The static rating files could not be loaded.</h2><p>${escapeHTML(error.message)}</p><button class="button button-dark" type="button" id="retry">Retry</button></div>`;
       document.getElementById("retry")?.addEventListener("click", () => { dataCache.clear(); summary = null; route(); });
@@ -4935,6 +4990,16 @@ function renderFAQ() {
   window.addEventListener("online", syncConnectionState);
   window.addEventListener("offline", syncConnectionState);
   window.addEventListener("resize", queueQ8ResponsivePresentation);
+  content.addEventListener?.("toggle", queueQ8ResponsivePresentation, true);
+  if (typeof MutationObserver === "function") {
+    new MutationObserver(queueQ8ResponsivePresentation).observe(content, {
+      childList: true,
+      subtree: true,
+    });
+  }
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(queueQ8ResponsivePresentation).observe(content);
+  }
   syncConnectionState();
   window.addEventListener(
     "hashchange",

@@ -18784,6 +18784,123 @@ body :is(
 }
 
 /*
+ * Transient geometry and honest overflow repair 2026-08-03.
+ *
+ * Route-scoped presentation now stays stable until navigation commits.
+ * Ribbons belong to their titles, editorial copy uses its intended centred
+ * reading lane, and overflow guidance appears only for genuinely scrollable
+ * tables and formulae.
+ */
+body .page-heading::after {
+  content: normal;
+}
+
+body .page-heading h1 {
+  position: relative;
+  width: fit-content;
+}
+
+body .page-heading h1::after {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  width: clamp(112px, 72%, 180px);
+  height: 5px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      var(--q11-accent) 0 42%,
+      transparent 42% 46%,
+      var(--q11-champagne) 46% 49%,
+      transparent 49% 53%,
+      var(--q11-accent-two) 53% 100%
+    );
+  border-radius: 999px;
+  content: "";
+  opacity: 0.72;
+  transform: translateX(-50%);
+}
+
+body .table-hint[hidden] {
+  display:none !important;
+}
+
+body .formula[data-nfelo-formula-overflow="true"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+@media (min-width: 901px) {
+  body[data-route="methodology"] .methodology-page
+  > .method-section > :is(h2, h3, p, ul, ol) {
+    box-sizing: border-box;
+    width: min(var(--pv-reading), 100%);
+    max-inline-size: var(--pv-reading);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  body .page-heading h1::after {
+    bottom: -15px;
+    width: clamp(104px, 68%, 164px);
+    height: 4px;
+  }
+
+  body .table-hint {
+    display:none;
+  }
+
+  body .table-hint[data-nfelo-scroll-hint] {
+    display: block;
+  }
+
+  body[data-route="methodology"] .methodology-page .formula::before {
+    display:none;
+    content: normal;
+  }
+
+  body[data-route="methodology"] .methodology-page
+  .formula[data-nfelo-formula-overflow="true"]::before {
+    display: block;
+    margin-block-end: 8px;
+    content: "Swipe to see the full formula →";
+    color: var(--mint);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+@media (prefers-contrast: more) {
+  body .page-heading h1::after {
+    background: currentColor;
+    opacity: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  body .page-heading h1::after {
+    background: none;
+    content: normal;
+  }
+
+  body .formula[data-nfelo-formula-overflow="true"]:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+@media print {
+  body .page-heading h1::after,
+  body .table-hint,
+  body .methodology-page .formula::before {
+    display:none;
+    content: normal;
+  }
+}
+
+/*
  * Mobile Methodology tables edge-to-edge 2026-07-30.
  *
  * The Methodology page is inset by 12px on each side on phones.

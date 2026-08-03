@@ -81,7 +81,7 @@ class ActualFinalPresentationTests(unittest.TestCase):
         ):
             self.assertIn(f'body[data-route="{route}"]', self.finish)
         self.assertIn(
-            "document.body.dataset.route = current.section;",
+            "document.body.dataset.route = route.section;",
             self.js,
         )
 
