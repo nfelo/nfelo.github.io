@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-08-03T17:21:13+00:00",
+  "source_checked_at": "2026-08-04T00:16:35+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-03",
   "supplemental_results": 0,
@@ -18,17 +18,12 @@
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-08-03T17:21:09+00:00",
+    "source_checked_at": "2026-08-04T00:16:33+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
-    "pages_checked": 4,
-    "pages_changed": 4,
-    "changed": [
-      "Vietnam",
-      "Indonesia",
-      "Cambodia",
-      "East_Timor"
-    ],
+    "pages_checked": 0,
+    "pages_changed": 0,
+    "changed": [],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
     "first_party_source": "live Eloratings TSV responses",
