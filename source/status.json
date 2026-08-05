@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-08-05T00:15:54+00:00",
+  "source_checked_at": "2026-08-05T09:12:17+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-04",
   "supplemental_results": 0,
@@ -18,7 +18,7 @@
   "retained_stored_fixture_rows": 268,
   "integrity": "Independent feeds passed validation; stored Eloratings fixtures were revalidated after an upstream HTML challenge",
   "base_snapshot": {
-    "source_checked_at": "2026-08-05T00:15:52+00:00",
+    "source_checked_at": "2026-08-05T09:12:15+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
     "pages_checked": 0,
@@ -26,9 +26,9 @@
     "changed": [],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
-    "first_party_source": "live Eloratings TSV responses",
-    "first_party_challenge_url": null,
-    "stored_fallback_files": 0,
-    "integrity": "all downloaded rows passed schema and rewrite guards"
+    "first_party_source": "stored validated snapshot after upstream HTML challenge",
+    "first_party_challenge_url": "https://www.eloratings.net/World.tsv",
+    "stored_fallback_files": 6,
+    "integrity": "stored first-party snapshot revalidated; independent results refreshed"
   }
 }
