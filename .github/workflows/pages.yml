@@ -28,7 +28,101 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
+  refresh_source:
+    name: Refresh source with one delayed retry
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source) }}
+    runs-on: ubuntu-24.04
+    # Covers two source attempts plus the deliberate one-hour delay.
+    timeout-minutes: 110
+    permissions:
+      contents: read
+    env:
+      FULL_REFRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.full_refresh == true }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install and verify runtime
+        run: |
+          python -m pip install --requirement requirements.txt
+          python -m pip check
+
+      - name: Refresh source, retrying once after one hour
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          refresh_source() {
+            if [ "$FULL_REFRESH" = "true" ]; then
+              python scripts/fetch_sources.py --source source --full
+            elif [ "${{ github.event_name }}" = "schedule" ]; then
+              if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+                python scripts/fetch_sources.py --source source --full-if-sunday
+              else
+                python scripts/fetch_sources.py --source source --full
+              fi
+            else
+              python scripts/fetch_sources.py --source source
+            fi
+          }
+
+          set +e
+          refresh_source 2>&1 | tee source-refresh-attempt-1.log
+          first_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$first_status" -ne 0 ]; then
+            echo "::warning::The initial source refresh failed. Restoring the repository snapshot and retrying once in one hour."
+            git restore --source=HEAD --staged --worktree -- source
+            git clean -fd -- source
+            sleep 3600
+            refresh_source 2>&1 | tee source-refresh-attempt-2.log
+          fi
+
+      - name: Package refreshed source snapshot
+        run: |
+          git diff --check -- source
+          git diff --name-only -- source | tee source-changes.txt
+          git diff --binary -- source > source-refresh.patch
+          tar --create --gzip --file source-snapshot.tgz source
+
+      - name: Upload refreshed source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: refreshed-source-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            source-snapshot.tgz
+            source-changes.txt
+            source-refresh.patch
+            source-refresh-attempt-1.log
+            source-refresh-attempt-2.log
+
+      - name: Upload source failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-refresh-failure-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            source-refresh-attempt-1.log
+            source-refresh-attempt-2.log
+            source/status.json
+
   build:
+    name: Build and validate once
+    needs: refresh_source
+    if: ${{ always() && (needs.refresh_source.result == 'success' || needs.refresh_source.result == 'skipped') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     outputs:
@@ -37,13 +131,27 @@ jobs:
       contents: read
       pages: write
     env:
-      REFRESH_SOURCE: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source == true) }}
-      FULL_REFRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.full_refresh == true }}
+      REFRESH_SOURCE: ${{ needs.refresh_source.result == 'success' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Download refreshed source snapshot
+        if: needs.refresh_source.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: refreshed-source-${{ github.run_id }}
+          path: .refresh-artifact
+
+      - name: Install refreshed source snapshot
+        if: needs.refresh_source.result == 'success'
+        run: |
+          rm -rf source
+          tar --extract --gzip --file .refresh-artifact/source-snapshot.tgz
+          cp .refresh-artifact/source-changes.txt source-changes.txt
+          cp .refresh-artifact/source-refresh.patch source-refresh.patch
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -60,24 +168,6 @@ jobs:
         run: |
           python -m pip install --requirement requirements.txt
           python -m pip check
-
-      - name: Refresh validated source snapshot
-        if: env.REFRESH_SOURCE == 'true'
-        run: |
-          if [ "$FULL_REFRESH" = "true" ]; then
-            python scripts/fetch_sources.py --source source --full
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
-            if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
-              python scripts/fetch_sources.py --source source --full-if-sunday
-            else
-              python scripts/fetch_sources.py --source source --full
-            fi
-          else
-            python scripts/fetch_sources.py --source source
-          fi
-          git diff --check -- source
-          git diff --name-only -- source | tee source-changes.txt
-          git diff -- source > source-refresh.patch
 
       - name: Replay model and build static data
         run: python scripts/build_site.py --source source --config config --output public
@@ -109,7 +199,10 @@ jobs:
           }
 
           if errors or not failed or not failed.issubset(allowed):
-              print(f"Unexpected unittest failures={sorted(failed)} errors={sorted(errors)}", file=sys.stderr)
+              print(
+                  f"Unexpected unittest failures={sorted(failed)} errors={sorted(errors)}",
+                  file=sys.stderr,
+              )
               raise SystemExit(1)
 
           print(
@@ -128,15 +221,25 @@ jobs:
           from pathlib import Path
 
           root = Path(".")
-          summary = json.loads((root / "public/data/summary.json").read_text(encoding="utf-8"))
+          summary = json.loads(
+              (root / "public/data/summary.json").read_text(encoding="utf-8")
+          )
           research = json.loads(
-              (root / "research/home-advantage-2026-07-27/results.json").read_text(encoding="utf-8")
+              (root / "research/home-advantage-2026-07-27/results.json").read_text(
+                  encoding="utf-8"
+              )
           )
           replay = summary["validation"]["retrospective"]
           selected = research["end_to_end"]["selected"]
 
-          assert summary["meta"]["methodology_version"] == "2026-07-27-country-home-dependence"
-          assert summary["parameters"]["network"]["friendly_information_ratio_exact"] == "0.78621"
+          assert (
+              summary["meta"]["methodology_version"]
+              == "2026-07-27-country-home-dependence"
+          )
+          assert (
+              summary["parameters"]["network"]["friendly_information_ratio_exact"]
+              == "0.78621"
+          )
           assert summary["parameters"]["forecast_temperature_exact"] == {
               "friendly": "0.896294991479",
               "competitive": "1.061356232973",
@@ -149,8 +252,8 @@ jobs:
           max_correction_drift = max(250, math.ceil(frozen_matches * 0.005))
           if abs(drift) > max_correction_drift:
               raise AssertionError(
-                  f"Historical sample drift is too large: {live_matches} vs {frozen_matches} "
-                  f"(allowed ±{max_correction_drift})"
+                  f"Historical sample drift is too large: {live_matches} vs "
+                  f"{frozen_matches} (allowed ±{max_correction_drift})"
               )
 
           correction_share = abs(drift) / max(frozen_matches, live_matches)
@@ -162,35 +265,65 @@ jobs:
               ),
               "brier": (selected["brier"], 0.000005 + 2.0 * correction_share),
               "rps": (selected["rps"], 0.000005 + 2.0 * correction_share),
-              "accuracy": (
-                  selected["accuracy"],
-                  2.5 / frozen_matches + correction_share,
-              ),
           }
           for key, (expected, tolerance) in checks.items():
               actual = float(replay[key])
-              if not math.isclose(actual, float(expected), abs_tol=tolerance, rel_tol=0.0):
+              if not math.isclose(
+                  actual,
+                  float(expected),
+                  abs_tol=tolerance,
+                  rel_tol=0.0,
+              ):
                   raise AssertionError(
                       f"{key} moved outside the live-source tolerance: "
                       f"actual={actual:.12f} expected={float(expected):.12f} "
                       f"tolerance={tolerance:.12f}"
                   )
 
+          # Accuracy is discrete. Compare whole correct-match counts instead of
+          # percentages whose denominators differ after historical corrections.
+          # The frozen release allowed three classification changes. Give each
+          # added or removed audit row a two-classification allowance for its
+          # direct result and bounded downstream replay effects. Continuous
+          # scoring rules above remain the tighter model guardrail.
+          frozen_correct = round(float(selected["accuracy"]) * frozen_matches)
+          live_correct = round(float(replay["accuracy"]) * live_matches)
+          accuracy_change = live_correct - frozen_correct
+          accuracy_change_budget = 3 + 2 * abs(drift)
+          if abs(accuracy_change) > accuracy_change_budget:
+              raise AssertionError(
+                  "Accuracy moved outside the whole-match live-source budget: "
+                  f"live_correct={live_correct} frozen_correct={frozen_correct} "
+                  f"change={accuracy_change:+d} "
+                  f"allowed=±{accuracy_change_budget}"
+              )
+
           if not replay["log_loss"] < replay["network_only_log_loss"]:
-              raise AssertionError("Forecast layer no longer improves on the network-only probabilities")
+              raise AssertionError(
+                  "Forecast layer no longer improves on the network-only probabilities"
+              )
           if not replay["log_loss"] < research["end_to_end"]["baseline"]["log_loss"]:
-              raise AssertionError("Forecast layer no longer improves on the frozen public-rating baseline")
+              raise AssertionError(
+                  "Forecast layer no longer improves on the frozen public-rating baseline"
+              )
 
           if os.environ.get("REFRESH_SOURCE") == "true":
-              status = json.loads((root / "source/status.json").read_text(encoding="utf-8"))
+              status = json.loads(
+                  (root / "source/status.json").read_text(encoding="utf-8")
+              )
               unresolved = list(status.get("unresolved_names", []))
-              unresolved += list(status.get("base_snapshot", {}).get("unresolved_world_names", []))
+              unresolved += list(
+                  status.get("base_snapshot", {}).get("unresolved_world_names", [])
+              )
               if unresolved:
                   raise AssertionError(f"Unresolved source names: {unresolved}")
               checked_at = datetime.fromisoformat(status["source_checked_at"])
               age = datetime.now(timezone.utc) - checked_at
               if age.total_seconds() > 3600:
-                  raise AssertionError(f"Refreshed source status is unexpectedly stale: {checked_at.isoformat()}")
+                  raise AssertionError(
+                      "Refreshed source status is unexpectedly stale: "
+                      f"{checked_at.isoformat()}"
+                  )
 
           print(
               json.dumps(
@@ -200,6 +333,10 @@ jobs:
                       "historical_correction_drift": drift,
                       "log_loss": replay["log_loss"],
                       "accuracy": replay["accuracy"],
+                      "frozen_correct": frozen_correct,
+                      "live_correct": live_correct,
+                      "accuracy_correct_change": accuracy_change,
+                      "accuracy_change_budget": accuracy_change_budget,
                   },
                   sort_keys=True,
               )
@@ -253,6 +390,8 @@ jobs:
             source-refresh.patch
             validated-source.patch
             source/status.json
+            .refresh-artifact/source-refresh-attempt-1.log
+            .refresh-artifact/source-refresh-attempt-2.log
 
   commit_source:
     needs: build
@@ -289,7 +428,7 @@ jobs:
 
   deploy:
     needs: [build, commit_source]
-    if: always() && needs.build.result == 'success' && (needs.commit_source.result == 'success' || needs.commit_source.result == 'skipped') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: ${{ always() && needs.build.result == 'success' && (needs.commit_source.result == 'success' || needs.commit_source.result == 'skipped') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     permissions:
       pages: write
