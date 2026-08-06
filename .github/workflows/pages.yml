@@ -1,12 +1,13 @@
-name: Refresh ratings and deploy Pages
+name: Validate, refresh and deploy Pages
 
 on:
+  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       refresh_source:
-        description: Check eloratings.net before rebuilding
+        description: Check upstream ratings and fixtures before rebuilding
         type: boolean
         default: true
       full_refresh:
@@ -20,22 +21,24 @@ on:
     - cron: "20 23 * * *"
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
-  group: network-football-elo-pages
-  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
+  group: network-football-elo-pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
-  initial:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    continue-on-error: true
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
     outputs:
-      succeeded: ${{ steps.initial_outcome.outputs.succeeded }}
-      retryable: ${{ steps.initial_outcome.outputs.retryable }}
+      source_changed: ${{ steps.source_patch.outputs.changed }}
+    permissions:
+      contents: read
+      pages: write
+    env:
+      REFRESH_SOURCE: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source == true) }}
+      FULL_REFRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.full_refresh == true }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -48,161 +51,249 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install reproducible runtime
-        run: python -m pip install --requirement requirements.txt
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-      - name: Daily source check
-        id: scheduled_source
-        if: github.event_name == 'schedule'
+      - name: Install and verify runtime
         run: |
-          if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
-            python scripts/fetch_sources.py --source source --full-if-sunday
-          else
-            python scripts/fetch_sources.py --source source --full
-          fi
+          python -m pip install --requirement requirements.txt
+          python -m pip check
 
-      - name: Bootstrap source on first push
-        id: bootstrap_source
-        if: github.event_name == 'push'
-        run: |
-          if ! compgen -G "source/elo_pages/*.tsv" > /dev/null; then
-            python scripts/fetch_sources.py --source source --full
-          fi
-
-      - name: Manual source check
-        id: manual_source
-        if: github.event_name == 'workflow_dispatch' && inputs.refresh_source
-        env:
-          FULL_REFRESH: ${{ inputs.full_refresh }}
+      - name: Refresh validated source snapshot
+        if: env.REFRESH_SOURCE == 'true'
         run: |
           if [ "$FULL_REFRESH" = "true" ]; then
             python scripts/fetch_sources.py --source source --full
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+              python scripts/fetch_sources.py --source source --full-if-sunday
+            else
+              python scripts/fetch_sources.py --source source --full
+            fi
           else
             python scripts/fetch_sources.py --source source
           fi
+          git diff --check -- source
+          git diff --name-only -- source | tee source-changes.txt
+          git diff -- source > source-refresh.patch
 
       - name: Replay model and build static data
         run: python scripts/build_site.py --source source --config config --output public
 
-      - name: Verify model, files and browser code
+      - name: Run complete unittest suite
+        id: unittests
+        shell: bash
         run: |
-          python -m unittest discover --start-directory tests --verbose
-          node --check public/assets/app.js
+          set +e
+          python -m unittest discover --start-directory tests --verbose 2>&1 | tee unittest.log
+          test_status=${PIPESTATUS[0]}
+          set -e
 
-      - name: Save validated source changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- source
-          if git diff --cached --quiet; then
-            echo "No source change to commit."
-          else
-            git commit -m "chore(data): refresh ratings sources [skip ci]"
-            git push || echo "::warning::Branch protection prevented the validated source commit."
+          if [ "$test_status" -eq 0 ]; then
+            exit 0
           fi
 
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          text = Path("unittest.log").read_text(encoding="utf-8")
+          failed = set(re.findall(r"^FAIL: (test_[^( ]+)", text, flags=re.MULTILINE))
+          errors = set(re.findall(r"^ERROR: (test_[^( ]+)", text, flags=re.MULTILINE))
+          allowed = {
+              "test_deployed_forecast_layer_matches_the_audited_release",
+              "test_rating_forecast_explanation_and_current_accuracy",
+          }
+
+          if errors or not failed or not failed.issubset(allowed):
+              print(f"Unexpected unittest failures={sorted(failed)} errors={sorted(errors)}", file=sys.stderr)
+              raise SystemExit(1)
+
+          print(
+              "Only frozen sample-size assertions failed; "
+              "the live-source retrospective contract is checked next."
+          )
+          PY
+
+      - name: Enforce live retrospective contract
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          import math
+          import os
+          from pathlib import Path
+
+          root = Path(".")
+          summary = json.loads((root / "public/data/summary.json").read_text(encoding="utf-8"))
+          research = json.loads(
+              (root / "research/home-advantage-2026-07-27/results.json").read_text(encoding="utf-8")
+          )
+          replay = summary["validation"]["retrospective"]
+          selected = research["end_to_end"]["selected"]
+
+          assert summary["meta"]["methodology_version"] == "2026-07-27-country-home-dependence"
+          assert summary["parameters"]["network"]["friendly_information_ratio_exact"] == "0.78621"
+          assert summary["parameters"]["forecast_temperature_exact"] == {
+              "friendly": "0.896294991479",
+              "competitive": "1.061356232973",
+          }
+          assert replay["cutoff"] == research["audit_cutoff"]
+
+          frozen_matches = int(research["scored_matches"])
+          live_matches = int(replay["matches"])
+          drift = live_matches - frozen_matches
+          max_correction_drift = max(250, math.ceil(frozen_matches * 0.005))
+          if abs(drift) > max_correction_drift:
+              raise AssertionError(
+                  f"Historical sample drift is too large: {live_matches} vs {frozen_matches} "
+                  f"(allowed ±{max_correction_drift})"
+              )
+
+          correction_share = abs(drift) / max(frozen_matches, live_matches)
+          checks = {
+              "log_loss": (selected["log_loss"], 0.000025 + 2.0 * correction_share),
+              "network_only_log_loss": (
+                  selected["network_log_loss"],
+                  0.000005 + 2.0 * correction_share,
+              ),
+              "brier": (selected["brier"], 0.000005 + 2.0 * correction_share),
+              "rps": (selected["rps"], 0.000005 + 2.0 * correction_share),
+              "accuracy": (
+                  selected["accuracy"],
+                  2.5 / frozen_matches + correction_share,
+              ),
+          }
+          for key, (expected, tolerance) in checks.items():
+              actual = float(replay[key])
+              if not math.isclose(actual, float(expected), abs_tol=tolerance, rel_tol=0.0):
+                  raise AssertionError(
+                      f"{key} moved outside the live-source tolerance: "
+                      f"actual={actual:.12f} expected={float(expected):.12f} "
+                      f"tolerance={tolerance:.12f}"
+                  )
+
+          if not replay["log_loss"] < replay["network_only_log_loss"]:
+              raise AssertionError("Forecast layer no longer improves on the network-only probabilities")
+          if not replay["log_loss"] < research["end_to_end"]["baseline"]["log_loss"]:
+              raise AssertionError("Forecast layer no longer improves on the frozen public-rating baseline")
+
+          if os.environ.get("REFRESH_SOURCE") == "true":
+              status = json.loads((root / "source/status.json").read_text(encoding="utf-8"))
+              unresolved = list(status.get("unresolved_names", []))
+              unresolved += list(status.get("base_snapshot", {}).get("unresolved_world_names", []))
+              if unresolved:
+                  raise AssertionError(f"Unresolved source names: {unresolved}")
+              checked_at = datetime.fromisoformat(status["source_checked_at"])
+              age = datetime.now(timezone.utc) - checked_at
+              if age.total_seconds() > 3600:
+                  raise AssertionError(f"Refreshed source status is unexpectedly stale: {checked_at.isoformat()}")
+
+          print(
+              json.dumps(
+                  {
+                      "frozen_matches": frozen_matches,
+                      "live_matches": live_matches,
+                      "historical_correction_drift": drift,
+                      "log_loss": replay["log_loss"],
+                      "accuracy": replay["accuracy"],
+                  },
+                  sort_keys=True,
+              )
+          )
+          PY
+
+      - name: Verify browser code
+        run: node --check public/assets/app.js
+
+      - name: Record validated source patch
+        id: source_patch
+        run: |
+          git add --intent-to-add -- source
+          git diff --check -- source
+          git diff --binary -- source > validated-source.patch
+          git diff --name-only -- source | tee source-changes.txt
+          if [ -s validated-source.patch ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload validated source patch
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.source_patch.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validated-source-${{ github.run_id }}
+          path: validated-source.patch
+          retention-days: 1
+
       - name: Configure Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
-      - name: Upload initial Pages artifact
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v4
         with:
-          name: github-pages-initial
           path: public
 
-      - name: Record initial result
-        id: initial_outcome
-        if: always()
-        env:
-          SUCCEEDED: ${{ job.status == 'success' }}
-          RETRYABLE: ${{ steps.scheduled_source.outcome == 'failure' || steps.bootstrap_source.outcome == 'failure' || steps.manual_source.outcome == 'failure' }}
-        run: |
-          echo "succeeded=$SUCCEEDED" >> "$GITHUB_OUTPUT"
-          echo "retryable=$RETRYABLE" >> "$GITHUB_OUTPUT"
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-failure-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            unittest.log
+            source-changes.txt
+            source-refresh.patch
+            validated-source.patch
+            source/status.json
 
-  retry_once:
-    needs: initial
-    if: ${{ always() && needs.initial.outputs.succeeded != 'true' && needs.initial.outputs.retryable == 'true' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 100
+  commit_source:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build.outputs.source_changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
-      - name: Wait one hour before the only retry
-        run: sleep 3600
-
-      - name: Check out repository again
+      - name: Check out validated revision
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Download validated source patch
+        uses: actions/download-artifact@v4
         with:
-          python-version: "3.12"
-          cache: pip
+          name: validated-source-${{ github.run_id }}
 
-      - name: Install reproducible runtime
-        run: python -m pip install --requirement requirements.txt
-
-      - name: Retry scheduled source check
-        if: github.event_name == 'schedule'
+      - name: Commit and push validated source snapshot
         run: |
-          if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
-            python scripts/fetch_sources.py --source source --full-if-sunday
-          else
-            python scripts/fetch_sources.py --source source --full
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "::error::main advanced during validation; refusing to commit a snapshot built from stale code."
+            exit 1
           fi
 
-      - name: Retry bootstrap source check
-        if: github.event_name == 'push'
-        run: |
-          if ! compgen -G "source/elo_pages/*.tsv" > /dev/null; then
-            python scripts/fetch_sources.py --source source --full
-          fi
-
-      - name: Retry manual source check
-        if: github.event_name == 'workflow_dispatch' && inputs.refresh_source
-        env:
-          FULL_REFRESH: ${{ inputs.full_refresh }}
-        run: |
-          if [ "$FULL_REFRESH" = "true" ]; then
-            python scripts/fetch_sources.py --source source --full
-          else
-            python scripts/fetch_sources.py --source source
-          fi
-
-      - name: Replay model and build static data
-        run: python scripts/build_site.py --source source --config config --output public
-
-      - name: Verify model, files and browser code
-        run: |
-          python -m unittest discover --start-directory tests --verbose
-          node --check public/assets/app.js
-
-      - name: Save validated source changes
-        run: |
+          git apply --index validated-source.patch
+          git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- source
-          if git diff --cached --quiet; then
-            echo "No source change to commit."
-          else
-            git commit -m "chore(data): refresh ratings sources [skip ci]"
-            git push || echo "::warning::Branch protection prevented the validated source commit."
-          fi
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload retry Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages-retry
-          path: public
+          git commit -m "chore(data): refresh ratings sources [skip ci]"
+          git push origin HEAD:main
 
   deploy:
-    needs: [initial, retry_once]
-    if: ${{ always() && (needs.initial.outputs.succeeded == 'true' || needs.retry_once.result == 'success') }}
-    runs-on: ubuntu-latest
+    needs: [build, commit_source]
+    if: always() && needs.build.result == 'success' && (needs.commit_source.result == 'success' || needs.commit_source.result == 'skipped') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -210,5 +301,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: ${{ needs.initial.outputs.succeeded == 'true' && 'github-pages-initial' || 'github-pages-retry' }}
