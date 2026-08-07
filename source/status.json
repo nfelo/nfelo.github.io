@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-08-06T09:12:15+00:00",
+  "source_checked_at": "2026-08-07T01:44:08+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-04",
   "supplemental_results": 0,
@@ -13,12 +13,12 @@
   "world_cup_results": 0,
   "sportsdb_fixture_events": 156,
   "sportsdb_requests": 6,
-  "wfe_fixture_rows": 277,
-  "wfe_fixture_source": "live Eloratings fixtures TSV",
-  "retained_stored_fixture_rows": 0,
-  "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
+  "wfe_fixture_rows": 0,
+  "wfe_fixture_source": "stored validated upcoming-fixture snapshot",
+  "retained_stored_fixture_rows": 277,
+  "integrity": "Independent feeds passed validation; stored Eloratings fixtures were revalidated after an upstream HTML challenge",
   "base_snapshot": {
-    "source_checked_at": "2026-08-06T09:12:13+00:00",
+    "source_checked_at": "2026-08-07T01:44:06+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
     "pages_checked": 0,
@@ -26,9 +26,9 @@
     "changed": [],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
-    "first_party_source": "live Eloratings TSV responses",
-    "first_party_challenge_url": null,
-    "stored_fallback_files": 0,
-    "integrity": "all downloaded rows passed schema and rewrite guards"
+    "first_party_source": "stored validated snapshot after upstream HTML challenge",
+    "first_party_challenge_url": "https://www.eloratings.net/World.tsv",
+    "stored_fallback_files": 6,
+    "integrity": "stored first-party snapshot revalidated; independent results refreshed"
   }
 }
