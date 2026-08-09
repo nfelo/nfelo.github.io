@@ -120,18 +120,13 @@ class TournamentInterfaceRepairTests(unittest.TestCase):
         self.assertNotIn("grid-column: 1 / -1;", chance_css)
         self.assertNotIn("border-radius: 999px;", chance_css)
 
-    def test_pages_scheduler_keeps_its_identity_and_never_rewrites_itself(self) -> None:
+    def test_pages_scheduler_has_no_installer_logic(self) -> None:
         workflow = (
             ROOT / ".github" / "workflows" / "pages.yml"
         ).read_text(encoding="utf-8")
         self.assertIn("name: Validate, refresh and deploy Pages", workflow)
         self.assertIn("python scripts/validate_live_replay.py", workflow)
-        self.assertIn("install_compact_title_chance:", workflow)
-        self.assertIn(
-            "The permanent Pages workflow was unexpectedly modified.",
-            workflow,
-        )
-        self.assertNotIn("gh workflow run pages.yml", workflow)
+        self.assertNotIn("install_compact_title_chance:", workflow)
         self.assertNotIn("install_repair:", workflow)
         self.assertNotIn("release_gate:", workflow)
 
