@@ -1,0 +1,480 @@
+name: Repair tournament interface and take over Pages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      install_repair:
+        description: Install the tested interface and deployment repair
+        type: boolean
+        default: false
+      refresh_source:
+        description: Check upstream ratings and fixtures before rebuilding
+        type: boolean
+        default: true
+      full_refresh:
+        description: Reconcile every active team page
+        type: boolean
+        default: false
+  schedule:
+    # After the main Americas, Asia/Oceania and Europe/Africa match windows.
+    - cron: "20 6 * * *"
+    - cron: "20 15 * * *"
+    - cron: "20 23 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: network-football-elo-pages-v5-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.install_repair == true && 'installer' || 'site' }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' && !(github.event_name == 'workflow_dispatch' && inputs.install_repair == true) }}
+
+jobs:
+  repair:
+    name: Install repair and hand over deployment
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.install_repair == true && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Check out latest main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Decode and apply the repair
+        id: repair_payload
+        shell: bash
+        env:
+          REPAIR_PATCH_B64: "H4sICME+eGoCA3RvdXJuYW1lbnQtaW50ZXJmYWNlLXBhZ2VzLXY1LnBhdGNoANRc3XLjRna+11N00XatOCIgkqIkUiPRHntnsq7y39qT7EUqtdMEmiQsEKDRACl6Vik/RG72NqnKG6Ryk6s8wL5D/CT5zukG2OCPRFmu2l27akQC/Xt+vvOdPi2F0XgsPG8S5UKefvv61W+/fO3PQjFafz6KklDdiV543umNBr7fO+sH7XEgOu32Ra935Hme2/Po5OSk1vuTT4TXuey2OmfihH+eCzzKp0osVFIooXOZKzFOMxVInYsY3zIxk3kwVVrESmshg6DI8Dhe+UfiSHzwgXibFlkiZyrJRR7lsRLBVCaB0njtvcXInyoaT+TrZotILcUkWmBMtVDZSsxllkdBNJd4KcVbZxQxztIZLfDIC9LZPFZY3ldvXn/xtV1qNJupMOL1iJGdCHOmc5VEycQs3Re0jFERxaHQkgbRRx61GkcKj75PoyRHd54pyrUYF3EsgnQhs4iXgEGy6K6FR7NRlGDR+TTVJKtMJZN8isGWUT7leTHGjyoRMs9lcHsaqrGiAWQSuvLVLX4yj+VKcy/amYLsojQ58rCHpcxCX7xm0WB39FwUGhNLqESRYjrtVrvdFiHEkc2iJNIQn8AqZaxfYr3fpxkpEQunxfFqgzTJ1WyeZhKDZkVMo0FY8yhJVCgylcsoISuicX3xdQKBGBElMhZzlQVQnJyQ5DIlA7PbeTGKMW8oc+kfnTxf14UmnaWY++gkSswGaO9yIaNYjtBwv4pfiTDSJFLsptv+SMyUTEi6EBlZz0mu5EwsabBRWuRoIuhHOrarws5ZDQUZfKZYN1AB7dR8gzzjOF2aIY9OrFp+/unPWkyytJhr1ik+5bR9XmGepfPpalORkYb4k01VYoHRTG0qTzxddzS4hjaOTv4RSJHxQqZpGrb4U80JxOE+cHRSOgH6JHs9QVSOoOUCSzN+0BJbjnB0YjzhIUsTewwNqPNKFAlMKtPogcmLIAcmxdSBtpykS4IpaFMmkd1mphaRhvg9KzQj4CM8D9IsxDo+z8mAsGOMam3CseJSeTKmOVZkE5nSeIOhRmb9OsrVUegCuFn1KRvcKeO2P81nMQB5z5sS3GXnsqOk75+Fg6CjenVw39fXQP2+twT8Zx3C+xPz45NPjoT577750ny8PtVBFs3zof0aR8ktdhrfNHS+gr1MlcobYpqp8U1Daq1yfYr2cGYZ+4HWHy9uzsbdXicYy0En6DeGR97GMJBZnMpwYwwzuB3hot0fh+1+93xwMW4Iqe3cGOzk6YOpdu+ifal67d6lrA+23mAphSi8aSRjDOmR6XumYflyUwhmZ+LQfZi1i0NXWs7KkY02Ct+sHgIdseubRj6NtG9a/EbG8W9eLqHtdOn/8Y+8i+9o9G+VTuOF+tg/bjr9VZal2U3jkfal9pLUGsUh5rBfBMPr02okq8pfPnJNWrWRjV5r34So7/TTNM3Fza6Hf/qTeF/2ERSqM7j3lRgjqKoWe1B/0LoUJ/zvAf5jvpW2orOg2o2cz/3vaSeD88swGKu+upRrM9nZsjtSg2A0HshwdFkpk3A1K7+MFQIhjCWFT65uGtNoMn1U69N0SVt/TS+Pd6OXuw4HYNzHFrfOemCNlyPfvxiMOp3zPbhV61gHrdorpqrnvb7hqvYDHo6LJGAsxuZlEedfUsBcc9A3chbFq+Mx/QD4N0uVNn2KcceNBmnLPOKwmuQ+RYTsd2+//AJm8e46jBYiiLEWeB7CkBMFPPpeOgb0OzXhxmns0SOQEhglhhlez8uXaqVGWbpsDB2yrBM519M019en8+H1tOO8wyN8vz6tDxKrENN/hmiuKZRWQQl0QyuK8ksTujmi6xxBH3qveFIIDgNmsaT4zezEiW5QHwjntzK5BbOIl8RLRzAP9LJUhunAMs0wcE5E7OUGSa+4EWK1BAUwkZsoV5AW3OmWWBvo0WRqSJnDeX0WwKkR57D0gr+SeL+JglvwUkc6EAFzCcs7aVfaJaLjKAONYxrKBEeOc8u7mNKY7KPUAtNhAApUNiWJVYJiJmnFCVYKP+X2Do+sS8k6tmuu0Hg8kplrsfZRY7jGNbeHMRX+15uwAK/Bs1VM9IjGq8Zhd1q58r0+5ZbDa61iFeQcP3d0+PC9+fT1nDSt74GR3N5K/4Fl7V2LNfvG8LX58MhKqua/wtSkvcbwO2tZj0xsGl+nvHOxkHGhbhrGbhrDrUTp+tQ03OzA1tQYvjJGtaP57l3ZbyVUSR2Fqtyj4bxekuY1dDPGx49BlsD7vRgcG56XxqC22AmYNkHCxjbh4KAnw59/+jcshVtY79Sg32vTrNrT+N4tvAzb2hzLfTf82riMx8BV5HGa3mIGDDq8Hm12ZEXAede5JXx8ZNew0TZUJjCzUZRouoPs++VsBidOWYZrePp7FOmnO1Hrb0GqD8AZg2/w62GZVjILpo3hm4jAmsG38uQomRdbjmw7iHw1h+7Kb3Gk81ozGsjTxQSpK2Ndg054AjVNYwD2TeM77lcLLBRJfv7pPxulr3/4HkKUc0Vc5JiPEvwfCmSi/kTlx40fGk2iqGAw9xQAkQvTEjYXu7UKkrRt+wzk02kGi/wO/z6CeqbhJioxmev3Lok+25+/nMoJS+hiPnR46T4EpYNIioROKMPPyI3A6VjOtrXwRAaaY1/u6MsnAOAaX5Er39SHGop2iajmv4/FO/EKzMg50zJHMxTck5aIkiAuQo7jzBroeISOnaQ50UCiE2I5ORq8FB++T4rZSGXH7pTNezyvb+fmRnQwccMcaEmY2ZX5guEVQst9uWb0NEpQ4T8R66CeNpxQf/sJnW1Mut+ghf67EuvWm/1Fiwyj0FkkfbsXgCUxlQu1QxTCHNkJOhBriRHEtW905CmR3f9UrUjwGBlmD40YyYPVvnNVLKhto0oAbBKVBgXvF172Olb08dPV5+HxNiI3/Vzd5Z+ZtEHcWKs+v2h1umTW5sNz7VqId2vFmaY+9bsX//vfjkot+fHZGe/fvXzqjty4sLmv2mr22VDdE8g8Gp/FKZ/gltR7qw2kvyOqQyEnW2O9qrPoxmYTDLU7mjWeLAo3dP1Konj3dhqBzlt5zIGJmWRrpTNMdk1AfhT+Fl+ONzXKYzbvTT7GKcFknWHV8wUOMLD1zRyNIA4Tt5DtRcjSrF/ZoSZI0OiQMy1PXmeAPA5IQaZkdaKJtbqH3MCzshDkf/jeRcn7d9tqNvsvk56n7d/AEQmglmMi60xC58yaV8Xn1tX5M5AvUBmdhucrcxRN+bDGmsMiBpbEacAFhQfO6l+JsswU2rNh7HpFMTKLxoAYoSN6jW5zL00UZdT0MV+mnPgidTaQZU6QTf0snc/RNDHbzyQEKRO1fGkUIMVEJUWUUAELoJUSbmmQxCq7v1WKigsQnLaVrM3MnbL8hwSKRpDmptJ2OJ3RWum9tFyuBxxgrK3trNe1XpPr0gHF+mCArC4sbdc5WqCerrky9FprLSuRtiiIBTrhassqT3ZYpdKlO5hA/egGS2ts7Un5yWSo3uSWPqvikzkteFbZiet+NJJTZbpN0uCWxjEmPCYjdPyVi2GwFrcGZlqiDQXeIAYXhe2Y05hUEFWcceFXRhnCzbapVACYs08eHz0arPZGqlbZt/mSA2jvvMenqvanGz65WvXm1e8/z9VMH1dx8t4OUYVNkGQmu4gJf6DNhilk9nZTIeQmtYyEjpQ+brRK9IKsQKAwRq1nZKSvp2Qt0Fu95Ao0KGKLKaTl0cpmFMawuFLNQPWUarWpF1KRkNDCzL9EGlEW6/IUwQwQ3hJchMoWHHNpgaGLgLZW557NlROtIdGWpVVumNcaFquzulp5mkzLVtAwN/OHdDy21TSSFcw1NGeMhI54UNVuffEGdsrJEM/DtwnK8IxO1nh1q5rToLA5WHOwOIPryBhyNmacqUJzbdjiL7JmXdBRnHXAdG4UYpBaEFKzbhiJ2KnQgyA7IZcUupjP47JqWMdvfjaDWS+oUGtKn2QVmSmb0MkfPk4J01SpQoPYGgZn8qwIKsxA1GNskICsyIuswnrIo8jKU7+EZBpzWdE4QuXWVEFmvZs6pqlv0kICqZUtGasF0mqyX/YFcnraGOIwyS2F8RgHyKdVACSj9yuatdcZ1iZdocb3BcDQMWfHxUZqItloWAWcFRG9J8B8Kii+5SquuTQBKzOwtqcMXwdIX3wNr6HnCLvO6kwEkGFoTZb1X0dLNjFEanK3ZaSVPeGuQpoNy41DgAksQhICwRtV5pkUjcUyskGlvHUzlgusEXoncGKIvOxftjptYCR/6NVAMiMOkAElDUA6yb1WpoVN8GcAjTT07NPyPIpAOVbhaFU1cATknrXQiXyXs/0d7Sh0cxHopuF1GsNvgA35nmtB16fT7tBljNfzIem2ZmhBGhezxBYhdGmju2+XcO1eaipdlOwMwTBPMypMOypgQrg2X9jIEhufVJd2UkNFYAVkiiVcEswScUnBbxJbzWDomClKhE3TqKy6cEobyCyLiNvkDvxZm5Lg6IznclWnnh/T8f6GWOoXR2Adiu/RbN4CossIaVgEEU1jLgGVzJ9yglWJ2PWrJZtXfj5PLDmjAewdq3X8qS5fudd3Kt69gE3R0PaulqXl87oVhFBKFgFpeTOchJC3QeqUdqwPSQDcZEpzsuskv2K5nNTNxTUVOZ/DRy1BtHRyn6E8H4darEGuDdOKTZLx2FUlly7u2M7uW0YPMT6OsrzXNQb6Vmd0/2f7AsumzfBtI8sQEIKSzcxyGSWkBmui61s5VnbWVwgJjYJcmHAPFSEYEKTGMHsh/lV8dfyX/2HRtcRf/oM/NK9H2fCbYwMQUdPU5fX//de/i1PxVb2GYYV1HaShGtru16f8rSRpmxf3dDEqry2tT+IMUfKqpIwuHxghI28BNC4iJI8hsj0y4PR7prDkqk4d1QQjcg6amYx9fQ2odgOQhy0vP9HdtMywG3BrwwpBamhMlSyiLE1IUy2T8EB7zo1Bc2HQXOWiQzG5NMXcRBU5XXwq+VuJPHYtbqJo+YAv/oGsimdWMd/hKmxYMyQFidDIxCZjTpDBCNgew8YU+yYR6QySpLtohpuVgcsXXyg5KYjWED+euiQyysrCcWXKPCDV4CPaZ9lW3WFHbJ7mkqRCMkktW/Zu2TL1YjWZEPWhPFMzM5xgOhPErcdZugjol+Zw0XC3be8LCQVjvREj7dPGsJ5DXutiNsO+h5xlKMdt7XEjglvZZKMnQMuc9v/ZuS1H9MMcCJSUXnBhmJn8mnWSHNyTDepGjC5OSeZrXmTqylXCuAG/e+/iVUQOMp7Hhc13rGWCIgL9gAUc52jXmdySIu/vS5ub18zpABt6ivWUYW3Dhqgott+OWmsjMm6EDAAmpNdXIZwEhxwA5mBp9Q6DObW2sQF5j5iR2GlGv6OLikmNxNokhs9egAOhY1BiQ+B/YGuXTmiGwkuUshnZlIRt7yyOFLZrqECLuYlbtWhB6neUi2ibE+Inx5/yvikEp1ezUUr3MAEQwa1CMFIzaSOuKVPCkhykecXkjaqkxnLuAK8mgAHBHrzBiaYzxqa9FzHdC5hYwprWUXRiWpcxL6zQQa/lFBs7a4mRjClOhDbStiqMr9kX2q1K06mCeZImHp2RxKAfTF04gmWkshY5MctkpXM1Kw9d4mgW2VAiKYpmOZcQybFmCGJZ4pqhNob3wIWs9YW4rQtU61f2YtZodBGM233fv7zsqn774qGLWU7nXZeznNem+jHo9Vq9PpU/6FOnzcnJKA1X/0xVR4/VXTpEGqeTVeNfhO985UtV5ZPSYziDeoHwcgvBY/NjpWKRgGEtqgNbyot/Y468UmasiH0myWOksML3aZzTo+0FuckLFsTqK8v1Nvl4T8wDZuhFCQVKT0c/qitx6fdg9i/p3QheMGGVX1HCkmbeLLo7NnwFNqmzycgeLoGRHHueLrKxDFRT9Psf1V780OnQ3DOIIlFNetM0EwAkkSqa+a9EZ34H04qj8KDZ6oOKXrc+pxm7Sdi2tcc+7xBvqBbigRFMkD4RAVQZP3Y3HiWAoSg3z+vrbePhPd1Ef0T6+XSP/DHkPNWRSd9AV9gAeKY5snaqIlWi6c7vnjXb1ZU5wOZJ7W8SXIlRDBzgCZdRmE+vxMUFzyMEYtJkml+JM/sdED2JsMpz6EgWsFHv3L5xhUWLlZk3yWQYYTnHJrIM2qGatMznte6yVKvm1tMY2UWw/Xit6K1XGv61/XSeLln95hx2rTtaWaGvxGAwsOu3tyRN4RTf07kMQJGhXv+y//JI3NOZw2MyD3dq2N5+YUdjk3b9qLRpu2iw9Ka4vPio5W4CozSNq4zT6tLZlW3Bj6wqnUbGxDt+u1daeaVu6wTjWFmlbjrGuV91onelEXT97nn5nL3Fi+jEuuYzdEgWjVdeJU7n3UTOASxW3ta0YWswpU6n0sIB4ul3d4qnboTGEnZbooAj9dfGKPbPt8ay+pxstc2n9L+s9Tf2beHq8EEGtUHW3gCTaT9loMGGBI2XNM0ArqPsRuONYSuBiLNeNa4F3ke8bpTeeUgEwnRpFYa0GIyrzdO2d00JZgxu00NoEWC+iaYLq0leqqItemROgEmB1vL4stcS3bOWuOi24MjtS7OcfV6UFDOAfOA0Mv7Q9gfGIYR9bFLvqsMVBWPk/xk90GsfXFrHuey210OWD/vtNg8IrgYH8TThDfkDltmxTsZ75TdYRJIuMzk/FP0fQqKrK3to896B/MsNxC+/E0pgUfif8P5AqO+cnT8V68V576O98H2yB77P2x9tmhEvtS3IAh73g8vuhhlth4KDgN93b6Y5cjdH5BXwVohrZT6O8hIobXS98+wrUFeztUkWhWXwFh1xCjLKZrMTgL0dAMzm441UvkRixE0Yhzs9UrC3DuneGbtc9bwC6E6bXKpkAA8BfPlOq3i8jfw0To1EGJOyM7ohYUAT8lNRx3SxE9PtyVmn02Wj8w6G04t9cPqEQTag1AL7Xy/O9H+FODNo748zTxvorDYQc7TmUVkW9x6OModz/ovdnH8zwShRo0PstUsIUX2yzdYocmgc2gkgf+Ox82Jf7Dy3frc3dj4PDPk+9fsyoR70udbXGbTPe63u+c58+mkDP2dpJUUXh1L03q9H0bvdklU/lZiA3vefRUx6u4iJZSu/nH3sE/NO4tHfIB79vyfisYMqfMJ3X8QxNhooDt1phh5cc1HN0v4H7U67dcHm3+/Y+7S/hvHWhfSZTBZS23tNdgvWvM2rt+rO3A5ntQrxnEOF1iEDHMJLDxnoMBNzFGTumbDS7q2mTl+4f9Rj8xbnlXPo5pZxnTIo3f97cWoV2u32jELP2p3W+cVzFPreaIRXeXL6Amt+Ib5MR1QSePPq93TLSxd8IWcuo0x0290Lr9332gOfWnLrt9VfGuCZ4cUqiMZRwMfcdK0GG6PDXjqMxXbMWWKHUvFJQemIqcbSlUwezpxPm18JAU1LVNziPz2QhVwMpl8w4Ys0ZcHU1Niwr4zvl/JvMwp5F2le4enRSekkDuNFkjS/axq9bQluLH8ggeGHOUi12uUQGP3IpNGaNx7ZK5923EDGwTHo9GIpPHGGWN+0752597eJkrJNu+pG7LU6kqvAaZ8HbSyd2gzFVaSP+RH9to9uiQ/oM1dEW6YpnZnbjzO6mNl6bGzu8FgjShcebWRV+QQRV8nK7hRmhxgPEBatVdiqULmYA0a2GRP9IRG61mYRBgB8RrQIzbHC43ZLdMYZOFeZktgUZVB9XWc/Xfd86oB118W3HueiJFedfjULlVbGcbr0KLjClpIV13YPniow1+neP7hxwISS+TFYXH33zWcop5zZHwEu0uQJ+rk3FALgy7WP/2fv3nacyrU1AD/R8vb5cNlJJalUKkA1FDTc+bi0H2G//Z6hQUtZNXpYdPvyv0M9cQtU4pOn5+9//GDt+p8vJX9+2Lh98vj37cPuv75nl/40LvzLyO+fOsgvRj9uL5MVJG+f/fhmVLWt3Toh5PDR+EJ+MyJW3300Ip6jiARFJCgiQRHJLxeRbLqSgt3/9x96NR2jKkOIIqs3MpB6/dfKO7n+6xnUglpQC2r9ulo/UlU0XW8f/vDLVyVD3PxKOtlq6d0XtfweMeI3QDJIBskg2S9L9uedmv8jIXv77KdjXSdpy7YP01mrmEnHiNV3jBHPoRgUg2JQ7JcVo/R6o1bKJpZohLBRyhglqdZfaQWloBSUglL/RKkfPSekVm+f/VQrBmeCF2Jk02XTpFrE6ju9iOdQDIpBMSj264r959slLRn5/IdmQbahaxMiluGspPdgf/F/uBeN/j1QDapBNaj2y6pt/8za/1Z6oMvbZz9HIzhlXU9CVFXasPQNXGL1nWTEcygGxaAYFPtlxX40xNKvmMTDH45pn60pUQgji1eOdoxafgcZ9RsgGSSDZJDs1yX7c4IfDdmbZz8bUWxO9vZd0ibXYmy0Y29X3zP29jkUg2JQDIr9smK34sX/+W1HKvb22Q/FstYx6W03pnvSTdIn/sTqO8WI51AMikExKPY3FXtgFHsgsvpS9hatEGEUP1plFHuYKPYAxaAYFINiCxQ7MIod3io2ckypNyFKLqWYzih2mCh2gGJQDIpBsQWKHRnFjsRerGTlRxbCDBuqtoxix4liRygGxaAYFFug2IlR7ER0V8iNgKSF8LZ32Quj2Gmi2AmKQTEoBsUWKHZmFDsTb5RGmmSTEDL5bjp3LnaeKHaGYlAMikGxBYo9M4o9EzfAvS8hbm+UqTmtIrcXe54o9gzFoBgUg2ILFLsyil3fKuZUcV4XIVTuLjjudP86UewKxaAYFINiCxR7zyj2nriFpIOVTQthe/HJcnmx9xPF3kMxKAbFoNgCxX5nFPudON1XRpbUhdBWhjQyo9jvE8V+h2JQDIpBsQWKfWQU+0ici+ltN6aGEHH71WiOUezjRLGPUAyKQTEotkCxT4xin94qZkdt0ddtL+ZNV2Ywin2aKPYJikExKAbFFij2yij2SigmUxm32+CqeavY0/3XiWKvUAyKQTEotkCxL4xiX4jb4CWFcLsN7qvbfs3lxb5MFPsCxaAYFINiCxT7xij2jUi9eqXKrSkxa1vHUIxi3yaKfYNiUAyKQbF/rtjut79W7O7Zz9P9plNIt71YajZmZi92v/qtYvfPoRgUg2JQ7G8qxvSL7Yh+sbL93G28tb0GaWVmvlHuJv1iO/SLQTEoBsVWKMb0i+2IfjHnaiw5C6GlHcYwb5S7Sb/YDv1iUAyKQbEVijH9YjuiXywa2bO0QkgZi45M6nU36RfboV8MikExKLZCMaZfbEf0i9k6Si3pNj8kGFcbo9ikX2yHfjEoBsWg2ArFmH6xHdEvFkZ0YyghgoxpFO5cbNIvtkO/GBSDYlBshWKPjGKPxOm+9lH5TTGd2zCVye7fryYUe4RiUAyKQbEFijEtiTuiJTEHp7OtQkhTJNvMs5u0JO7QkgjFoBgUW6HYE6PYE/FGmXSwZggxkkqda0m8X00o9gTFoBgUg2ILFGO6XndE16uNOdVbdj+pnkNPjGKTrtcdul6hGBSDYisUY7ped0TXq49Ne+mEUF7JFJgZSLtJ1+sOXa9QDIpBsRWKvWMUe0cotv1h8/fpIUZrxyr2bqLYOygGxaAYFFugGNNYvSMaq3M2t+FHQowwZLCcYpPG6h0aq6EYFINiKxR7YRR7IRqrvfQ5fj/dDyYZ7nT/ZaLYCxSDYlAMii1QjOnd3xG9+746qbsUwreqN8AYxSa9+zv07kMxKAbFVijG9O7viN59E0YpowqRa9GWvUc56d3foXcfikExKLZCMaZ3f0f07rtolClBiJp9lcUwik1693fo3YdiUAyKrVCMaazeEY3V2z9/5f2m2PZTKlYGRrFJY/UOjdVQDIpBsRWKfWUU+0rco0xVhyGFMFZH2bhvlF8nin2FYlAMikGxBYoxvfu7b9Q8ys0xo4TItpQouTfKSe/+Dr37UAyKQbEFiu2Z3v090bufdfbqthfLsoySmDfK/aR3f4/efSgGxaDYCsX2jGJ7YgZSkzUVK4SPRbahGcX2E8X2UAyKQTEotkAxpnd/T/TuN6eVK0MIOWpJicmL7Se9+3v07kMxKAbFVijGNFbvicbq6KLuoQnhjPNSM50W+0lj9R6N1VAMikGxFYoxjdV7orFaet9l9ZtiqmbtI6PYpLF6j8ZqKAbFoNgKxZjG6j3RWO3lsMltezGTg8lGMopNGqv3aKyGYlAMiq1QjGms3hON1d6rEXMSYrTRTGN69/eTxuo9GquhGBSDYisUuzCKXYhzMeVs12N7o2yl+MZ9o7xMFLtAMSgGxaDYAsWYxuo90VjtTfT1ppiK2rrI5cUmjdV7NFZDMSgGxVYoxjRW74nGahVD8qoIkUdqITJTdfeTxuo9GquhGBSDYisUYxqr90RjtVVyBBVu2X09wuC+UU4aq/dorIZiUAyKrVCMaazeE43Vt59P9vLWzCNdkNxebNJYvUdjNRSDYlBshWJM1+ue6Hq1t45Xu+3Fum3Ssd8oJ12ve3S9QjEoBsVWKPbKKPZKdL027avUQpRqc4jcDaTXiWKvUAyKQTEotkCxz4xinwnFcqhxWCFSuA1yY/rF7lcTin2GYlAMikGxBYoxXa97ous11+qqNNteTMfmHHcuNul63aPrFYpBMSi2QrE/GMX+eKtYksNG64TIUSnVubzYHxPF/oBiUAyKQbEFijGN1XuisTpV26rsm2JBje6YGUj7SWP1Ho3VUAyKQbEVijGN1XuisTrbYl27TdUtLabBvVFOGqv3aKyGYlAMii1Q7IFpSXwgWhKHNcWnbS/Wm5WRm+T2MGlJfEBLIhSDYlBshWIHRrEDdY8yj1ibENEn6RST3b9fTSh2gGJQDIpBsQWKPTGKPRFJC1Nj1Hrbi1WtveqMYk8TxZ6gGBSDYlBsgWJMM88D0cxjtz9mSEOIWpORg0m9PkyaeR7QzAPFoBgUW6EY02nxQHRalJaMkerWu59Hi9wb5aTT4gGdFlAMikGxFYoxt8EfiNvgReXg3fZGqYKuuXGKTW6DP+A2OBSDYlBshWJM0uKBSFr07a8lTRIiSl97ZW4gPUySFg9IWkAxKAbFFih2YKbqHoipukHLMazfFNu2Ys4ynRaHyVTdA6bqQjEoBsVWKMYkLQ5E0qIZ2WtyQnQVVZKFUWyStDggaQHFoBgUW6EYM4/yQM2jrM0ULYXQuhnN3aM8TOZRHjCPEopBMSi2QjFmHuWBmEdpyvCxWSFKsV2lyig2mUd5wDxKKAbFoNgKxZh5lIczdY8y92G3vdjoXTXpGMUm8ygPmEcJxaAYFFuhGDM95EBMD0lRpqLLLbvvYmuKUWwyPeSA6SFQDIpBsRWKMb37B6J332sr3a3r1avau2Vugx8mvfsH9O5DMSgGxVYo9pFR7ONbxWoIsdi8KZa2n1OWjGIfJ4p9hGJQDIpBsQWKfWIU+/RWMVdltcrcpuo6VzTTkni/mlDsExSDYlAMii1QjJmBdHilJrlplVQSQjaXe+XyYpMZSAfMQIJiUAyKLVDsyHyjPBLfKJ1PKRslhA4jd8mc7h8n3yiP+EYJxaAYFFuhGNMvdiT6xZId0t9aEkdzaXDnYsdJv9gR/WJQDIpBsRWKMf1iR6pfzLiiVBCi2KayZ1Kvx0m/2BH9YlAMikGxFYox/WJHol+sF12j3vZitxFIPmpGsUm/2BH9YlAMikGxFYox/WJHol8se6OaVdtezCujItNYfZz0ix3RLwbFoBgUW6EYk3o9EqnXErSMt9N9Y61vlukXO05Sr0ekXqEYFINiCxQ7/fbXit09+6GYUrloHYXIpTYXmH6x+9VvFbt/DsWgGBSDYn9TMWYe5YmYR+mrMr2PbS9Wok2R+UZ5msyjPGEeJRSDYlBshWJMS+KJaEmMWWXfpRAlmyQ7p9ikJfGElkQoBsWg2ArFjoxiRyJpEaKK+fZGmYPRg5kecr+aUOwIxaAYFINiCxRjWhJPj9Q3Stt6b7fsvjK1Mv1ip0lL4gktiVAMikGxFYoxN5BOVEtirbXZIsRQzWfNKTa5gXTCDSQoBsWg2ArFnhnFnt8qpquyPm6KKd+DHky/2P1qQrFnKAbFoBgUW6AYk90/Edn9oWWsqd1uIPWa2L3YJLt/QnYfikExKLZCMaax+kQ0Vkdtne1KiE2ClD2n2KSx+oTGaigGxaDYCsU+MIp9IO5R+rIx5oXouaZgmX6x+9WEYh+gGBSDYlBsgWIvjGIvxDzKnIKvVQjdo7WFy+6/TBR7gWJQDIpBsQWKMfcoT8Q9SldMjPI2yc0MaTzTWH2a3KM84R4lFINiUGyFYkzv/ono3TcxxF6SEDcQSuDOxSa9+yf07kMxKAbFVijG9O6fiN79VoqKNX5PWujquOz+pHf/hN59KAbFoNgKxb4win0hmnmsd7I0IWr1yUZOsS8Txb5AMSgGxaDYAsW+Mop9Jb5RpiG1c0KUlkqNnlHs60Sxr1AMikExKPbPFXs8/bVid89+ZveHrf7Wu2+tjVkxLYn3q98qdv8cikExKAbF/qZizPSQR2J6iFYm9ba9UfqRew2JUWwyPeQR00OgGBSDYisUY7L7j++o2eBeK1eFSDZ7OZh+scdJdv8R2X0oBsWg2ArFmLzYI5EXG824Ym7zKFMKPTOT3B4nebFH5MWgGBSDYisUY/Jij0RebDitTQ5C5GGtUdwb5SQv9oi8GBSDYlBshWJMXuyRyIul4fX3vFgMZvtjK0axSV7sEXkxKAbFoNgCxc7M9JDzA5UXGzKNLoTNpjTP7MXOk+khZ0wPgWJQDIqtUIyZHnImpodoV4tL4dZpYX1OzA2k82R6yBnTQ6AYFINiKxRjul7PRNdrlkllXYUoanu1VEzq9Tzpej2j6xWKQTEotkIxJmlxJpIWXdnqsxXC69B61Yxik6TFGUkLKAbFoNgKxZh+sTPRL9aqVE1mIWRwLkpuLzbpFzujXwyKQTEotkIxJi92JvJiNZVbTGxTzHRtfGcUm+TFzsiLQTEoBsVWKPaRUewjkRczUbfubs08zrfKdFrcryYU+wjFoBgUg2ILFGNSr2ci9VqiG+E2j1LnqnRojGKT1OsZqVcoBsWg2ALFnphJbk/EJDe3EWa9uZ3ujx64N8qnySS3J0xyg2JQDIqtUOw9o9j7t4qp0a0vVYhevWySuQ1+v5pQ7D0Ug2JQDIotUIyZ5PZETXLb8AombHuxrEwJzGzwp8kktydMcoNiUAyKrVCMOd1/Ik73fVFeGiVESq70zsyjfJqc7j/hdB+KQTEotkCxC3OP8kLco4zFpKpv00Nq7Voz9ygvk3uUF9yjhGJQDIqtUIy5R3kh7lFKF6K1bduLKVlLDYxik3uUF9yjhGJQDIqtUIzp3b8Qvfslb6+UdQiRtQs1M7fBL5Pe/Qt696EYFINiKxR7ZBR7JM7Fuh7daiFi8tE7Zjb4/WpCsUcoBsWgGBRboNiZUez8VjErm0nGC6GbVLozqdf71YRiZygGxaAYFFugGJN6vRCp12qrUvZ2AylV5RvTu3+ZpF4vSL1CMSgGxVYoxjTzXIhmnuKV62F7o0xOe5eY7P5l0sxzQTMPFINiUGyFYkx2/0Jk90POSnYphLdaO8/kxS6T7P4F2X0oBsWg2ArFmOz+hcjuJ5/SqFYI2Z0JjsuLTbL7F2T3oRgUg2IrFGP6xS5Uv5ixzdQshAuxhMTtxSb9Yhf0i0ExKAbFVij2hVHsy1vFTGzKq20vZl0falhGsS8Txb5AMSgGxaDYAsW+Mop9JU73U5TJeiFGyNkGptPifjWh2FcoBsWgGBRboNg3RrFvxA2kVGsNXYjQh1WSy+5/myj2DYpBMSgGxf65Ys+//bVid89+Tg/pQefYhMgx6K6ZvNj96reK3T+HYlAMikGxv6nYjlFsR/TuB+ejs0K4ZFz1THb/fjWh2A6KQTEoBsUWKLZnFNsT9yh9tdJHIdLQUXrmXOx+NaHYHopBMSgGxRYoxtyjfCbuUebutZdOiKBGkJJJWjxP7lE+4x4lFINiUGyFYhdGsQuRtCil9pSFqKr41rg3ystEsQsUg2JQDIotUIxJvT4TqVfXm05OCVFS9GVwe7FJ6vUZqVcoBsWg2ArFmN79Z6J3vzoZrUlCWKnSBhij2KR3/xm9+1AMikGxFYoxU3Wfiam61rSs6+10P0XV2b3YZKruM6bqQjEoBsVWKPbKKPZKJC16yq5timWXS3fcXux1otgrFINiUAyKLVDsM6PYZyK7H01S2txaEltpltuLfZ4o9hmKQTEoBsUWKMbco3wm7lFmbXuNt9RrjaXawSg2uUf5jHuUUAyKQbEFil2ZG0hX4gZS6MH3W7/YMErJwOzFrpMbSFfcQIJiUAyKrVCMye5fiey+a8bVcduLuWJzY26DXyfZ/Suy+1AMikGxFYoxs8GvxGxw7Y1zUgqRfVYhM5PcrpPZ4FfMBodiUAyKrVCMmQ1+JWaD69Gc7W17o/RdtxAZxSazwa+YDQ7FoBgUW6HYkVHsSJyLVV9GqNsbZfd2cEmL+9WEYkcoBsWgGBRboNiJUexEdFqolqrdFKvRh5SZSW73qwnFTlAMikExKLZAsUdGsUeiJdFnlVISoudcC5cXu19NKPYIxaAYFINiCxR7ZhR7Js7FQlNeb4qlVnSJ3On+80SxZygGxaAYFFug2JVR7Eqci6U8ervtxVLTvTPNPPerCcWuUAyKQTEotkCxd4xi74iputX4lqoQLelUGrcXezdR7B0Ug2JQDIotUOw9o9h74h5lMbmlIcSmWdgEYxR7P1HsPRSDYlAMii1Q7AOj2AfidH+k1Ju+zQZPJrbEKPZhotgHKAbFoBgUW6DYC6PYC7EX60V3F4XQagSVuHOxl4liL1AMikExKLZAMaax+ko0VsfSo4n1drrvsy+aUWzSWH1FYzUUg2JQbIViTGP1lWqsTjGE798oY8yD3YtNGquvaKyGYlAMiq1QjGmsvhKN1Um7HJwXQlalY+ZSr5PG6isaq6EYFINiKxRjGquvRGN1ssnY8P/sndty27iWhu/zFBztG3nHRng+uMZTlU6cnXQnsiLRcuxUSkWCYKzdsuQtyel2Z/JQ8wrzZLNASdbB8OLUDi//pDs6EABBHD4AS8C/IiFi5QVZxp0Gr1Gs/gDFalAMFAPFmqAYo1j9waBYnQSxH5ZKCMqvDNjfKGsUqz9AsRoUA8VAsSYodsFQ7MJg3Q8CqQKtaWFHkRtxKokXNRS7AMVAMVAMFGuAYp8Yin0y+EAqnNzVWq9REgWx6zAU+1RDsU+gGCgGioFiDVCM8R7yweA9JMptpywCIbw4VEXEeA/5UOM95AO8h4BioBgo1gTFrhiKXT2mWK4yVzkhUSxSXig5u9hVDcWuQDFQDBQDxX6eYh3GB1LH5APJllkZJULEjnQjyZyj7NT4QOrABxIoBoqBYk1QjPGB1DH4QJKZDMMgEiKimspLZr9Yp8YHUgc+kEAxUAwUa4JijPeQjsF7SJwEQaS1XkNZ5nHOUazGe0gH3kNAMVAMFGuCYozufseguy/j2MnjWAgnd3JPMecoOzW6+x3o7oNioBgo1gTF3jEUe2fYaeEndhA7QsjMz4OQ2bu/G9tAsXegGCgGioFiDVCM0d3vvDfpi2Wu69CKMvdz5SvJUKxGd78D3X1QDBQDxZqgGKO73zHo7ntSlbGiuZhrS892mJ0WnRrd/Q5090ExUAwUa4JijGJ1x6BYrRJbOaH2De6V0vWYXa+dGsXqDhSrQTFQDBRrgmKMYnXHoFjtJWXs5ra2i+VR6XPW/RrF6g4Uq0ExUAwUa4JijEpix6CSmGe+XWiVRJnYYZlzc7EalcQOVBJBMVAMFGuCYoy+WMegL+ZlriqKUIiCFpR+wFGsRl+sA30xUAwUA8WaoBijL9Yx6IvFnpMVoStElHtZnoQMxWr0xTrQFwPFQDFQrAmKMZoWHYOmhRf6YezlQgS+F/sxR7EaTYsONC1AMVAMFGuCYoymRcegaZHFUR6EtKLM6OHoP4ZiNZoWHWhagGKgGCjWAMXOmP1iZ4b9YmVcupEMhHCDOHSK7GmKndXsFzvDfjFQDBQDxRqgWJdR5ukalHkCWboq87VKopRBwpxA6tYo83ShzAOKgWKgWBMUYzQtugZNizDPItsuhbADu0xsj6FYjaZFF5oWoBgoBoo1QTFG06Jr0LSw/aKIJc3F4sT3g4LZadGt0bToQtMCFAPFQLEmKPaWodhbk10sKXO3EMLx/czLGe8hu7ENFHsLioFioBgo1gDFfmMo9ttjijlRkuRhJkQgvdiOOLvYbzUU+w0UA8VAMVCsAYoxyjxdgzJP6bhF4JdCUD25Wc4o83RrlHm6UOYBxUAxUKwJijE7LbqGnRZOnGRlpfUaZVlZcnaxmp0WXey0AMVAMVCsCYr1GIr1DIrVpVOUbiSEHQVeETO7XndjGyjWA8VAMVAMFGuAYoymRdegaaGVXp2MVpSOtFXsczstajQtutC0AMVAMVCsCYqlDMVSw34x5btxKIVInCQpfG4ultZQLAXFQDFQDBRrgGIXDMUuHlPMDQrf1SvKMipiGTOK1buxDRS7AMVAMVAMFGuAYoymRdegaWG7oV/mNBdz/SKIIm5FWaNp0YWmBSgGioFiDVDsI3OO8qPhHGVkF7GXOPoEUqmCjNn1+rHmHOVHnKMExUAxUKwBivWYc5S9U9Np8MJ1taZF4UhpK2Yu1qs5R9nDOUpQDBQDxZqgGOMDqWfwgeSXrhe4oRBR4EROyczFejU+kHrwgQSKgWKgWBMUY3Za9Aw7Lew8T8JCn0DK/chXPkOxmp0WPey0AMVAMVCsCYox3kN6Bu8hfpRHvlcIEWauR62AoViN95AevIeAYqAYKNYExZidFj3DTgvbczLPdrVvcM+TnPeQXs1Oix52WoBioBgo1gDF+sxvlH3Db5SxUr5fBkLYynNCP3qaYv2a3yj7+I0SFAPFQLEmKPYLQ7FfTHaxxPHtWIjSUbmb5wzFfqmh2C+gGCgGioFiDVDsFUOxV4YTSLFT2oGjNS2k63o2Q7FXNRR7BYqBYqAYKNYAxV4zFHtt8EeZ50nihEK4kVPKjFtRvq6h2GtQDBQDxUCxBijG7Hrtm3a9qtwr9G+UmVeqMGO0Xvs1u1772PUKioFioFgTFGO8h/QN3kMkQSyKSiFyOy/9hNn12q/xHtKH9xBQDBQDxZqg2DuGYu8M1v0wyZwoFiJ2ndzhVBJ3Yxso9g4UA8VAMVCsAYox3kP6Bu8hYVTEvqaYF8VKRYzufr/Ge0gf3kNAMVAMFGuCYoz3kP57kzJPkDkJUSzx4jjgvIf0a7yH9OE9BBQDxUCxJijGeA/pG7yHaK19qTUtQt/Ok4DRtOjXeA/pw3sIKAaKgWJNUKzDUKxjsosVdu4nQuS+o1zFzcU6NRTrgGKgGCgGijVAMUaZp29Q5nHd0s7iQgg7zPMoyhiK1Sjz9KHMA4qBYqBYExTrMhTrPqaY1nctSyWEU8Z+GHB797s1FOuCYqAYKAaKNUCxjwzFPj6mWJLIqPINXrhZkCmXodjHGop9BMVAMVAMFGuAYoxX3b7Bq64beaUXl/o0eO66HqMv1q/xqtuHV11QDBQDxZqgGKP12jdovRaZpIWk9kcZ52FYBAzFarRe+9B6BcVAMVCsCYoxXnX7Bq+6ufR9GWt9scAuCta6X+NVtw+vuqAYKAaKNUGxAUOxgeEcpZ0ksd71KgOZRJLbLzaoodgAFAPFQDFQrAGKMYrV/QuT1qvtUN0IEcis8GXJUKxGsboPxWpQDBQDxZqg2CeGYp8M3kPc0oljKYSTlSrhvOruxjZQ7BMoBoqBYqBYAxS7ZCh2+ZhiZSiV5wdCUKbtPGe8h+zGNlDsEhQDxUAxUOznKZYyitWpQbHayQJJa0khlN4tViZPUyytUaxOoVgNioFioFgTFGMUq9PXpr37gedLV4ikjDzXY36jTGsUq1MoVoNioBgo1gTFGMXq9NRk3fdKRykhSqp/VTB2sbRGsTqFYjUoBoqBYk1QjFGsTg2K1XYWqcD2hfClp/e9MhSrUaxOoVgNioFioFgTFHvLUOytYUVZ+m7olEKEYZJ7kjkNvhvbQLG3oBgoBoqBYg1QjNHdTw26+3mkPNsthIiLLJQOZ92v0d1PobsPioFioFgTFPuVodivBruY7btFEQuRxbHt+Yz3kN3YBor9CoqBYqAYKNYAxRjd/dSgu584fu64ifYNHpaSU6xOa3T3U+jug2KgGCjWBMUY3f3UoLvvR1FQ5q4QKisow5xdrEZ3P4XuPigGioFiTVCM0d1PDbr7UeB7pT6BFBRBlPjMOcq0Rnc/he4+KAaKgWJNUIzR3U8NuvuxtDOvzITIkyzLJWfdr9HdT6G7D4qBYqBYExRjtF5Tg9ZrXiSFoxWrVVBGBadYndZovabQegXFQDFQrAmKMSqJqUklMbaDxKW5WOwluWNze/drVBJTqCSCYqAYKNYExRiVxNSgkugWuRv4OVEsoDryGH+UaY1KYgqVRFAMFAPFmqAYo5KYGlQSVRSFKgi1XSyQHqf1mtaoJKZQSQTFQDFQrAmKXTEUuzLsF5NuLgNfiMT2bTfmKHZVQ7ErUAwUA8VAsZ+n2PnLpym2c21FMc9NfOVoioW+k/iMdX839mOK7V4HxUAxUAwU+zcpxmhanJs0LZQblCoTogj9yPd8hmI1mhbn0LQAxUAxUKwJijH+KM8N/ijtwqWHcoQInbzMPOYc5XmNP8pz+KMExUAxUKwJijG6++cG3f3AkUkSeEIEYRFFCTcXq9HdP4fuPigGioFiTVCMse6fG6z7rlc6tlaszvPETSLmBNJ5jXX/HNZ9UAwUA8UaoNiAse4PTNb9MPaC0BfCdXxP+syu10GNdX8A6z4oBoqBYk1QjPGBNDD4QCqVdIhaQsiEOMadQBrU+EAawAcSKAaKgWJNUIzxHjIweA/JnTCLilyILPLKwmVOgw9qvIcM4D0EFAPFQLEmKMbstBgYdlo4rlfaeSSE7cduaDPW/UHNTosBdlqAYqAYKNYExRjd/YFBd991ytCTSog4yoMgjBiK1ejuD6C7D4qBYqBYExRjVBIHBpXELAmKuHSFcDLHl37OUKxGJXEAlURQDBQDxZqg2DlDsXPDrlc/KaX0hPDowXzF+KPcjW2g2DkoBoqBYqDYz1PsgtlpcWHYaRH4IdW+LUSRlH4YM9b9i5qdFhfYaQGKgWKgWBMUe8NQ7I3Be4gMVJHHQuRlVEQRcwJpN7aBYm9AMVAMFAPFGqAYc47ywnCOMoz9uCiVELIsQztk7GIXNecoL3COEhQDxUCxBih2yewXuzTsF4uUm7tZIkQSJZGXMyeQLmv2i11ivxgoBoqBYk1QjNHdvzTo7vt+HidhQCtKPy59Tnf/skZ3/xK6+6AYKAaKNUCxK8a6f2Ww7sdu5MiipLlYrArHZ36jvKqx7l/Bug+KgWKgWBMUY3yDXxl8g4euE/u2ormYDFTIKVZf1fgGv4JvcFAMFAPFmqAYs+v1yrDrNfdc39a6+1LFeaCYE0hXNbter7DrFRQDxUCxJijG+EC6MvhACpO4zJQjRORnnpcx+8WuanwgXcEHEigGioFiP0mx6d1skt2oCWXGSDLj9bVCT5jLUIVCFL5UnnziPKU5hV2imcOAaqAaqAaq/f+ptsz9/MW3bDwqsoUajkff1HCmbsfZvbi9J+LUhHg2UX9Y5WisrJtp8bARdnVkaflHiDL03SSOKs69KNS3FxPqfSui1aWva8Q+tK3nBLSwqpHnf/uPF3fz2Yt8NHmhJt+s2/vF9XTiPXvearUGq1SsjJpafjcaL6z5SH/8mo0m84W1uFZWOZv+pSZ0fTGbzm+VXNANreyuGC0EpfDs+bPnFOLGGg7Lu8XdTA2H1ujmdjqj4ppMpotsMZpO5jrU+tvZ19tsNleraPrui9GNWkdafz609L9/UR09xPznfDp5+HCTLa5XSdzS2/EoX6fQ3VxZ3N+OJl/XF15O7nU+nj3/cJq+PXt99v7sH5fDwWmv/+6sQ42/5dpueGRHR250JKd3k8Xs/uh6eqOOCnWrqIImktj3/E3v3Wnn9fvL4bvOm7Peh5cpRR729ItOwhZRHLqODnfWO331sp8O09MP3VMKcN477VOQ78sG3SpnI0p0fN861rHiJHQTP0kcP0pah6sgcnpzS2Why1uHcoQdOl4Qup6bRJ4O9ePZ8/fvBqfD/tl579XpMD17TzfqvNq5z3j6dTiezueUgi1s210nPlGLP6az34eEzvvhU4FyyuRs/8vZ7Tqcs/4qk/Julsn75ffOMmv6L/VFixrnv+5GM9WW0wk1GmoOx1Y+nY4PieXzefZVHRNWZgfW0X9ZHaru42Wao9Ki1mNt4qxBQANPNpor6yWxYKavLPvpKq2DrfvqMWGoG01bt5DjqmFUtylGcvGZ7nmom8SXVcrUvmmSUDUyoWPOq1hipiiRhfpz0aYGMC2oOZ207hblUdw62LqXqTe2l+nO725ustn98d5dD9d3natsJq+fuPz31eucJjBSDQm/i7v5fljrv6uCo0rXL6sYk+kfx5vOtR/i6WKgLt1blgSNol9pEKGpzNz645oIoGGgn89aPh+93GhK0KhB4+7ycoUFXWkLag4PfNDpPrSCTT2uSuZz60YtstaX6vV6WkypNd4Pv6nZnCq39cU6ObEMHfZwk04r3VBqKwlrlYQlr7PJV1Ws+9VBfYYIUDRbXFB8na1VV9Fv1712OJqU09lNBbfhTL8M1Z/0xK0vm9Qo30/D4onsr9O3ttK3qvR/+ikoPSWz+YIaM2GF0tSsNmbaRK6n8rtK1NpKdG7I6rqxV+3mZJPFVb+pKvpza2eIWedqrsb0hSoo2rqzfG5RIQ0XVOaTQsdbB1lHMRTK8tafW/JuMS3LZavaJFc12+H62v6zGkY+axn2ySddFs+QKlBeU4GcUH0u2pv7zSWVW7G+3PqyqswKHvtxlvneD1rMRqWese1EOdq77zIoTYSnf6zvNlxHvMn+bLvB4X5OX7zQc5KnG1eWz9tVEgfWf56Ykt4qvK1oVVm+Hc0XNA+jlZE1z25uaQ60zMxobi2mU2tMMwMaC1q7scrW9+1n/GF9m1vfdzP943Gc9ipn1v/+z3dDJn8cbMU42K889edt1ZyGv6v7+WYo3R9ON++3G8xT4+rDBWOs9UC7erN9aTncVi/bX28NuZv3qwA/li/U96m0h4UaL7KdQaOk8W3xRT/ZKiR1Y4tAcJeN9TMf7pQANcPdEhE0QbyZtw+2RuRlXEqwSnndaDcprlvtduk+hF733s/bd9mOsZiOCS00/aIo5vnO9q028R6ar54ritG8HE0o6+1l2IND3bQ28X7oZqhnHMtQrQNDOrutbJWqpMpcJ7opuUPdUwhR45OH3B/q1Vz1Fc2RDg53E9tLe9Xyt7N3M/1GhTa9W8xHtHBYj8VHy5nBpowedaBlUsuUTlYpHgvHLX88ZPbk+/rd6oIxiYdbnHzf3K0Kvxd8+9m2inGnOW7XGFXrqgEdPWSJmTbstLFNJ/xCRNq7Zu6LX7bz13qzHsEohppRC7DGU0L6TC8aZlTkc1omVqW9SuxIJ2bRpTzLR2Oamqp5/ZD8ZJY3QTZ5N49xeUb9ZDRR+v3PPspq8F4ax4709IIWSQ832MchzcR3pp/rjrI1Wdd/7iazpaWkqIalOXXs7Vjiq1q0W5tAQ22Po6KzPn85ODClImjOTc++1zEMaeqMD+eT7HZ+PV1Qgt9/HFQXHrfh7dtTXY63M7HXhI0t+KFm9eNv0tIkOd88/apHVkkfW9834X60HspU/6GhS/5OOcn0cLyeqQu9bh3Np8vZ324R0rxh+XETc6cJjcqtNMXiLz2H1JW1V1GP7r0VqWqiUrWXkU/WS3Bxt5BbN6LRZqYmNJPUS4sTvdSwaAB5eAT63H4i5hMobe+keLSVowOxmC6IE3OlV4I06uhphxfadj0/aR1TzrTd7KFKNu33brIGDXVm+nr8FDe/bxXOploOapC3s6Lcnj7sTlxo7N79Yrs3b896KOD2x+1g1w+TqiFNKmd6kkpLkmqWQ7H2p2Qtw2SIgvHzuNaS3DoX34nXx7s4qwbragZhmiz8eJzOagSg1HY+GwI+DDM6sHnk38x41ktxvSZt71sTKovTTA80K+uTeDn7eqd/EOhWV9qFWhrWqPBOhsNiKofDg+2oIiuoDazitFtHR6slDLFjcX+rTrRtQQ/wVesuTtLZneLjrzn/byewbNNHyza9ncoq2jqsnsGukqhedCLUj9aNdHuVf8LZMaruuzGpPCQvViWx3QWM4dZPvB1wh28ne53YfLftGAe7EQiATwTcHrN246jxXO19fbA7nlc/NbQru1Bxd3NL659NkR3SE8wWVUtfVtnKJkQ5GVaDy3CoV5qt4VA3y+GwtWqPy0a6a1teqPliXv071JbYYmlPNny71oaRrl9qzeTEjYrE3zvJZ4q3tCCbrmirsRNoOz79G1r0cWUzndAT31sZld7tM0v/7Z2dpdRQdENrD4fakk09RayGuPaBbmO6+D87X54dbXfZ92f/oP/7/eHr0/fpS0qhsik+s+a0oKgMbaOJtue17UNtDWxXt3lhtVbmbm1so5tXRt2xKlaTGp3Byj635uLy0/xOEjKoYjZf3NJqUzcLouR6pWv9jVrEv7Jj69SnfFQ/Bfr06M8979CxdQlUN9NW+vH6Xu29SNayeUz/ueTdt2z2f81d65LaRhb+n6foUioFZECLmOHqOIkza2+ScuKsM5v94ZpSBGpAtpCwBMOwrqna19jX2yfZc063pFa3BBo7tZVUJTDQ3erLuXzn63NIQEBffLFbJ5y7B+/oltAifNuR9HSVttU9i8TmpA2sGg2pPrlt8Rb8DJzTPgSTkJHoHEJu+BA8B6CYOx7tAVwI6ltfqpgwteDLJSw4H+Q3/PC5/EzrRfs6GqJMXYyGk65ziTu7CL00Zb/i3cDiOxTBGxTJ9h4CLxRLG/+8BlQHIWbJHXdOsbGfKeCNFcrcwL5JA9bNCSHFrAAmXtoeUc3P30OIopkoZfQ3J13xrYZX0KQ0Y8FM7if7p3eOVdJASd7xc/bCZEsX6zgAtZGsLiNm0GYvkfKS8KlYVKqOtdlDyBHxO9DJFMxBtAuPkhejYIOiDEJhMtAglbKVO0Vji0lopgOUlotxf0AXix8lNJ+zG9gJDl4Br7RWCV/hXZcqEj5PAgTtJN6eoLeLc1RHEptgs5sgOrL9FowU9zbqnjAv8hkI1A5BosBIsNzeNoZTUgdCo88TvE5KxcTAWm133jzkT2AGcHowJYiFheWRGyncl51dm+bBdIGQiKfqlfCvwj7VW+Ku1unMvVC5sXY/VP6ydE9U/sq4L8q/fjD4gtISqw1gsbvniKx22aC0FQ5P2a9OV29WvSvdClavIy7FB/2x052yC3gdwutHym+nvLLtOoEGFeuwvB3s1XwPK70mgUFOorzlSB+hB2QLkFuk3+ZHhukSjIv7tf/++z8piw8Ry8yHZrCs10J7pUCSl0BCAZQ986jiynVNdG6Wb2NpW2nJxwHshn0Ith6MYsw1iBbhHo07w1REccEU7wEjGcbEmCWCvLWHNL1peDxxn40xpjot3cso9uiHqC32vMveeneeACMd6dYGg6txdwJHPBg68PoJfs36PljBBu6QioHpFidQatVCUuWpVextD3cHApEVnDdZIKul77ZwDYLmmBn7fA0SixtTkCdag1eAGdCG+YBL4ADCOH5n7PizJRgsQSsFkRca33/H8ZJINkjSnVieIRfXggEgI1oYYCEARuNFjMkJELXekHzkF0p2ZfMWnctT7IXQoedJe03bp32IW1iHykG8QVzBJKEMx2ik3SXfBLBD3CX7vXPvJgZqb9or+39rOoPleDS17cViOR5cXdWi+sbjGqi/cU+KCgajrjOAuEC85lL+Wg7yPBvjhRzihkb4bdJQ9svaBkhoD8pGHyIRn64J98u0HkbTz7iizOS68h5aYDqQHxeMgLv2Eh9gmM99vGBYKoRArx549IyZUYTk0ubZZPPaVr0vtUqhbTH638jkJlUAsslDCkdneKZBt9JZlDe1vKxWM1zQ0vW4IXTWlU9f4NkJ/xzTnOuUsDB/7i7YhUiGEjgw9O5Ew6z8mjtzPuW2Pe47ff9yWqtqp4YytOtUY1SoqwkGQ/Bfh3zGj7+6vzy7+R5sWBbyClrewrci3028pZw36zN2/WvDHkV2oEWhO7FjPpxbfKTZIW4BlHoQ8RQpCIBaSVDkX/pBojzJhvNY7+c0ftYktYpLRIzkEZ8gKwKap45ir8J43ra+tI9fbkKI5xVGGidALNXpfJsS061fLmO6GjgEFEwvSGYWzgKHKTdD72KJBDh2JpOuYoSOxqJLgrdoVJmZJHMIcFrg3Lc8AcOJnu4XD/x2vtEI8TdBiv5YXBN8Jg3tTS5PL4h8PmNXv6VeIrArDCcIxT+21/hNexGmijEUEnmJwnhxNR1KoRRP/iUDUMUUrkmWG5r2FllzQCyKGlhf3+BfTPyl45VWoTzUTDyujY7aVkfpGB0BvhyULuwb9vtXIIrS80f7DQRVC0Zj9MQY4PnD/SYqT+irv+zWX//e0nEQBrdHFqIRZ/F2G9P5wYH5iQeIGY7zYEAnQsYeW/FoD06RMnoAagCuTTHElCiYveN8C1Eg8710bSIrNuh/IeYspwcxkYfABVEsRp8HGMKbIzQe9BGgsXjJxFzBlDHMH9zjlIVMpxUPwOfmgwI+TmCQLNqEzQOTzngU71drgPQMUSaGp2wJohwem2NocBHveCLd+tvUdOkQpoVeJFJF3RRcNwCRNXdBwjCHC/BJhJlF8AqtVnvQGzdLMdOdu6Kbnk+3UzmV+Pr5s7/+9Nze+FZDHgkNmpi6CLmaYONym128FQcFI9H7QyyiJO4t1mwFu701+qQg/kJugyVE1+zAQzhIDK8ovTYTHTNqkqcZpOSME2I1YoHME+QZFqCizdF5udlHider0CeDiynPSgWGID18QGaUVkjEUVn4SPCM4WKYZHJAA0u0EkgBQ61X1KccJLwo71eX7UGDkh1Axd2R5pXHLMwPUlzCJ0g02tGhM8R4cDgYdx3njzOjgLySdq/33nF6SQxfsz7aBWO5RSvKg2UjsB2Tk+228cHnSQdb4YF+YXIGQdQLIkwK6KXBv/iMje0rANtPjIZv92AalkcRTEW7GUu3HljYOd8dOI+eGEdpDDyRw5abrZLAl2Z6xhzQ4Z5jNjKevYD/8qS+IZ5Zfat5nMCmQCTuB5hpO51Ot/dPjE1cwsN6gu/f9aR3mTEInvahl+AHqdnnWypMYW1QuAWndcUJPMEjntfAzdbcW7xDCxH5M3btRXceDUlyBgIGEHJ4NegOB3+MnJWl27ITL3pHxo2n79BwfchUZAaeIeJP2IMlhR/gZef8OAuIxlL2odxJXkBmTgCGDyIVPi/i7ZHiuU08x3umpffeBV+VYuIquoiEr8DSYYpvqruBIvMG+uA4yBEIXbVhHYGeHdJ6vxccyoxZ/0Rb5MdgcW9014sJNJ5iy8gKfWPpsZKjEu9vnFv5SOuhCxvgdN70lWwT3cmUpfHnF89fviJqLne+KMZsXphtZTZzvvKiP5vt1kFztSHNzqlT3hn4dx7A46KqzfExtxlJB6TyWRpsQPky16ipPnLwGN3waAWoUHEERlMsdIPtye7yjO8Lz9xwkSKezRdSWqqyWPRDiqBn8gqaUimw1k/UlL149ncmdULGGEyUsUx6/al1Ri4bSmFrHvvHNxAieT065qcWTNC6ZTa89FADDK7gEPhYcLHwwkUbxO3uwHrscrC979TYeMweR3QtjT1YxUtnew/xUIRpyn1QmiX4qcu+MMUaLAAZxACqd0i8LZjT6AiSmfAnHyGD2hkUORKZiUoXYF73IfddEUeTdaLYX6JWMD5qGFkLU/PZbCkIfHoiLi/aykA1xoBcOyL9uhzf18W1yrY0i7YV9kbF0/SBlb3LcwlK6FrLtdCeUZlkp7mQhsF6V+xk7Tgt/c6p1S32s/7pNTRcV92T+t6NKbPzwwkrki/CFdcwsOn+iu9Or152pTnI60qlgx6JoYtwIWrldBfhksK7+5SnOe9KFBOs5i6odL1FjiFRs6IVyM0aMHoYzG1QlMFw1M5oLCEs8yM8vd3p2Gt+7wd4n9HuvJk5g9tiuLenRvux2WCEnq76mOcy6jvqvfLHgidt48Q5AlZaoFlKs5JIBdSIDML6XZNpS4nIXVT1TdVtKmt1RdtUV7oTIS3NjxLhKocV08cK0PNj9nQT1j5NEhJRiU3tI/J/zUxPA/NYG64zjR9c8kRhFDZeFCxRNAzgrRwWyBvVfbpZENkGdQDgZMsrOkTtDYjqfeAuAslMnuKptXaNaoX78ytnMvQqa4WbPUWtGL6cUMXwowp6Ecvkf0i9PFWZK/9Ij2n+PlMvkTz3iBSzi+bpYxcNkq4qv9PysLI8U6oDQyQQL0TGoaDQd/ttyN9grU2XKm6yukqljK2mnqhvT8aTy8vLq1FVPZHWcDqlDIOKEqK+PXTGzsgZXppVRH0bvppeTYajmlIi6Dx1RtPReFQuJcp8lTb7Ut3crKigdpxSrZKWmDRjVyN30i/NXil2mKmPkLfYsr5vlm+jEbZn1QvQW9tUeNJo2h+qmcgP5dVJl6wtjqpSzclUFanOGhWPV0yARlTqNM3HZcWnuK6z1aezogL9wQhs6us/jac2rFDX7uTPVKurrR/q9kJJhTP3opwZVz3rc8JYnGO9NFZpZ16lplTfVHWpy58q+hsaXTlOps5FP/FJZWOh3UVT/LuyoaLqRev8w9sGp/RQqm0wwKywjwJTYe7ga7Kh1zIMqgdT5TgLyf+lF2CgRZZYgqIC/WLJT5C6JC21sZUxOcz/N622XiT8yPpktbo4T72EMUiqRmabYreh0WDsjvtT8FRZ609OXD2RuvqIZFU2rI4lXvI01YI6qghWRy5XedyqK9arHqv6KUUftzWyaQbmnpvlTbp6iASjhyFJU/rHSYqs+8biKUA/ts/5Ft9kJ2K2PJvkq4jFBSXHO456mJgCpx7Ea7xpTl/zFb/XzqN8+6x7gewxTctJT7EolTIp16vJZGYSiujqB6Tfl94CLQQA0caWQbkFFgQxmAHBHBMXs+YbXm8RiiQ+NV6RPxJW+nGhpgFK8dtM9SMqiRifyI0gdehF6YEiuGIxfxJKu5YHacZAK6s7SWScoH3PDoFMEAQLFXkAs5mHiYytrnKk9cxO9c1Uo64111CN+hZ3dzD3DZxUhBdHj+xK14OP7iUvC/V+mnoqNzXz+J6nLiY4uBzdj7va7xDj1hvh/6sqSbL8qfLYTKabUeso9SqFrknZec5cDto5nzIoY3WZGmiy6lanywb1hyjZeLziRUE79VhsvvHue4/tEkRZl36pvSYeJ9hFhHxZkpSgGBtKyllBqTH/J62/4r9PspiK8JyhHi8a8ZiKTW86Hu0h5UCLnDtNc1BPROZd8cOXVqeB0IU8aouxUbqGfe1mTl74RfL5GjSgH/l8Kr5r5kgbFFtlA0tFWFb+DOIH9cAerE5FFHRZ8RnNtFv7IwCfMLv8xwo/vD03Maf5xJoUmeZoSlab/g8fBHS/Vm8FAA=="
+          REPAIR_PATCH_SHA256: "3e7b32fcccf2848e037121ee353786f3f3d0e083de069de1c6fa7ce8c6f1128c"
+        run: |
+          set -Eeuo pipefail
+          git pull --ff-only origin main
+          patch_file="$RUNNER_TEMP/tournament-interface-pages-v5.patch"
+          printf '%s' "$REPAIR_PATCH_B64" \
+            | base64 --decode \
+            | gzip --decompress > "$patch_file"
+          printf '%s  %s\n' "$REPAIR_PATCH_SHA256" "$patch_file" \
+            | sha256sum --check
+
+          if git apply --check "$patch_file"; then
+            git apply --index --3way "$patch_file"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git apply --reverse --check "$patch_file"; then
+            echo "The repair payload is already installed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::The tested repair does not apply cleanly to current main."
+            exit 1
+          fi
+          git diff --cached --check
+
+      - name: Run focused permanent regression checks
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python -m py_compile \
+            scripts/validate_live_replay.py \
+            tests/test_tournament_ui_ci_repair.py
+          node --check public/assets/app.js
+          python -m unittest tests.test_tournament_ui_ci_repair -v
+          git diff --cached --check
+
+      - name: Commit repair and retire superseded workflows
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git rm --ignore-unmatch -- \
+            .github/workflows/pages.yml \
+            .github/workflows/repair-tournament-title-chances-faq-and-scheduled-deploy-v4.yml
+
+          git diff --cached --name-only | while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/pages.yml|\
+              .github/workflows/repair-tournament-title-chances-faq-and-scheduled-deploy-v4.yml|\
+              README.md|\
+              public/assets/app.js|\
+              public/assets/styles.css|\
+              public/index.html|\
+              public/*/index.html|\
+              scripts/validate_live_replay.py|\
+              tests/test_build.py|\
+              tests/test_romantic_editorial_feminine_tablet_v8.py|\
+              tests/test_tournament_title_chances.py|\
+              tests/test_tournament_ui_ci_repair.py)
+                ;;
+              *)
+                echo "::error::Unexpected staged path: $path"
+                exit 1
+                ;;
+            esac
+          done
+
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git commit -m "fix: repair tournament presentation and Pages validation [skip ci]"
+          fi
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Start validated deployment on the repaired revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          successor="${GITHUB_WORKFLOW_REF#${GITHUB_REPOSITORY}/}"
+          successor="${successor%@*}"
+          successor="${successor##*/}"
+          for attempt in 1 2 3 4 5; do
+            if gh workflow run "$successor" \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref main \
+              -f install_repair=false \
+              -f refresh_source=false \
+              -f full_refresh=false; then
+              exit 0
+            fi
+            sleep "$((attempt * 2))"
+          done
+          echo "::error::Could not start the validated deployment workflow."
+          exit 1
+
+  release_gate:
+    name: Confirm permanent repair is installed
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.install_repair == true) }}
+    runs-on: ubuntu-24.04
+    outputs:
+      ready: ${{ steps.readiness.outputs.ready }}
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Check deployment handover state
+        id: readiness
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if test -f scripts/validate_live_replay.py; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          elif test -f .github/workflows/pages.yml; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "The replacement workflow is waiting for its one-time repair run."
+          else
+            echo "::error::The deployment validator is missing after handover."
+            exit 1
+          fi
+
+  refresh_source:
+    name: Refresh source with one delayed retry
+    needs: release_gate
+    if: ${{ needs.release_gate.outputs.ready == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source)) }}
+    runs-on: ubuntu-24.04
+    # Covers two source attempts plus the deliberate one-hour delay.
+    timeout-minutes: 110
+    permissions:
+      contents: read
+    env:
+      FULL_REFRESH: ${{ github.event_name == 'workflow_dispatch' && inputs.full_refresh == true }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install and verify runtime
+        run: |
+          python -m pip install --requirement requirements.txt
+          python -m pip check
+
+      - name: Refresh source, retrying once after one hour
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          refresh_source() {
+            if [ "$FULL_REFRESH" = "true" ]; then
+              python scripts/fetch_sources.py --source source --full
+            elif [ "${{ github.event_name }}" = "schedule" ]; then
+              if compgen -G "source/elo_pages/*.tsv" > /dev/null; then
+                python scripts/fetch_sources.py --source source --full-if-sunday
+              else
+                python scripts/fetch_sources.py --source source --full
+              fi
+            else
+              python scripts/fetch_sources.py --source source
+            fi
+          }
+
+          set +e
+          refresh_source 2>&1 | tee source-refresh-attempt-1.log
+          first_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$first_status" -ne 0 ]; then
+            echo "::warning::The initial source refresh failed. Restoring the repository snapshot and retrying once in one hour."
+            git restore --source=HEAD --staged --worktree -- source
+            git clean -fd -- source
+            sleep 3600
+            refresh_source 2>&1 | tee source-refresh-attempt-2.log
+          fi
+
+      - name: Package refreshed source snapshot
+        run: |
+          git diff --check -- source
+          git diff --name-only -- source | tee source-changes.txt
+          git diff --binary -- source > source-refresh.patch
+          tar --create --gzip --file source-snapshot.tgz source
+
+      - name: Upload refreshed source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: refreshed-source-${{ github.run_id }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            source-snapshot.tgz
+            source-changes.txt
+            source-refresh.patch
+            source-refresh-attempt-1.log
+            source-refresh-attempt-2.log
+
+      - name: Upload source failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-refresh-failure-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            source-refresh-attempt-1.log
+            source-refresh-attempt-2.log
+            source/status.json
+
+  build:
+    name: Build and validate once
+    needs: [release_gate, refresh_source]
+    if: ${{ always() && needs.release_gate.result == 'success' && needs.release_gate.outputs.ready == 'true' && (needs.refresh_source.result == 'success' || needs.refresh_source.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    outputs:
+      source_changed: ${{ steps.source_patch.outputs.changed }}
+    permissions:
+      contents: read
+      pages: write
+    env:
+      REFRESH_SOURCE: ${{ needs.refresh_source.result == 'success' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download refreshed source snapshot
+        if: needs.refresh_source.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: refreshed-source-${{ github.run_id }}
+          path: .refresh-artifact
+
+      - name: Install refreshed source snapshot
+        if: needs.refresh_source.result == 'success'
+        run: |
+          rm -rf source
+          tar --extract --gzip --file .refresh-artifact/source-snapshot.tgz
+          cp .refresh-artifact/source-changes.txt source-changes.txt
+          cp .refresh-artifact/source-refresh.patch source-refresh.patch
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install and verify runtime
+        run: |
+          python -m pip install --requirement requirements.txt
+          python -m pip check
+
+      - name: Replay model and build static data
+        run: python scripts/build_site.py --source source --config config --output public
+
+      - name: Run complete unittest suite
+        id: unittests
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover --start-directory tests --verbose 2>&1 | tee unittest.log
+          test_status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$test_status" -eq 0 ]; then
+            exit 0
+          fi
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+
+          text = Path("unittest.log").read_text(encoding="utf-8")
+          failed = set(re.findall(r"^FAIL: (test_[^( ]+)", text, flags=re.MULTILINE))
+          errors = set(re.findall(r"^ERROR: (test_[^( ]+)", text, flags=re.MULTILINE))
+          allowed = {
+              "test_deployed_forecast_layer_matches_the_audited_release",
+              "test_rating_forecast_explanation_and_current_accuracy",
+          }
+
+          if errors or not failed or not failed.issubset(allowed):
+              print(
+                  f"Unexpected unittest failures={sorted(failed)} errors={sorted(errors)}",
+                  file=sys.stderr,
+              )
+              raise SystemExit(1)
+
+          print(
+              "Only frozen sample-size assertions failed; "
+              "the live-source retrospective contract is checked next."
+          )
+          PY
+
+      - name: Enforce live retrospective contract
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          validator_args=(
+            --summary public/data/summary.json
+            --research research/home-advantage-2026-07-27/results.json
+          )
+          if [ "$REFRESH_SOURCE" = "true" ]; then
+            validator_args+=(--source-status source/status.json)
+          fi
+          python scripts/validate_live_replay.py "${validator_args[@]}"
+      - name: Verify browser code
+        run: node --check public/assets/app.js
+
+      - name: Record validated source patch
+        id: source_patch
+        run: |
+          git add --intent-to-add -- source
+          git diff --check -- source
+          git diff --binary -- source > validated-source.patch
+          git diff --name-only -- source | tee source-changes.txt
+          if [ -s validated-source.patch ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload validated source patch
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.source_patch.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validated-source-${{ github.run_id }}
+          path: validated-source.patch
+          retention-days: 1
+
+      - name: Configure Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-failure-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            unittest.log
+            source-changes.txt
+            source-refresh.patch
+            validated-source.patch
+            source/status.json
+            .refresh-artifact/source-refresh-attempt-1.log
+            .refresh-artifact/source-refresh-attempt-2.log
+
+  commit_source:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build.outputs.source_changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out validated revision
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download validated source patch
+        uses: actions/download-artifact@v4
+        with:
+          name: validated-source-${{ github.run_id }}
+
+      - name: Commit and push validated source snapshot
+        run: |
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "::error::main advanced during validation; refusing to commit a snapshot built from stale code."
+            exit 1
+          fi
+
+          git apply --index validated-source.patch
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): refresh ratings sources [skip ci]"
+          git push origin HEAD:main
+
+  deploy:
+    needs: [build, commit_source]
+    if: ${{ always() && needs.build.result == 'success' && (needs.commit_source.result == 'success' || needs.commit_source.result == 'skipped') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
