@@ -1548,13 +1548,13 @@ function defaultMajorTournamentFamily(families) {
     ).join("");
 
     content.innerHTML = `<div class="page tournament-page">
-      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Choose an edition to see how its field stood on opening day or when the tournament ended. Ranks always belong to the full world table; Title chance follows the path each team could take through that competition.</p></header>
+      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Pick a tournament to compare the teams before the first match and after the final. The opening view also shows each team’s chance of winning the trophy.</p></header>
       <div class="toolbar tournament-toolbar">
         <div class="field field-grow"><label for="tournament-family">Tournament</label><select id="tournament-family">${familyOptions}</select></div>
         <div class="field"><label for="tournament-edition">Edition</label><select id="tournament-edition"></select></div>
         <div class="field"><label for="tournament-view">Snapshot</label><select id="tournament-view"><option value="before">Before tournament</option><option value="after">After tournament</option></select></div>
       </div>
-      <aside class="record-note tournament-chance-note" aria-live="polite"><strong id="tournament-count">—</strong><div><span class="tournament-note-kicker" id="tournament-note-kicker">Opening-day outlook</span><b id="tournament-label">Participants</b><span id="tournament-description">Choose a tournament edition.</span></div></aside>
+      <aside class="record-note tournament-chance-note" aria-live="polite"><strong id="tournament-count">—</strong><div><span class="tournament-note-kicker" id="tournament-note-kicker">Before the first match</span><b id="tournament-label">Participants</b><span id="tournament-description">Choose a tournament edition.</span></div></aside>
       <div class="toolbar compact-toolbar">
         <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" list="tournament-team-suggestions" placeholder="Search tournament teams…" value="${escapeHTML(route.query.get("q") || "")}"><datalist id="tournament-team-suggestions"></datalist></div>
         <div class="field"><label for="tournament-sort">Sort</label><select id="tournament-sort"></select></div>
@@ -1847,7 +1847,7 @@ function defaultMajorTournamentFamily(families) {
           ).length;
           const unratedCount = teams.length - rankedCount;
           const coverageNote = unratedCount > 0
-            ? ` All participants are shown, including teams without a published rating; ${number(unratedCount)} ${unratedCount === 1 ? "team was" : "teams were"} unrated ${selectedView === "after" ? "after" : "before"} the tournament.`
+            ? ` ${number(unratedCount)} ${unratedCount === 1 ? "team did" : "teams did"} not have a published rating at the time, but ${unratedCount === 1 ? "it is" : "they are"} still included.`
             : "";
 
           document.getElementById("tournament-count").textContent =
@@ -1856,12 +1856,12 @@ function defaultMajorTournamentFamily(families) {
             `${selectedFamily.name} · ${selectedEdition.label}`;
           document.getElementById("tournament-note-kicker").textContent =
             selectedView === "after"
-              ? "Closing snapshot"
-              : "Opening-day outlook";
+              ? "After the final"
+              : "Before the first match";
           document.getElementById("tournament-description").textContent =
             selectedView === "after"
-              ? `This closing portrait is dated ${validDate(selectedEdition.after)}. Rank change follows each team’s place in the full world ranking, while rating change gathers only the movement created by this edition’s own matches.${coverageNote}`
-              : `This opening portrait is dated ${validDate(selectedEdition.before)}. Title chance blends the field’s joint strength uncertainty with its schedule, locations and route to the trophy. A completed record may clarify a simple top-one or top-two pathway, but every later opponent is drawn anew; only a genuinely inconclusive edition keeps a dash. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
+              ? `This snapshot is from ${validDate(selectedEdition.after)}, after the final. Rank change shows how each team moved in the world table. Rating change counts only matches from this tournament.${coverageNote}`
+              : `These ratings are from ${validDate(selectedEdition.before)}, before the first match. A 20% title chance means the team won about 20 out of every 100 computer replays. Each replay uses the groups and knockout route for this edition. A dash means that route is not clear enough to estimate fairly.${coverageNote}`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
       );
@@ -4549,7 +4549,7 @@ function buildFAQItems() {
     },
     {
       question: "What does Title chance mean on a tournament page?",
-      answer: "Title chance is the share of deterministic simulations won by a team from NFELO’s state immediately before the opening match. Every run draws the whole field together, preserving shared uncertainty, then follows the opening schedule, venue setting and route through the competition. A pinned pre-kickoff format is used when one is available. For older and less documented editions, the completed match record may reveal a clear reusable pathway—such as the top team or top two from each group—but never supplies the later opponents themselves; those are resolved afresh in every run. The same classifier welcomes future editions during the normal site build. A dash is reserved for the rare case whose evidence does not support a coherent path to the title."
+      answer: "Title chance is NFELO’s estimate just before the tournament began. A team shown at 20% won about 20 out of every 100 computer replays. The replays use that edition’s groups and knockout route. Old and new tournaments are added whenever that route is clear; otherwise the page shows a dash."
     },
     {
       question: "Why can a lower-rated team be the forecast favourite?",
@@ -4787,10 +4787,14 @@ function renderFAQ() {
 
         <section class="method-section" aria-labelledby="method-tournaments">
           <h2 id="method-tournaments" tabindex="-1">Pre-tournament title chances</h2>
-          <p>The Title chance column belongs to the Before tournament view. It asks a simple historical question: with NFELO’s knowledge frozen on the eve of the opener, how often could each member of this field have carried its available route all the way to the trophy?</p>
-          <p>Every edition receives at least 10,000 reproducible trials, while fully pinned major formats retain 100,000. In each trial NFELO draws the complete participant strength vector from the joint pre-tournament distribution rather than treating teams as independent:</p>
+          <p>Title chance appears only in the Before tournament view. A team shown at 20% won about 20 out of every 100 computer replays, all starting with information available before the first match.</p>
+          <p>Each replay follows the groups and knockout route used in that edition. NFELO runs every tournament at least 10,000 times, then turns each team’s wins into the percentage shown on the page:</p>
           <div class="formula">r* ~ N(μstart, Σstart)<br>P(title i) = winsᵢ / N</div>
-          <p><code>Σstart</code> is the full covariance submatrix, including shared-opponent links and inactivity drift projected to opening day. The draw is joined by the frozen attack and defence layer, the era’s scoring environment, country venue state, and the home, away or neutral setting carried by the tournament evidence. Group scorelines use the same calibrated NFELO probabilities as an ordinary match forecast. Leagues finish through their table; knockout ties continue through extra time and penalties, with two-legged finals recognised where the record establishes them.</p>
+          <details class="method-details">
+            <summary>What each replay includes</summary>
+            <p>Teams’ strengths are drawn together so shared opponents and uncertainty are not lost. The replay also uses the pre-tournament attack, defence and venue estimates, plus the scoring patterns of that era.</p>
+            <p>Matches use the same NFELO probabilities as an ordinary forecast. Leagues finish through their table, while knockout ties can continue through extra time, penalties and two legs when the competition calls for them.</p>
+          </details>
           <details class="method-details">
             <summary>How an edition’s pathway is found</summary>
             <p>Where a complete pre-opening format has already been pinned, its participants, fixtures, venues, group rules and symbolic bracket remain the strongest evidence. Alongside that exact route, a universal structural reader examines every tournament edition represented in NFELO’s own ledger. It recognises complete leagues, balanced groups, opening knockout ties, byes and the first non-overlapping title round, so the system is not limited to a short list of modern competitions.</p>

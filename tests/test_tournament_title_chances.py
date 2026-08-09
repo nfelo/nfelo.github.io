@@ -48,6 +48,18 @@ JS_PATH = ROOT / "public" / "assets" / "app.js"
 CSS_PATH = ROOT / "public" / "assets" / "styles.css"
 
 
+def deployment_workflow_text() -> str:
+    workflow_dir = ROOT / ".github" / "workflows"
+    for path in sorted(workflow_dir.glob("*.y*ml")):
+        text = path.read_text(encoding="utf-8")
+        if (
+            "install_repair:" in text
+            and "python scripts/validate_live_replay.py" in text
+        ):
+            return text
+    raise AssertionError("The repaired permanent Pages workflow is missing")
+
+
 class TournamentFormatTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -483,18 +495,18 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             'value="title_chance">Title chance',
             'tournamentTitleChance(team.title_chance)',
             'showTitleChance ? `<th class="numeric title-chance-column">Title chance</th>`',
-            "every later opponent is drawn anew",
-            "only a genuinely inconclusive edition keeps a dash",
+            "A 20% title chance means the team won about 20 out of every 100 computer replays",
+            "A dash means that route is not clear enough to estimate fairly",
         ):
             self.assertIn(marker, self.js)
 
     def test_explanations_share_the_universal_natural_language_contract(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for marker in (
-            "Opening-day outlook",
-            "top team or top two from each group",
-            "same classifier welcomes future editions",
-            "A dash is reserved for the rare case",
+            "Before the first match",
+            "20 out of every 100 computer replays",
+            "Old and new tournaments are added whenever that route is clear",
+            "otherwise the page shows a dash",
             "Future editions, uncertainty and the final display",
         ):
             self.assertIn(marker, self.js)
@@ -515,8 +527,11 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             "var(--q11-rose) 0 20%",
             "var(--q11-sage) 60% 80%",
             "var(--q11-powder) 80% 100%",
-            "min-inline-size: 7.4rem;",
-            "justify-content: space-between;",
+            "min-inline-size: 8rem;",
+            "grid-column: 1 / -1;",
+            "justify-content: center;",
+            "justify-self: center;",
+            "border-radius: 999px;",
             "font-variant-numeric: tabular-nums;",
             "@media (forced-colors: active)",
             "background: Canvas;",
@@ -526,6 +541,52 @@ class PublishedTournamentChanceTests(unittest.TestCase):
         self.assertIn("@media (max-width: 900px)", self.css)
         self.assertIn(".ranking-desktop { display: none; }", self.css)
         self.assertIn(".ranking-cards {", self.css)
+
+    def test_plain_tournament_copy_and_mobile_faq_measure_are_regressions(self) -> None:
+        faq_copy = self.js.split(
+            'question: "What does Title chance mean on a tournament page?"',
+            1,
+        )[1].split("},", 1)[0]
+        for marker in (
+            "NFELO’s estimate just before the tournament began",
+            "20 out of every 100 computer replays",
+            "Old and new tournaments are added whenever that route is clear",
+        ):
+            self.assertIn(marker, faq_copy)
+        for forbidden in (
+            "deterministic simulations",
+            "joint strength uncertainty",
+            "full covariance",
+            "classifier",
+        ):
+            self.assertNotIn(forbidden, faq_copy)
+
+        final_mobile_faq = self.css.split(
+            "Mobile FAQ measure repair 2026-08-09",
+            1,
+        )[1]
+        for marker in (
+            'body[data-route="faq"] .faq-page',
+            "width: calc(100vw - 32px);",
+            "grid-template-columns: 31px minmax(0, 1fr) 30px;",
+            "overflow-wrap: anywhere;",
+        ):
+            self.assertIn(marker, final_mobile_faq)
+
+    def test_scheduled_deploy_and_tests_share_one_live_replay_contract(self) -> None:
+        pages = deployment_workflow_text()
+        validator = (
+            ROOT / "scripts" / "validate_live_replay.py"
+        ).read_text(encoding="utf-8")
+        build_tests = (ROOT / "tests" / "test_build.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("python scripts/validate_live_replay.py", pages)
+        self.assertIn('"accuracy": 0.01', validator)
+        self.assertIn("LIVE_SOURCE_TOLERANCES", build_tests)
+        self.assertIn("validate_live_replay(summary, research)", build_tests)
+        self.assertNotIn("accuracy_change_budget", pages)
+        self.assertNotIn("live_correct", pages)
 
     def test_every_generated_route_uses_current_asset_revisions(self) -> None:
         css_revision = hashlib.sha256(CSS_PATH.read_bytes()).hexdigest()[:12]
@@ -540,7 +601,7 @@ class PublishedTournamentChanceTests(unittest.TestCase):
     def test_every_build_discovers_future_tournament_formats(self) -> None:
         source_refresh = (ROOT / "scripts" / "fetch_sources.py").read_text(encoding="utf-8")
         builder = (ROOT / "scripts" / "build_site.py").read_text(encoding="utf-8")
-        pages = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+        pages = deployment_workflow_text()
         for marker in (
             "infer_universal_manifest(",
             "tournament_evidence_editions(output.matches)",

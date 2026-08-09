@@ -126,12 +126,12 @@ class RomanticEditorialFeminineTabletV8Tests(unittest.TestCase):
             self.assertIn(value, self.finish)
 
     def test_current_log_loss_remains_live_and_not_hard_coded(self) -> None:
-        self.assertEqual(
-            self.build_tests.count("LIVE_SOURCE_LOG_LOSS_DELTA"),
+        self.assertGreaterEqual(
+            self.build_tests.count("LIVE_SOURCE_TOLERANCES"),
             2,
         )
         self.assertIn(
-            '"log_loss": LIVE_SOURCE_LOG_LOSS_DELTA',
+            "validate_live_replay(summary, research)",
             self.build_tests,
         )
         self.assertNotIn(

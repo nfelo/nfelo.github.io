@@ -172,13 +172,15 @@ the venue state forecast later matches less accurately.
 
 ## Tournament title chances
 
-The Before tournament view gives every participant a Title chance from the
-complete NFELO state immediately before the opening match. The build samples
-the field jointly from its full covariance matrix, combines those strengths
-with the frozen attack/defence and venue states, and plays the competition
-forward. Every edition uses at least 10,000 deterministic trials; major formats
-whose contemporary rules are pinned retain 100,000. Only the final percentages
-reach the public data.
+The Before tournament view gives every participant a Title chance using only
+information available before the opening match. A displayed 20% means that the
+team won about 20 out of every 100 computer replays. Each replay follows that
+edition’s groups and route to the trophy. Every edition is run at least 10,000
+times; major formats whose contemporary rules are pinned retain 100,000 runs.
+
+Under the hood, the build samples the field jointly from its full covariance
+matrix, then combines those strengths with the saved attack, defence and venue
+states. Only the final percentages reach the public data.
 
 A universal structural reader now accompanies the revision-pinned format
 records. It discovers every tournament edition already represented by the site

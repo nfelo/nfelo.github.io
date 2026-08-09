@@ -15,7 +15,6 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LIVE_SOURCE_LOG_LOSS_DELTA = 0.002
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from ledger import read_matches, read_successors, read_supplemental_matches  # noqa: E402
@@ -33,6 +32,10 @@ from model import (  # noqa: E402
     projected_public_record,
     projected_variance,
     three_way_probabilities,
+)
+from validate_live_replay import (  # noqa: E402
+    LIVE_SOURCE_TOLERANCES,
+    validate_live_replay,
 )
 from open_results import merge_record, venue_country  # noqa: E402
 from venue_effects import VenueEffects  # noqa: E402
@@ -655,6 +658,13 @@ class StaticBuildTests(unittest.TestCase):
             ).read_text(encoding="utf-8")
         )
 
+        diagnostics = validate_live_replay(summary, research)
+        self.assertEqual(
+            diagnostics["historical_correction_drift"],
+            int(summary["validation"]["retrospective"]["matches"])
+            - int(research["scored_matches"]),
+        )
+
         # Frozen methodology choices remain exact. Live source corrections
         # must never silently change the published rating model.
         self.assertEqual(
@@ -692,13 +702,7 @@ class StaticBuildTests(unittest.TestCase):
         # These are aggregate diagnostics derived from a live historical
         # source. Tiny upstream corrections and platform floating-point
         # differences are acceptable; a material model change is not.
-        metric_tolerances = {
-            "log_loss": LIVE_SOURCE_LOG_LOSS_DELTA,
-            "network_only_log_loss": 0.002,
-            "brier": 0.002,
-            "rps": 0.001,
-            "accuracy": 0.01,
-        }
+        metric_tolerances = LIVE_SOURCE_TOLERANCES
         for actual_key, expected_key in (
             ("log_loss", "log_loss"),
             ("network_only_log_loss", "network_log_loss"),
@@ -2071,9 +2075,9 @@ class StaticBuildTests(unittest.TestCase):
         )
         for phrase in (
             "attributedChanges",
-            "movement created by this edition’s own matches",
+            "Rating change counts only matches from this tournament",
             "editionParticipants",
-            "including teams without a published rating",
+            "not have a published rating at the time",
         ):
             self.assertIn(phrase, javascript)
 
@@ -2247,8 +2251,8 @@ class StaticBuildTests(unittest.TestCase):
             "Highest-rated matches",
             'list="tournament-team-suggestions"',
             "search_names:",
-            "Closing snapshot",
-            "Opening-day outlook",
+            "After the final",
+            "Before the first match",
             "Current and historical teams",
             "const allTeams = summary.teams",
             'class="context-actions team-context-actions"',
