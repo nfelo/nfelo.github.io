@@ -49,15 +49,13 @@ CSS_PATH = ROOT / "public" / "assets" / "styles.css"
 
 
 def deployment_workflow_text() -> str:
-    workflow_dir = ROOT / ".github" / "workflows"
-    for path in sorted(workflow_dir.glob("*.y*ml")):
-        text = path.read_text(encoding="utf-8")
-        if (
-            "install_repair:" in text
-            and "python scripts/validate_live_replay.py" in text
-        ):
-            return text
-    raise AssertionError("The repaired permanent Pages workflow is missing")
+    path = ROOT / ".github" / "workflows" / "pages.yml"
+    if not path.is_file():
+        raise AssertionError("The permanent Pages workflow is missing")
+    text = path.read_text(encoding="utf-8")
+    if "python scripts/validate_live_replay.py" not in text:
+        raise AssertionError("The Pages workflow is missing live replay validation")
+    return text
 
 
 class TournamentFormatTests(unittest.TestCase):
@@ -495,6 +493,9 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             'value="title_chance">Title chance',
             'tournamentTitleChance(team.title_chance)',
             'showTitleChance ? `<th class="numeric title-chance-column">Title chance</th>`',
+            '<td class="numeric title-chance-column"><span class="rating-main">',
+            '<div class="ranking-card-snapshot${showTitleChance ? "" : " ranking-card-snapshot-single"}">',
+            '<div class="tournament-title-chance"><span>Title chance</span><strong>',
             "A 20% title chance means the team won about 20 out of every 100 computer replays",
             "A dash means that route is not clear enough to estimate fairly",
         ):
@@ -527,12 +528,12 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             "var(--q11-rose) 0 20%",
             "var(--q11-sage) 60% 80%",
             "var(--q11-powder) 80% 100%",
-            "min-inline-size: 8rem;",
-            "grid-column: 1 / -1;",
-            "justify-content: center;",
-            "justify-self: center;",
-            "border-radius: 999px;",
-            "font-variant-numeric: tabular-nums;",
+            "min-inline-size: 7.25rem;",
+            "position: static;",
+            "justify-items: end;",
+            "background: none;",
+            "border: 0;",
+            "font-variant-numeric: lining-nums tabular-nums;",
             "@media (forced-colors: active)",
             "background: Canvas;",
             "border-color: CanvasText;",
@@ -582,6 +583,8 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("python scripts/validate_live_replay.py", pages)
+        self.assertNotIn("install_repair:", pages)
+        self.assertNotIn("release_gate:", pages)
         self.assertIn('"accuracy": 0.01', validator)
         self.assertIn("LIVE_SOURCE_TOLERANCES", build_tests)
         self.assertIn("validate_live_replay(summary, research)", build_tests)

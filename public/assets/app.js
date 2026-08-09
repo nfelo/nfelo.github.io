@@ -1397,7 +1397,7 @@ table.innerHTML = (!visible.length && query)
           <td class="rank-cell numeric"><span class="tournament-cell-main">${rankValue}</span>${showMovement ? tournamentChangeHTML(team.tournament_rank_change, "rank") : ""}</td>
           <td>${teamLink(team.code, team.nation, selectedDate)}</td>
           <td class="numeric"><span class="rating-main">${rating(team.rating)}</span>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<span class="rating-sub">${ratingNote}</span></td>
-          ${showTitleChance ? `<td class="numeric title-chance-column"><strong>${tournamentTitleChance(team.title_chance)}</strong></td>` : ""}
+          ${showTitleChance ? `<td class="numeric title-chance-column"><span class="rating-main">${tournamentTitleChance(team.title_chance)}</span></td>` : ""}
           <td class="numeric hide-mobile">${rating(team.mean)}</td>
           <td class="numeric hide-mobile">${team.matches == null ? "—" : number(team.matches)}</td>
           <td>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</td>
@@ -1416,9 +1416,9 @@ table.innerHTML = (!visible.length && query)
               <div class="ranking-card-rating"><strong>${rating(team.rating)}</strong>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<small>${ratingNote}</small></div>
             </div>
             <div class="ranking-card-team">${teamLink(team.code, team.nation, selectedDate)}</div>
-            ${showTitleChance ? `<div class="tournament-title-chance"><span>Title chance</span><strong>${tournamentTitleChance(team.title_chance)}</strong></div>` : ""}
-            <div class="ranking-card-snapshot ranking-card-snapshot-single">
+            <div class="ranking-card-snapshot${showTitleChance ? "" : " ranking-card-snapshot-single"}">
               <div><span>Recent form</span>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</div>
+              ${showTitleChance ? `<div class="tournament-title-chance"><span>Title chance</span><strong>${tournamentTitleChance(team.title_chance)}</strong></div>` : ""}
             </div>
             <details class="ranking-card-details">
               <summary>More ranking details</summary>

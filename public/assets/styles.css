@@ -18938,153 +18938,68 @@ body[data-route="methodology"] .methodology-page .method-details {
 }
 
 /*
- * Causal tournament title chances 2026-08-09.
- *
- * The analytical number remains disciplined, but the champagne/lilac inset
- * makes it feel native to the site's editorial card and table system.
+ * Tournament title chances share the rating and recent-form hierarchy:
+ * compact table numerals on wide screens and a balanced card field below.
  */
 body[data-route="tournaments"] .title-chance-column {
-  min-inline-size: 8rem;
-  text-align: center;
-  background: inherit;
-  border-inline: 0;
+  min-inline-size: 7.25rem;
 }
 
 body[data-route="tournaments"] th.title-chance-column {
-  position: relative;
-  padding-inline: 12px;
+  position: static;
 }
 
 body[data-route="tournaments"] th.title-chance-column::after {
-  display: block;
-  width: 66px;
-  height: 3px;
-  margin: 5px auto -5px;
-  background: linear-gradient(
-    90deg,
-    var(--q11-rose),
-    var(--q11-lilac),
-    var(--q11-champagne),
-    var(--q11-sage),
-    var(--q11-powder)
-  );
-  border-radius: 999px;
-  content: "";
-  opacity: 0.78;
+  display:none;
+  content: none;
 }
 
-body[data-route="tournaments"] td.title-chance-column strong {
-  display: inline-flex;
-  min-inline-size: 5.4rem;
-  min-height: 2.25rem;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 6px 11px;
-  color: color-mix(in srgb, var(--ink) 82%, var(--q11-plum));
-  background:
-    linear-gradient(
-      128deg,
-      color-mix(in srgb, var(--surface) 82%, var(--q11-rose)),
-      color-mix(in srgb, var(--surface) 87%, var(--q11-lilac)) 42%,
-      color-mix(in srgb, var(--surface) 89%, var(--q11-champagne)) 70%,
-      color-mix(in srgb, var(--surface) 92%, var(--q11-powder))
-    );
-  border: 1px solid color-mix(in srgb, var(--q11-rose) 34%, var(--border));
-  border-radius: 999px;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 48%, transparent),
-    0 4px 12px rgba(74, 23, 62, 0.07);
+body[data-route="tournaments"] td.title-chance-column .rating-main {
+  color: inherit;
   font-family: var(--font-numeric);
-  font-size: 0.94rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-  letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
   white-space: nowrap;
 }
 
-body[data-route="tournaments"] td.title-chance-column strong::before {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  background: linear-gradient(
-    135deg,
-    var(--q11-rose),
-    var(--q11-lilac) 54%,
-    var(--q11-powder)
-  );
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--surface) 72%, transparent);
-  content: "";
-}
-
 body[data-route="tournaments"] .tournament-title-chance {
-  display: flex;
-  width: fit-content;
-  max-width: 100%;
-  grid-column: 1 / -1;
-  align-items: center;
-  justify-content: center;
-  justify-self: center;
-  gap: 10px;
-  margin: 0 auto 14px;
-  padding: 9px 14px;
-  background:
-    linear-gradient(
-      128deg,
-      color-mix(in srgb, var(--surface) 82%, var(--q11-rose)),
-      color-mix(in srgb, var(--surface) 88%, var(--q11-lilac)) 42%,
-      color-mix(in srgb, var(--surface) 90%, var(--q11-champagne)) 72%,
-      color-mix(in srgb, var(--surface) 93%, var(--q11-sage))
-    );
-  border: 1px solid color-mix(in srgb, var(--q11-rose) 34%, var(--border));
-  border-radius: 999px;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 46%, transparent),
-    0 5px 14px rgba(74, 23, 62, 0.07);
-}
-
-body[data-route="tournaments"] .tournament-title-chance span {
-  color: var(--ink-soft);
-  font-size: 0.74rem;
-  font-weight: 780;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  display: grid;
+  width: auto;
+  max-width: none;
+  align-content: start;
+  justify-content: normal;
+  justify-items: end;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 body[data-route="tournaments"] .tournament-title-chance strong {
-  color: color-mix(in srgb, var(--ink) 74%, var(--q11-plum));
+  color: var(--ink);
   font-family: var(--font-numeric);
-  font-size: 1.08rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 820;
+  font-size: 1rem;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 1.3;
   white-space: nowrap;
 }
 
 body[data-route="tournaments"] .tournament-title-chance::before {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  background: linear-gradient(
-    135deg,
-    var(--q11-rose),
-    var(--q11-lilac) 54%,
-    var(--q11-powder)
-  );
-  border-radius: 50%;
-  content: "";
+  display:none;
+  content: none;
 }
 
 @media (forced-colors: active) {
-  body[data-route="tournaments"] .title-chance-column,
-  body[data-route="tournaments"] .tournament-title-chance {
+  body[data-route="tournaments"] .title-chance-column {
     background: Canvas;
     border-color: CanvasText;
   }
 
-  body[data-route="tournaments"] th.title-chance-column::after,
-  body[data-route="tournaments"] td.title-chance-column strong::before,
-  body[data-route="tournaments"] .tournament-title-chance::before {
+  body[data-route="tournaments"] th.title-chance-column::after {
     content: normal;
   }
 }
@@ -19212,20 +19127,6 @@ body[data-route="tournaments"] .tournament-chance-note #tournament-description {
   text-wrap: pretty;
 }
 
-body[data-route="tournaments"] .tournament-title-chance {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 0 100%, color-mix(in srgb, var(--q11-rose) 12%, transparent), transparent 52%),
-    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--q11-powder) 13%, transparent), transparent 54%),
-    linear-gradient(
-      112deg,
-      color-mix(in srgb, var(--surface) 86%, var(--q11-champagne)),
-      color-mix(in srgb, var(--surface) 93%, var(--q11-lilac)),
-      color-mix(in srgb, var(--surface) 95%, var(--q11-sage))
-    );
-}
-
 @media (prefers-color-scheme: dark) {
   body[data-route="tournaments"] .tournament-chance-note {
     background:
@@ -19278,8 +19179,7 @@ body[data-route="tournaments"] .tournament-title-chance {
 }
 
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  body[data-route="tournaments"] .tournament-chance-note,
-  body[data-route="tournaments"] .tournament-title-chance {
+  body[data-route="tournaments"] .tournament-chance-note {
     background: var(--surface);
     box-shadow: none;
   }
@@ -19287,8 +19187,7 @@ body[data-route="tournaments"] .tournament-title-chance {
 
 @media (forced-colors: active) {
   body[data-route="tournaments"] .tournament-chance-note,
-  body[data-route="tournaments"] .tournament-chance-note > strong,
-  body[data-route="tournaments"] .tournament-title-chance {
+  body[data-route="tournaments"] .tournament-chance-note > strong {
     color: CanvasText;
     background: Canvas;
     border-color: CanvasText;

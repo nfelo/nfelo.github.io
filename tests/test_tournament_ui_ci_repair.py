@@ -83,7 +83,7 @@ class LiveReplayContractTests(unittest.TestCase):
 
 
 class TournamentInterfaceRepairTests(unittest.TestCase):
-    def test_title_chance_copy_is_plain_and_themed(self) -> None:
+    def test_title_chance_copy_and_layout_are_plain_and_balanced(self) -> None:
         javascript = (ROOT / "public/assets/app.js").read_text(encoding="utf-8")
         stylesheet = (ROOT / "public/assets/styles.css").read_text(
             encoding="utf-8"
@@ -95,12 +95,45 @@ class TournamentInterfaceRepairTests(unittest.TestCase):
 
         self.assertIn("20 out of every 100 computer replays", faq_answer)
         self.assertNotIn("deterministic simulations", faq_answer)
-        self.assertIn('th.title-chance-column::after', stylesheet)
-        self.assertIn("grid-column: 1 / -1;", stylesheet)
-        self.assertIn("justify-self: center;", stylesheet)
-        self.assertIn("var(--q11-champagne)", stylesheet)
-        self.assertIn("var(--q11-sage)", stylesheet)
-        self.assertIn("var(--q11-powder)", stylesheet)
+        self.assertIn(
+            '<td class="numeric title-chance-column"><span class="rating-main">',
+            javascript,
+        )
+        recent_form = javascript.index(
+            '<div class="ranking-card-snapshot${showTitleChance ? "" : " ranking-card-snapshot-single"}">'
+        )
+        mobile_chance = javascript.index(
+            '<div class="tournament-title-chance"><span>Title chance</span><strong>',
+            recent_form,
+        )
+        self.assertGreater(mobile_chance, recent_form)
+
+        chance_css = stylesheet.split(
+            "Tournament title chances share the rating and recent-form hierarchy",
+            1,
+        )[1].split("Tournament opening portrait", 1)[0]
+        self.assertIn("min-inline-size: 7.25rem;", chance_css)
+        self.assertIn("position: static;", chance_css)
+        self.assertIn("justify-items: end;", chance_css)
+        self.assertIn("background: none;", chance_css)
+        self.assertIn("border: 0;", chance_css)
+        self.assertNotIn("grid-column: 1 / -1;", chance_css)
+        self.assertNotIn("border-radius: 999px;", chance_css)
+
+    def test_pages_scheduler_keeps_its_identity_and_never_rewrites_itself(self) -> None:
+        workflow = (
+            ROOT / ".github" / "workflows" / "pages.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("name: Validate, refresh and deploy Pages", workflow)
+        self.assertIn("python scripts/validate_live_replay.py", workflow)
+        self.assertIn("install_compact_title_chance:", workflow)
+        self.assertIn(
+            "The permanent Pages workflow was unexpectedly modified.",
+            workflow,
+        )
+        self.assertNotIn("gh workflow run pages.yml", workflow)
+        self.assertNotIn("install_repair:", workflow)
+        self.assertNotIn("release_gate:", workflow)
 
     def test_mobile_faq_boxes_keep_equal_gutters(self) -> None:
         stylesheet = (ROOT / "public/assets/styles.css").read_text(
