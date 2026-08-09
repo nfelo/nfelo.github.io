@@ -14,7 +14,7 @@ em dash rather than a hindsight-contaminated estimate.
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
@@ -42,6 +42,10 @@ LICENSE_URL = "https://creativecommons.org/licenses/by-sa/4.0/"
 
 class FormatUnavailable(RuntimeError):
     """A tournament format cannot be established without hindsight."""
+
+
+INFERRED_PROFILE = "universal-structural-inference-v3"
+INFERRED_TRIALS = 10_000
 
 
 def canonical_json(value: Any) -> str:
@@ -1124,6 +1128,527 @@ def discover(
     return found
 
 
+def _pair(row: dict[str, Any]) -> tuple[str, str]:
+    return tuple(sorted((str(row["a"]), str(row["b"]))))
+
+
+def _complete_components(
+    rows: list[dict[str, Any]],
+) -> tuple[list[set[str]], dict[tuple[str, str], int]] | None:
+    """Return balanced round-robin components represented by ``rows``.
+
+    A two-team component is deliberately valid: in knockout competitions it
+    represents an opening tie whose winner feeds the next causal stage.  This
+    lets the same evidence engine describe leagues, groups, and old knockout
+    pathways without maintaining a hand-written registry for every edition.
+    """
+    adjacency: dict[str, set[str]] = defaultdict(set)
+    pairs: Counter[tuple[str, str]] = Counter()
+    for row in rows:
+        first, second = str(row["a"]), str(row["b"])
+        if first == second:
+            return None
+        adjacency[first].add(second)
+        adjacency[second].add(first)
+        pairs[_pair(row)] += 1
+    unseen = set(adjacency)
+    components: list[set[str]] = []
+    while unseen:
+        seed = min(unseen)
+        unseen.remove(seed)
+        pending = [seed]
+        component = {seed}
+        while pending:
+            first = pending.pop()
+            for second in adjacency[first]:
+                if second not in component:
+                    component.add(second)
+                    unseen.discard(second)
+                    pending.append(second)
+        components.append(component)
+    for component in components:
+        ordered = sorted(component)
+        counts = [
+            pairs[(first, second)]
+            for offset, first in enumerate(ordered)
+            for second in ordered[offset + 1:]
+        ]
+        if not counts or min(counts) <= 0 or min(counts) != max(counts):
+            return None
+    components.sort(key=lambda values: tuple(sorted(values)))
+    return components, dict(pairs)
+
+
+def _standings(
+    component: set[str],
+    rows: list[dict[str, Any]],
+    win_points: int,
+) -> list[str]:
+    table = {
+        code: {"points": 0, "gd": 0, "gf": 0, "wins": 0}
+        for code in component
+    }
+    for row in rows:
+        first, second = str(row["a"]), str(row["b"])
+        if first not in component or second not in component:
+            continue
+        goals1, goals2 = int(row["sa"]), int(row["sb"])
+        if goals1 > goals2:
+            table[first]["points"] += win_points
+            table[first]["wins"] += 1
+        elif goals2 > goals1:
+            table[second]["points"] += win_points
+            table[second]["wins"] += 1
+        else:
+            table[first]["points"] += 1
+            table[second]["points"] += 1
+        table[first]["gd"] += goals1 - goals2
+        table[second]["gd"] += goals2 - goals1
+        table[first]["gf"] += goals1
+        table[second]["gf"] += goals2
+    return sorted(
+        component,
+        key=lambda code: (
+            -table[code]["points"],
+            -table[code]["gd"],
+            -table[code]["gf"],
+            -table[code]["wins"],
+            code,
+        ),
+    )
+
+
+def _points_for_win(
+    evidence: dict[str, Any],
+    rows: list[dict[str, Any]],
+) -> int:
+    year = int(str(rows[0]["date"])[:4])
+    family = str(evidence.get("family", "")).casefold()
+    if "fifa world cup" in family and year >= 1994:
+        return 3
+    return 2 if year < 1995 else 3
+
+
+def _opening_pathway_entrants(rows: list[dict[str, Any]]) -> set[str]:
+    """Find the first non-overlapping tie layer after a group-stage prefix."""
+    entrants: set[str] = set()
+    assigned_pair: dict[str, tuple[str, str]] = {}
+    for row in rows:
+        pair = _pair(row)
+        first, second = pair
+        conflict = any(
+            code in assigned_pair and assigned_pair[code] != pair
+            for code in pair
+        )
+        if conflict:
+            break
+        assigned_pair[first] = pair
+        assigned_pair[second] = pair
+        entrants.update(pair)
+    return entrants
+
+
+def _fixture(row: dict[str, Any], group: str) -> dict[str, Any]:
+    return {
+        "date": str(row["date"]),
+        "group": group,
+        "team1": str(row["a"]),
+        "team2": str(row["b"]),
+        "home": int(row.get("home", 0)),
+        "venue": str(row.get("venue", "")),
+    }
+
+
+def _knockout_schedule(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    schedule = []
+    for row in rows:
+        home = int(row.get("home", 0))
+        schedule.append({
+            "date": str(row["date"]),
+            "home": home,
+            "venue_host": (
+                str(row["a"]) if home == 1
+                else str(row["b"]) if home == -1
+                else None
+            ),
+        })
+    return schedule
+
+
+def _knockout_home_mode(rows: list[dict[str, Any]], *, direct: bool = False) -> str:
+    if direct:
+        return "fixed-team"
+    non_neutral = sum(int(row.get("home", 0)) != 0 for row in rows)
+    return "alternating" if non_neutral * 2 > len(rows) else "fixed-team"
+
+
+def _inferred_rules(evidence: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    rows = sorted(
+        evidence["rows"],
+        key=lambda row: (str(row["date"]), int(row["id"])),
+    )
+    participants = sorted({
+        str(code)
+        for row in rows
+        for code in (row["a"], row["b"])
+    })
+    if len(participants) < 2 or not rows:
+        raise FormatUnavailable("fewer than two participants or no tournament matches")
+
+    win_points = _points_for_win(evidence, rows)
+    common = {
+        "tie_break": "overall_then_head_to_head",
+        "points_for_win": win_points,
+        "away_goals": False,
+        "hosts": [],
+    }
+    if len(participants) == 2:
+        return ({
+            **common,
+            "groups": [],
+            "group_fixtures": [],
+            "active_groups": [],
+            "advance_per_group": 0,
+            "best_next": 0,
+            "bye_entrants": participants,
+            "knockout_kind": "inferred-field",
+            "knockout_schedule": _knockout_schedule(rows),
+            "knockout_home_mode": _knockout_home_mode(rows, direct=True),
+        }, "direct-title-tie")
+
+    complete = _complete_components(rows)
+    if complete is not None and len(complete[0]) == 1:
+        group = {"name": "A", "teams": participants}
+        return ({
+            **common,
+            "groups": [group],
+            "group_fixtures": [_fixture(row, "A") for row in rows],
+            "active_groups": ["A"],
+            "advance_per_group": 1,
+            "best_next": 0,
+            "bye_entrants": [],
+            "knockout_kind": "league",
+            "knockout_schedule": [],
+            "knockout_home_mode": "fixed-team",
+        }, "complete-league")
+    if complete is not None and len(complete[0]) > 1:
+        components, _ = complete
+        names = {index: f"G{index + 1:02d}" for index in range(len(components))}
+        team_group = {
+            code: index
+            for index, component in enumerate(components)
+            for code in component
+        }
+        groups = [
+            {"name": names[index], "teams": sorted(component)}
+            for index, component in enumerate(components)
+        ]
+        return ({
+            **common,
+            "groups": groups,
+            "group_fixtures": [
+                _fixture(row, names[team_group[str(row["a"])]])
+                for row in rows
+            ],
+            "active_groups": [names[index] for index in range(len(components))],
+            "advance_per_group": 1,
+            "best_next": 0,
+            "bye_entrants": [],
+            "knockout_kind": "inferred-field",
+            "knockout_schedule": [],
+            "knockout_home_mode": "fixed-team",
+        }, "top-1-from-observed-pools")
+
+    candidates: list[tuple[int, dict[str, Any], str]] = []
+    for cut in range(1, len(rows)):
+        # Same-day matches form one frozen scheduling layer.  Imprecise old
+        # dates remain together rather than being split by arbitrary row order.
+        if str(rows[cut - 1]["date"]) == str(rows[cut]["date"]):
+            continue
+        represented = _complete_components(rows[:cut])
+        if represented is None:
+            continue
+        components, _ = represented
+        team_group = {
+            code: index
+            for index, component in enumerate(components)
+            for code in component
+        }
+        names = {index: f"G{index + 1:02d}" for index in range(len(components))}
+        groups = [
+            {"name": names[index], "teams": sorted(component)}
+            for index, component in enumerate(components)
+        ]
+        fixtures = [
+            _fixture(row, names[team_group[str(row["a"])]])
+            for row in rows[:cut]
+        ]
+
+        if "nations league" in str(evidence.get("family", "")).casefold():
+            for pathway_start in range(cut, len(rows)):
+                if (
+                    pathway_start > cut
+                    and str(rows[pathway_start - 1]["date"])
+                    == str(rows[pathway_start]["date"])
+                ):
+                    continue
+                title_four = _opening_pathway_entrants(rows[pathway_start:])
+                if len(title_four) != 4 or any(code not in team_group for code in title_four):
+                    continue
+                title_groups: dict[int, set[str]] = defaultdict(set)
+                for code in title_four:
+                    title_groups[team_group[code]].add(code)
+                if len(title_groups) != 4 or any(len(values) != 1 for values in title_groups.values()):
+                    continue
+                if any(
+                    next(iter(selected))
+                    not in set(
+                        _standings(
+                            components[index],
+                            rows[:cut],
+                            win_points,
+                        )[:2]
+                    )
+                    for index, selected in title_groups.items()
+                ):
+                    continue
+                candidates.append((cut, {
+                    **common,
+                    "groups": groups,
+                    "group_fixtures": fixtures,
+                    "active_groups": [names[index] for index in sorted(title_groups)],
+                    "advance_per_group": 1,
+                    "best_next": 0,
+                    "bye_entrants": [],
+                    "knockout_kind": "inferred-field",
+                    "knockout_schedule": _knockout_schedule(rows[pathway_start:]),
+                    "knockout_home_mode": _knockout_home_mode(rows[pathway_start:]),
+                }, "top-1-from-four-title-groups"))
+
+        opening = _opening_pathway_entrants(rows[cut:])
+        if len(opening) < 2:
+            continue
+        contributors: dict[int, set[str]] = defaultdict(set)
+        byes: set[str] = set()
+        for code in opening:
+            if code in team_group:
+                contributors[team_group[code]].add(code)
+            else:
+                byes.add(code)
+        if not contributors:
+            continue
+
+        counts = [len(values) for values in contributors.values()]
+        direct = min(counts)
+        best_next = sum(value - direct for value in counts)
+        if direct < 1 or max(counts) - direct > 1:
+            continue
+        clear = True
+        for index, selected in contributors.items():
+            ranking = _standings(
+                components[index],
+                rows[:cut],
+                win_points,
+            )
+            expected_count = len(selected)
+            # Realised advancement is used only to settle a tied or otherwise
+            # clear top-k pathway; it never fixes a simulated later opponent.
+            if not selected.issubset(set(ranking[:expected_count])):
+                boundary = expected_count
+                if boundary >= len(ranking):
+                    clear = False
+                    break
+                selected_keys = {
+                    code: ranking.index(code)
+                    for code in selected
+                }
+                if max(selected_keys.values(), default=0) > boundary:
+                    clear = False
+                    break
+        if not clear:
+            continue
+
+        active = [names[index] for index in sorted(contributors)]
+        rules = {
+            **common,
+            "groups": groups,
+            "group_fixtures": fixtures,
+            "active_groups": active,
+            "advance_per_group": direct,
+            "best_next": best_next,
+            "bye_entrants": sorted(byes),
+            "knockout_kind": "inferred-field",
+            "knockout_schedule": _knockout_schedule(rows[cut:]),
+            "knockout_home_mode": _knockout_home_mode(rows[cut:]),
+        }
+        label = (
+            f"top-{direct}-per-group"
+            + (f"-plus-{best_next}" if best_next else "")
+            + (f"-and-{len(byes)}-byes" if byes else "")
+        )
+        candidates.append((cut, rules, label))
+
+    if not candidates:
+        raise FormatUnavailable(
+            "the match record does not establish a coherent league, group pathway, or title tie"
+        )
+    def candidate_key(item: tuple[int, dict[str, Any], str]) -> tuple[Any, ...]:
+        cut, candidate, _ = item
+        active_count = len(candidate["active_groups"])
+        group_count = len(candidate["groups"])
+        field_size = (
+            active_count * int(candidate["advance_per_group"])
+            + int(candidate["best_next"])
+            + len(candidate["bye_entrants"])
+        )
+        power_of_two = field_size > 1 and field_size & (field_size - 1) == 0
+        family = str(evidence.get("family", "")).casefold()
+        if "nations league" in family:
+            # Multi-division Nations Leagues include teams that cannot win the
+            # overall title.  Prefer the clear final-four pathway rather than
+            # treating lower-league group winners as title entrants.
+            return (
+                power_of_two,
+                -abs(field_size - 4),
+                -len(candidate["bye_entrants"]),
+                sum(
+                    len(group["teams"])
+                    for group in candidate["groups"]
+                    if group["name"] in candidate["active_groups"]
+                ),
+                cut,
+            )
+        # Elsewhere every balanced opening group normally belongs to the title
+        # pathway.  This prevents a later realised phase from silently giving
+        # zero pre-tournament chance to a team eliminated in an earlier group.
+        return (
+            active_count == group_count,
+            -(group_count - active_count),
+            power_of_two,
+            -len(candidate["bye_entrants"]),
+            cut,
+        )
+
+    _, rules, label = max(candidates, key=candidate_key)
+    return rules, label
+
+
+def infer_universal_manifest(
+    evidence_editions: list[dict[str, Any]],
+    configuration: dict[str, Any],
+    previous: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Infer every site tournament and retain stronger pinned evidence.
+
+    Completed results may identify that a side was the winner or runner-up of
+    a group.  They are used only to reconstruct that reusable slot topology;
+    later opponents are resampled in every trial.  This is the deliberately
+    narrow hindsight allowance requested for historical coverage.
+    """
+    previous = previous or {"editions": {}}
+    precise = {
+        (str(entry.get("family")), str(entry.get("start"))): dict(entry)
+        for entry in previous.get("editions", {}).values()
+        if entry.get("status") == "ready"
+        and entry.get("profile") != INFERRED_PROFILE
+    }
+    editions: dict[str, Any] = {}
+    for evidence in sorted(
+        evidence_editions,
+        key=lambda row: (str(row["start"]), str(row["family"]), str(row["id"])),
+    ):
+        participants = sorted(str(code) for code in evidence["participants"])
+        source_signature = digest([
+            (
+                str(row["date"]), str(row["a"]), str(row["b"]),
+                int(row["sa"]), int(row["sb"]), str(row.get("tc", "")),
+                int(row.get("home", 0)),
+            )
+            for row in evidence["rows"]
+        ])
+        exact = precise.get((str(evidence["family"]), str(evidence["start"])))
+        if exact is not None and set(exact.get("participants", [])) == set(participants):
+            key = f"pinned:{evidence['id']}"
+            exact["trials"] = int(configuration["trials"])
+            editions[key] = exact
+            continue
+
+        base = {
+            "facts_version": FACTS_VERSION,
+            "profile": INFERRED_PROFILE,
+            "family": str(evidence["family"]),
+            "category": str(evidence["category"]),
+            "source_codes": sorted(str(code) for code in evidence["source_codes"]),
+            "start": str(evidence["start"]),
+            "state_date": str(evidence.get("state_date", evidence["start"])),
+            "source_end": str(evidence["end"]),
+            "participants": participants,
+            "source_signature": source_signature,
+            "trials": INFERRED_TRIALS,
+            "evidence_mode": "structural-hindsight",
+        }
+        key = f"inferred:{evidence['id']}"
+        try:
+            rules, pathway = _inferred_rules(evidence)
+            provenance = [{
+                "source": "NFElo match ledger",
+                "sha256": source_signature,
+                "scope": "participants, opening schedule, locations, and reusable advancement topology",
+            }]
+            entry = {
+                **base,
+                "status": "ready",
+                "confidence": "observed-structure",
+                "pathway": pathway,
+                "rules": rules,
+                "provenance": provenance,
+            }
+            entry["facts_sha256"] = digest({
+                "profile": entry["profile"],
+                "start": entry["start"],
+                "participants": entry["participants"],
+                "rules": entry["rules"],
+                "provenance": entry["provenance"],
+            })
+        except FormatUnavailable as error:
+            entry = {
+                **base,
+                "status": "unsupported",
+                "confidence": "truly-inconclusive",
+                "reason": str(error),
+                "retryable": False,
+            }
+            entry["facts_sha256"] = digest(entry)
+        editions[key] = entry
+
+    ready = sum(entry["status"] == "ready" for entry in editions.values())
+    manifest = {
+        "schema": SCHEMA,
+        "algorithm": str(configuration["algorithm"]),
+        "trials": int(configuration["trials"]),
+        "policy": {
+            "timing": "the complete NFElo state is frozen immediately before each opening match",
+            "hindsight": "completed results may reveal a clear top-one/top-two pathway, but never fix a simulated later opponent",
+            "future": "every build discovers new editions and applies the same evidence classifier",
+            "failure": "only structurally contradictory or genuinely inconclusive editions publish no percentage",
+        },
+        "coverage": {
+            "editions": len(editions),
+            "ready": ready,
+            "unsupported": len(editions) - ready,
+            "percent": round(100.0 * ready / max(1, len(editions)), 3),
+        },
+        "editions": editions,
+    }
+    manifest["manifest_sha256"] = digest({
+        "schema": manifest["schema"],
+        "algorithm": manifest["algorithm"],
+        "trials": manifest["trials"],
+        "editions": editions,
+    })
+    return manifest
+
+
 def load_manifest(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"schema": SCHEMA, "editions": {}}
@@ -1292,6 +1817,50 @@ def validate_manifest(path: Path) -> dict[str, Any]:
         })
         if entry.get("facts_sha256") != facts_expected:
             raise ValueError(f"Tournament facts digest mismatch in {key}")
+        if entry.get("profile") == INFERRED_PROFILE:
+            participants = set(str(code) for code in entry["participants"])
+            if len(participants) < 2:
+                raise ValueError(f"Inferred tournament has too few participants in {key}")
+            rules = entry["rules"]
+            kind = str(rules.get("knockout_kind"))
+            if kind not in {"league", "inferred-field"}:
+                raise ValueError(f"Unknown inferred tournament kind in {key}: {kind}")
+            groups = {
+                str(group["name"]): set(str(code) for code in group["teams"])
+                for group in rules.get("groups", [])
+            }
+            represented = set().union(*groups.values()) if groups else set()
+            if not represented.issubset(participants):
+                raise ValueError(f"Inferred group contains an unknown participant in {key}")
+            if sum(len(values) for values in groups.values()) != len(represented):
+                raise ValueError(f"Inferred groups overlap in {key}")
+            active = [str(name) for name in rules.get("active_groups", [])]
+            if any(name not in groups for name in active):
+                raise ValueError(f"Unknown active inferred group in {key}")
+            byes = set(str(code) for code in rules.get("bye_entrants", []))
+            if not byes.issubset(participants) or byes.intersection(represented):
+                raise ValueError(f"Invalid inferred bye entrants in {key}")
+            fixtures = rules.get("group_fixtures", [])
+            for fixture in fixtures:
+                name = str(fixture["group"])
+                if name not in groups or {
+                    str(fixture["team1"]), str(fixture["team2"])
+                } - groups[name]:
+                    raise ValueError(f"Inferred fixture/group mismatch in {key}")
+            if kind == "league":
+                if len(groups) != 1 or represented != participants:
+                    raise ValueError(f"Incomplete inferred league in {key}")
+            else:
+                field_size = (
+                    len(active) * int(rules.get("advance_per_group", 0))
+                    + int(rules.get("best_next", 0))
+                    + len(byes)
+                )
+                if field_size < 2 or field_size > len(participants):
+                    raise ValueError(f"Invalid inferred title field in {key}: {field_size}")
+            if int(entry.get("trials", 0)) < 10_000:
+                raise ValueError(f"Too few inferred simulation trials in {key}")
+            continue
         cutoff = str(entry["cutoff"])
         if any(str(row["timestamp"]) >= cutoff for row in entry["provenance"]):
             raise ValueError(f"Post-opening provenance in {key}")

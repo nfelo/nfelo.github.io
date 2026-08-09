@@ -326,6 +326,7 @@ class ForecastLayer:
     """Parallel causal score states plus the fixed release-selection schedule."""
 
     def __init__(self, team_count: int, configuration: dict[str, Any]) -> None:
+        self.team_count = int(team_count)
         self.active_from_year = int(configuration["active_from_year"])
         self.calibration_window_years = int(configuration["calibration_window_years"])
         self.goal_environment_years = int(configuration["goal_environment_years"])
@@ -577,7 +578,32 @@ class ForecastLayer:
         """
         self.ensure_calibration_year(year)
         if self.current_release is None or self.current_calibration is None:
-            raise RuntimeError("Forecast layer has no calibrated tournament release")
+            # Tournaments before the forecast layer's 1960 activation still
+            # have a complete NFElo strength/covariance state.  Give them a
+            # neutral score layer: no team residuals, no calibration tilt and
+            # full weight on the network probabilities.  This supplies
+            # plausible scorelines for group tables without back-porting
+            # information learned in a later era.
+            parameters = self.parameters[0]
+            return {
+                "release": "pre-calibration-neutral",
+                "parameters": {
+                    "gap_scale": parameters.gap_scale,
+                    "annual_decay": parameters.annual_decay,
+                },
+                "calibration": {
+                    "year": year,
+                    "draw_log_tilt": 0.0,
+                    "friendly_temperature": 1.0,
+                    "competitive_temperature": 1.0,
+                    "nfelo_weight": 1.0,
+                },
+                "attack": [0.0] * self.team_count,
+                "defence": [0.0] * self.team_count,
+                "last_day": [-1] * self.team_count,
+                "base_goal": self._base_goal(year),
+                "as_of_day": day,
+            }
         state = self.states[self.current_release.name]
         calibration = self.current_calibration
         return {

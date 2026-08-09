@@ -170,6 +170,32 @@ but its selected update uses result surprise rather than goal margin. This was
 chosen using earlier matches only; applying the main margin-weighted update to
 the venue state forecast later matches less accurately.
 
+## Tournament title chances
+
+The Before tournament view gives every participant a Title chance from the
+complete NFELO state immediately before the opening match. The build samples
+the field jointly from its full covariance matrix, combines those strengths
+with the frozen attack/defence and venue states, and plays the competition
+forward. Every edition uses at least 10,000 deterministic trials; major formats
+whose contemporary rules are pinned retain 100,000. Only the final percentages
+reach the public data.
+
+A universal structural reader now accompanies the revision-pinned format
+records. It discovers every tournament edition already represented by the site
+and recognises complete leagues, balanced groups, opening knockout ties, byes
+and clear top-one or top-two advancement. For a completed historical edition,
+results may identify the reusable slot that led onward when the pathway is
+otherwise unambiguous. They never turn the team that happened to qualify into
+a fixed later opponent: group places and winner slots are resolved afresh in
+each trial. This gives nearly the entire historical catalogue an honest route
+to a percentage while leaving genuinely incoherent evidence as an em dash.
+
+The same discovery step runs inside every normal site build. A newly added
+future edition therefore receives the same classification, opening-state
+capture, deterministic simulation and cache validation without requiring a new
+workflow or a hand-written competition entry. Stable evidence and model-state
+hashes preserve the original opening estimate on subsequent builds.
+
 ## Chronology and publication safeguards
 
 Every match on a complete date is forecast from the same frozen start-of-day
@@ -224,17 +250,17 @@ across eras rather than publishing a curve that did not generalise.
 
 ## Current formula accuracy
 
-Across 46,801 stored pre-match forecasts from 1960 through 11 July 2026, the
-current formula’s most likely win, draw or loss was correct 59.2% of the time.
-This retrospective replay is an implementation score for the final formula,
+The [Methodology validation section](https://nfelo.github.io/#/methodology?section=validation)
+publishes the latest replay's exact match count, win/draw/loss accuracy and
+log-loss score directly from the generated build. Source corrections can alter
+those live figures even when the formula itself has not changed, so they are
+not frozen here in the README.
+
+That retrospective replay is an implementation score for the current formula,
 not a promise about an individual future match. Candidate changes are selected
 with earlier data and checked on later periods before adoption. The first
 published probabilities for identified future fixtures are also stored before
 results are known, providing a growing genuinely prospective record.
-
-The [Methodology validation section](https://nfelo.github.io/#/methodology?section=validation)
-gives the exact unrounded accuracy and log-loss score, where that technical
-probability measure is explained.
 
 Older comparisons and component studies remain in `docs/` and `research/` for
 reproducibility, but their figures describe earlier formulas or narrower tests

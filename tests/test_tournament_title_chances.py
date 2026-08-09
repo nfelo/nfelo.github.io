@@ -18,7 +18,9 @@ if str(SCRIPTS) not in sys.path:
 
 from tournament_odds import (  # noqa: E402
     FormatUnavailable,
+    INFERRED_PROFILE,
     entrant_kind,
+    infer_universal_manifest,
     load_configuration,
     normalise_knockout_graph,
     normalise_two_leg_graph,
@@ -52,18 +54,18 @@ class TournamentFormatTests(unittest.TestCase):
         cls.configuration = load_configuration(ROOT / "config" / "tournament_odds.json")
         cls.manifest = validate_manifest(MANIFEST_PATH)
 
-    def test_profile_registry_is_narrow_and_unambiguous(self) -> None:
+    def test_precise_profile_registry_remains_unambiguous(self) -> None:
         profiles = self.configuration["profiles"]
         self.assertGreaterEqual(len(profiles), 10)
         codes = [code for profile in profiles for code in profile["source_codes"]]
         self.assertEqual(len(codes), len(set(codes)))
         self.assertEqual(self.configuration["trials"], 100_000)
 
-    def test_ready_revisions_are_exactly_preopening_and_attributed(self) -> None:
+    def test_pinned_ready_revisions_are_preopening_and_attributed(self) -> None:
         ready = [
             entry
             for entry in self.manifest["editions"].values()
-            if entry["status"] == "ready"
+            if entry["status"] == "ready" and entry["profile"] != INFERRED_PROFILE
         ]
         self.assertGreaterEqual(len(ready), 10)
         for entry in ready:
@@ -77,23 +79,56 @@ class TournamentFormatTests(unittest.TestCase):
                 self.assertIn(f"oldid={source['revision']}", source["url"])
                 self.assertEqual(source["license"], "CC BY-SA 4.0")
 
-    def test_gold_cup_fails_closed(self) -> None:
-        gold = self.manifest["editions"]["gold-cup-16:2025-06-14"]
-        self.assertEqual(gold["status"], "unsupported")
-        self.assertIn("pre-opening", gold["reason"])
-        profile = next(
-            row for row in self.configuration["profiles"]
-            if row["id"] == "gold-cup-16"
-        )
-        self.assertNotIn("fail_closed", profile)
+    def test_universal_coverage_exceeds_ninety_nine_percent(self) -> None:
+        coverage = self.manifest["coverage"]
+        self.assertGreaterEqual(coverage["editions"], 1_000)
+        self.assertGreaterEqual(coverage["ready"] / coverage["editions"], 0.99)
+        unsupported = [
+            entry for entry in self.manifest["editions"].values()
+            if entry["status"] != "ready"
+        ]
+        self.assertTrue(unsupported)
+        self.assertTrue(all(entry["confidence"] == "truly-inconclusive" for entry in unsupported))
 
-    def test_unevidenced_2026_asean_bracket_fails_closed(self) -> None:
-        edition = self.manifest["editions"]["asean-10:2026-07-24"]
-        self.assertEqual(edition["status"], "unsupported")
-        self.assertIn("0 ties", edition["reason"])
+    def test_inferred_group_scoring_follows_the_historical_era(self) -> None:
+        lookup = {
+            (entry["family"], entry["start"]): entry
+            for entry in self.manifest["editions"].values()
+        }
+        self.assertEqual(
+            lookup[("AFC Asian Cup", "1956-09-01")]["rules"]
+            ["points_for_win"],
+            2,
+        )
+        self.assertEqual(
+            lookup[("ASEAN Championship", "2026-07-24")]["rules"]
+            ["points_for_win"],
+            3,
+        )
+        self.assertEqual(
+            lookup[("FIFA World Cup", "1990-06-08")]["rules"]
+            ["points_for_win"],
+            2,
+        )
+        self.assertEqual(
+            lookup[("FIFA World Cup", "1994-06-17")]["rules"]
+            ["points_for_win"],
+            3,
+        )
+
+    def test_gold_cup_and_asean_are_no_longer_artificially_excluded(self) -> None:
+        lookup = {
+            (entry["family"], entry["start"]): entry
+            for entry in self.manifest["editions"].values()
+        }
+        self.assertEqual(lookup[("CONCACAF Gold Cup", "2025-06-14")]["status"], "ready")
+        self.assertEqual(lookup[("ASEAN Championship", "2026-07-24")]["status"], "ready")
 
     def test_world_cup_allocation_and_causal_graph_are_complete(self) -> None:
-        world = self.manifest["editions"]["world-cup-48:2026-06-11"]
+        world = next(
+            entry for entry in self.manifest["editions"].values()
+            if entry["family"] == "FIFA World Cup" and entry["start"] == "2026-06-11"
+        )
         rules = world["rules"]
         self.assertEqual(len(rules["third_place_allocation"]), 495)
         title_path = [node for node in rules["knockout_matches"] if node["championship"] or node["team1"][0] != "loser"]
@@ -118,7 +153,10 @@ class TournamentFormatTests(unittest.TestCase):
                 self.assertIn(node["venue_host"], hosts | {None}, key)
 
     def test_asean_two_leg_graph_uses_published_dates_and_hosts(self) -> None:
-        edition = self.manifest["editions"]["asean-10:2024-12-08"]
+        edition = next(
+            entry for entry in self.manifest["editions"].values()
+            if entry["family"] == "ASEAN Championship" and entry["start"] == "2024-12-08"
+        )
         rules = edition["rules"]
         self.assertEqual(rules["knockout_kind"], "two_leg_graph")
         self.assertTrue(rules["away_goals"])
@@ -193,18 +231,34 @@ class TournamentFormatTests(unittest.TestCase):
         self.assertEqual(entrant_kind("Winner QFA"), ("winner", "QFA"))
         self.assertEqual(entrant_kind("Third-place Group A/C/D"), ("third-options", "A/C/D"))
 
-    def test_filtered_offline_update_preserves_every_unselected_edition(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory) / "manifest.json"
-            output.write_text(MANIFEST_PATH.read_text(encoding="utf-8"), encoding="utf-8")
-            updated = update_manifest(
-                ROOT / "source",
-                ROOT / "config" / "tournament_odds.json",
-                output,
-                offline=True,
-                only_profile="world-cup-48",
-            )
-        self.assertEqual(set(updated["editions"]), set(self.manifest["editions"]))
+    def test_future_top_two_pathway_is_discovered_without_a_profile(self) -> None:
+        rows = []
+        match_id = 0
+        groups = (("A", "B", "C"), ("D", "E", "F"))
+        for group in groups:
+            for first, second in ((group[0], group[1]), (group[0], group[2]), (group[1], group[2])):
+                rows.append({
+                    "id": match_id, "date": f"2032-06-{match_id + 1:02d}",
+                    "a": first, "b": second, "sa": 1, "sb": 0,
+                    "tc": "NEW", "home": 0,
+                })
+                match_id += 1
+        rows.extend([
+            {"id": 6, "date": "2032-06-10", "a": "A", "b": "E", "sa": 1, "sb": 0, "tc": "NEW", "home": 0},
+            {"id": 7, "date": "2032-06-10", "a": "D", "b": "B", "sa": 1, "sb": 0, "tc": "NEW", "home": 0},
+            {"id": 8, "date": "2032-06-14", "a": "A", "b": "D", "sa": 1, "sb": 0, "tc": "NEW", "home": 0},
+        ])
+        evidence = [{
+            "id": "new-cup-2032", "family": "New Cup", "category": "Regional championships",
+            "start": "2032-06-01", "state_date": "2032-06-01", "end": "2032-06-14",
+            "participants": list("ABCDEF"), "source_codes": ["NEW"], "rows": rows,
+        }]
+        manifest = infer_universal_manifest(evidence, self.configuration)
+        entry = next(iter(manifest["editions"].values()))
+        self.assertEqual(entry["status"], "ready")
+        self.assertEqual(entry["profile"], INFERRED_PROFILE)
+        self.assertEqual(entry["rules"]["advance_per_group"], 2)
+        self.assertEqual(len(entry["rules"]["active_groups"]), 2)
 
     def test_format_retry_policy_distinguishes_future_and_immutable_failures(self) -> None:
         self.assertTrue(
@@ -375,9 +429,14 @@ class PublishedTournamentChanceTests(unittest.TestCase):
 
     def test_every_cached_edition_has_exact_integer_counts(self) -> None:
         self.assertEqual(self.cache["algorithm"], self.manifest["algorithm"])
-        self.assertEqual(len(self.cache["editions"]), 10)
+        ready = sum(
+            entry["status"] == "ready"
+            for entry in self.manifest["editions"].values()
+        )
+        self.assertEqual(len(self.cache["editions"]), ready)
         for row in self.cache["editions"].values():
-            self.assertEqual(sum(row["wins"]), 100_000)
+            self.assertGreaterEqual(sum(row["wins"]), 10_000)
+            self.assertEqual(sum(row["wins"]), row["trials"])
             self.assertEqual(
                 sum(round(float(value) * 10) for value in row["title_chances"].values()),
                 1000,
@@ -415,7 +474,8 @@ class PublishedTournamentChanceTests(unittest.TestCase):
                 else:
                     self.assertTrue(all(value is None for value in values))
                 checked += 1
-        self.assertEqual(checked, 12)
+        self.assertEqual(checked, self.manifest["coverage"]["editions"])
+        self.assertGreaterEqual(checked, 1_000)
 
     def test_interface_shows_title_chance_only_before_tournament(self) -> None:
         for marker in (
@@ -423,15 +483,38 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             'value="title_chance">Title chance',
             'tournamentTitleChance(team.title_chance)',
             'showTitleChance ? `<th class="numeric title-chance-column">Title chance</th>`',
-            "complete uncertainty state",
-            "realised knockout opponents are never treated",
+            "every later opponent is drawn anew",
+            "only a genuinely inconclusive edition keeps a dash",
         ):
             self.assertIn(marker, self.js)
+
+    def test_explanations_share_the_universal_natural_language_contract(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for marker in (
+            "Opening-day outlook",
+            "top team or top two from each group",
+            "same classifier welcomes future editions",
+            "A dash is reserved for the rare case",
+            "Future editions, uncertainty and the final display",
+        ):
+            self.assertIn(marker, self.js)
+        for marker in (
+            "## Tournament title chances",
+            "universal structural reader",
+            "The same discovery step runs inside every normal site build",
+            "opening-state",
+            "genuinely incoherent evidence as an em dash",
+        ):
+            self.assertIn(marker, readme)
 
     def test_title_chance_layout_covers_desktop_table_mobile_cards_and_forced_colours(self) -> None:
         for marker in (
             'body[data-route="tournaments"] .title-chance-column',
             'body[data-route="tournaments"] .tournament-title-chance',
+            'body[data-route="tournaments"] .tournament-chance-note',
+            "var(--q11-rose) 0 20%",
+            "var(--q11-sage) 60% 80%",
+            "var(--q11-powder) 80% 100%",
             "min-inline-size: 7.4rem;",
             "justify-content: space-between;",
             "font-variant-numeric: tabular-nums;",
@@ -454,16 +537,18 @@ class PublishedTournamentChanceTests(unittest.TestCase):
             self.assertIn(f"assets/styles.css?v={css_revision}", html, route)
             self.assertIn(f"assets/app.js?v={js_revision}", html, route)
 
-    def test_existing_scheduled_source_path_updates_tournament_formats(self) -> None:
+    def test_every_build_discovers_future_tournament_formats(self) -> None:
         source_refresh = (ROOT / "scripts" / "fetch_sources.py").read_text(encoding="utf-8")
+        builder = (ROOT / "scripts" / "build_site.py").read_text(encoding="utf-8")
         pages = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
         for marker in (
-            "from tournament_odds import update_manifest, validate_manifest",
-            'args.source / "tournament_odds" / "manifest.json"',
-            "update_manifest(",
-            "validate_manifest(tournament_manifest)",
+            "infer_universal_manifest(",
+            "tournament_evidence_editions(output.matches)",
+            "if manifest_changed:",
+            "run_replay(",
         ):
-            self.assertIn(marker, source_refresh)
+            self.assertIn(marker, builder)
+        self.assertNotIn("update_manifest(", source_refresh)
         self.assertIn("python scripts/fetch_sources.py --source source", pages)
         self.assertNotIn("Pin and validate pre-tournament formats", pages)
 

@@ -267,6 +267,9 @@ class TournamentSimulator:
 
     def play_groups(self) -> None:
         rows = np.arange(self.trials)
+        win_points = int(self.rules.get("points_for_win", 3))
+        if win_points not in (2, 3):
+            raise SimulationError("Group win points must be two or three")
         for fixture in self.rules["group_fixtures"]:
             first_index = self.index[str(fixture["team1"])]
             second_index = self.index[str(fixture["team2"])]
@@ -277,8 +280,8 @@ class TournamentSimulator:
             first_won = goals1 > goals2
             second_won = goals2 > goals1
             tied = goals1 == goals2
-            self.points[rows, first] += first_won * 3 + tied
-            self.points[rows, second] += second_won * 3 + tied
+            self.points[rows, first] += first_won * win_points + tied
+            self.points[rows, second] += second_won * win_points + tied
             self.goals_for[rows, first] += goals1
             self.goals_against[rows, first] += goals2
             self.goals_for[rows, second] += goals2
@@ -621,10 +624,123 @@ class TournamentSimulator:
             round_winners = next_round
         return round_winners[0]
 
+    def inferred_qualifiers(self) -> np.ndarray:
+        rankings = {
+            str(group["name"]): self.rank_group(group)
+            for group in self.rules["groups"]
+        }
+        active = [str(name) for name in self.rules.get("active_groups", [])]
+        direct = int(self.rules.get("advance_per_group", 0))
+        columns: list[np.ndarray] = []
+        for name in active:
+            table = rankings[name]
+            if direct > table.shape[1]:
+                raise SimulationError(f"Inferred advancement exceeds group {name}")
+            columns.extend(table[:, position] for position in range(direct))
+
+        best_count = int(self.rules.get("best_next", 0))
+        if best_count:
+            candidates = np.column_stack([
+                rankings[name][:, direct]
+                for name in active
+                if rankings[name].shape[1] > direct
+            ])
+            if candidates.shape[1] < best_count:
+                raise SimulationError("Inferred best-next field is incomplete")
+            rows = np.arange(self.trials)[:, None]
+            points = self.points[rows, candidates]
+            difference = self.goals_for[rows, candidates] - self.goals_against[rows, candidates]
+            goals = self.goals_for[rows, candidates]
+            wins = self.wins[rows, candidates]
+            random_keys = self.rng.random(candidates.shape)
+            order = np.lexsort(
+                (-random_keys, -wins, -goals, -difference, -points),
+                axis=1,
+            )
+            selected = np.take_along_axis(candidates, order[:, :best_count], axis=1)
+            columns.extend(selected[:, offset] for offset in range(best_count))
+
+        for code in self.rules.get("bye_entrants", []):
+            columns.append(
+                np.full(self.trials, self.index[str(code)], dtype=np.int16)
+            )
+        if len(columns) < 2:
+            raise SimulationError("Inferred title field contains fewer than two teams")
+        field = np.column_stack(columns).astype(np.int16, copy=False)
+        if np.any(np.diff(np.sort(field, axis=1), axis=1) == 0):
+            raise SimulationError("Inferred title field contains a duplicate entrant")
+        return field
+
+    def inferred_home_sign(
+        self,
+        first: np.ndarray,
+        second: np.ndarray,
+        schedule: dict[str, Any],
+    ) -> int | np.ndarray:
+        if str(self.rules.get("knockout_home_mode")) == "alternating":
+            return int(schedule.get("home", 0))
+        host_code = schedule.get("venue_host")
+        if host_code is None or str(host_code) not in self.index:
+            return 0
+        host = self.index[str(host_code)]
+        return np.where(first == host, 1, np.where(second == host, -1, 0))
+
+    def inferred_field_champion(self, field: np.ndarray) -> np.ndarray:
+        schedule = list(self.rules.get("knockout_schedule", []))
+        fallback_day = str(self.entry.get("source_end") or self.start)
+        schedule_offset = 0
+        current = field
+        while current.shape[1] > 1:
+            order = np.argsort(self.rng.random(current.shape), axis=1)
+            current = np.take_along_axis(current, order, axis=1)
+            size = current.shape[1]
+
+            # A two-team, two-date title tie is strong evidence of a two-leg
+            # final.  Its home sequence is causal and no realised opponent is
+            # being fixed because the field itself has already been simulated.
+            if size == 2 and len(schedule) - schedule_offset == 2:
+                first, second = current[:, 0], current[:, 1]
+                winner, _ = self.two_leg_winner(
+                    first,
+                    second,
+                    str(schedule[schedule_offset].get("date") or fallback_day),
+                    str(schedule[schedule_offset + 1].get("date") or fallback_day),
+                )
+                return winner
+
+            power = 1 << (size - 1).bit_length()
+            playing = 2 * (size - power // 2)
+            byes = current[:, playing:]
+            winners: list[np.ndarray] = []
+            for offset in range(0, playing, 2):
+                first, second = current[:, offset], current[:, offset + 1]
+                item = (
+                    schedule[min(schedule_offset, len(schedule) - 1)]
+                    if schedule else {}
+                )
+                day = str(item.get("date") or fallback_day)
+                home = self.inferred_home_sign(first, second, item)
+                winner, _ = self.knockout_winner(first, second, day, home)
+                winners.append(winner)
+                schedule_offset += 1
+            pieces = []
+            if byes.shape[1]:
+                pieces.append(byes)
+            if winners:
+                pieces.append(np.column_stack(winners))
+            current = np.column_stack(pieces).astype(np.int16, copy=False)
+        return current[:, 0]
+
     def simulate(self) -> np.ndarray:
         self.play_groups()
-        seeds, third = self.group_seeds()
         kind = str(self.rules["knockout_kind"])
+        if kind == "league":
+            champion = self.rank_group(self.rules["groups"][0])[:, 0]
+            return np.bincount(champion, minlength=len(self.codes)).astype(np.int64)
+        if kind == "inferred-field":
+            champion = self.inferred_field_champion(self.inferred_qualifiers())
+            return np.bincount(champion, minlength=len(self.codes)).astype(np.int64)
+        seeds, third = self.group_seeds()
         if kind == "revision_graph":
             champion = self.revision_graph_champion(seeds, third)
         elif kind == "two_leg_graph":
@@ -691,11 +807,12 @@ def compute_title_chances(
     old = dict(cache.get("editions", {}))
     editions: dict[str, Any] = {}
     public: dict[str, dict[str, float]] = {}
-    trials = int(manifest["trials"])
+    default_trials = int(manifest["trials"])
     algorithm = str(manifest["algorithm"])
     for key, entry in sorted(manifest["editions"].items()):
         if entry.get("status") != "ready":
             continue
+        trials = int(entry.get("trials", default_trials))
         state = states.get(key)
         if state is None:
             raise SimulationError(f"Replay did not capture pre-tournament state for {key}")
@@ -734,7 +851,7 @@ def compute_title_chances(
     output = {
         "schema": 1,
         "algorithm": algorithm,
-        "trials": trials,
+        "trials": default_trials,
         "editions": editions,
     }
     output["cache_sha256"] = digest(output)

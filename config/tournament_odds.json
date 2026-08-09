@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "algorithm": "nfelo-title-chance-v4",
+  "algorithm": "nfelo-title-chance-v5-universal",
   "trials": 100000,
   "wikipedia": {
     "user_agent": "NFElo tournament-format importer/1.0 (https://github.com/nfelo/nfelo.github.io)",

@@ -425,22 +425,6 @@ def main() -> None:
         check=True,
     )
 
-    # Keep pre-tournament format evidence on the same scheduled source-refresh
-    # path that Pages already validates and commits.  This avoids requiring the
-    # installer token to rewrite a separate workflow file while ensuring an
-    # unseen edition is pinned before the refreshed source snapshot is packed.
-    from tournament_odds import update_manifest, validate_manifest
-
-    repository = Path(__file__).resolve().parents[1]
-    tournament_manifest = args.source / "tournament_odds" / "manifest.json"
-    update_manifest(
-        args.source,
-        repository / "config" / "tournament_odds.json",
-        tournament_manifest,
-    )
-    validate_manifest(tournament_manifest)
-
-
 def math_floor(value: float) -> int:
     # Local helper avoids importing a module solely for one safety threshold.
     return int(value // 1)

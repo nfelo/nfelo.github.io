@@ -380,7 +380,7 @@ class NetworkEloReplay:
             for key, entry in manifest.get("editions", {}).items():
                 if entry.get("status") != "ready":
                     continue
-                start_text = str(entry["start"])
+                start_text = str(entry.get("state_date", entry["start"]))
                 request = {
                     "start": start_text,
                     "participants": [str(code) for code in entry["participants"]],

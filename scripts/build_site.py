@@ -25,7 +25,12 @@ from model import (
     three_way_probabilities,
 )
 from forecast_layer import forecast_from_snapshot
-from tournament_odds import validate_manifest
+from tournament_odds import (
+    infer_universal_manifest,
+    load_configuration as load_tournament_configuration,
+    validate_manifest,
+    write_json_if_changed as write_tournament_json_if_changed,
+)
 from tournament_simulation import compute_title_chances
 from tournament_classification import (
     load_registry,
@@ -1539,6 +1544,60 @@ def tournament_edition_label(
     return str(first.year)
 
 
+def tournament_evidence_editions(
+    matches: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Return the exact site-edition clusters used by format inference."""
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for match in matches:
+        identity = tournament_identity(
+            str(match.get("tc", "")),
+            str(match.get("t", "")),
+            int(match.get("level", 0)),
+            bool(match.get("friendly", False)),
+        )
+        if identity is not None:
+            grouped.setdefault(identity, []).append(match)
+
+    editions: list[dict[str, Any]] = []
+    for (category, family), family_matches in grouped.items():
+        family_id = tournament_family_id(family)
+        for cluster in split_tournament_editions(family, family_matches):
+            ordered = sorted(
+                cluster,
+                key=lambda row: (tolerant_tournament_date(row["date"]), row["id"]),
+            )
+            first = min(tolerant_tournament_date(row["date"]) for row in ordered)
+            last = max(tolerant_tournament_date(row["date"]) for row in ordered)
+            participants = sorted({
+                str(code)
+                for row in ordered
+                for code in (row["a"], row["b"])
+            })
+            if len(participants) < 3 and category == "Other tournaments":
+                continue
+            edition_id = f"{family_id}-{first.isoformat()}-{last.isoformat()}"
+            editions.append({
+                "id": edition_id,
+                "family": family,
+                "category": category,
+                "start": first.isoformat(),
+                "state_date": str(ordered[0]["date"]),
+                "end": last.isoformat(),
+                "participants": participants,
+                "source_codes": sorted({
+                    str(row.get("tc", "")).strip().upper()
+                    for row in ordered
+                    if str(row.get("tc", "")).strip()
+                }),
+                "rows": ordered,
+            })
+    return sorted(
+        editions,
+        key=lambda row: (row["start"], row["family"], row["id"]),
+    )
+
+
 
 def build_tournament_catalog(matches: list[dict[str, Any]]) -> dict[str, Any]:
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -2384,7 +2443,7 @@ def build_historical_rankings(
 def main() -> None:
     args = parse_args()
     tournament_manifest_path = args.source / "tournament_odds" / "manifest.json"
-    tournament_manifest = (
+    previous_tournament_manifest = (
         validate_manifest(tournament_manifest_path)
         if tournament_manifest_path.exists()
         else None
@@ -2392,8 +2451,34 @@ def main() -> None:
     output = run_replay(
         args.source,
         args.config,
-        tournament_manifest_path if tournament_manifest is not None else None,
+        tournament_manifest_path if previous_tournament_manifest is not None else None,
     )
+    tournament_configuration = load_tournament_configuration(
+        args.config / "tournament_odds.json"
+    )
+    tournament_manifest = infer_universal_manifest(
+        tournament_evidence_editions(output.matches),
+        tournament_configuration,
+        previous_tournament_manifest,
+    )
+    previous_digest = (
+        previous_tournament_manifest.get("manifest_sha256")
+        if previous_tournament_manifest is not None
+        else None
+    )
+    manifest_changed = previous_digest != tournament_manifest["manifest_sha256"]
+    write_tournament_json_if_changed(tournament_manifest_path, tournament_manifest)
+    validate_manifest(tournament_manifest_path)
+    if manifest_changed:
+        # New editions need their full-covariance state frozen before their
+        # opening result.  Replaying only when the evidence manifest changes
+        # keeps ordinary scheduled builds fast and makes future discovery
+        # automatic without weakening the state representation.
+        output = run_replay(
+            args.source,
+            args.config,
+            tournament_manifest_path,
+        )
     verification_before = model_verification_fingerprint(output)
     normalise_historical_public_names(output)
     normalise_public_team_names(output.summary)

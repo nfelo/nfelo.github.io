@@ -1548,13 +1548,13 @@ function defaultMajorTournamentFamily(families) {
     ).join("");
 
     content.innerHTML = `<div class="page tournament-page">
-      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Choose a tournament and edition to compare every participant immediately before or after the event. Ranks always refer to the full world ranking, not just the teams in that tournament.</p></header>
+      <header class="page-heading"><div><p class="eyebrow">Tournament snapshots</p><h1>Tournaments</h1></div><p class="lede">Choose an edition to see how its field stood on opening day or when the tournament ended. Ranks always belong to the full world table; Title chance follows the path each team could take through that competition.</p></header>
       <div class="toolbar tournament-toolbar">
         <div class="field field-grow"><label for="tournament-family">Tournament</label><select id="tournament-family">${familyOptions}</select></div>
         <div class="field"><label for="tournament-edition">Edition</label><select id="tournament-edition"></select></div>
         <div class="field"><label for="tournament-view">Snapshot</label><select id="tournament-view"><option value="before">Before tournament</option><option value="after">After tournament</option></select></div>
       </div>
-      <div class="record-note"><strong id="tournament-count">—</strong><div><b id="tournament-label">Participants</b><br><span id="tournament-description">Choose a tournament edition.</span></div></div>
+      <aside class="record-note tournament-chance-note" aria-live="polite"><strong id="tournament-count">—</strong><div><span class="tournament-note-kicker" id="tournament-note-kicker">Opening-day outlook</span><b id="tournament-label">Participants</b><span id="tournament-description">Choose a tournament edition.</span></div></aside>
       <div class="toolbar compact-toolbar">
         <div class="field field-grow"><label for="tournament-search">Find a team</label><input id="tournament-search" type="search" list="tournament-team-suggestions" placeholder="Search tournament teams…" value="${escapeHTML(route.query.get("q") || "")}"><datalist id="tournament-team-suggestions"></datalist></div>
         <div class="field"><label for="tournament-sort">Sort</label><select id="tournament-sort"></select></div>
@@ -1854,10 +1854,14 @@ function defaultMajorTournamentFamily(families) {
             number(teams.length);
           document.getElementById("tournament-label").textContent =
             `${selectedFamily.name} · ${selectedEdition.label}`;
+          document.getElementById("tournament-note-kicker").textContent =
+            selectedView === "after"
+              ? "Closing snapshot"
+              : "Opening-day outlook";
           document.getElementById("tournament-description").textContent =
             selectedView === "after"
-              ? `Final snapshot: ${validDate(selectedEdition.after)}. Rank change compares each team's place in the full world ranking. Rating change includes only matches from this edition, excluding recalibration and unrelated results.${coverageNote}`
-              : `Pre-tournament snapshot: ${validDate(selectedEdition.before)}. Title chance is a 100,000-run estimate using NFELO’s complete uncertainty state and only the format known before kickoff. A dash means that format could not be proved without hindsight. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
+              ? `This closing portrait is dated ${validDate(selectedEdition.after)}. Rank change follows each team’s place in the full world ranking, while rating change gathers only the movement created by this edition’s own matches.${coverageNote}`
+              : `This opening portrait is dated ${validDate(selectedEdition.before)}. Title chance blends the field’s joint strength uncertainty with its schedule, locations and route to the trophy. A completed record may clarify a simple top-one or top-two pathway, but every later opponent is drawn anew; only a genuinely inconclusive edition keeps a dash. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
       );
@@ -4545,7 +4549,7 @@ function buildFAQItems() {
     },
     {
       question: "What does Title chance mean on a tournament page?",
-      answer: "Title chance is the share of 100,000 deterministic tournament simulations won by that team from the state immediately before the opening match. Each run draws every team’s possible strength together, keeping the uncertainty and relationships between their estimates, then follows the published group schedule, venue status, tiebreakers and knockout path while using the pre-tournament attack and defence state. Wikipedia format pages are pinned to revisions from before kickoff; realised knockout opponents are never treated as though they were known. If the pre-opening format is incomplete or ambiguous, NFELO shows a dash instead of filling the gap with hindsight."
+      answer: "Title chance is the share of deterministic simulations won by a team from NFELO’s state immediately before the opening match. Every run draws the whole field together, preserving shared uncertainty, then follows the opening schedule, venue setting and route through the competition. A pinned pre-kickoff format is used when one is available. For older and less documented editions, the completed match record may reveal a clear reusable pathway—such as the top team or top two from each group—but never supplies the later opponents themselves; those are resolved afresh in every run. The same classifier welcomes future editions during the normal site build. A dash is reserved for the rare case whose evidence does not support a coherent path to the title."
     },
     {
       question: "Why can a lower-rated team be the forecast favourite?",
@@ -4783,19 +4787,19 @@ function renderFAQ() {
 
         <section class="method-section" aria-labelledby="method-tournaments">
           <h2 id="method-tournaments" tabindex="-1">Pre-tournament title chances</h2>
-          <p>The Title chance column appears only in the Before tournament view. It estimates how often each participant would win from information available immediately before the opening match; it is not reconstructed from the route the tournament later took.</p>
-          <p>For each of 100,000 deterministic trials, NFELO draws the complete participant strength vector from the joint pre-tournament distribution rather than drawing teams independently:</p>
-          <div class="formula">r* ~ N(μstart, Σstart)<br>P(title i) = winsᵢ / 100,000</div>
-          <p><code>Σstart</code> is the full covariance submatrix, including shared-opponent links and inactivity drift projected to opening day. The sampled strength is combined with the frozen attack and defence layer, the era’s scoring environment, country venue state, and each scheduled match’s home, away or neutral status. Group scorelines follow the displayed NFELO outcome probabilities; the simulation then applies the edition’s published group advancement, tiebreak and knockout rules. Extra time, penalties and two-legged ties are simulated when the format requires them.</p>
+          <p>The Title chance column belongs to the Before tournament view. It asks a simple historical question: with NFELO’s knowledge frozen on the eve of the opener, how often could each member of this field have carried its available route all the way to the trophy?</p>
+          <p>Every edition receives at least 10,000 reproducible trials, while fully pinned major formats retain 100,000. In each trial NFELO draws the complete participant strength vector from the joint pre-tournament distribution rather than treating teams as independent:</p>
+          <div class="formula">r* ~ N(μstart, Σstart)<br>P(title i) = winsᵢ / N</div>
+          <p><code>Σstart</code> is the full covariance submatrix, including shared-opponent links and inactivity drift projected to opening day. The draw is joined by the frozen attack and defence layer, the era’s scoring environment, country venue state, and the home, away or neutral setting carried by the tournament evidence. Group scorelines use the same calibrated NFELO probabilities as an ordinary match forecast. Leagues finish through their table; knockout ties continue through extra time and penalties, with two-legged finals recognised where the record establishes them.</p>
           <details class="method-details">
-            <summary>Format provenance and the no-hindsight rule</summary>
-            <p>The build first looks for the English Wikipedia tournament page, then configured language editions through Wikidata only if English is unavailable. Every page used for the format is pinned to an exact revision safely before the opener; its title, revision, timestamp, content hash, licence and old-revision URL are stored in the repository. NFELO’s own ledger supplies participant identity and the published group schedule.</p>
-            <p>Knockout entrants remain expressions such as “Winner Group A” or “Winner Match 45”. The simulator resolves those expressions separately in every trial. A later real-world opponent is never inserted into an earlier branch. Best-third allocation tables, symbolic federation brackets and two-legged ties are validated as complete directed graphs before an edition is accepted.</p>
+            <summary>How an edition’s pathway is found</summary>
+            <p>Where a complete pre-opening format has already been pinned, its participants, fixtures, venues, group rules and symbolic bracket remain the strongest evidence. Alongside that exact route, a universal structural reader examines every tournament edition represented in NFELO’s own ledger. It recognises complete leagues, balanced groups, opening knockout ties, byes and the first non-overlapping title round, so the system is not limited to a short list of modern competitions.</p>
+            <p>Historical results are allowed one careful role: they may show which reusable slot led onward when the pathway itself is otherwise plain. If the completed record establishes that the top side, top two sides, or a stated number of next-best sides advanced from each group, the simulator replays those positions in every trial. It does not carry the teams that happened to qualify into the simulated bracket. Their later opponents are shuffled or resolved from symbolic winner slots anew, preserving the chance of every team that could have occupied the advancing place.</p>
           </details>
           <details class="method-details">
-            <summary>Automatic updates and unavailable editions</summary>
-            <p>When a supported new edition enters the results source with a complete group schedule, CI discovers it, pins the pre-opening format, validates the causal graph, captures its opening state and stores deterministic simulation counts. Unchanged facts and model states reuse the existing byte-identical cache. If participant coverage, scheduling, revision timing or bracket allocation is incomplete, the importer fails closed and the public table shows an em dash.</p>
-            <p>Percentages are displayed to one decimal place. A largest-remainder step makes the displayed field sum to exactly 100.0% without changing the underlying 100,000 integer win counts. Unmodelled final tiebreaks such as disciplinary points or drawing of lots are resolved at random after the football criteria available to the model.</p>
+            <summary>Future editions, uncertainty and the final display</summary>
+            <p>The structural reader runs as part of the ordinary site build. When a future edition enters the source, it is discovered without a new hand-written profile, its opening state is captured with full covariance, and its deterministic result joins the cache used by later scheduled builds. Unchanged evidence and model state reuse the same counts, keeping a published opening estimate stable.</p>
+            <p>An em dash now has a narrow meaning: the available record is too contradictory or too fragmentary to describe a coherent route to one champion. Percentages are shown to one decimal place, and a largest-remainder step lets the displayed field close at exactly 100.0% without altering the underlying integer wins. Rare football tiebreaks that the source cannot distinguish, such as disciplinary points or a drawing of lots, are settled at random only after the modelled sporting criteria are exhausted.</p>
           </details>
         </section>
 
