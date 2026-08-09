@@ -6,10 +6,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      install_compact_title_chance:
-        description: Install the compact title-chance layout and retire v5
-        type: boolean
-        default: false
       refresh_source:
         description: Check upstream ratings and fixtures before rebuilding
         type: boolean
@@ -32,204 +28,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
-  install_compact_title_chance:
-    name: Install compact title-chance layout
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.install_compact_title_chance == true && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    permissions:
-      actions: write
-      contents: write
-    outputs:
-      revision: ${{ steps.commit.outputs.revision }}
-    steps:
-      - name: Check out latest main
-        uses: actions/checkout@v5
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Cancel superseded v5 runs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          for state in queued in_progress; do
-            run_ids="$(
-              gh run list \
-                --repo "$GITHUB_REPOSITORY" \
-                --workflow repair-tournament-interface-and-pages-v5.yml \
-                --status "$state" \
-                --limit 50 \
-                --json databaseId \
-                --jq '.[].databaseId' 2>/dev/null || true
-            )"
-            while IFS= read -r run_id; do
-              [ -n "$run_id" ] || continue
-              gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" || true
-            done <<< "$run_ids"
-          done
-
-      - name: Decode and apply the focused change
-        shell: bash
-        env:
-          CHANGESET_B64: "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"
-          CHANGESET_SHA256: "c157facc1f20f6d7cf1eb0c2a5255c1a83eae0d496e59168466c3c933493928f"
-        run: |
-          set -Eeuo pipefail
-          git pull --ff-only origin main
-
-          patch_file="$RUNNER_TEMP/compact-title-chance.patch"
-          printf '%s' "$CHANGESET_B64" \
-            | base64 --decode \
-            | gzip --decompress > "$patch_file"
-          printf '%s  %s\n' "$CHANGESET_SHA256" "$patch_file" \
-            | sha256sum --check
-
-          if git apply --check "$patch_file"; then
-            git apply --index --3way "$patch_file"
-          elif git apply --reverse --check "$patch_file"; then
-            echo "The compact layout is already installed."
-          else
-            echo "::error::The tested compact-layout change no longer applies cleanly to main."
-            exit 1
-          fi
-          git diff --cached --check
-
-      - name: Refresh route asset revisions
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib
-          import re
-
-          root = Path("public")
-          assets = root / "assets"
-          revisions = {
-              "styles.css": hashlib.sha256(
-                  (assets / "styles.css").read_bytes()
-              ).hexdigest()[:12],
-              "app.js": hashlib.sha256(
-                  (assets / "app.js").read_bytes()
-              ).hexdigest()[:12],
-          }
-          routes = sorted(root.rglob("index.html"))
-          if len(routes) < 250:
-              raise AssertionError(
-                  f"Expected at least 250 generated routes, found {len(routes)}"
-              )
-
-          changed = 0
-          for route in routes:
-              text = route.read_text(encoding="utf-8")
-              updated = re.sub(
-                  r"assets/styles\.css\?v=[0-9a-f]{12}",
-                  f"assets/styles.css?v={revisions['styles.css']}",
-                  text,
-              )
-              updated = re.sub(
-                  r"assets/app\.js\?v=[0-9a-f]{12}",
-                  f"assets/app.js?v={revisions['app.js']}",
-                  updated,
-              )
-              if updated != text:
-                  route.write_text(updated, encoding="utf-8")
-                  changed += 1
-
-              verified = route.read_text(encoding="utf-8")
-              if verified.count(
-                  f"assets/styles.css?v={revisions['styles.css']}"
-              ) != 3:
-                  raise AssertionError(
-                      f"{route} does not contain all three CSS revisions"
-                  )
-              if verified.count(
-                  f"assets/app.js?v={revisions['app.js']}"
-              ) != 1:
-                  raise AssertionError(
-                      f"{route} does not contain the JavaScript revision"
-                  )
-
-          print({"routes": len(routes), "routes_updated": changed, **revisions})
-          PY
-          git add -- public
-          git diff --cached --check
-
-      - name: Run focused permanent regression checks
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          node --check public/assets/app.js
-          python -m py_compile \
-            tests/test_tournament_title_chances.py \
-            tests/test_tournament_ui_ci_repair.py
-          python -m unittest -v \
-            tests.test_tournament_ui_ci_repair \
-            tests.test_ribbon_atelier.RibbonAtelierReleaseTests.test_working_type_has_legible_floors \
-            tests.test_couture_alphabet.CoutureAlphabetTests.test_no_information_or_result_semantics_are_hidden_or_recoloured \
-            tests.test_editorial_keepsake.EditorialKeepsakeReleaseTests.test_playful_details_are_css_only_and_preference_safe \
-            tests.test_girlish_heirloom.GirlishHeirloomReleaseTests.test_playful_details_are_css_only_and_preference_safe \
-            tests.test_moonlit_matchbook.MoonlitMatchbookReleaseTests.test_release_is_css_only_and_preference_safe \
-            tests.test_pearl_vanity_finale.PearlVanityFinaleTests.test_release_is_css_only_and_preference_safe
-          git diff --cached --check
-
-      - name: Commit the layout and retire v5
-        id: commit
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          if ! git diff --quiet -- .github/workflows/pages.yml \
-            || ! git diff --cached --quiet -- .github/workflows/pages.yml; then
-            echo "::error::The permanent Pages workflow was unexpectedly modified."
-            exit 1
-          fi
-
-          git rm --ignore-unmatch -- \
-            .github/workflows/repair-tournament-interface-and-pages-v5.yml
-
-          git diff --cached --name-only | while IFS= read -r path; do
-            case "$path" in
-              .github/workflows/repair-tournament-interface-and-pages-v5.yml|\
-              public/assets/app.js|\
-              public/assets/styles.css|\
-              public/index.html|\
-              public/*/index.html|\
-              tests/test_tournament_title_chances.py|\
-              tests/test_tournament_ui_ci_repair.py)
-                ;;
-              *)
-                echo "::error::Unexpected staged path: $path"
-                exit 1
-                ;;
-            esac
-          done
-
-          git diff --cached --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --cached --quiet; then
-            git commit -m "fix: compact tournament title chances [skip ci]"
-          fi
-          git pull --rebase origin main
-          git push origin HEAD:main
-          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
   refresh_source:
     name: Refresh source with one delayed retry
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source && inputs.install_compact_title_chance != true) }}
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_source) }}
     runs-on: ubuntu-24.04
     # Covers two source attempts plus the deliberate one-hour delay.
     timeout-minutes: 110
@@ -320,8 +121,8 @@ jobs:
 
   build:
     name: Build and validate once
-    needs: [install_compact_title_chance, refresh_source]
-    if: ${{ always() && (needs.install_compact_title_chance.result == 'success' || needs.install_compact_title_chance.result == 'skipped') && (needs.refresh_source.result == 'success' || needs.refresh_source.result == 'skipped') }}
+    needs: refresh_source
+    if: ${{ always() && (needs.refresh_source.result == 'success' || needs.refresh_source.result == 'skipped') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     outputs:
@@ -335,7 +136,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
-          ref: ${{ needs.install_compact_title_chance.outputs.revision || github.ref }}
           fetch-depth: 0
 
       - name: Download refreshed source snapshot
