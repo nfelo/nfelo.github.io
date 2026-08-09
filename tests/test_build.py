@@ -846,7 +846,7 @@ class StaticBuildTests(unittest.TestCase):
         sitemap = (ROOT / "public" / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn('href="#/faq">FAQ</a>', html)
         self.assertIn('case "faq": renderFAQ(); break;', javascript)
-        self.assertEqual(javascript.count('question: "'), 33)
+        self.assertEqual(javascript.count('question: "'), 34)
         self.assertNotIn(
             "What do the Tournaments and Best tournaments pages show?",
             javascript,
@@ -1325,7 +1325,7 @@ class StaticBuildTests(unittest.TestCase):
             "function buildFAQItems()",
             1,
         )[1].split("function faqSearchTokens", 1)[0]
-        self.assertEqual(faq.count('question: "'), 33)
+        self.assertEqual(faq.count('question: "'), 34)
         for jargon in (
             "posterior",
             "latent",
@@ -1386,6 +1386,7 @@ class StaticBuildTests(unittest.TestCase):
                 "forecast",
                 "learning",
                 "ratings",
+                "tournaments",
                 "validation",
                 "limits",
             },

@@ -288,10 +288,16 @@ class ReplayOutput:
     team_pages: dict[str, dict[str, Any]]
     prediction_contexts: list[dict[str, Any]]
     ranking_snapshots: list[RankingSnapshot]
+    tournament_states: dict[str, dict[str, Any]]
 
 
 class NetworkEloReplay:
-    def __init__(self, source: Path, config: Path) -> None:
+    def __init__(
+        self,
+        source: Path,
+        config: Path,
+        tournament_manifest: Path | None = None,
+    ) -> None:
         self.source = source
         self.config = config
         self.successors = read_successors(source / "teams.tsv")
@@ -365,6 +371,27 @@ class NetworkEloReplay:
             "final": {"matches": 0, "log_loss": 0.0, "brier": 0.0, "rps": 0.0, "correct": 0},
             "network": {"matches": 0, "log_loss": 0.0, "brier": 0.0, "rps": 0.0, "correct": 0},
         }
+        self.tournament_requests: dict[int, list[tuple[str, dict[str, Any]]]] = {}
+        self.tournament_states: dict[str, dict[str, Any]] = {}
+        if tournament_manifest is not None and tournament_manifest.exists():
+            manifest = json.loads(tournament_manifest.read_text(encoding="utf-8"))
+            if int(manifest.get("schema", -1)) != 1:
+                raise ValueError("Unsupported tournament-state manifest schema")
+            for key, entry in manifest.get("editions", {}).items():
+                if entry.get("status") != "ready":
+                    continue
+                start_text = str(entry["start"])
+                request = {
+                    "start": start_text,
+                    "participants": [str(code) for code in entry["participants"]],
+                    "facts_sha256": str(entry["facts_sha256"]),
+                }
+                unknown = sorted(set(request["participants"]) - set(self.team_index))
+                if unknown:
+                    raise ValueError(f"Unknown tournament participants in {key}: {unknown}")
+                self.tournament_requests.setdefault(model_day(start_text), []).append(
+                    (str(key), request)
+                )
 
     def name(self, code: str) -> str:
         return self.team_names.get(code, code)
@@ -596,6 +623,93 @@ class NetworkEloReplay:
         else:
             self.ranking_snapshots.append(snapshot)
 
+    def capture_tournament_states(
+        self,
+        date_text: str,
+        day: int,
+        year: int,
+        margin_environment: float,
+    ) -> None:
+        """Freeze requested full-covariance states before the day's results.
+
+        Independent process drift is projected onto each participant's
+        diagonal without mutating replay chronology. Off-diagonal covariance
+        is retained exactly; a diagonal-only approximation is never used.
+        """
+        requests = self.tournament_requests.get(day, [])
+        if not requests:
+            return
+        score = self.forecast_layer.tournament_snapshot(year, day)
+        debut = self.debut_mean(year)
+        for key, request in requests:
+            codes = list(request["participants"])
+            indices = np.asarray([self.team_index[code] for code in codes], dtype=np.int32)
+            size = len(indices)
+            means = np.empty(size, dtype=np.float64)
+            covariance = self.covariance[np.ix_(indices, indices)].astype(
+                np.float64,
+                copy=True,
+            )
+            venue_means = np.empty(size, dtype=np.float64)
+            venue_variances = np.empty(size, dtype=np.float64)
+            for local, index in enumerate(indices):
+                if np.isnan(self.mean[index]):
+                    means[local] = debut
+                    covariance[local, :] = 0.0
+                    covariance[:, local] = 0.0
+                    covariance[local, local] = PRIOR_SD**2
+                else:
+                    means[local] = float(self.mean[index])
+                    covariance[local, local] = projected_variance(
+                        float(self.covariance[index, index]),
+                        int(self.last_day[index]),
+                        day,
+                    )
+                venue_means[local], venue_variances[local] = (
+                    self.venue_effects._project_values(int(index), day)
+                )
+            covariance = 0.5 * (covariance + covariance.T)
+            score_last_days = np.asarray(score["last_day"], dtype=np.int32)[indices]
+            state = {
+                "edition": key,
+                "facts_sha256": request["facts_sha256"],
+                "date": date_text,
+                "day": day,
+                "year": year,
+                "codes": codes,
+                "means": means.tolist(),
+                "covariance": covariance.reshape(-1).tolist(),
+                "scale": calibration_scale(year),
+                "home": home_advantage(year),
+                "draw": draw_probability(year),
+                "margin_environment": margin_environment,
+                "forecast_layer": {
+                    "release": score["release"],
+                    "parameters": score["parameters"],
+                    "calibration": score["calibration"],
+                    "attack": np.asarray(score["attack"], dtype=np.float64)[indices].tolist(),
+                    "defence": np.asarray(score["defence"], dtype=np.float64)[indices].tolist(),
+                    "last_day": score_last_days.tolist(),
+                    "base_goal": score["base_goal"],
+                    "as_of_day": day,
+                },
+                "venue_effects": {
+                    "means": venue_means.tolist(),
+                    "variances": venue_variances.tolist(),
+                    "home_share": self.venue_effects.home_share,
+                    "away_share": self.venue_effects.away_share,
+                    "predictive_variance_scale": self.venue_effects.predictive_variance_scale,
+                },
+            }
+            state["state_sha256"] = hashlib.sha256(
+                json.dumps(
+                    state,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest()
+            self.tournament_states[key] = state
+
     def update_stats(self, i: int, j: int, match: Match) -> None:
         for index, gf, ga in ((i, match.score1, match.score2), (j, match.score2, match.score1)):
             stats = self.stats[index]
@@ -669,6 +783,13 @@ class NetworkEloReplay:
                 self.margin_excess_sum -= excess
             margin_environment = (20.0 * 1.10 + self.margin_excess_sum) / (
                 20.0 + len(self.margin_window)
+            )
+
+            self.capture_tournament_states(
+                first_match.date_text,
+                first_match.day,
+                year,
+                margin_environment,
             )
 
             participants = sorted({
@@ -1252,8 +1373,13 @@ class NetworkEloReplay:
             team_pages,
             self.prediction_contexts,
             self.ranking_snapshots,
+            self.tournament_states,
         )
 
 
-def run_replay(source: Path, config: Path) -> ReplayOutput:
-    return NetworkEloReplay(source, config).replay()
+def run_replay(
+    source: Path,
+    config: Path,
+    tournament_manifest: Path | None = None,
+) -> ReplayOutput:
+    return NetworkEloReplay(source, config, tournament_manifest).replay()

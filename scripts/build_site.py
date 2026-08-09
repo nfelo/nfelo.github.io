@@ -25,6 +25,8 @@ from model import (
     three_way_probabilities,
 )
 from forecast_layer import forecast_from_snapshot
+from tournament_odds import validate_manifest
+from tournament_simulation import compute_title_chances
 from tournament_classification import (
     load_registry,
     read_evidence,
@@ -2202,7 +2204,34 @@ def build_number_one_chronology(
     )
 
 
-def build_historical_rankings(data: Path, output: Any) -> None:
+def attach_tournament_title_chances(
+    catalog: dict[str, Any],
+    manifest: dict[str, Any],
+    chances: dict[str, dict[str, float]],
+) -> None:
+    """Expose only the final percentage beside each tournament participant."""
+    lookup = {
+        (str(entry.get("family")), str(entry.get("start"))): chances[key]
+        for key, entry in manifest.get("editions", {}).items()
+        if key in chances and entry.get("status") == "ready"
+    }
+    for family in catalog.get("families", []):
+        for edition in family.get("editions", []):
+            edition_chances = lookup.get((str(family["name"]), str(edition["start"])))
+            if edition_chances is None:
+                continue
+            for participant in edition.get("participants", []):
+                value = edition_chances.get(str(participant["code"]))
+                if value is not None:
+                    participant["title_chance"] = float(value)
+
+
+def build_historical_rankings(
+    data: Path,
+    output: Any,
+    tournament_manifest: dict[str, Any] | None = None,
+    tournament_chances: dict[str, dict[str, float]] | None = None,
+) -> None:
     """Write global as-of snapshots plus team metadata events by year."""
     names = {
         team["code"]: team["nation"]
@@ -2322,6 +2351,12 @@ def build_historical_rankings(data: Path, output: Any) -> None:
         names,
     )
     tournament_catalog = build_tournament_catalog(output.matches)
+    if tournament_manifest is not None and tournament_chances is not None:
+        attach_tournament_title_chances(
+            tournament_catalog,
+            tournament_manifest,
+            tournament_chances,
+        )
     output.summary["best_tournaments"] = build_best_tournament_records(
         tournament_catalog,
         output.team_pages,
@@ -2348,7 +2383,17 @@ def build_historical_rankings(data: Path, output: Any) -> None:
 
 def main() -> None:
     args = parse_args()
-    output = run_replay(args.source, args.config)
+    tournament_manifest_path = args.source / "tournament_odds" / "manifest.json"
+    tournament_manifest = (
+        validate_manifest(tournament_manifest_path)
+        if tournament_manifest_path.exists()
+        else None
+    )
+    output = run_replay(
+        args.source,
+        args.config,
+        tournament_manifest_path if tournament_manifest is not None else None,
+    )
     verification_before = model_verification_fingerprint(output)
     normalise_historical_public_names(output)
     normalise_public_team_names(output.summary)
@@ -2376,7 +2421,20 @@ def main() -> None:
     output.summary["meta"]["generated_at"] = generated_at
     output.summary["meta"]["source_update"] = status
 
-    build_historical_rankings(data, output)
+    tournament_chances: dict[str, dict[str, float]] | None = None
+    if tournament_manifest is not None:
+        tournament_chances = compute_title_chances(
+            tournament_manifest,
+            output.tournament_states,
+            args.source / "tournament_odds" / "probabilities.json",
+        )
+
+    build_historical_rankings(
+        data,
+        output,
+        tournament_manifest,
+        tournament_chances,
+    )
     build_ranking_movements(output)
     write_json(data / "summary.json", output.summary)
     write_json(

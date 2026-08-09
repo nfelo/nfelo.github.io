@@ -568,6 +568,38 @@ class ForecastLayer:
             "gate_reversions": self.gate_reversions,
         }
 
+    def tournament_snapshot(self, year: int, day: int) -> dict[str, Any]:
+        """Return the frozen score state available before a tournament opens.
+
+        Advancing the annual calibration is the same causal operation the
+        first forecast of that calendar year performs. No match result or
+        attack/defence state is changed here.
+        """
+        self.ensure_calibration_year(year)
+        if self.current_release is None or self.current_calibration is None:
+            raise RuntimeError("Forecast layer has no calibrated tournament release")
+        state = self.states[self.current_release.name]
+        calibration = self.current_calibration
+        return {
+            "release": self.current_release.name,
+            "parameters": {
+                "gap_scale": self.current_release.gap_scale,
+                "annual_decay": self.current_release.annual_decay,
+            },
+            "calibration": {
+                "year": self.current_year,
+                "draw_log_tilt": calibration.draw_log_tilt,
+                "friendly_temperature": calibration.friendly_temperature,
+                "competitive_temperature": calibration.competitive_temperature,
+                "nfelo_weight": calibration.nfelo_weight,
+            },
+            "attack": state.attack.tolist(),
+            "defence": state.defence.tolist(),
+            "last_day": state.last_day.tolist(),
+            "base_goal": self._base_goal(year),
+            "as_of_day": day,
+        }
+
     def public_parameters(self) -> dict[str, Any]:
         exported = self.export()
         return {

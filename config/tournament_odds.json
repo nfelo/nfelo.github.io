@@ -1,0 +1,246 @@
+{
+  "schema": 1,
+  "algorithm": "nfelo-title-chance-v4",
+  "trials": 100000,
+  "wikipedia": {
+    "user_agent": "NFElo tournament-format importer/1.0 (https://github.com/nfelo/nfelo.github.io)",
+    "languages": ["en", "es", "fr", "de", "pt", "it", "ar", "id", "vi", "th"],
+    "request_timeout_seconds": 35,
+    "attempts": 5,
+    "minimum_pause_seconds": 0.35,
+    "maximum_pages": 40
+  },
+  "profiles": [
+    {
+      "id": "world-cup-48",
+      "family": "FIFA World Cup",
+      "source_codes": ["WC"],
+      "minimum_start": "2026-01-01",
+      "teams": 48,
+      "group_count": 12,
+      "group_matches": 72,
+      "advance_per_group": 2,
+      "best_third": 8,
+      "knockout_teams": 32,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} FIFA World Cup"],
+      "known_editions": {
+        "2026-06-11": {
+          "title": "2026 FIFA World Cup",
+          "revision": 1358784834,
+          "extra_pages": [
+            "2026 FIFA World Cup knockout stage",
+            "2026 FIFA World Cup final",
+            "Template:2026 FIFA World Cup third-place table"
+          ],
+          "knockout_venue_patterns": [
+            {"code": "CA", "pattern": "BC Place|Toronto Stadium|Toronto|Vancouver"},
+            {"code": "MX", "pattern": "Estadio|Mexico City|Guadalajara|Guadalupe"},
+            {"code": "US", "pattern": ".+"}
+          ]
+        }
+      }
+    },
+    {
+      "id": "euro-24",
+      "family": "UEFA European Championship",
+      "source_codes": ["EC"],
+      "minimum_start": "2024-01-01",
+      "teams": 24,
+      "group_count": 6,
+      "group_matches": 36,
+      "advance_per_group": 2,
+      "best_third": 4,
+      "knockout_teams": 16,
+      "tie_break": "head_to_head_then_overall",
+      "knockout": "revision_graph",
+      "page_patterns": ["UEFA Euro {year}", "{year} UEFA European Championship"],
+      "known_editions": {
+        "2024-06-14": {
+          "title": "UEFA Euro 2024",
+          "revision": 1228833035,
+          "extra_pages": ["UEFA Euro 2024 knockout stage", "UEFA Euro 2024 final"]
+        }
+      }
+    },
+    {
+      "id": "copa-america-16",
+      "family": "Copa América",
+      "source_codes": ["CA"],
+      "minimum_start": "2024-01-01",
+      "teams": 16,
+      "group_count": 4,
+      "group_matches": 24,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 8,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} Copa América"],
+      "known_editions": {
+        "2024-06-20": {
+          "title": "2024 Copa América",
+          "revision": 1229955337,
+          "extra_pages": ["2024 Copa América knockout stage", "2024 Copa América final"]
+        }
+      }
+    },
+    {
+      "id": "afcon-24",
+      "family": "Africa Cup of Nations",
+      "source_codes": ["AR"],
+      "minimum_start": "2024-01-01",
+      "teams": 24,
+      "group_count": 6,
+      "group_matches": 36,
+      "advance_per_group": 2,
+      "best_third": 4,
+      "knockout_teams": 16,
+      "tie_break": "head_to_head_then_overall",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} Africa Cup of Nations", "{previous_year} Africa Cup of Nations"],
+      "known_editions": {
+        "2024-01-13": {
+          "title": "2023 Africa Cup of Nations",
+          "revision": 1195234042,
+          "extra_pages": ["2023 Africa Cup of Nations knockout stage", "2023 Africa Cup of Nations final"]
+        }
+      }
+    },
+    {
+      "id": "asian-cup-24",
+      "family": "AFC Asian Cup",
+      "source_codes": ["AC"],
+      "minimum_start": "2024-01-01",
+      "teams": 24,
+      "group_count": 6,
+      "group_matches": 36,
+      "advance_per_group": 2,
+      "best_third": 4,
+      "knockout_teams": 16,
+      "tie_break": "head_to_head_then_overall",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} AFC Asian Cup", "{previous_year} AFC Asian Cup"],
+      "known_editions": {
+        "2024-01-12": {
+          "title": "2023 AFC Asian Cup",
+          "revision": 1195023682,
+          "extra_pages": ["2023 AFC Asian Cup knockout stage", "2023 AFC Asian Cup final"]
+        }
+      }
+    },
+    {
+      "id": "gold-cup-16",
+      "family": "CONCACAF Gold Cup",
+      "source_codes": ["CCH"],
+      "minimum_start": "2025-01-01",
+      "teams": 16,
+      "group_count": 4,
+      "group_matches": 24,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 8,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} CONCACAF Gold Cup"],
+      "known_editions": {
+        "2025-06-14": {
+          "fail_closed": "The pre-opening revision did not publish a complete causal knockout allocation."
+        }
+      }
+    },
+    {
+      "id": "ofc-nations-7",
+      "family": "OFC Nations Cup",
+      "source_codes": ["OC"],
+      "minimum_start": "2024-01-01",
+      "teams": 7,
+      "group_count": 2,
+      "group_matches": 9,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 4,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} OFC Men's Nations Cup", "{year} OFC Nations Cup"],
+      "known_editions": {
+        "2024-06-15": {
+          "title": "2024 OFC Men's Nations Cup",
+          "revision": 1228928892,
+          "extra_pages": ["2024 OFC Men's Nations Cup knockout stage", "2024 OFC Men's Nations Cup final"],
+          "knockout_venue_patterns": [
+            {"code": "VU", "pattern": "VFF Freshwater Stadium|Port Vila"}
+          ]
+        }
+      }
+    },
+    {
+      "id": "asean-10",
+      "family": "ASEAN Championship",
+      "source_codes": ["SEA"],
+      "minimum_start": "2024-01-01",
+      "teams": 10,
+      "group_count": 2,
+      "group_matches": 20,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 4,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "two_leg_graph",
+      "away_goals": true,
+      "page_patterns": ["{year} FIFA ASEAN Cup", "{year} ASEAN Championship"],
+      "known_editions": {
+        "2024-12-08": {
+          "title": "2024 ASEAN Championship",
+          "revision": 1261708025,
+          "extra_pages": ["2024 ASEAN Championship knockout stage", "2024 ASEAN Championship final"]
+        }
+      }
+    },
+    {
+      "id": "confederations-8",
+      "family": "FIFA Confederations Cup",
+      "source_codes": ["CC"],
+      "minimum_start": "2017-01-01",
+      "teams": 8,
+      "group_count": 2,
+      "group_matches": 12,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 4,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} FIFA Confederations Cup"],
+      "known_editions": {
+        "2017-06-17": {
+          "title": "2017 FIFA Confederations Cup",
+          "revision": 786006331,
+          "extra_pages": ["2017 FIFA Confederations Cup knockout stage", "2017 FIFA Confederations Cup Final"]
+        }
+      }
+    },
+    {
+      "id": "arab-cup-16",
+      "family": "Arab Cup",
+      "source_codes": ["ARC"],
+      "minimum_start": "2025-01-01",
+      "teams": 16,
+      "group_count": 4,
+      "group_matches": 24,
+      "advance_per_group": 2,
+      "best_third": 0,
+      "knockout_teams": 8,
+      "tie_break": "overall_then_head_to_head",
+      "knockout": "revision_graph",
+      "page_patterns": ["{year} FIFA Arab Cup", "{year} Arab Cup"],
+      "known_editions": {
+        "2025-12-01": {
+          "title": "2025 FIFA Arab Cup",
+          "revision": 1325028827,
+          "extra_pages": ["2025 FIFA Arab Cup knockout stage", "2025 FIFA Arab Cup final"]
+        }
+      }
+    }
+  ]
+}

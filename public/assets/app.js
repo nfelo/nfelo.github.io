@@ -1376,12 +1376,18 @@ table.innerHTML = (!visible.length && query)
     return `<span class="tournament-change ${direction}" title="Rating change attributed to this tournament\'s matches: ${signed} points">${arrow} ${signed}</span>`;
   }
 
-  function tournamentRankingsTable(items, selectedDate, showMovement) {
+  function tournamentTitleChance(value) {
+    if (value == null || value === "") return "—";
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? `${numeric.toFixed(1)}%` : "—";
+  }
+
+  function tournamentRankingsTable(items, selectedDate, showMovement, showTitleChance) {
     if (!items.length) {
       return `<div class="empty"><h2>No participants</h2><p>No participating teams were recorded for this edition.</p></div>`;
     }
     return `<div class="ranking-desktop"><div class="table-shell tournament-table"><table class="ranking-table">
-      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th><th class="numeric hide-mobile">Underlying strength estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
+      <thead><tr><th class="numeric">Rank</th><th>Team</th><th class="numeric">Rating</th>${showTitleChance ? `<th class="numeric title-chance-column">Title chance</th>` : ""}<th class="numeric hide-mobile">Underlying strength estimate</th><th class="numeric hide-mobile">Matches</th><th>Recent form</th><th class="hide-mobile">Last match</th></tr></thead>
       <tbody>${items.map((team) => {
         const rankValue = team.rank == null ? "—" : team.rank;
         const ratingNote = team.rating == null
@@ -1391,6 +1397,7 @@ table.innerHTML = (!visible.length && query)
           <td class="rank-cell numeric"><span class="tournament-cell-main">${rankValue}</span>${showMovement ? tournamentChangeHTML(team.tournament_rank_change, "rank") : ""}</td>
           <td>${teamLink(team.code, team.nation, selectedDate)}</td>
           <td class="numeric"><span class="rating-main">${rating(team.rating)}</span>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<span class="rating-sub">${ratingNote}</span></td>
+          ${showTitleChance ? `<td class="numeric title-chance-column"><strong>${tournamentTitleChance(team.title_chance)}</strong></td>` : ""}
           <td class="numeric hide-mobile">${rating(team.mean)}</td>
           <td class="numeric hide-mobile">${team.matches == null ? "—" : number(team.matches)}</td>
           <td>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</td>
@@ -1409,6 +1416,7 @@ table.innerHTML = (!visible.length && query)
               <div class="ranking-card-rating"><strong>${rating(team.rating)}</strong>${showMovement ? tournamentChangeHTML(team.tournament_rating_change, "rating") : ""}<small>${ratingNote}</small></div>
             </div>
             <div class="ranking-card-team">${teamLink(team.code, team.nation, selectedDate)}</div>
+            ${showTitleChance ? `<div class="tournament-title-chance"><span>Title chance</span><strong>${tournamentTitleChance(team.title_chance)}</strong></div>` : ""}
             <div class="ranking-card-snapshot ranking-card-snapshot-single">
               <div><span>Recent form</span>${team.form?.length ? formHTML(team.form) : `<span class="muted">—</span>`}</div>
             </div>
@@ -1583,10 +1591,10 @@ function defaultMajorTournamentFamily(families) {
     const syncSortOptions = (preferred = sortSelect.value || requestedSort) => {
       sortSelect.innerHTML = selectedView === "after"
         ? `<option value="rating">Rating</option><option value="rating_change">Rating change</option><option value="rank_change">Rank change</option><option value="name">Name</option>`
-        : `<option value="rating">Rating</option><option value="name">Name</option>`;
+        : `<option value="rating">Rating</option><option value="title_chance">Title chance</option><option value="name">Name</option>`;
       const allowed = selectedView === "after"
         ? new Set(["rating", "rating_change", "rank_change", "name"])
-        : new Set(["rating", "name"]);
+        : new Set(["rating", "title_chance", "name"]);
       sortSelect.value = allowed.has(preferred)
         ? preferred
         : "rating";
@@ -1641,6 +1649,15 @@ function defaultMajorTournamentFamily(families) {
             || a.nation.localeCompare(b.nation)
           );
         }
+        if (sort === "title_chance") {
+          return (
+            descendingValue(b, "title_chance")
+            - descendingValue(a, "title_chance")
+            || descendingValue(b, "rating")
+            - descendingValue(a, "rating")
+            || a.nation.localeCompare(b.nation)
+          );
+        }
         return (
           descendingValue(b, "rating")
           - descendingValue(a, "rating")
@@ -1651,6 +1668,7 @@ function defaultMajorTournamentFamily(families) {
         visible,
         selectedEdition[selectedView],
         selectedView === "after",
+        selectedView === "before",
       );
     };
 
@@ -1738,6 +1756,7 @@ function defaultMajorTournamentFamily(families) {
         if (rankedTeam) {
           return {
             ...rankedTeam,
+            title_chance: participant.title_chance ?? null,
             nation: rankedTeam.nation
               || participant.nation
               || summaryNames.get(participant.code)
@@ -1756,6 +1775,7 @@ function defaultMajorTournamentFamily(families) {
           matches: null,
           form: [],
           date: null,
+          title_chance: participant.title_chance ?? null,
         };
       });
 
@@ -1837,7 +1857,7 @@ function defaultMajorTournamentFamily(families) {
           document.getElementById("tournament-description").textContent =
             selectedView === "after"
               ? `Final snapshot: ${validDate(selectedEdition.after)}. Rank change compares each team's place in the full world ranking. Rating change includes only matches from this edition, excluding recalibration and unrelated results.${coverageNote}`
-              : `Pre-tournament snapshot: ${validDate(selectedEdition.before)}. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
+              : `Pre-tournament snapshot: ${validDate(selectedEdition.before)}. Title chance is a 100,000-run estimate using NFELO’s complete uncertainty state and only the format known before kickoff. A dash means that format could not be proved without hindsight. The tournament ended on ${validDate(selectedEdition.end)}.${coverageNote}`;
       setTitle(
         `${selectedFamily.name} ${selectedEdition.label}`,
       );
@@ -4524,6 +4544,10 @@ function buildFAQItems() {
       answer: "NFELO starts with underlying strength, uncertainty, era and venue. A forecast-only layer then uses each team’s recent attacking and defensive tendencies to refine the win, draw and loss percentages without changing the public ranking. Team pages show these tendencies in an expandable section."
     },
     {
+      question: "What does Title chance mean on a tournament page?",
+      answer: "Title chance is the share of 100,000 deterministic tournament simulations won by that team from the state immediately before the opening match. Each run draws every team’s possible strength together, keeping the uncertainty and relationships between their estimates, then follows the published group schedule, venue status, tiebreakers and knockout path while using the pre-tournament attack and defence state. Wikipedia format pages are pinned to revisions from before kickoff; realised knockout opponents are never treated as though they were known. If the pre-opening format is incomplete or ambiguous, NFELO shows a dash instead of filling the gap with hindsight."
+    },
+    {
       question: "Why can a lower-rated team be the forecast favourite?",
       answer: "The public rating is deliberately cautious when evidence is narrow or uncertain. A match forecast uses the fuller strength estimate, venue and scoring tendencies for that particular matchup. A lower-rated team can therefore be a slight favourite in one match without either the ranking or forecast being an error."
     },
@@ -4684,6 +4708,7 @@ function renderFAQ() {
           <a href="#/methodology?section=strength">Connected strength</a>
           <a href="#/methodology?section=venue">Home and away</a>
           <a href="#/methodology?section=forecast">Match forecasts</a>
+          <a href="#/methodology?section=tournaments">Tournament chances</a>
           <a href="#/methodology?section=learning">Learning from results</a>
           <a href="#/methodology?section=ratings">Published ratings</a>
           <a href="#/methodology?section=validation">Evidence and accuracy</a>
@@ -4756,6 +4781,24 @@ function renderFAQ() {
           </details>
         </section>
 
+        <section class="method-section" aria-labelledby="method-tournaments">
+          <h2 id="method-tournaments" tabindex="-1">Pre-tournament title chances</h2>
+          <p>The Title chance column appears only in the Before tournament view. It estimates how often each participant would win from information available immediately before the opening match; it is not reconstructed from the route the tournament later took.</p>
+          <p>For each of 100,000 deterministic trials, NFELO draws the complete participant strength vector from the joint pre-tournament distribution rather than drawing teams independently:</p>
+          <div class="formula">r* ~ N(μstart, Σstart)<br>P(title i) = winsᵢ / 100,000</div>
+          <p><code>Σstart</code> is the full covariance submatrix, including shared-opponent links and inactivity drift projected to opening day. The sampled strength is combined with the frozen attack and defence layer, the era’s scoring environment, country venue state, and each scheduled match’s home, away or neutral status. Group scorelines follow the displayed NFELO outcome probabilities; the simulation then applies the edition’s published group advancement, tiebreak and knockout rules. Extra time, penalties and two-legged ties are simulated when the format requires them.</p>
+          <details class="method-details">
+            <summary>Format provenance and the no-hindsight rule</summary>
+            <p>The build first looks for the English Wikipedia tournament page, then configured language editions through Wikidata only if English is unavailable. Every page used for the format is pinned to an exact revision safely before the opener; its title, revision, timestamp, content hash, licence and old-revision URL are stored in the repository. NFELO’s own ledger supplies participant identity and the published group schedule.</p>
+            <p>Knockout entrants remain expressions such as “Winner Group A” or “Winner Match 45”. The simulator resolves those expressions separately in every trial. A later real-world opponent is never inserted into an earlier branch. Best-third allocation tables, symbolic federation brackets and two-legged ties are validated as complete directed graphs before an edition is accepted.</p>
+          </details>
+          <details class="method-details">
+            <summary>Automatic updates and unavailable editions</summary>
+            <p>When a supported new edition enters the results source with a complete group schedule, CI discovers it, pins the pre-opening format, validates the causal graph, captures its opening state and stores deterministic simulation counts. Unchanged facts and model states reuse the existing byte-identical cache. If participant coverage, scheduling, revision timing or bracket allocation is incomplete, the importer fails closed and the public table shows an em dash.</p>
+            <p>Percentages are displayed to one decimal place. A largest-remainder step makes the displayed field sum to exactly 100.0% without changing the underlying 100,000 integer win counts. Unmodelled final tiebreaks such as disciplinary points or drawing of lots are resolved at random after the football criteria available to the model.</p>
+          </details>
+        </section>
+
         <section class="method-section" aria-labelledby="method-learning">
           <h2 id="method-learning" tabindex="-1">Learning from results</h2>
           <p>A surprising result carries more information than an expected one. Goal margin also matters, but additional goals have diminishing influence and the margin is adjusted for the scoring environment of its era.</p>
@@ -4814,6 +4857,7 @@ function renderFAQ() {
       "strength",
       "venue",
       "forecast",
+      "tournaments",
       "learning",
       "ratings",
       "validation",
