@@ -38,6 +38,7 @@ from tournament_classification import (
     runtime_is_friendly,
     validate_registry,
 )
+from build_club_site import build_club_site
 
 
 def parse_args() -> argparse.Namespace:
@@ -629,7 +630,10 @@ def write_route_entries(output: Path, summary: dict[str, Any]) -> None:
         (f"team/{team['code']}", team["nation"], f"{team['nation']} ratings, results and historical record.")
         for team in summary["teams"]
     )
-    urls = [root]
+    # The club application owns its own client-side subroutes, but its root is
+    # a first-class public entry point and must remain discoverable alongside
+    # the generated national-team routes.
+    urls = [root, f"{root}clubs/"]
     for path, title, description in entries:
         canonical = f"{root}{path}/"
         html = template
@@ -2642,6 +2646,25 @@ def main() -> None:
                 )
             ],
         },
+    )
+
+    # Clubs use an independent ledger, model and data namespace.  Building the
+    # section here gives every normal Pages validation the same atomic result
+    # without changing the frozen national-team replay above.
+    club_meta = build_club_site(
+        args.source,
+        args.config,
+        args.output,
+        Path(".club-cache"),
+    )
+    print(
+        json.dumps(
+            {
+                "club_status": "ok",
+                "club_matches": club_meta["matches"],
+                "club_results_through": club_meta["results_through"],
+            }
+        )
     )
 
     version_browser_assets(args.output)

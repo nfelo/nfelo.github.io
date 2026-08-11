@@ -50,7 +50,7 @@ def png_dimensions(path: Path) -> tuple[int, int]:
 
 class PresentationReleaseTests(unittest.TestCase):
     def test_every_route_uses_the_same_versioned_presentation(self) -> None:
-        routes = sorted(PUBLIC.rglob("index.html"))
+        routes = sorted(route for route in PUBLIC.rglob("index.html") if "clubs" not in route.relative_to(PUBLIC).parts)
         self.assertGreaterEqual(len(routes), 250)
         stylesheet_hash = hashlib.sha256(
             STYLES.read_bytes()

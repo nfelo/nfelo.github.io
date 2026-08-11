@@ -7,6 +7,19 @@ source match, team peaks, number-one chronology and totals, top match
 instances, largest upsets, tournament gains, team comparison and a date-aware
 probability calculator.
 
+The independent [Global Clubs section](https://nfelo.github.io/clubs/) adds a
+separate hierarchical club replay. Its canonical ledger combines more than 1.6
+million domestic-league, deep-tier, cup, playoff, continental and global match
+records from 1871 onward, including fourteen Brazilian state championships. It
+publishes current and year-opening rankings,
+association coefficients, every retained match and pre-match forecast, club
+histories, records, comparisons, a current-state calculator, source-row
+provenance and explicit aggregate treatment for identified two-leg ties.
+
+The club and national-team models do not share ratings or fitted parameters.
+See [the club methodology](docs/club-methodology.md) for the source policy,
+identity safeguards, chronological model selection and two-leg formula.
+
 ## What the model publishes
 
 NFELO publishes one rating everywhere: current rankings, rankings on historical

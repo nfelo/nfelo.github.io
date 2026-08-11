@@ -1,0 +1,340 @@
+{
+  "source": "BrazilianFootball/Data",
+  "source_url": "https://github.com/BrazilianFootball/Data",
+  "licence": "MIT",
+  "attribution": "Igor Patricio Michels and contributors; source match reports: CBF",
+  "refreshed_at": "2026-08-11T07:52:07+00:00",
+  "first": "2013-04-03",
+  "last": "2025-12-21",
+  "matches": 18929,
+  "snapshot_bytes": 206374,
+  "snapshot_sha256": "2962da3ac4157291aeebab93e08c2b46dffb0772d5fe14bf1e903e4135f9465c",
+  "upstream_set_sha256": "1e79d8d384b3f64e5b2f59d7635d4755b909508b1a041732fc62f5a078a83a78",
+  "upstream_files": [
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2013_games.json",
+      "bytes": 1461381,
+      "sha256": "9f0bf5bf32dce923bfff2cf5deecd6c5a6f2c4ee8360f30ea53f3c43bfacc9cd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2014_games.json",
+      "bytes": 1477491,
+      "sha256": "40444a9dd1b3bb614722637370addb7ee1526169963658582fee695d25bee09f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2015_games.json",
+      "bytes": 1532040,
+      "sha256": "d38c6891503a12536e4282fdc55139af9d9c431bb09c4130365eed6e6de7c847"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2016_games.json",
+      "bytes": 1544998,
+      "sha256": "54e92a7166bddc2755c2135adc05864be0a092fccbbaf2f53cced1a57d01af89"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2017_games.json",
+      "bytes": 1577692,
+      "sha256": "dfbc1c78f00fc0bc6d0cca6f3a875e91e930f608844db86b4b4abdd248e7c483"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2018_games.json",
+      "bytes": 1585127,
+      "sha256": "adb997290c362d9cf5d94ca626daf87c18891ccf000120793341c3235938fef6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2019_games.json",
+      "bytes": 1589413,
+      "sha256": "c97ef1dd2f64c1b85f4dd825f04cb7516f76ab5a162473ded46d4b97547fa678"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2020_games.json",
+      "bytes": 1734533,
+      "sha256": "139d941d1405b6672c429d8e9962eda0f832329f9f88826de862b94d80038ebe"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2021_games.json",
+      "bytes": 1742830,
+      "sha256": "1e4ab6aa897a86c82c956bc3b13c28a3236aef0a0c8e5759e336d83abd91f343"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2022_games.json",
+      "bytes": 1785157,
+      "sha256": "308074f77f4401e8e7f831666f68b21e75e1a0219130ddbbd7d7b97f414be3dc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2023_games.json",
+      "bytes": 1798677,
+      "sha256": "a9daa501e07d10b61c032c4d5f3a5a27e3c7c91a9a0b2c8f074211edfa6c7b34"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2024_games.json",
+      "bytes": 1776650,
+      "sha256": "463aeaf3deef533d3e46543556a5ea20f4e345f88e145acc6b8766c7e63f8d37"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_A_2025_games.json",
+      "bytes": 1750821,
+      "sha256": "12625540b968822140ed2f397ef354261682939be5c967ef2ffbeee7be09ac4b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2013_games.json",
+      "bytes": 1415424,
+      "sha256": "b902e6f45e1c852eba217c612b0d078d4f100d01c6b139b82816eeebe0836972"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2014_games.json",
+      "bytes": 1448324,
+      "sha256": "fe205806c19ccf97182530ae80f01301e8f92ebe4b04349c36852e8b4e3d3172"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2015_games.json",
+      "bytes": 1465027,
+      "sha256": "59b0086ed3c290f585731aa71a367fc5cf304390d1cc6a7130cfa5e88401fd52"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2016_games.json",
+      "bytes": 1476821,
+      "sha256": "5a440c5d3849bbafdeeddea9542cc3d99f86f04462b5d10c0f202177d2801140"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2017_games.json",
+      "bytes": 1440258,
+      "sha256": "9f382252e4370e0eb22ee36944d207eb9c68afb3f5f98065b45d32b75ed3b947"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2018_games.json",
+      "bytes": 1496388,
+      "sha256": "663f2c4fa1e86f266e7941b72f250cad031d3c5d612a50af31a163bdf59835d6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2019_games.json",
+      "bytes": 1525294,
+      "sha256": "2381180d16ab2dc08995e7102cb4481e1e7d9aa51aa386064880266dc965ffd4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2020_games.json",
+      "bytes": 1613994,
+      "sha256": "98bae604c189edfb4b513fe6932e22d80e0d3fbce3b327c57e4e6e1d6d5b783f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2021_games.json",
+      "bytes": 1644842,
+      "sha256": "848a715ccc10f2a44b401f5877a3ae2586d305b5eda2dc59210f828f0943e6d6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2022_games.json",
+      "bytes": 1673039,
+      "sha256": "7aeaf52c6cea8499ef485aff2c2659a0028b8f6f4c2c78ce04fc14af84f20310"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2023_games.json",
+      "bytes": 1707903,
+      "sha256": "4be0503942607ac885976f43706bda0b16528e56134fda9b6f260d4f91687242"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2024_games.json",
+      "bytes": 1666148,
+      "sha256": "d6778e06fe9707000fb05d8fd0e312ebebedda0d5b05e770c3ca0abaa88a97ee"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_B_2025_games.json",
+      "bytes": 1715242,
+      "sha256": "712771bc5de790cf5713fab993c8f6075996eb19647b9058925a956f38918320"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2013_games.json",
+      "bytes": 778528,
+      "sha256": "247ca4817dfb3973a89d29931306c6fcfbe56dae7e41c14bd6fe6f12538f0423"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2014_games.json",
+      "bytes": 717105,
+      "sha256": "46f91b5975bc5e6cb4898ba9cae5caeefa850352de7bae22fed9b1bfc670dc86"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2015_games.json",
+      "bytes": 729238,
+      "sha256": "e3924732708e9055df47f6a2e372ce007ddd6fb9cbf44cfbc858d491c6355a1c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2016_games.json",
+      "bytes": 722834,
+      "sha256": "8ab54535af9fb844c23ab99b9b88c0ea6521be923ba539f69996a8a7d9a7db91"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2017_games.json",
+      "bytes": 747101,
+      "sha256": "6cec9f026720b0b2140e8cf2055fc40cc2864510d22d3aadf8ef2995a3d316a0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2018_games.json",
+      "bytes": 773103,
+      "sha256": "3ec27bdae424e903b25f4196406a6056b6e10bc0afe70e12b909beedcc72f038"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2019_games.json",
+      "bytes": 774592,
+      "sha256": "ebcddf0bf157c3df687d45c8b8ea41d714aaf1146fd4fc564b76552060996b43"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2020_games.json",
+      "bytes": 862487,
+      "sha256": "8d2e6b829e43b52ad94a167ff19249d8500362f9830e5c4c2f39c40aca3eea4f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2021_games.json",
+      "bytes": 883882,
+      "sha256": "edc650b244fe4a24cc6d581f3dee6fe76246aee4ab0b71061bd24e1c4ae169ca"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2022_games.json",
+      "bytes": 957526,
+      "sha256": "045dbaf351bb17ac4d382a9b57f82f4aec5dc56550627178f86e7e73e81b80b8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2023_games.json",
+      "bytes": 973866,
+      "sha256": "2b2de95cf340e30ad13c93e33667e796a0b5c78b1a3b28039a4b4d11a8c618d0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2024_games.json",
+      "bytes": 969905,
+      "sha256": "8786b84221e38cd586e488b920b1ffb6283360d7650bc5d6cac250a6c246416a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_C_2025_games.json",
+      "bytes": 939977,
+      "sha256": "87e3a58dea842a233702d509502436667f825a6c6372244468c57bfe35e43ec9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2013_games.json",
+      "bytes": 676016,
+      "sha256": "860b0a495936ba860d21342ac62a81001a673ce8ca0a99b0793efb36da563a30"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2014_games.json",
+      "bytes": 735742,
+      "sha256": "2fef8187a310661d0e745735ecbd5f03e7e3ce31c79495c5610036a586c177da"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2015_games.json",
+      "bytes": 699962,
+      "sha256": "49ea88a6dc0d847cf3455239bc2a42897543786fdde334fd36121755a567cafc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2016_games.json",
+      "bytes": 997755,
+      "sha256": "7b2e13fab934a313584b48438cebbe97f252e3f4d9ae1bcac512b3be17a3c0d8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2017_games.json",
+      "bytes": 1013233,
+      "sha256": "d00ba6bc71b05af07746b0f32381bf792309c3152a0df1a7ecff5ee4ca19080b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2018_games.json",
+      "bytes": 1017525,
+      "sha256": "12828eb027ade58d027d4bf5ba78a2ec20f35a89b38794e3d046cf95edbc21c0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2019_games.json",
+      "bytes": 1020814,
+      "sha256": "3db873d8782d709c902ea81b3abd6bcd9d26df2b11b2a0e6ac5776e6e5d52761"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2020_games.json",
+      "bytes": 2107265,
+      "sha256": "8ea2018c65824f680a56f914e105cad400eaa01a42d6325e38c964406b409f4c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2021_games.json",
+      "bytes": 2160042,
+      "sha256": "8062e0200f3e6a87ee91fb314c8c0d006f5a442b9e19fc84df6dcc32069ba99b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2022_games.json",
+      "bytes": 2190956,
+      "sha256": "b9a4e102318874421ad3b632231fe0dade6a847eea7f99d7cd611359dd651633"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2023_games.json",
+      "bytes": 2305094,
+      "sha256": "6368b98f6ef0c01517e478cc8a1b3aaafb74b18a93480ac5528d4f29bfa4acef"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2024_games.json",
+      "bytes": 2241143,
+      "sha256": "682ec573d16249f4dea2be8817da0436d18155c97de6cf99de743134e83fde56"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/Serie_D_2025_games.json",
+      "bytes": 2265812,
+      "sha256": "e73eb7465691d6078379f3176775110c04af2d649907c58e587cf6c1e9c47cec"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2013_games.json",
+      "bytes": 560288,
+      "sha256": "020b9fee781e160b80343d8c82060d3b9c7279c0cc6ad33d69348005e509953e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2014_games.json",
+      "bytes": 604213,
+      "sha256": "44c6ec7ccdd7e84171fce9e3034316d17811f335dcb15f09b2054aae137c6004"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2015_games.json",
+      "bytes": 609071,
+      "sha256": "5144a3d3d0e40535987f71f5530be4ca9bce98dbbfda4bed66282820dce41062"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2016_games.json",
+      "bytes": 624578,
+      "sha256": "825c421a9a2bd273018a5c36d696ba0a1bd84baf240b9a914ca27a6f37c5b08d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2017_games.json",
+      "bytes": 471502,
+      "sha256": "faa3443019dc9bf7977dc3e75273e4600a8154334cd9b4b65e769fc6997337ee"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2018_games.json",
+      "bytes": 478170,
+      "sha256": "757e9867a22b12bcbde0234f704ff4cc0c5a2d49f4e1f8bdbc498eb4a469b0da"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2019_games.json",
+      "bytes": 482396,
+      "sha256": "a809d91b0843dd91c1621633ab5a626e9da053d9ae20bac479a9865cfb4592f6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2020_games.json",
+      "bytes": 506369,
+      "sha256": "bfb5f813da72345eec8692c876cf97dedffb3cbd4d0d4dbf66f189a87b79489a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2021_games.json",
+      "bytes": 537148,
+      "sha256": "5af20f6e6113a1e26dbb74ea39a1fca7b6fef1b1e7ae24703df2bead07a2109f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2022_games.json",
+      "bytes": 547725,
+      "sha256": "28337c9aa7c0d61f099d983df4f2e23d4e9c6feee06f812399a98136bd07c067"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2023_games.json",
+      "bytes": 555233,
+      "sha256": "965bf3c115562169332c9f6ad44f6a07f858afeffb34c846f2df7bb8bf0e4fd4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2024_games.json",
+      "bytes": 562776,
+      "sha256": "8436d50bec3643f2137b6ee63fa383ac507813b253692823251c38db4b259174"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/BrazilianFootball/Data/master/results/processed/CdB_2025_games.json",
+      "bytes": 545656,
+      "sha256": "672f0800012276a759cfdb9cdc5a10504e2e29e4bded82cd4c94d5cd2760c240"
+    }
+  ]
+}

@@ -264,7 +264,7 @@ class RosewaterCoutureHybridTests(unittest.TestCase):
         css_hash = hashlib.sha256(
             CSS_PATH.read_bytes()
         ).hexdigest()[:12]
-        routes = sorted(PUBLIC.rglob("index.html"))
+        routes = sorted(route for route in PUBLIC.rglob("index.html") if "clubs" not in route.relative_to(PUBLIC).parts)
         self.assertGreaterEqual(len(routes), 250)
         for route in routes:
             html = route.read_text(encoding="utf-8")

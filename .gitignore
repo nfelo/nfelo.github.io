@@ -3,6 +3,8 @@ __pycache__/
 .DS_Store
 .venv/
 public/data/
+public/clubs/data/
 public/build-manifest.json
 public/404.html
 source/source-refresh-*/
+.club-cache/

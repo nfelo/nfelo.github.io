@@ -146,7 +146,7 @@ class TournamentInterfaceRepairTests(unittest.TestCase):
         javascript = ROOT / "public/assets/app.js"
         css_revision = hashlib.sha256(stylesheet.read_bytes()).hexdigest()[:12]
         js_revision = hashlib.sha256(javascript.read_bytes()).hexdigest()[:12]
-        routes = sorted((ROOT / "public").rglob("index.html"))
+        routes = sorted(route for route in (ROOT / "public").rglob("index.html") if "clubs" not in route.relative_to(ROOT / "public").parts)
         self.assertGreaterEqual(len(routes), 250)
         for route in routes:
             html = route.read_text(encoding="utf-8")

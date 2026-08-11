@@ -1,0 +1,576 @@
+{
+  "source": "FerrerasRP/FootballData",
+  "source_url": "https://github.com/FerrerasRP/FootballData",
+  "licence": "CC0 1.0",
+  "attribution": "FerrerasRP/FootballData contributors",
+  "refreshed_at": "2026-08-11T09:38:19+00:00",
+  "first": "2018-12-22",
+  "last": "2026-03-15",
+  "matches": 7347,
+  "competitions": 14,
+  "snapshot_bytes": 93879,
+  "snapshot_sha256": "156e714714be10d594ce708dda48c9b18cfa7453ee8ebf3abdb381d21206ae46",
+  "upstream_set_sha256": "0e67b87c7e5245d04d48f152c468c6dd5e7a8d47cebc5ea740de367120e7aef4",
+  "upstream_files": [
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202019.json",
+      "bytes": 4662,
+      "sha256": "920e723c91ff1f760e49868908483275f3d0326b3d9425d3341fbc4f5a0b5942"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202020.json",
+      "bytes": 3998,
+      "sha256": "41a86396b9b4e5c8b6cd4916e3234853db60f4b5123f6e3525e9fad5f9758ee0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202021.json",
+      "bytes": 5803,
+      "sha256": "0cb5582787b8e157edfe84060dfaf1157bb84d63965fb665f4eee415ef78338a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202022.json",
+      "bytes": 4899,
+      "sha256": "94cc4d7fa6365bb92ee18237968f03317735dba86183241572bfbb44d29fe715"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202023.json",
+      "bytes": 4634,
+      "sha256": "e52831044293ecdd9dec50c6bd0bc4b312873f0986db71c0fd986637c1cc0544"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202024.json",
+      "bytes": 4591,
+      "sha256": "7d9590e805068a8a9114a2783fb64269e56b57aeb526d954035ab26d405d016a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202025.json",
+      "bytes": 4497,
+      "sha256": "0064ab7896b8fb30ff2adec35dfd6f4a42d13d54b8a76316053db16092327fd2"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-alagoano/brasil-campeonato-alagoano%202026.json",
+      "bytes": 4352,
+      "sha256": "3ebef94390e40e2826460f4c4ccd7780f13ecb50f787452f58f230f16ebb09c5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202019.json",
+      "bytes": 7328,
+      "sha256": "baed3173d030e5a8c7fa81ce39d92618120e67c17dec859b0ddabaf38a714bbc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202020.json",
+      "bytes": 7288,
+      "sha256": "e11816f9877858da48de948d196d1d31978ce06cfebbe4fa1631f678696879cd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202021.json",
+      "bytes": 7290,
+      "sha256": "fb060cb64c74dda341a3a4aa2c04881fbb6a38023c0779be5baba244902dc9f9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202022.json",
+      "bytes": 7231,
+      "sha256": "3f9ed4312da13600b24cf746ca8d0ef506f8f663bc40de91065006518e4c2fbb"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202023.json",
+      "bytes": 7019,
+      "sha256": "cbc9e23e5ff77c3206f7a5bbc3e9f7b0ab5221777cf80c3c276cb249ad72b475"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202024.json",
+      "bytes": 7037,
+      "sha256": "869efb448a67df6d82dc645fe806fc167764ca36b7820b7b6b7116a6deba7eeb"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202025.json",
+      "bytes": 6897,
+      "sha256": "6f032fc8e0b6f1a790e7977dfb5ca17932c8c722716777970748fe885f56d3b6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-baiano/brasil-campeonato-baiano%202026.json",
+      "bytes": 6677,
+      "sha256": "b9b36895f3129c81734cd4f6132ec375715d5d056c131848e9c9f7cc6eb84876"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202019.json",
+      "bytes": 13773,
+      "sha256": "ca551b4a9eb856e08cde1f4d35c8ecbab33e3f2eea5c1d6046490244353184be"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202020.json",
+      "bytes": 14476,
+      "sha256": "44c3abf2c46c6b22b36b220639aff5f6bb47e484c03f614189ae2e8a93a08228"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202021.json",
+      "bytes": 14747,
+      "sha256": "eb18cf91784b212c5ab386e9c00f90a056ad295d289c897079daded311565ef8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202022.json",
+      "bytes": 10431,
+      "sha256": "2ce165d6ae9b00067293b4e1d416b020d2c30d62991d127f9ad455000ab9d20b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202023.json",
+      "bytes": 10435,
+      "sha256": "ff54fec19ea8632effc63d3948accb7167d2fe3379e15900766671a00f7de135"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202024.json",
+      "bytes": 10621,
+      "sha256": "ec22581a47425e4515f9abda72f86bd28925785196bfdf329f070485ed1e79d7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202025.json",
+      "bytes": 10683,
+      "sha256": "f0b57111bea09e21cd6309ebcf16391c29b8b006ae6835358b4e7cd8fc59b99f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-carioca/brasil-campeonato-carioca%202026.json",
+      "bytes": 8544,
+      "sha256": "e184d348b122c9dfdb237c48404e5972ad3f14ef9b7af155f720209df205fe70"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202019.json",
+      "bytes": 12971,
+      "sha256": "543e934166e0b2e2ed6ba4b75ac90d6e9e71521816644016e99c8fdfe4f87bfc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202020.json",
+      "bytes": 8577,
+      "sha256": "df37c229061abc106c04435996c08f1aa644828d4667d61bf146cc2ec8cc5d73"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202021.json",
+      "bytes": 11380,
+      "sha256": "a484f65df263b990ec5c6e5549b67fb70db5bf4bf0693b627f0a55c51361b1e4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202022.json",
+      "bytes": 11319,
+      "sha256": "cd55f78727648cc42b3d4b65a664b4e6034eeb1645039cddf34d5b39cc9fcaae"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202023.json",
+      "bytes": 11296,
+      "sha256": "cca377f8878848af8d4ef564afa6b595498df279accaf67ab4b016c209c7c3a9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202024.json",
+      "bytes": 11188,
+      "sha256": "895f11cbd9efab12852661e2d796872a7b02d203e8e01d799d7ba008972b87d7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202025.json",
+      "bytes": 10139,
+      "sha256": "796c269f0c9da126c25b661e535bff22bf566cb067eff32b0a588a75d15c5a5c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-catarinense/brasil-campeonato-catarinense%202026.json",
+      "bytes": 9786,
+      "sha256": "f4e9b136ad5095fd4de86ae6bcc42e9fc77de57eced0389c0459a8824bbf01ae"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202019.json",
+      "bytes": 8442,
+      "sha256": "0ad4caae310d06d022410bd9560d527900bfdb16cc0a1ad5dad887629b5c2abc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202020.json",
+      "bytes": 8090,
+      "sha256": "5c51a1f0d44ce42a3a10a74648463067beb41c883f704089280a6dc38d60288d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202021.json",
+      "bytes": 7926,
+      "sha256": "ca99d07a57aba704a45b6734ed3cb75e23f35ce1e62eb4db7ff0424b17cf3985"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202022.json",
+      "bytes": 8908,
+      "sha256": "1ed8beb52fd9befb00bb1bb1771a5427af4554d450ffee907541ead12de70a78"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202023.json",
+      "bytes": 6462,
+      "sha256": "973d068eb258dc03410c61e720f6453e9e7b7e25d274f66f9152281d8fd1e90e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202024.json",
+      "bytes": 6415,
+      "sha256": "c0219ac57161f2040a375d489fb7a5b58da69d2c2f0ff622e707ae8e580b755a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202025.json",
+      "bytes": 5652,
+      "sha256": "baaee73a803c866277945ac73e7717f1ddf8742e20af628dd2d828e747a33474"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-cearense/brasil-campeonato-cearense%202026.json",
+      "bytes": 5798,
+      "sha256": "f8df98e28522a872a2ffc719926d813536c5fdae926b3bda61226338a9e3b6bd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202019.json",
+      "bytes": 11154,
+      "sha256": "e033b4b195a8946cb45f41292c0bd673f0adf584dafa03ba4949175c03b0ca31"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202020.json",
+      "bytes": 10156,
+      "sha256": "467c0579d74fe0e397ac40963a0fdbf374e25c97fa5d90e5ecb4d6208b3e7f32"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202021.json",
+      "bytes": 9905,
+      "sha256": "8197cafaad8d59cd836791fb688badc9f4f25c71d280a90b36708ebdbd5ed12b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202022.json",
+      "bytes": 10223,
+      "sha256": "0af762c6794b4469670abd5e84a46a955ca04dd964946c301af1cbf0f9c9a21c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202023.json",
+      "bytes": 9895,
+      "sha256": "092dd8afb2e8b123feabed5c3310414c73893066e574b74b3b25aee8f6bfb89b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202024.json",
+      "bytes": 10639,
+      "sha256": "6d49067e8e3c0397b6f434b6a11fe83b30dedbf7766063fdcf974753d17bf9bd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202025.json",
+      "bytes": 9936,
+      "sha256": "2afcc22580514bc6c180bb98cd372f347dd1208d22704ffd946c18636e78c30f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-gaucho/brasil-campeonato-gaucho%202026.json",
+      "bytes": 8945,
+      "sha256": "41fa645dbd4879e2efd10e6d9f470efc2da52fd0e024d503941eb032c8c8260f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202019.json",
+      "bytes": 12026,
+      "sha256": "ec2fd472b2d5685ec4386c3cfb90726aac5741d86fb538662c231b34aa1b3416"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202020.json",
+      "bytes": 11065,
+      "sha256": "b04d8eb81a95d6b8b18ac1e16f55d8a7a18697b45832aa2bc0efc617ef102527"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202021.json",
+      "bytes": 10412,
+      "sha256": "3419bedcdfa5e749da6cec8e92e7459717cb2aa33afb78e05015b4824fe587d5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202022.json",
+      "bytes": 10287,
+      "sha256": "9b5f9e92e982bc98469a15c50e21abb76a84e015602fbc4e9fefb90dbe458db1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202023.json",
+      "bytes": 11158,
+      "sha256": "0977a0ee49d992be85760d994d36098418d7bd5ae908537725e459aa3df7180b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202024.json",
+      "bytes": 11000,
+      "sha256": "52b25aa2e155eb72128f2a50af631c932424d63bec0c858c66e8ff4e22ad98ed"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202025.json",
+      "bytes": 10954,
+      "sha256": "5e2979b14dae2d8263aaba9c4caa2d5fa011f2ead50ee2eed29dba1095622f6f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-goiano/brasil-campeonato-goiano%202026.json",
+      "bytes": 9558,
+      "sha256": "a27de2d95339e7a3996ab4a56e7032cec8115e4e410456202ed0150e9a130d27"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202019.json",
+      "bytes": 4724,
+      "sha256": "e01c01726f60c5655472d78b24d71744f5037ef5ef480d83069490550b0c8bff"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202020.json",
+      "bytes": 5267,
+      "sha256": "daa39c94b45f77ffd8d7ee0edb0f5833205c005671c74b0cee163ade2dc29ce1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202021.json",
+      "bytes": 5207,
+      "sha256": "084763abd3d7acf7b71cf1e10b91cbf8f85281fe91ab68dc959b420724b41f36"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202022.json",
+      "bytes": 4847,
+      "sha256": "8280da234376a2e048df740b40220b1771a0e5b1cd71cf814dd7ce268dc97904"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202023.json",
+      "bytes": 4902,
+      "sha256": "754df36db0cdaf8836164ff1f8db08868727d7327e8c2c4279f7d4191d487e28"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202024.json",
+      "bytes": 8469,
+      "sha256": "f6dc885ad1ba840dda81ab8be16597bc0ceee3a7e7a7675b4cb261a769319d60"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202025.json",
+      "bytes": 8338,
+      "sha256": "82c1271d07fbac01b47ee4713a39e2ed9fcc1ca78b65cae944d661887ddf4ed0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-maranhense/brasil-campeonato-maranhense%202026.json",
+      "bytes": 4857,
+      "sha256": "c9bb7ee10b5ab1a4afb9a3a177ecad18f8052892b80a9534cd6e050fb41ea9d4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202019.json",
+      "bytes": 8254,
+      "sha256": "0a436f762b5443606ed307decdb9eb9b7a83b4e36363c53bfd2c8167dbf0103d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202020.json",
+      "bytes": 8536,
+      "sha256": "5226e9ad724907a15270ed5cb435e9827bd2455b58ff63e17bd74f69ca4690d8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202021.json",
+      "bytes": 8582,
+      "sha256": "1a79dc40e4593f7849b78500400e1fc8373033040756118071c1275caafef78b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202022.json",
+      "bytes": 7922,
+      "sha256": "5b4ccd09556869c171f49740446ac9c2971efb4e0e8133535e5088772424ed85"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202023.json",
+      "bytes": 7748,
+      "sha256": "a53e0c15ac3f3892e4fc98cce83a6717ce7c60e066ecb418a9ca3f5f46385869"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202024.json",
+      "bytes": 7956,
+      "sha256": "bca9242e490bf70fa5dde9882dace46b990c6e79c454e8f81fceb3824fe2d114"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202025.json",
+      "bytes": 6742,
+      "sha256": "3632d0079bb59d3370a1e1d427878cfa1558153be8ae5dbc3344240e3a2d598b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-matogrossense/brasil-campeonato-matogrossense%202026.json",
+      "bytes": 7403,
+      "sha256": "f4ac72785ead17c71c5ce2d28cc4193310747ba4108b7efc5dfa40dfc60fe078"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202019.json",
+      "bytes": 10380,
+      "sha256": "e4bc99a363ca8a282a3dc16e6cc548b9ea009c8147b6a02fa1fb8db0a4254fec"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202020.json",
+      "bytes": 10292,
+      "sha256": "d7cbc29506a053a8ff32f4f84833dc854f4e80765d2f9729f5824ee3000b9bb5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202021.json",
+      "bytes": 10266,
+      "sha256": "6c9c12e5e9b998b78e760f867df365e635dd990e2325c8bfc77093a979732a4a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202022.json",
+      "bytes": 10767,
+      "sha256": "f9afeddb2131cfef4cb583ba2a84dff95c0619744b0f5e715322d1f560254fa0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202023.json",
+      "bytes": 9002,
+      "sha256": "c99840a2e2bc78ef0d2a7378bac9d69a0c818358e197184a6d54895c16dc5655"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202024.json",
+      "bytes": 9155,
+      "sha256": "9ef647650cb1c98ee26a87b1870bca3634ab999d860b151820052fb348dfb545"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202025.json",
+      "bytes": 8316,
+      "sha256": "d03df2ccdd47d46360c19b50f5395c7059631920195b3439eff306f16dbe62c3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-mineiro/brasil-campeonato-mineiro%202026.json",
+      "bytes": 7980,
+      "sha256": "25e91a9f2f95d2a3f1977d9daa73cc4da9b552ddbe072f8fce60664ed97ecfe6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202019.json",
+      "bytes": 7868,
+      "sha256": "cac1e3af0bfb343c1e59bc0f4d040178e561913649ac4a5ca15231fc770852d3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202020.json",
+      "bytes": 7611,
+      "sha256": "dabf11110a17dd1da9a8b7d52576b2604932a242a866cd735083b96f044e53de"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202021.json",
+      "bytes": 8616,
+      "sha256": "cc1a797fe7058d38c74724d7b96711eadee30b166851c2413bf3cbb5972f94fb"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202022.json",
+      "bytes": 8798,
+      "sha256": "50ce4a354cb54957301da35321b7d48a04a048b1369496bdc4913e968a9cb414"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202023.json",
+      "bytes": 8875,
+      "sha256": "c24e9f0e2b3606d963ce819bd1c4c012e93304e55ac2c5e6819818e049263de0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202024.json",
+      "bytes": 8546,
+      "sha256": "4624fffd1fd26945721a7c07de77cd7047443122bd10641a297eb7fd3cf47f28"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202025.json",
+      "bytes": 7821,
+      "sha256": "0b44796f1cc11ecb14425e6b9804c9f86ac0de5f8e7a962f258fa59795b7f836"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paraense/brasil-campeonato-paraense%202026.json",
+      "bytes": 6171,
+      "sha256": "f74da0c97a77fec35788f723846770b6bef04f5f1d3311bcaed9c38c509c4ea0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202019.json",
+      "bytes": 10074,
+      "sha256": "9eb5c97dc516a03b542cbce96f3d5d504f441c94d10b35548770d0dab1f113cc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202020.json",
+      "bytes": 10834,
+      "sha256": "5ad779f7cb3a0cd857de3e7d058f659ed55e830567cedd702baac12507170e41"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202021.json",
+      "bytes": 10838,
+      "sha256": "2542f04701b4695a9f0bc6736b6ddd144b666cf3867551bf09815f456800d426"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202022.json",
+      "bytes": 10999,
+      "sha256": "9d699e1cb62fe4713f74d8ffae623d852daac6cde59d46ee8d08dd95911d251f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202023.json",
+      "bytes": 11150,
+      "sha256": "63998fbdfffe5b2188eef049568e7a59cf9dd31b617ce1f46a5bc5fdf8d1ab74"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202024.json",
+      "bytes": 10886,
+      "sha256": "8df55854d6033f045167af68b7249320b587b6018c5be9bcba3064da3a841f15"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202025.json",
+      "bytes": 10939,
+      "sha256": "340d285d670afaf87f2dcfc7caf5f42ecfabb26589b4977ebe73e58b8f144cac"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paranaense/brasil-campeonato-paranaense%202026.json",
+      "bytes": 7466,
+      "sha256": "168e9f2810bf4db952aa991e5a8b79fc59b7d648e406e34e9de30cfd392867c4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202019.json",
+      "bytes": 16766,
+      "sha256": "cd6ea1835d869b14953dbbd5576d83f61334a4ae437b176b046513670fc890bb"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202020.json",
+      "bytes": 15358,
+      "sha256": "b2acd71b24ab27e25d5a63f5d039b3f21c78a82fbb7047b38d0876074cffd7a7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202021.json",
+      "bytes": 15334,
+      "sha256": "87cf879083e8526a665eb07a3ae81df9fc8ffbe5a13c77a7eace288cedf2584d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202022.json",
+      "bytes": 15382,
+      "sha256": "2fc11b3b3b5958027f8cd94ca449e9b410e5e29c092379cee2f97fa3c035cd95"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202023.json",
+      "bytes": 15394,
+      "sha256": "2c63cf2c6c4b7c18279d72d68c7a13bf4f0ed8ad6d8348b1d5266947a4ad4a61"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202024.json",
+      "bytes": 14567,
+      "sha256": "f83eefd9b7cd43aeda8003221636aa817aac79a42851d33390c353978b6e37cd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202025.json",
+      "bytes": 14507,
+      "sha256": "5da24fd2ecc7143b43c0ac61f0769a96e4b64f3649cacd98517934909d3835ba"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-paulista/brasil-campeonato-paulista%202026.json",
+      "bytes": 9889,
+      "sha256": "486962ab69832491205d4b0a15fe94edc851da3035286a3151aa69aa6f9041bd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202019.json",
+      "bytes": 7653,
+      "sha256": "415879f2afee598d7ffd9c1c31cfa5e27464a15608bb7f79156ab8c71ac00580"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202020.json",
+      "bytes": 7966,
+      "sha256": "402e445a2e6fd3fd7feb940b6369b06842ce2f83ac0e813a797d5198c3a89fe9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202021.json",
+      "bytes": 8005,
+      "sha256": "d1c51f5c86f09b17841961962a596c8940b9847bb581ae6ca4ae1e72458032b9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202022.json",
+      "bytes": 7872,
+      "sha256": "ae007c1448201c35f143dd496ddcea88adf8a4a0b73301db545b58118cd5cfab"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202023.json",
+      "bytes": 11328,
+      "sha256": "c0b36e9093477f5434839a5af3f6929f1545e3ce3be24c7a26577e290be284fd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202024.json",
+      "bytes": 7207,
+      "sha256": "b37a98aefb152b842854f7b6bd3e5293f319c7b00a740a12364eba0bb5f87a63"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202025.json",
+      "bytes": 7143,
+      "sha256": "2332d795c05ddd170f6e1abc5d9c1720926d3f516dd855d59cab3ae153d32dab"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/FerrerasRP/FootballData/refs/heads/main/database/brasil-campeonato-pernanbucano/brasil-campeonato-pernanbucano%202026.json",
+      "bytes": 5216,
+      "sha256": "3ba8edced9d4fcfc376b01b99c90e0d109409ec6df59bc182fe3e5c91c192ac8"
+    }
+  ]
+}

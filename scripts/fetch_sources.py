@@ -424,6 +424,20 @@ def main() -> None:
         [sys.executable, str(Path(__file__).with_name("open_results.py")), "--source", str(args.source)],
         check=True,
     )
+    if full:
+        # The compact Brazilian club snapshot is repository-backed like the
+        # national-team source.  Refresh it during the existing weekly/full
+        # source pass so Pages can validate and publish one atomic source patch.
+        subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).with_name("club_sources.py")),
+                "--source", str(args.source),
+                "--refresh-brazil",
+                "--refresh-brazil-states",
+            ],
+            check=True,
+        )
 
 def math_floor(value: float) -> int:
     # Local helper avoids importing a module solely for one safety threshold.
