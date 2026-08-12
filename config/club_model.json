@@ -1,23 +1,29 @@
 {
-  "version": "2026-08-11-global-club-v1",
+  "version": "2026-08-11-global-club-v3",
   "base_rating": 1500.0,
   "k_factor": 18.0,
   "home_advantage_domestic": 45.0,
   "home_advantage_cross_border": 80.0,
   "draw_peak": 0.285,
-  "margin_scale": 0.9,
-  "season_retention": 0.84,
-  "association_retention": 0.975,
-  "association_share": 0.6,
-  "tier_gap": 75.0,
+  "margin_scale": 1.05,
+  "club_retention": 0.82,
+  "tier_retention": 0.3,
+  "tier_share": 0.0,
+  "tier_gap": 45.0,
+  "country_retention": 0.97,
+  "country_share": 0.65,
+  "confederation_retention": 0.96,
+  "confederation_share": 0.5,
   "extra_time_weight": 0.86,
   "penalty_weight": 0.72,
-  "aggregate_floor": 0.1,
+  "aggregate_floor": 0.0,
   "aggregate_scale": 1.0,
   "effective_matches_half_life_days": 730.0,
   "club_prior_sd": 185.0,
-  "association_prior_sd": 105.0,
-  "uncertainty_penalty": 0.75,
+  "tier_prior_sd": 65.0,
+  "country_prior_sd": 105.0,
+  "confederation_prior_sd": 95.0,
+  "uncertainty_penalty": 1.5,
   "competition_weights": {
     "league": 1.0,
     "state": 0.82,
@@ -29,23 +35,29 @@
     "super_cup": 0.72
   },
   "fit": {
-    "status": "frozen after chronological coordinate-grid bake-off",
+    "status": "frozen after chronological hierarchical coordinate-grid bake-off",
     "replay_from": "2000-01-01",
     "validation_period": ["2018-01-01", "2022-12-31"],
-    "test_period": ["2023-01-01", "2026-07-06"],
-    "validation_matches": 212695,
-    "test_matches": 128726,
-    "all_match_log_loss": {
-      "validation": 0.9966787394,
-      "test": 0.9925835405
+    "test_period": ["2023-01-01", "2026-12-31"],
+    "selection": "lowest validation log loss; one-standard-error rule below 100 matches",
+    "validation": {
+      "all": {"matches": 212695, "log_loss": 0.9976659855},
+      "club": {"log_loss": 0.9999837104},
+      "tier": {"matches": 2887, "log_loss": 0.9573175411},
+      "country": {"matches": 8123, "log_loss": 0.9550568819},
+      "confederation": {"matches": 29, "log_loss": 0.8327200189},
+      "cross_group": {"log_loss": 0.9553267211},
+      "controlled_tie_followup": {"log_loss": 0.9751005309}
     },
-    "controlled_tie_followup_log_loss": {
-      "validation_matches": 2059,
-      "test_matches": 1644,
-      "ordinary_validation": 0.9742641829,
-      "aggregate_aware_validation": 0.9740403936,
-      "ordinary_test": 0.9823991853,
-      "aggregate_aware_test": 0.9822735007
+    "test": {
+      "all": {"matches": 128726, "log_loss": 0.9933988786},
+      "club": {"log_loss": 0.9966251384},
+      "tier": {"log_loss": 0.9185353868},
+      "country": {"log_loss": 0.9491821661},
+      "confederation": {"matches": 55, "log_loss": 0.9494688624},
+      "cross_group": {"log_loss": 0.9399748156},
+      "aggregate_aware": {"log_loss": 0.9829545343},
+      "ordinary_second_leg": {"log_loss": 0.9830203681}
     }
   }
 }

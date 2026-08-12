@@ -132,6 +132,36 @@ CONTINENT_BY_CONFEDERATION = {
     "fifa": "World",
     "oceania": "Oceania",
 }
+SOUTH_AMERICAN_ASSOCIATIONS = {
+    "argentina", "bolivia", "brazil", "chile", "colombia", "ecuador",
+    "paraguay", "peru", "uruguay", "venezuela",
+}
+FOOTBALL_CONFEDERATION_OVERRIDES = {
+    # Football affiliation is not geographic location.  These overrides are
+    # intentionally evaluated after country normalisation.
+    "australia": "Asia",
+    "guam": "Asia",
+    "northern-mariana-islands": "Asia",
+    "israel": "Europe",
+    "kazakhstan": "Europe",
+    "armenia": "Europe",
+    "azerbaijan": "Europe",
+    "cyprus": "Europe",
+    "georgia": "Europe",
+    "russia": "Europe",
+    "turkey": "Europe",
+    "guyana": "North America",
+    "surinam": "North America",
+    "suriname": "North America",
+    "french-guiana": "North America",
+}
+TRANSFERMARKT_FALLBACK_COMPETITIONS = {
+    "CGB": ("EFL Cup", "domestic_cup", "England"),
+    "COL1": ("Categoría Primera A", "league", "Colombia"),
+    "KLUB": ("FIFA Club World Cup", "global", ""),
+    "POCP": ("Taça de Portugal", "domestic_cup", "Portugal"),
+    "UKRS": ("Ukrainian Super Cup", "super_cup", "Ukraine"),
+}
 CROSS_BORDER_JURISDICTIONS = {
     "australia": {"new-zealand"},
     "england": {"wales"},
@@ -303,15 +333,57 @@ def clean_country(value: str | None) -> str:
 
 
 def display_country(value: str) -> str:
+    # These are the public labels used by the national NFELO application.
+    # Club imports may use historical, ISO or source-specific aliases, but the
+    # generated UI must never expose a second naming convention.
     replacements = {
         "bosnia-herzegovina": "Bosnia and Herzegovina",
+        "brunei-darussalam": "Brunei",
+        "cape-verde": "Cabo Verde",
         "czech-republic": "Czechia",
+        "democratic-republic-of-congo": "DR Congo",
+        "congo-democratic-republic": "DR Congo",
+        "east-timor": "Timor-Leste",
+        "england": "England",
+        "eswatini": "Eswatini",
+        "hong-kong-china": "Hong Kong",
+        "iran-islamic-republic": "Iran",
+        "ivory-coast": "Ivory Coast",
         "korea-republic": "South Korea",
+        "korea-dpr": "North Korea",
+        "macao": "Macau",
+        "moldova-republic": "Moldova",
+        "palestinian-territories": "Palestine",
+        "russia": "Russia",
+        "syrian-arab-republic": "Syria",
+        "taiwan": "Chinese Taipei",
+        "tanzania-united-republic": "Tanzania",
+        "turkey": "Türkiye",
         "united-states": "United States",
+        "united-states-of-america": "United States",
         "northern-ireland": "Northern Ireland",
         "north-macedonia": "North Macedonia",
+        "viet-nam": "Vietnam",
     }
     return replacements.get(value, value.replace("-", " ").title())
+
+
+def football_confederation(country: str, geography: str | None = None) -> str:
+    """Resolve current men's football affiliation separately from geography."""
+    country = clean_country(country)
+    override = FOOTBALL_CONFEDERATION_OVERRIDES.get(country)
+    if override:
+        return override
+    geographic = " ".join(str(geography or "").split()).title()
+    if geographic in {"North America", "South America", "Africa", "Asia", "Europe", "Oceania"}:
+        return geographic
+    if geographic in {"America", "Americas"}:
+        return (
+            "South America"
+            if country in SOUTH_AMERICAN_ASSOCIATIONS
+            else "North America"
+        )
+    return geographic
 
 
 def normalise_name(value: str) -> str:

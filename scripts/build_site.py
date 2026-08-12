@@ -38,7 +38,35 @@ from tournament_classification import (
     runtime_is_friendly,
     validate_registry,
 )
-from build_club_site import build_club_site
+
+
+def validate_prebuilt_club_site(output: Path) -> dict[str, Any]:
+    """Validate the separately generated club archive without replaying it.
+
+    National source refreshes run several times per day.  The much larger club
+    replay is intentionally an independent installation/update operation, so a
+    routine national refresh can neither time it out nor partially replace it.
+    """
+    root = output / "clubs"
+    required = [
+        root / "index.html",
+        root / "clubs.css",
+        root / "clubs.js",
+        root / "data" / "meta.json",
+        root / "data" / "bootstrap.json",
+        root / "data" / "clubs.json",
+    ]
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        raise FileNotFoundError("Prebuilt club installation is incomplete: " + ", ".join(missing))
+    meta = json.loads((root / "data" / "meta.json").read_text(encoding="utf-8"))
+    if not meta.get("matches") or not meta.get("rated_clubs"):
+        raise ValueError("Prebuilt club metadata is empty or invalid")
+    shell = (root / "index.html").read_text(encoding="utf-8")
+    script = (root / "clubs.js").read_text(encoding="utf-8")
+    if "../assets/styles.css" not in shell or "useGrouping: false" not in script:
+        raise ValueError("Prebuilt club UI does not satisfy the NFELO visual contract")
+    return meta
 
 
 def parse_args() -> argparse.Namespace:
@@ -2648,15 +2676,10 @@ def main() -> None:
         },
     )
 
-    # Clubs use an independent ledger, model and data namespace.  Building the
-    # section here gives every normal Pages validation the same atomic result
-    # without changing the frozen national-team replay above.
-    club_meta = build_club_site(
-        args.source,
-        args.config,
-        args.output,
-        Path(".club-cache"),
-    )
+    # The club replay is much larger than the national build.  It is installed
+    # independently; frequent national data refreshes only validate and carry
+    # forward that complete, atomic snapshot.
+    club_meta = validate_prebuilt_club_site(args.output)
     print(
         json.dumps(
             {

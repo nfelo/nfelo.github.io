@@ -7,7 +7,12 @@ from pathlib import Path
 import subprocess
 import unittest
 
-from scripts.club_ledger import ClubRegistry, EXPLICIT_SOURCE_ALIASES, normalise_name
+from scripts.club_ledger import (
+    ClubRegistry,
+    EXPLICIT_SOURCE_ALIASES,
+    display_country,
+    normalise_name,
+)
 from scripts.club_model import (
     ClubRatingModel,
     aggregate_leg_weight,
@@ -179,12 +184,13 @@ class ClubPublicationTests(unittest.TestCase):
 
     def test_model_release_and_fit_are_frozen(self) -> None:
         parameters = self.meta["parameters"]
-        self.assertEqual(parameters["version"], "2026-08-11-global-club-v1")
+        self.assertEqual(parameters["version"], "2026-08-11-global-club-v3")
         self.assertEqual(parameters["k_factor"], 18.0)
-        self.assertEqual(parameters["association_share"], 0.6)
+        self.assertEqual(parameters["country_share"], 0.65)
+        self.assertEqual(parameters["confederation_share"], 0.5)
         self.assertEqual(parameters["home_advantage_domestic"], 45.0)
         self.assertEqual(parameters["home_advantage_cross_border"], 80.0)
-        self.assertEqual(parameters["aggregate_floor"], 0.1)
+        self.assertEqual(parameters["aggregate_floor"], 0.0)
         self.assertEqual(parameters["aggregate_scale"], 1.0)
         self.assertEqual(self.meta["fit"]["validation_period"], ["2018-01-01", "2022-12-31"])
 
@@ -201,8 +207,27 @@ class ClubPublicationTests(unittest.TestCase):
         self.assertIn("/clubs/", root_shell)
         self.assertIn("https://nfelo.github.io/clubs/", sitemap)
         self.assertIn("aggregate_weight", script)
-        self.assertRegex(shell, r"clubs\.js\?v=[0-9a-f]{12}")
-        self.assertRegex(shell, r"clubs\.css\?v=[0-9a-f]{12}")
+        self.assertIn('../assets/critical.css', shell)
+        self.assertIn('../assets/styles.css', shell)
+        self.assertIn('class="site-header"', shell)
+        self.assertIn('class="site-nav"', shell)
+        self.assertIn("useGrouping: false", script)
+        self.assertIn("minimumFractionDigits: 1", script)
+        club_css = (ROOT / "public" / "clubs" / "clubs.css").read_text(encoding="utf-8")
+        self.assertIn("table th { position: static; }", club_css)
+
+    def test_public_country_names_match_nfelo_conventions(self) -> None:
+        expected = {
+            "korea-republic": "South Korea",
+            "korea-dpr": "North Korea",
+            "czech-republic": "Czechia",
+            "turkey": "Türkiye",
+            "cape-verde": "Cabo Verde",
+            "democratic-republic-of-congo": "DR Congo",
+            "taiwan": "Chinese Taipei",
+        }
+        for raw, public in expected.items():
+            self.assertEqual(display_country(raw), public)
 
     def test_club_browser_javascript_parses(self) -> None:
         subprocess.run(

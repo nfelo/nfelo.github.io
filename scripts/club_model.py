@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Scalable hierarchical Elo model for the global club ledger.
+"""Hierarchical, globally connected Elo model for the competitive club ledger.
 
-This is deliberately independent of the national-team full-covariance model.
-Domestic matches move club residuals; cross-border matches also move a club's
-association coefficient, which is the bridge that makes ratings from separate
-league systems globally comparable.  All forecasts are pre-match and all
-same-date updates are frozen before that date's results are applied.
+The club model is deliberately independent from the national-team covariance
+model.  Every forecast is pre-match and every date is processed from one frozen
+start-of-day state.  Results update club strength plus at most one real
+boundary: domestic tier, association, or confederation.
 """
 
 from __future__ import annotations
@@ -35,22 +34,29 @@ RATED_FIELDS = (
     "post_away_rating", "post_home_se", "post_away_se", "surprise",
 )
 
+BOUNDARY_KINDS = {"continental", "intercontinental", "global", "super_cup"}
+CONFEDERATION_KINDS = {"intercontinental", "global"}
+
 
 def load_club_config(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     required = {
         "base_rating", "k_factor", "home_advantage_domestic",
         "home_advantage_cross_border", "draw_peak", "margin_scale",
-        "season_retention", "association_retention", "association_share",
-        "tier_gap", "extra_time_weight", "penalty_weight", "aggregate_floor",
-        "aggregate_scale", "effective_matches_half_life_days", "club_prior_sd",
-        "association_prior_sd", "uncertainty_penalty", "competition_weights",
+        "club_retention", "tier_retention", "tier_share", "tier_gap",
+        "country_retention", "country_share", "confederation_retention",
+        "confederation_share", "extra_time_weight", "penalty_weight",
+        "aggregate_floor", "aggregate_scale",
+        "effective_matches_half_life_days", "club_prior_sd", "tier_prior_sd",
+        "country_prior_sd", "confederation_prior_sd", "uncertainty_penalty",
+        "competition_weights",
     }
     missing = required - value.keys()
     if missing:
         raise ValueError(f"Club model config is missing {sorted(missing)}")
-    if not 0.0 <= float(value["association_share"]) <= 1.0:
-        raise ValueError("association_share must be between zero and one")
+    for key in ("tier_share", "country_share", "confederation_share"):
+        if not 0.0 <= float(value[key]) <= 1.0:
+            raise ValueError(f"{key} must be between zero and one")
     if not 0.0 <= float(value["aggregate_floor"]) <= 1.0:
         raise ValueError("aggregate_floor must be between zero and one")
     return value
@@ -61,14 +67,21 @@ def logistic10(difference: float) -> float:
     return 1.0 / (1.0 + 10.0**exponent)
 
 
-def three_way_probabilities(difference: float, draw_peak: float) -> tuple[float, float, float]:
+def three_way_probabilities(
+    difference: float,
+    draw_peak: float,
+) -> tuple[float, float, float]:
     expected = logistic10(difference)
     draw = draw_peak * 4.0 * expected * (1.0 - expected)
     home = expected - 0.5 * draw
     away = 1.0 - expected - 0.5 * draw
     floor = 1e-12
     total = max(floor, home) + max(floor, draw) + max(floor, away)
-    return max(floor, home) / total, max(floor, draw) / total, max(floor, away) / total
+    return (
+        max(floor, home) / total,
+        max(floor, draw) / total,
+        max(floor, away) / total,
+    )
 
 
 def aggregate_leg_weight(
@@ -78,19 +91,14 @@ def aggregate_leg_weight(
     scale: float,
     score: float | None = None,
 ) -> float:
-    """Information retained by a second leg given aggregate jeopardy.
+    """Retain less information only for a controlled loss while still ahead.
 
-    A tie close before or after the second leg has full leverage.  A controlled
-    loss in a tie that remains clearly won has little leverage, but never less
-    than ``floor``.  Using both states means a genuine comeback remains fully
-    informative even if it began from a large deficit.
+    Thus a 4-0 first leg followed by a 0-1 second leg is primarily represented
+    by the 4-1 aggregate balance.  Confirming wins, level ties and comebacks
+    always retain ordinary match weight.
     """
     if before_home is None or after_home is None:
         return 1.0
-    # Aggregate context is a safeguard against the specific strategic case in
-    # which the club still winning the tie accepts a second-leg loss.  It must
-    # not suppress confirming evidence when the aggregate winner also wins the
-    # leg, nor a comeback that changes which club is ahead.
     if before_home == 0 or after_home == 0 or before_home * after_home < 0:
         return 1.0
     if score is not None:
@@ -144,73 +152,155 @@ class ClubRatingModel:
         self.replay_from = replay_from
         self.evaluation_start = evaluation_start
         self.evaluation_end = evaluation_end
-        club_rows = connection.execute(
+
+        rows = connection.execute(
             """
             SELECT club,code,name,country,country_name,country_code,continent,resolution
             FROM clubs ORDER BY club
             """
         ).fetchall()
-        self.clubs = [ClubMeta(*row) for row in club_rows]
+        self.clubs = [ClubMeta(*row) for row in rows]
         size = len(self.clubs)
-        self.residual = [0.0] * size
-        self.effective = [0.0] * size
-        self.last_day = [-1] * size
-        self.last_year = [-1] * size
+        self.club_rating = [0.0] * size
+        self.club_effective = [0.0] * size
+        self.club_info_day = [-1] * size
+        self.club_year = [-1] * size
         self.last_tier = [1] * size
         self.initialised = [False] * size
         self.matches_played = [0] * size
         self.first_day = [-1] * size
         self.last_match_day = [-1] * size
+
         countries = sorted({club.country for club in self.clubs if club.country})
-        self.association_index = {country: index for index, country in enumerate(countries)}
-        self.association_rating = [0.0] * len(countries)
-        self.association_effective = [0.0] * len(countries)
-        self.association_last_day = [-1] * len(countries)
-        self.association_last_year = [-1] * len(countries)
-        self.association_matches = [0] * len(countries)
+        self.country_index = {
+            country: index for index, country in enumerate(countries)
+        }
+        self.country_confederation: list[str] = [""] * len(countries)
+        for club in self.clubs:
+            index = self.country_index.get(club.country)
+            if index is not None and club.continent:
+                self.country_confederation[index] = club.continent
+        confederations = sorted(
+            {value for value in self.country_confederation if value}
+        )
+        self.confederation_index = {
+            confederation: index
+            for index, confederation in enumerate(confederations)
+        }
+
+        self.country_rating = [0.0] * len(countries)
+        self.country_effective = [0.0] * len(countries)
+        self.country_info_day = [-1] * len(countries)
+        self.country_year = [-1] * len(countries)
+        self.country_matches = [0] * len(countries)
+        self.country_bridge_effective = [0.0] * len(countries)
+        self.country_bridge_info_day = [-1] * len(countries)
+
+        self.confederation_rating = [0.0] * len(confederations)
+        self.confederation_effective = [0.0] * len(confederations)
+        self.confederation_info_day = [-1] * len(confederations)
+        self.confederation_year = [-1] * len(confederations)
+        self.confederation_matches = [0] * len(confederations)
+
+        self.tier_rating: dict[tuple[str, int], float] = {}
+        self.tier_effective: dict[tuple[str, int], float] = {}
+        self.tier_info_day: dict[tuple[str, int], int] = {}
+        self.tier_year: dict[tuple[str, int], int] = {}
+        self.tier_matches: defaultdict[tuple[str, int], int] = defaultdict(int)
+
         self.recent_second_leg = [-100_000] * size
         self.recent_controlled_second_leg = [-100_000] * size
         self.metrics: dict[str, list[float]] = {
-            "all": [0.0, 0.0, 0.0, 0.0],
-            "post_tie": [0.0, 0.0, 0.0, 0.0],
-            "post_controlled_tie": [0.0, 0.0, 0.0, 0.0],
-            "second_leg": [0.0, 0.0, 0.0, 0.0],
+            name: [0.0, 0.0, 0.0, 0.0, 0.0]
+            for name in (
+                "all", "club", "tier", "country", "confederation",
+                "cross_group", "post_tie", "post_controlled_tie", "second_leg",
+            )
         }
-        self.minimum_day = 0
-        if replay_from:
-            self.minimum_day = date.fromisoformat(replay_from).toordinal()
-        self.eval_first = date.min.toordinal() if evaluation_start is None else date.fromisoformat(evaluation_start).toordinal()
-        self.eval_last = date.max.toordinal() if evaluation_end is None else date.fromisoformat(evaluation_end).toordinal()
+        self.minimum_day = (
+            0 if not replay_from else date.fromisoformat(replay_from).toordinal()
+        )
+        self.eval_first = (
+            date.min.toordinal()
+            if evaluation_start is None
+            else date.fromisoformat(evaluation_start).toordinal()
+        )
+        self.eval_last = (
+            date.max.toordinal()
+            if evaluation_end is None
+            else date.fromisoformat(evaluation_end).toordinal()
+        )
+        self.projected_year = -1
 
-    def _association(self, club: int) -> int | None:
-        country = self.clubs[club].country
-        return self.association_index.get(country)
+    def _country(self, club: int) -> int | None:
+        return self.country_index.get(self.clubs[club].country)
 
-    def _project_association(self, association: int | None, year: int) -> None:
-        if association is None:
-            return
-        previous = self.association_last_year[association]
-        if previous < 0:
-            self.association_last_year[association] = year
-        elif year > previous:
-            self.association_rating[association] *= float(self.config["association_retention"]) ** (year - previous)
-            self.association_last_year[association] = year
+    def _confederation(self, club: int) -> int | None:
+        country = self._country(club)
+        if country is None:
+            return None
+        return self.confederation_index.get(
+            self.country_confederation[country]
+        )
+
+    def _tier_key(self, club: int, tier: int | None = None) -> tuple[str, int]:
+        return (
+            self.clubs[club].country,
+            max(1, self.last_tier[club] if tier is None else int(tier)),
+        )
+
+    def _ensure_tier(self, key: tuple[str, int], year: int) -> None:
+        if key not in self.tier_rating:
+            self.tier_rating[key] = 0.0
+            self.tier_effective[key] = 0.0
+            self.tier_info_day[key] = -1
+            self.tier_year[key] = year
 
     def _project_club(self, club: int, year: int, tier: int) -> None:
-        prior = -(max(1, tier) - 1) * float(self.config["tier_gap"])
+        tier = max(1, int(tier))
         if not self.initialised[club]:
-            self.residual[club] = prior
-            self.last_year[club] = year
-            self.last_tier[club] = tier
             self.initialised[club] = True
-            return
-        previous = self.last_year[club]
-        if year > previous:
-            self.residual[club] = prior + float(self.config["season_retention"]) ** (
-                year - previous
-            ) * (self.residual[club] - prior)
-            self.last_year[club] = year
+            self.club_year[club] = year
+        elif year > self.club_year[club]:
+            self.club_rating[club] *= float(self.config["club_retention"]) ** (
+                year - self.club_year[club]
+            )
+            self.club_year[club] = year
         self.last_tier[club] = tier
+        self._ensure_tier(self._tier_key(club, tier), year)
+
+    def _project_all_to_year(self, year: int) -> None:
+        if year <= self.projected_year:
+            return
+        for club in range(len(self.clubs)):
+            if self.initialised[club] and year > self.club_year[club]:
+                self.club_rating[club] *= float(self.config["club_retention"]) ** (
+                    year - self.club_year[club]
+                )
+                self.club_year[club] = year
+        for key, previous in list(self.tier_year.items()):
+            if year > previous:
+                self.tier_rating[key] *= float(
+                    self.config["tier_retention"]
+                ) ** (year - previous)
+                self.tier_year[key] = year
+        for index, previous in enumerate(self.country_year):
+            if previous < 0:
+                self.country_year[index] = year
+            elif year > previous:
+                self.country_rating[index] *= float(
+                    self.config["country_retention"]
+                ) ** (year - previous)
+                self.country_year[index] = year
+        for index, previous in enumerate(self.confederation_year):
+            if previous < 0:
+                self.confederation_year[index] = year
+            elif year > previous:
+                self.confederation_rating[index] *= float(
+                    self.config["confederation_retention"]
+                ) ** (year - previous)
+                self.confederation_year[index] = year
+        self.projected_year = year
 
     def _decay(self, value: float, previous_day: int, day: int) -> float:
         if previous_day < 0 or day <= previous_day:
@@ -218,40 +308,173 @@ class ClubRatingModel:
         half_life = float(self.config["effective_matches_half_life_days"])
         return value * 0.5 ** ((day - previous_day) / half_life)
 
-    def _club_effective(self, club: int, day: int) -> float:
-        return self._decay(self.effective[club], self.last_day[club], day)
+    def _publication_anchor(self) -> float:
+        values = []
+        for country, country_value in enumerate(self.country_rating):
+            confederation = self.confederation_index.get(
+                self.country_confederation[country]
+            )
+            confederation_value = (
+                0.0
+                if confederation is None
+                else self.confederation_rating[confederation]
+            )
+            values.append(country_value + confederation_value)
+        return max(values, default=0.0)
 
-    def _association_effective(self, association: int | None, day: int) -> float:
-        if association is None:
-            return 0.0
-        return self._decay(
-            self.association_effective[association],
-            self.association_last_day[association],
+    def components(
+        self,
+        club: int,
+        publication_anchor: float | None = None,
+    ) -> tuple[float, float, float, float]:
+        anchor = (
+            self._publication_anchor()
+            if publication_anchor is None
+            else publication_anchor
+        )
+        country = self._country(club)
+        confederation = self._confederation(club)
+        key = self._tier_key(club)
+        tier = (
+            -(max(1, self.last_tier[club]) - 1) * float(self.config["tier_gap"])
+            + self.tier_rating.get(key, 0.0)
+        )
+        country_value = (
+            0.0 if country is None else self.country_rating[country]
+        )
+        confederation_value = (
+            0.0
+            if confederation is None
+            else self.confederation_rating[confederation]
+        )
+        return (
+            self.club_rating[club],
+            tier,
+            country_value,
+            confederation_value - anchor,
+        )
+
+    def mean(
+        self,
+        club: int,
+        publication_anchor: float | None = None,
+    ) -> float:
+        return float(self.config["base_rating"]) + sum(
+            self.components(club, publication_anchor)
+        )
+
+    def component_standard_errors(
+        self,
+        club: int,
+        day: int,
+    ) -> tuple[float, float, float, float]:
+        country = self._country(club)
+        confederation = self._confederation(club)
+        tier_key = self._tier_key(club)
+        club_information = self._decay(
+            self.club_effective[club], self.club_info_day[club], day
+        )
+        tier_information = self._decay(
+            self.tier_effective.get(tier_key, 0.0),
+            self.tier_info_day.get(tier_key, -1),
             day,
         )
-
-    def mean(self, club: int) -> float:
-        association = self._association(club)
-        association_value = 0.0 if association is None else self.association_rating[association]
-        return float(self.config["base_rating"]) + self.residual[club] + association_value
+        country_information = (
+            0.0
+            if country is None
+            else self._decay(
+                self.country_effective[country],
+                self.country_info_day[country],
+                day,
+            )
+        )
+        confederation_information = (
+            0.0
+            if confederation is None
+            else self._decay(
+                self.confederation_effective[confederation],
+                self.confederation_info_day[confederation],
+                day,
+            )
+        )
+        club_sd = float(self.config["club_prior_sd"]) / math.sqrt(
+            1.0 + club_information / 6.0
+        )
+        tier_sd = (
+            0.0
+            if float(self.config["tier_share"]) == 0.0
+            else float(self.config["tier_prior_sd"])
+            / math.sqrt(1.0 + tier_information / 4.0)
+        )
+        country_sd = (
+            0.0
+            if country is None
+            else float(self.config["country_prior_sd"])
+            / math.sqrt(1.0 + country_information / 4.0)
+        )
+        confederation_sd = (
+            0.0
+            if confederation is None
+            else float(self.config["confederation_prior_sd"])
+            / math.sqrt(1.0 + confederation_information / 3.0)
+        )
+        return club_sd, tier_sd, country_sd, confederation_sd
 
     def uncertainty(self, club: int, day: int) -> float:
-        association = self._association(club)
-        club_information = self._club_effective(club, day)
-        association_information = self._association_effective(association, day)
-        club_sd = float(self.config["club_prior_sd"]) / math.sqrt(1.0 + club_information / 6.0)
-        association_sd = float(self.config["association_prior_sd"]) / math.sqrt(
-            1.0 + association_information / 4.0
+        return math.sqrt(
+            sum(value * value for value in self.component_standard_errors(club, day))
         )
-        return math.hypot(club_sd, association_sd)
 
-    def public_rating(self, club: int, day: int) -> float:
-        return self.mean(club) - float(self.config["uncertainty_penalty"]) * self.uncertainty(club, day)
+    def public_rating(
+        self,
+        club: int,
+        day: int,
+        publication_anchor: float | None = None,
+    ) -> float:
+        return self.mean(club, publication_anchor) - float(
+            self.config["uncertainty_penalty"]
+        ) * self.uncertainty(club, day)
 
-    def _home_advantage(self, cross_border: bool, neutral: bool) -> float:
-        if neutral:
+    def hierarchy_level(
+        self,
+        home: int,
+        away: int,
+        home_tier: int,
+        away_tier: int,
+        cross_border: bool,
+        kind: str,
+    ) -> str:
+        home_country = self.clubs[home].country
+        away_country = self.clubs[away].country
+        if home_country == away_country:
+            if not cross_border and int(home_tier) != int(away_tier):
+                return "tier"
+            return "club"
+        if not cross_border or kind not in BOUNDARY_KINDS:
+            return "club"
+        home_confederation = self.clubs[home].continent
+        away_confederation = self.clubs[away].continent
+        if home_confederation != away_confederation:
+            return (
+                "confederation"
+                if kind in CONFEDERATION_KINDS
+                else "club"
+            )
+        return "country"
+
+    def _home_advantage(
+        self,
+        cross_border: bool,
+        neutral: bool,
+        kind: str = "",
+    ) -> float:
+        if neutral or kind == "global":
             return 0.0
-        key = "home_advantage_cross_border" if cross_border else "home_advantage_domestic"
+        key = (
+            "home_advantage_cross_border"
+            if cross_border
+            else "home_advantage_domestic"
+        )
         return float(self.config[key])
 
     def _evidence_weight(
@@ -260,7 +483,9 @@ class ClubRatingModel:
         status: str,
         aggregate_weight: float,
     ) -> float:
-        competition = float(self.config["competition_weights"].get(kind, 1.0))
+        competition = float(
+            self.config["competition_weights"].get(kind, 1.0)
+        )
         duration = 1.0
         if status == "E":
             duration = float(self.config["extra_time_weight"])
@@ -287,13 +512,56 @@ class ClubRatingModel:
             return away_probability
         return draw_probability
 
-    def _record_metric(self, bucket: str, probability: float, probabilities: tuple[float, float, float], score: float) -> None:
+    def _record_metric(
+        self,
+        bucket: str,
+        probability: float,
+        probabilities: tuple[float, float, float],
+        score: float,
+    ) -> None:
         values = self.metrics[bucket]
-        values[0] += -math.log(max(1e-15, probability))
-        outcome = (1.0, 0.0, 0.0) if score == 1.0 else ((0.0, 0.0, 1.0) if score == 0.0 else (0.0, 1.0, 0.0))
-        values[1] += sum((predicted - observed) ** 2 for predicted, observed in zip(probabilities, outcome))
-        values[2] += 1.0 if probabilities.index(max(probabilities)) == outcome.index(max(outcome)) else 0.0
-        values[3] += 1.0
+        loss = -math.log(max(1e-15, probability))
+        values[0] += loss
+        values[1] += loss * loss
+        outcome = (
+            (1.0, 0.0, 0.0)
+            if score == 1.0
+            else ((0.0, 0.0, 1.0) if score == 0.0 else (0.0, 1.0, 0.0))
+        )
+        values[2] += sum(
+            (predicted - observed) ** 2
+            for predicted, observed in zip(probabilities, outcome)
+        )
+        values[3] += (
+            1.0
+            if probabilities.index(max(probabilities))
+            == outcome.index(max(outcome))
+            else 0.0
+        )
+        values[4] += 1.0
+
+    def _centre_country_components(self, day: int) -> None:
+        by_confederation: defaultdict[str, list[int]] = defaultdict(list)
+        for index, confederation in enumerate(self.country_confederation):
+            if confederation:
+                by_confederation[confederation].append(index)
+        for countries in by_confederation.values():
+            weighted = 0.0
+            evidence = 0.0
+            for country in countries:
+                weight = self._decay(
+                    self.country_bridge_effective[country],
+                    self.country_bridge_info_day[country],
+                    day,
+                )
+                if weight > 0.0:
+                    weighted += weight * self.country_rating[country]
+                    evidence += weight
+            if evidence <= 0.0:
+                continue
+            centre = weighted / evidence
+            for country in countries:
+                self.country_rating[country] -= centre
 
     def _create_output_tables(self) -> None:
         assert self.output_connection is not None
@@ -329,14 +597,21 @@ class ClubRatingModel:
             """
         )
 
-    def _bulk_copy(self, table: str, rows: Iterable[tuple[Any, ...]]) -> int:
+    def _bulk_copy(
+        self,
+        table: str,
+        rows: Iterable[tuple[Any, ...]],
+    ) -> int:
         assert self.output_connection is not None
         target = self.output_connection
         count = 0
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", newline="",
+            mode="w",
+            encoding="utf-8",
+            newline="",
             dir=Path(target.execute("PRAGMA database_list").fetchone()[2]).parent,
-            prefix=f".{table}-", delete=False,
+            prefix=f".{table}-",
+            delete=False,
         ) as handle:
             path = Path(handle.name)
             writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
@@ -348,21 +623,32 @@ class ClubRatingModel:
             return 0
         try:
             target.execute(
-                f"COPY {table} FROM ? (FORMAT CSV, DELIM '\\t', HEADER false, NULLSTR '\\N')",
+                f"COPY {table} FROM ? "
+                "(FORMAT CSV, DELIM '\\t', HEADER false, NULLSTR '\\N')",
                 [str(path)],
             ).fetchall()
         finally:
             path.unlink(missing_ok=True)
         return count
 
-    def _opening_rows(self, year: int, day: int) -> Iterator[tuple[Any, ...]]:
+    def _opening_rows(
+        self,
+        year: int,
+        day: int,
+    ) -> Iterator[tuple[Any, ...]]:
+        anchor = self._publication_anchor()
         for club in range(len(self.clubs)):
             if not self.initialised[club]:
                 continue
             yield (
-                year, club, self.mean(club), self.public_rating(club, day),
-                self.uncertainty(club, day), self.last_match_day[club],
-                self.matches_played[club], self.last_tier[club],
+                year,
+                club,
+                self.mean(club, anchor),
+                self.public_rating(club, day, anchor),
+                self.uncertainty(club, day),
+                self.last_match_day[club],
+                self.matches_played[club],
+                self.last_tier[club],
             )
 
     def _match_query(self) -> str:
@@ -371,18 +657,16 @@ class ClubRatingModel:
             condition = f"WHERE day >= DATE '{self.replay_from}'"
         return f"""
             SELECT match_id,cast(day as varchar),season,home,away,home_goals,away_goals,
-                   competition,competition_key,kind,home_tier,away_tier,neutral,
-                   cross_border,status,leg,tie_key,round_name,source,source_ref,
-                   aggregate_before_home,aggregate_after_home
+                   competition,competition_key,kind,home_tier,away_tier,
+                   neutral OR kind='global' neutral,cross_border,status,leg,tie_key,
+                   round_name,source,source_ref,aggregate_before_home,
+                   aggregate_after_home
             FROM matches {condition} ORDER BY day,match_id
         """
 
     def replay(self) -> dict[str, Any]:
         if self.write_tables:
             self._create_output_tables()
-        # The immutable ledger is streamed from one database while all derived
-        # rows are appended to a separate model database.  DuckDB otherwise
-        # (correctly) waits for a long read cursor before accepting a write.
         cursor = self.connection.execute(self._match_query())
         current_day: str | None = None
         day_rows: list[tuple[Any, ...]] = []
@@ -402,16 +686,31 @@ class ClubRatingModel:
             day_text = rows[0][1]
             ordinal = date.fromisoformat(day_text).toordinal()
             year = int(day_text[:4])
+            self._project_all_to_year(year)
             if self.write_tables and previous_year != year:
                 opening_day = date(year, 1, 1).toordinal()
-                self._bulk_copy("year_openings", self._opening_rows(year, opening_day))
+                self._bulk_copy(
+                    "year_openings",
+                    self._opening_rows(year, opening_day),
+                )
                 previous_year = year
+
+            for row in rows:
+                self._project_club(int(row[3]), year, int(row[10]))
+                self._project_club(int(row[4]), year, int(row[11]))
+            pre_anchor = self._publication_anchor()
 
             club_changes: defaultdict[int, float] = defaultdict(float)
             club_information: defaultdict[int, float] = defaultdict(float)
-            association_changes: defaultdict[int, float] = defaultdict(float)
-            association_information: defaultdict[int, float] = defaultdict(float)
+            tier_changes: defaultdict[tuple[str, int], float] = defaultdict(float)
+            tier_information: defaultdict[tuple[str, int], float] = defaultdict(float)
+            country_changes: defaultdict[int, float] = defaultdict(float)
+            country_information: defaultdict[int, float] = defaultdict(float)
+            confederation_changes: defaultdict[int, float] = defaultdict(float)
+            confederation_information: defaultdict[int, float] = defaultdict(float)
+            bridge_information: defaultdict[int, float] = defaultdict(float)
             temporary: list[dict[str, Any]] = []
+
             for row in rows:
                 (
                     match_id, _, season, home, away, home_goals, away_goals,
@@ -421,97 +720,239 @@ class ClubRatingModel:
                 ) = row
                 home, away = int(home), int(away)
                 home_tier, away_tier = int(home_tier), int(away_tier)
-                self._project_club(home, year, home_tier)
-                self._project_club(away, year, away_tier)
-                home_association = self._association(home)
-                away_association = self._association(away)
-                self._project_association(home_association, year)
-                self._project_association(away_association, year)
-                pre_home_mean = self.mean(home)
-                pre_away_mean = self.mean(away)
+                kind = str(kind)
+                pre_home_mean = self.mean(home, pre_anchor)
+                pre_away_mean = self.mean(away, pre_anchor)
                 home_se = self.uncertainty(home, ordinal)
                 away_se = self.uncertainty(away, ordinal)
-                home_rating = pre_home_mean - float(self.config["uncertainty_penalty"]) * home_se
-                away_rating = pre_away_mean - float(self.config["uncertainty_penalty"]) * away_se
-                difference = pre_home_mean - pre_away_mean + self._home_advantage(
-                    bool(cross_border), bool(neutral)
+                home_rating = pre_home_mean - float(
+                    self.config["uncertainty_penalty"]
+                ) * home_se
+                away_rating = pre_away_mean - float(
+                    self.config["uncertainty_penalty"]
+                ) * away_se
+                difference = (
+                    pre_home_mean
+                    - pre_away_mean
+                    + self._home_advantage(
+                        bool(cross_border), bool(neutral), kind
+                    )
                 )
-                probabilities = three_way_probabilities(difference, float(self.config["draw_peak"]))
+                probabilities = three_way_probabilities(
+                    difference, float(self.config["draw_peak"])
+                )
                 expected = logistic10(difference)
-                score = self._score(int(home_goals), int(away_goals), str(status))
+                score = self._score(
+                    int(home_goals), int(away_goals), str(status)
+                )
                 aggregate_weight = aggregate_leg_weight(
-                    integer_or_none(aggregate_before), integer_or_none(aggregate_after),
-                    float(self.config["aggregate_floor"]), float(self.config["aggregate_scale"]),
+                    integer_or_none(aggregate_before),
+                    integer_or_none(aggregate_after),
+                    float(self.config["aggregate_floor"]),
+                    float(self.config["aggregate_scale"]),
                     score,
                 )
-                evidence = self._evidence_weight(str(kind), str(status), aggregate_weight)
-                margin = 0 if str(status) == "P" else abs(int(home_goals) - int(away_goals))
-                movement = float(self.config["k_factor"]) * evidence * margin_multiplier(
-                    margin, float(self.config["margin_scale"])
-                ) * (score - expected)
-                if bool(cross_border) and home_association is not None and away_association is not None and home_association != away_association:
-                    share = float(self.config["association_share"])
-                    club_changes[home] += (1.0 - share) * movement
-                    club_changes[away] -= (1.0 - share) * movement
-                    association_changes[home_association] += share * movement
-                    association_changes[away_association] -= share * movement
-                    association_information[home_association] += evidence * share
-                    association_information[away_association] += evidence * share
-                else:
-                    club_changes[home] += movement
-                    club_changes[away] -= movement
-                club_information[home] += evidence
-                club_information[away] += evidence
-                probability = self._outcome_probability(score, *probabilities)
+                evidence = self._evidence_weight(
+                    kind, str(status), aggregate_weight
+                )
+                margin = (
+                    0
+                    if str(status) == "P"
+                    else abs(int(home_goals) - int(away_goals))
+                )
+                movement = (
+                    float(self.config["k_factor"])
+                    * evidence
+                    * margin_multiplier(
+                        margin, float(self.config["margin_scale"])
+                    )
+                    * (score - expected)
+                )
+                hierarchy = self.hierarchy_level(
+                    home,
+                    away,
+                    home_tier,
+                    away_tier,
+                    bool(cross_border),
+                    kind,
+                )
+                share = (
+                    0.0
+                    if hierarchy == "club"
+                    else float(self.config[f"{hierarchy}_share"])
+                )
+                club_share = 1.0 - share
+                club_changes[home] += club_share * movement
+                club_changes[away] -= club_share * movement
+                club_information[home] += club_share * evidence
+                club_information[away] += club_share * evidence
+
+                if hierarchy == "tier":
+                    home_key = self._tier_key(home, home_tier)
+                    away_key = self._tier_key(away, away_tier)
+                    tier_changes[home_key] += share * movement
+                    tier_changes[away_key] -= share * movement
+                    tier_information[home_key] += share * evidence
+                    tier_information[away_key] += share * evidence
+                elif hierarchy == "country":
+                    home_country = self._country(home)
+                    away_country = self._country(away)
+                    if home_country is not None and away_country is not None:
+                        country_changes[home_country] += share * movement
+                        country_changes[away_country] -= share * movement
+                        country_information[home_country] += share * evidence
+                        country_information[away_country] += share * evidence
+                elif hierarchy == "confederation":
+                    home_confederation = self._confederation(home)
+                    away_confederation = self._confederation(away)
+                    if (
+                        home_confederation is not None
+                        and away_confederation is not None
+                    ):
+                        confederation_changes[home_confederation] += share * movement
+                        confederation_changes[away_confederation] -= share * movement
+                        confederation_information[home_confederation] += share * evidence
+                        confederation_information[away_confederation] += share * evidence
+
+                home_country = self._country(home)
+                away_country = self._country(away)
+                if (
+                    bool(cross_border)
+                    and home_country is not None
+                    and away_country is not None
+                    and home_country != away_country
+                ):
+                    bridge_information[home_country] += evidence
+                    bridge_information[away_country] += evidence
+
+                probability = self._outcome_probability(
+                    score, *probabilities
+                )
                 if self.eval_first <= ordinal <= self.eval_last:
-                    self._record_metric("all", probability, probabilities, score)
-                    if ordinal - max(self.recent_second_leg[home], self.recent_second_leg[away]) <= 120:
-                        self._record_metric("post_tie", probability, probabilities, score)
+                    self._record_metric(
+                        "all", probability, probabilities, score
+                    )
+                    self._record_metric(
+                        hierarchy, probability, probabilities, score
+                    )
+                    if hierarchy != "club":
+                        self._record_metric(
+                            "cross_group", probability, probabilities, score
+                        )
+                    if ordinal - max(
+                        self.recent_second_leg[home],
+                        self.recent_second_leg[away],
+                    ) <= 120:
+                        self._record_metric(
+                            "post_tie", probability, probabilities, score
+                        )
                     if ordinal - max(
                         self.recent_controlled_second_leg[home],
                         self.recent_controlled_second_leg[away],
                     ) <= 120:
                         self._record_metric(
-                            "post_controlled_tie", probability, probabilities, score
+                            "post_controlled_tie",
+                            probability,
+                            probabilities,
+                            score,
                         )
                     if int(leg) == 2 and aggregate_before is not None:
-                        self._record_metric("second_leg", probability, probabilities, score)
-                temporary.append({
-                    "base": row,
-                    "ordinal": ordinal,
-                    "home": home,
-                    "away": away,
-                    "pre_home_mean": pre_home_mean,
-                    "pre_away_mean": pre_away_mean,
-                    "home_rating": home_rating,
-                    "away_rating": away_rating,
-                    "home_se": home_se,
-                    "away_se": away_se,
-                    "probabilities": probabilities,
-                    "score": score,
-                    "movement": movement,
-                    "aggregate_weight": aggregate_weight,
-                    "evidence": evidence,
-                    "surprise": -math.log(max(1e-15, probability)),
-                })
+                        self._record_metric(
+                            "second_leg", probability, probabilities, score
+                        )
+                temporary.append(
+                    {
+                        "base": row,
+                        "ordinal": ordinal,
+                        "home": home,
+                        "away": away,
+                        "pre_home_mean": pre_home_mean,
+                        "pre_away_mean": pre_away_mean,
+                        "home_rating": home_rating,
+                        "away_rating": away_rating,
+                        "home_se": home_se,
+                        "away_se": away_se,
+                        "probabilities": probabilities,
+                        "score": score,
+                        "movement": movement,
+                        "aggregate_weight": aggregate_weight,
+                        "evidence": evidence,
+                        "surprise": -math.log(max(1e-15, probability)),
+                    }
+                )
 
             for club, change in club_changes.items():
-                self.residual[club] += change
-                decayed = self._club_effective(club, ordinal)
-                self.effective[club] = decayed + club_information[club]
-                self.last_day[club] = ordinal
-            for association, change in association_changes.items():
-                self.association_rating[association] += change
-                decayed = self._association_effective(association, ordinal)
-                self.association_effective[association] = decayed + association_information[association]
-                self.association_last_day[association] = ordinal
-                self.association_matches[association] += 1
+                self.club_rating[club] += change
+                self.club_effective[club] = (
+                    self._decay(
+                        self.club_effective[club],
+                        self.club_info_day[club],
+                        ordinal,
+                    )
+                    + club_information[club]
+                )
+                self.club_info_day[club] = ordinal
+            for key, change in tier_changes.items():
+                self.tier_rating[key] = self.tier_rating.get(key, 0.0) + change
+                self.tier_effective[key] = (
+                    self._decay(
+                        self.tier_effective.get(key, 0.0),
+                        self.tier_info_day.get(key, -1),
+                        ordinal,
+                    )
+                    + tier_information[key]
+                )
+                self.tier_info_day[key] = ordinal
+                self.tier_matches[key] += 1
+            for country, change in country_changes.items():
+                self.country_rating[country] += change
+                self.country_effective[country] = (
+                    self._decay(
+                        self.country_effective[country],
+                        self.country_info_day[country],
+                        ordinal,
+                    )
+                    + country_information[country]
+                )
+                self.country_info_day[country] = ordinal
+                self.country_matches[country] += 1
+            for confederation, change in confederation_changes.items():
+                self.confederation_rating[confederation] += change
+                self.confederation_effective[confederation] = (
+                    self._decay(
+                        self.confederation_effective[confederation],
+                        self.confederation_info_day[confederation],
+                        ordinal,
+                    )
+                    + confederation_information[confederation]
+                )
+                self.confederation_info_day[confederation] = ordinal
+                self.confederation_matches[confederation] += 1
+            for country, information in bridge_information.items():
+                self.country_bridge_effective[country] = (
+                    self._decay(
+                        self.country_bridge_effective[country],
+                        self.country_bridge_info_day[country],
+                        ordinal,
+                    )
+                    + information
+                )
+                self.country_bridge_info_day[country] = ordinal
+
+            self._centre_country_components(ordinal)
+            post_anchor = self._publication_anchor()
             for item in temporary:
                 home, away = item["home"], item["away"]
                 for club in (home, away):
                     self.matches_played[club] += 1
-                    self.first_day[club] = ordinal if self.first_day[club] < 0 else min(self.first_day[club], ordinal)
-                    self.last_match_day[club] = max(self.last_match_day[club], ordinal)
+                    self.first_day[club] = (
+                        ordinal
+                        if self.first_day[club] < 0
+                        else min(self.first_day[club], ordinal)
+                    )
+                    self.last_match_day[club] = max(
+                        self.last_match_day[club], ordinal
+                    )
                 row = item["base"]
                 if int(row[15]) == 2 and row[20] is not None:
                     self.recent_second_leg[home] = ordinal
@@ -519,28 +960,43 @@ class ClubRatingModel:
                     before = integer_or_none(row[20])
                     after = integer_or_none(row[21])
                     if (
-                        before is not None and after is not None
-                        and before * after > 0 and abs(before) >= 2
+                        before is not None
+                        and after is not None
+                        and before * after > 0
+                        and abs(before) >= 2
                         and (item["score"] - 0.5)
-                        * ((1.0 if after > 0 else 0.0) - 0.5) < 0.0
+                        * ((1.0 if after > 0 else 0.0) - 0.5)
+                        < 0.0
                     ):
                         self.recent_controlled_second_leg[home] = ordinal
                         self.recent_controlled_second_leg[away] = ordinal
                 if self.write_tables:
-                    post_home_mean, post_away_mean = self.mean(home), self.mean(away)
-                    post_home_se, post_away_se = self.uncertainty(home, ordinal), self.uncertainty(away, ordinal)
-                    rated_buffer.append((
-                        row[0], row[1], row[2], home, away, row[5], row[6], row[7], row[8], row[9],
-                        row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18],
-                        row[19], row[20], row[21], item["aggregate_weight"], item["evidence"],
-                        item["pre_home_mean"], item["pre_away_mean"], item["home_rating"],
-                        item["away_rating"], item["home_se"], item["away_se"],
-                        item["probabilities"][0], item["probabilities"][1], item["probabilities"][2],
-                        item["score"], item["movement"], post_home_mean, post_away_mean,
-                        post_home_mean - float(self.config["uncertainty_penalty"]) * post_home_se,
-                        post_away_mean - float(self.config["uncertainty_penalty"]) * post_away_se,
-                        post_home_se, post_away_se, item["surprise"],
-                    ))
+                    post_home_mean = self.mean(home, post_anchor)
+                    post_away_mean = self.mean(away, post_anchor)
+                    post_home_se = self.uncertainty(home, ordinal)
+                    post_away_se = self.uncertainty(away, ordinal)
+                    rated_buffer.append(
+                        (
+                            row[0], row[1], row[2], home, away, row[5], row[6],
+                            row[7], row[8], row[9], row[10], row[11], row[12],
+                            row[13], row[14], row[15], row[16], row[17], row[18],
+                            row[19], row[20], row[21],
+                            item["aggregate_weight"], item["evidence"],
+                            item["pre_home_mean"], item["pre_away_mean"],
+                            item["home_rating"], item["away_rating"],
+                            item["home_se"], item["away_se"],
+                            item["probabilities"][0], item["probabilities"][1],
+                            item["probabilities"][2], item["score"],
+                            item["movement"], post_home_mean, post_away_mean,
+                            post_home_mean
+                            - float(self.config["uncertainty_penalty"])
+                            * post_home_se,
+                            post_away_mean
+                            - float(self.config["uncertainty_penalty"])
+                            * post_away_se,
+                            post_home_se, post_away_se, item["surprise"],
+                        )
+                    )
                     if len(rated_buffer) >= 25_000:
                         flush_rated()
                 processed += 1
@@ -562,105 +1018,198 @@ class ClubRatingModel:
         if self.write_tables:
             self._write_current_tables()
             self._deduplicate_output_tables(processed)
-            assert self.output_connection is not None
         return self.summary(processed)
 
     def _deduplicate_output_tables(self, expected_matches: int) -> None:
-        """Defend derived tables against a repeated bulk-copy result batch."""
         assert self.output_connection is not None
         target = self.output_connection
         for table, keys in (
             ("rated_matches", "match_id"),
             ("year_openings", "year,club"),
             ("current_club_ratings", "club"),
-            ("current_association_ratings", "country"),
+            ("current_country_ratings", "country"),
+            ("current_confederation_ratings", "confederation"),
         ):
             clean = f"{table}_unique"
             target.execute(f"DROP TABLE IF EXISTS {clean}")
             target.execute(
-                f"CREATE TABLE {clean} AS "
-                f"SELECT * FROM {table} QUALIFY "
+                f"CREATE TABLE {clean} AS SELECT * FROM {table} QUALIFY "
                 f"row_number() OVER (PARTITION BY {keys})=1"
             )
             target.execute(f"DROP TABLE {table}")
             target.execute(f"ALTER TABLE {clean} RENAME TO {table}")
-        stored = int(target.execute("SELECT count(*) FROM rated_matches").fetchone()[0])
+        stored = int(
+            target.execute("SELECT count(*) FROM rated_matches").fetchone()[0]
+        )
         if stored != expected_matches:
             raise RuntimeError(
-                f"club model wrote {stored:,} unique matches; expected {expected_matches:,}"
+                f"club model wrote {stored:,} unique matches; "
+                f"expected {expected_matches:,}"
             )
+        for name, table, keys in (
+            ("rated_matches_match_id_unique", "rated_matches", "match_id"),
+            ("year_openings_year_club_unique", "year_openings", "year,club"),
+            ("current_club_ratings_club_unique", "current_club_ratings", "club"),
+            ("current_country_ratings_country_unique", "current_country_ratings", "country"),
+            (
+                "current_confederation_ratings_confederation_unique",
+                "current_confederation_ratings",
+                "confederation",
+            ),
+        ):
+            target.execute(f"CREATE UNIQUE INDEX {name} ON {table}({keys})")
+        target.execute("DROP VIEW IF EXISTS current_association_ratings")
         target.execute(
-            "CREATE UNIQUE INDEX rated_matches_match_id_unique "
-            "ON rated_matches(match_id)"
-        )
-        target.execute(
-            "CREATE UNIQUE INDEX year_openings_year_club_unique "
-            "ON year_openings(year,club)"
-        )
-        target.execute(
-            "CREATE UNIQUE INDEX current_club_ratings_club_unique "
-            "ON current_club_ratings(club)"
-        )
-        target.execute(
-            "CREATE UNIQUE INDEX current_association_ratings_country_unique "
-            "ON current_association_ratings(country)"
+            "CREATE VIEW current_association_ratings AS "
+            "SELECT country,rating,se,international_updates "
+            "FROM current_country_ratings"
         )
 
     def _write_current_tables(self) -> None:
         assert self.output_connection is not None
         target = self.output_connection
+        maximum = self.connection.execute(
+            "SELECT max(day) FROM matches"
+        ).fetchone()[0]
+        ordinal = maximum.toordinal()
+        anchor = self._publication_anchor()
+
         target.execute("DROP TABLE IF EXISTS current_club_ratings")
         target.execute(
             """
             CREATE TABLE current_club_ratings(
                 club INTEGER,mean DOUBLE,rating DOUBLE,se DOUBLE,matches INTEGER,
-                first_day INTEGER,last_day INTEGER,tier SMALLINT
+                first_day INTEGER,last_day INTEGER,tier SMALLINT,
+                club_component DOUBLE,tier_component DOUBLE,country_component DOUBLE,
+                confederation_component DOUBLE,club_se DOUBLE,tier_se DOUBLE,
+                country_se DOUBLE,confederation_se DOUBLE
             )
             """
         )
-        maximum = self.connection.execute("SELECT max(day) FROM matches").fetchone()[0]
-        ordinal = maximum.toordinal()
-        rows = []
+        club_rows = []
         for club in range(len(self.clubs)):
             if not self.initialised[club]:
                 continue
-            rows.append((
-                club, self.mean(club), self.public_rating(club, ordinal),
-                self.uncertainty(club, ordinal), self.matches_played[club],
-                self.first_day[club], self.last_match_day[club], self.last_tier[club],
-            ))
-        self._bulk_copy("current_club_ratings", rows)
-        target.execute("DROP TABLE IF EXISTS current_association_ratings")
+            components = self.components(club, anchor)
+            component_se = self.component_standard_errors(club, ordinal)
+            club_rows.append(
+                (
+                    club,
+                    self.mean(club, anchor),
+                    self.public_rating(club, ordinal, anchor),
+                    self.uncertainty(club, ordinal),
+                    self.matches_played[club],
+                    self.first_day[club],
+                    self.last_match_day[club],
+                    self.last_tier[club],
+                    *components,
+                    *component_se,
+                )
+            )
+        self._bulk_copy("current_club_ratings", club_rows)
+
+        target.execute("DROP TABLE IF EXISTS current_country_ratings")
         target.execute(
             """
-            CREATE TABLE current_association_ratings(
-                country VARCHAR,rating DOUBLE,se DOUBLE,international_updates INTEGER
+            CREATE TABLE current_country_ratings(
+                country VARCHAR,confederation VARCHAR,rating DOUBLE,se DOUBLE,
+                international_updates INTEGER,bridge_evidence DOUBLE
             )
             """
         )
-        inverse = sorted(self.association_index, key=self.association_index.get)
-        association_rows = []
-        for index, country in enumerate(inverse):
-            se = float(self.config["association_prior_sd"]) / math.sqrt(
-                1.0 + self._association_effective(index, ordinal) / 4.0
+        inverse_countries = sorted(
+            self.country_index, key=self.country_index.get
+        )
+        country_rows = []
+        for index, country in enumerate(inverse_countries):
+            information = self._decay(
+                self.country_effective[index],
+                self.country_info_day[index],
+                ordinal,
             )
-            association_rows.append((country, self.association_rating[index], se, self.association_matches[index]))
-        self._bulk_copy("current_association_ratings", association_rows)
+            se = float(self.config["country_prior_sd"]) / math.sqrt(
+                1.0 + information / 4.0
+            )
+            bridge = self._decay(
+                self.country_bridge_effective[index],
+                self.country_bridge_info_day[index],
+                ordinal,
+            )
+            country_rows.append(
+                (
+                    country,
+                    self.country_confederation[index],
+                    self.country_rating[index],
+                    se,
+                    self.country_matches[index],
+                    bridge,
+                )
+            )
+        self._bulk_copy("current_country_ratings", country_rows)
+
+        target.execute("DROP TABLE IF EXISTS current_confederation_ratings")
+        target.execute(
+            """
+            CREATE TABLE current_confederation_ratings(
+                confederation VARCHAR,rating DOUBLE,se DOUBLE,
+                interconfederation_updates INTEGER
+            )
+            """
+        )
+        inverse_confederations = sorted(
+            self.confederation_index,
+            key=self.confederation_index.get,
+        )
+        confederation_rows = []
+        for index, confederation in enumerate(inverse_confederations):
+            information = self._decay(
+                self.confederation_effective[index],
+                self.confederation_info_day[index],
+                ordinal,
+            )
+            se = float(self.config["confederation_prior_sd"]) / math.sqrt(
+                1.0 + information / 3.0
+            )
+            confederation_rows.append(
+                (
+                    confederation,
+                    self.confederation_rating[index] - anchor,
+                    se,
+                    self.confederation_matches[index],
+                )
+            )
+        self._bulk_copy(
+            "current_confederation_ratings", confederation_rows
+        )
 
     def summary(self, processed: int) -> dict[str, Any]:
         metrics = {}
         for name, values in self.metrics.items():
-            count = int(values[3])
+            count = int(values[4])
+            mean_loss = None if not count else values[0] / count
+            variance = (
+                0.0
+                if count < 2
+                else max(
+                    0.0,
+                    (values[1] - count * float(mean_loss) ** 2)
+                    / (count - 1),
+                )
+            )
             metrics[name] = {
                 "matches": count,
-                "log_loss": None if not count else values[0] / count,
-                "brier": None if not count else values[1] / count,
-                "accuracy": None if not count else values[2] / count,
+                "log_loss": mean_loss,
+                "log_loss_se": (
+                    None if not count else math.sqrt(variance / count)
+                ),
+                "brier": None if not count else values[2] / count,
+                "accuracy": None if not count else values[3] / count,
             }
         return {
             "matches": processed,
             "clubs": sum(self.initialised),
-            "associations": len(self.association_index),
+            "countries": len(self.country_index),
+            "confederations": len(self.confederation_index),
             "metrics": metrics,
         }
 
@@ -682,7 +1231,9 @@ def run_club_model(
     connection = duckdb.connect(str(database), read_only=True)
     output_connection: duckdb.DuckDBPyConnection | None = None
     if write_tables:
-        output_database = output_database or database.with_name("club-model.duckdb")
+        output_database = output_database or database.with_name(
+            "club-model.duckdb"
+        )
         output_database.parent.mkdir(parents=True, exist_ok=True)
         output_database.unlink(missing_ok=True)
         output_connection = duckdb.connect(str(output_database))
@@ -693,9 +1244,13 @@ def run_club_model(
             output_connection.execute("BEGIN TRANSACTION")
             transaction_open = True
         model = ClubRatingModel(
-            connection, config, write_tables=write_tables,
-            output_connection=output_connection, replay_from=replay_from,
-            evaluation_start=evaluation_start, evaluation_end=evaluation_end,
+            connection,
+            config,
+            write_tables=write_tables,
+            output_connection=output_connection,
+            replay_from=replay_from,
+            evaluation_start=evaluation_start,
+            evaluation_end=evaluation_end,
         )
         result = model.replay()
         if output_database is not None:
@@ -716,17 +1271,26 @@ def run_club_model(
     if write_tables and output_database is not None:
         verifier = duckdb.connect(str(output_database), read_only=True)
         try:
-            tables = {str(row[0]) for row in verifier.execute("SHOW TABLES").fetchall()}
+            tables = {
+                str(row[0]) for row in verifier.execute("SHOW TABLES").fetchall()
+            }
             required = {
-                "rated_matches", "year_openings", "current_club_ratings",
-                "current_association_ratings",
+                "rated_matches",
+                "year_openings",
+                "current_club_ratings",
+                "current_country_ratings",
+                "current_confederation_ratings",
             }
             if not required.issubset(tables):
                 raise RuntimeError(
                     "club model persistence check failed; missing "
                     + ", ".join(sorted(required - tables))
                 )
-            stored = int(verifier.execute("SELECT count(*) FROM rated_matches").fetchone()[0])
+            stored = int(
+                verifier.execute(
+                    "SELECT count(*) FROM rated_matches"
+                ).fetchone()[0]
+            )
             if stored != int(result["matches"]):
                 raise RuntimeError(
                     f"club model reopened {stored:,} matches; "

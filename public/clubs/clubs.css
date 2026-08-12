@@ -6,6 +6,71 @@
   src: url("../assets/fonts/fraunces-variable-latin-v38.woff2") format("woff2-variations");
 }
 
+/* Final token bridge: source of truth remains ../assets/styles.css. */
+:root {
+  --ink: #44203d;
+  --ink-soft: #75566c;
+  --paper: #fff6fb;
+  --surface: #fff9fc;
+  --surface-subtle: #fbe8f3;
+  --navy: #4a183f;
+  --navy-2: #713064;
+  --header-bg: rgba(66, 21, 56, 0.97);
+  --border: rgba(103, 41, 88, 0.18);
+  --eyebrow: #8b3c78;
+  --link: #7b286b;
+  --mint: #f0d8ff;
+  --lime: #ff9bd5;
+  --gold: #c12f8e;
+  --positive: #276b4d;
+  --negative: #9d304a;
+  --on-dark: #fff4fb;
+  --on-dark-soft: #f3dce9;
+  --dark-panel: rgba(255, 244, 252, 0.09);
+  --dark-panel-border: rgba(255, 244, 252, 0.14);
+  --muted: var(--ink-soft);
+  --surface-2: var(--surface-subtle);
+  --header: var(--header-bg);
+  --header-2: var(--navy-2);
+  --line: var(--border);
+  --teal: var(--eyebrow);
+  --teal-dark: var(--link);
+  --cyan: var(--mint);
+  --orange: var(--gold);
+  --red: var(--negative);
+  --green: var(--positive);
+  --purple: var(--chart-a);
+  --body: var(--font-body);
+  --display: var(--font-display);
+  --numeric: var(--font-numeric);
+  --content: min(1240px, calc(100vw - 40px));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fff2fa;
+    --ink-soft: #e8cede;
+    --paper: #1b0d17;
+    --surface: #2c1425;
+    --surface-subtle: #402036;
+    --navy: #170b14;
+    --navy-2: #522044;
+    --header-bg: rgba(27, 12, 23, 0.97);
+    --border: rgba(244, 212, 237, 0.21);
+    --eyebrow: #f1addb;
+    --link: #f3a8dc;
+    --mint: #f2d7ff;
+    --lime: #ff8fce;
+    --gold: #ff78c5;
+    --positive: #79d9a9;
+    --negative: #ff91a8;
+    --on-dark: #fff2fa;
+    --on-dark-soft: #e8cede;
+    --dark-panel: rgba(255, 247, 252, 0.1);
+    --dark-panel-border: rgba(255, 247, 252, 0.15);
+  }
+}
+
 :root {
   color-scheme: light;
   --ink: #172238;
@@ -57,6 +122,40 @@
     --shadow: 0 20px 52px rgba(0, 0, 0, 0.3);
   }
 }
+
+/* The club application deliberately consumes the national site's design
+   tokens.  These aliases keep its specialised components in the same visual
+   system without maintaining a second palette. */
+:root {
+  --muted: var(--ink-soft);
+  --surface-2: var(--surface-subtle);
+  --header: var(--header-bg);
+  --header-2: var(--navy-2);
+  --line: var(--border);
+  --teal: var(--eyebrow);
+  --teal-dark: var(--link);
+  --cyan: var(--mint);
+  --orange: var(--gold);
+  --red: var(--negative);
+  --green: var(--positive);
+  --purple: var(--chart-a);
+  --body: var(--font-body);
+  --display: var(--font-display);
+  --numeric: var(--font-numeric);
+  --content: min(1240px, calc(100vw - 40px));
+}
+
+.hero-strip {
+  color: var(--on-dark);
+  background: linear-gradient(135deg, var(--navy), var(--navy-2));
+}
+.hero-strip .lede,
+.hero-metrics span { color: var(--on-dark-soft); }
+.hero-metrics article {
+  background: var(--dark-panel);
+  border-color: var(--dark-panel-border);
+}
+table th { position: static; }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -340,3 +439,40 @@ td.numeric, th.numeric { text-align: right; font-family: var(--numeric); font-va
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; }
 }
+
+/* Keep this bridge last: the shared NFELO files own the visual language. */
+:root {
+  --ink: #44203d; --ink-soft: #75566c; --paper: #fff6fb;
+  --surface: #fff9fc; --surface-subtle: #fbe8f3;
+  --navy: #4a183f; --navy-2: #713064; --header-bg: rgba(66, 21, 56, .97);
+  --border: rgba(103, 41, 88, .18); --eyebrow: #8b3c78; --link: #7b286b;
+  --mint: #f0d8ff; --lime: #ff9bd5; --gold: #c12f8e;
+  --positive: #276b4d; --negative: #9d304a;
+  --on-dark: #fff4fb; --on-dark-soft: #f3dce9;
+  --dark-panel: rgba(255, 244, 252, .09);
+  --dark-panel-border: rgba(255, 244, 252, .14);
+  --muted: var(--ink-soft); --surface-2: var(--surface-subtle);
+  --header: var(--header-bg); --header-2: var(--navy-2); --line: var(--border);
+  --teal: var(--eyebrow); --teal-dark: var(--link); --cyan: var(--mint);
+  --orange: var(--gold); --red: var(--negative); --green: var(--positive);
+  --purple: var(--chart-a); --body: var(--font-body);
+  --display: var(--font-display); --numeric: var(--font-numeric);
+  --content: min(1240px, calc(100vw - 40px));
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #fff2fa; --ink-soft: #e8cede; --paper: #1b0d17;
+    --surface: #2c1425; --surface-subtle: #402036;
+    --navy: #170b14; --navy-2: #522044; --header-bg: rgba(27, 12, 23, .97);
+    --border: rgba(244, 212, 237, .21); --eyebrow: #f1addb; --link: #f3a8dc;
+    --mint: #f2d7ff; --lime: #ff8fce; --gold: #ff78c5;
+    --positive: #79d9a9; --negative: #ff91a8;
+    --on-dark: #fff2fa; --on-dark-soft: #e8cede;
+    --dark-panel: rgba(255, 247, 252, .1);
+    --dark-panel-border: rgba(255, 247, 252, .15);
+  }
+}
+.hero-strip { color: var(--on-dark); background: linear-gradient(135deg, var(--navy), var(--navy-2)); }
+.hero-strip .lede, .hero-metrics span { color: var(--on-dark-soft); }
+.hero-metrics article { background: var(--dark-panel); border-color: var(--dark-panel-border); }
+table th { position: static; }
