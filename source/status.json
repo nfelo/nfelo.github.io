@@ -1,9 +1,9 @@
 {
-  "source_checked_at": "2026-08-11T16:14:27+00:00",
+  "source_checked_at": "2026-08-12T00:01:11+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-08",
   "supplemental_results": 0,
-  "upcoming_fixtures": 438,
+  "upcoming_fixtures": 439,
   "open_feed_rows": 49520,
   "unresolved_names": [],
   "base_urls": [
@@ -13,12 +13,12 @@
   "world_cup_results": 0,
   "sportsdb_fixture_events": 156,
   "sportsdb_requests": 6,
-  "wfe_fixture_rows": 282,
+  "wfe_fixture_rows": 283,
   "wfe_fixture_source": "live Eloratings fixtures TSV",
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-08-11T16:14:25+00:00",
+    "source_checked_at": "2026-08-12T00:01:07+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
     "pages_checked": 0,
