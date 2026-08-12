@@ -47,17 +47,27 @@ Wimbledon, for example, remain different identities.
 
 ## Hierarchical Elo state
 
-Each club has a residual strength and each domestic association has a shared
+Each club has a residual strength, each domestic association has a shared
+coefficient, and each confederation has an independently connected global
 coefficient:
 
 ```text
-mean_i = 1500 + club_residual_i + association_coefficient_i
+mean_i = 1500 + club_residual_i + tier_i
+         + association_coefficient_i + confederation_coefficient_i
 rating_i = mean_i - uncertainty_penalty × standard_error_i
 ```
 
-Domestic matches move the two club residuals. Cross-border matches split their
-update between club residuals and association coefficients. This is the bridge
-between league systems that otherwise have no common opponents.
+Domestic matches move the two club residuals. Continental matches split their
+update between club residuals and association coefficients; only 35% is pooled
+to the association, so one elite participant cannot be counted again across
+its whole domestic league. Inter-confederation Club World Cup matches update
+the confederation bridge.
+
+Association coefficients are identified at the evidence-weighted 90th
+percentile inside each confederation. Global club tournaments select champions
+and other leading clubs, so this elite but non-maximum anchor puts the regional
+bridge on the same level as its evidence without allowing one sparse outlier to
+set an entire confederation's scale.
 
 The public table ranks the uncertainty-adjusted `rating`; forecasts use the
 latent `mean`. Evidence decays with time, and club plus association prior
@@ -65,8 +75,9 @@ uncertainty is retained separately. New, sparse or inward-looking clubs are
 therefore ranked cautiously even when their estimated mean is high.
 
 The result update uses a fitted K factor, a logarithmic goal-margin multiplier,
-competition-kind weight and duration weight. Penalty-shootout decisions are
-learned as match draws, not as ordinary goal margin. Season regression pulls a
+competition-kind weight and duration weight. Transfermarkt shootout kicks are
+removed from the football score using its event feed; penalty decisions are
+then learned as match draws, not as ordinary goal margin. Season regression pulls a
 club toward the prior for its latest known tier. Association coefficients
 regress more slowly.
 
@@ -110,8 +121,8 @@ leverage = max(exp(-abs(aggregate_before) / scale),
 weight = floor + (1 - floor) × leverage
 ```
 
-The selected floor is `0.10` and the scale is `1.0` goal. If a club wins the
-first leg 4–0 and accepts a 0–1 second-leg loss, the latter retains about 14.5%
+The selected floor is `0.00` and the scale is `1.0` goal. If a club wins the
+first leg 4–0 and accepts a 0–1 second-leg loss, the latter retains about 5.0%
 of ordinary information. The 4–1 aggregate superiority is preserved, while the
 second result is not erased.
 
@@ -148,8 +159,10 @@ The static build writes:
 - all fitted coefficients and validation metadata.
 
 Large match files use an array schema published in `data/meta.json` and
-`data/matches/index.json`. This keeps the complete archive practical on static
-GitHub Pages while preserving every field needed by the browser.
+`data/matches/index.json`. Calendar-year match archives are deterministic gzip
+JSON and are decompressed in the browser. This keeps the complete archive
+practical on static GitHub Pages while preserving every field needed by the
+browser.
 
 ## Limitations
 

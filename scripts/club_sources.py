@@ -46,7 +46,12 @@ ENGSOCCER_FILES = (
     "champs.csv",
 )
 TRANSFERMARKT_BASE = "https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data"
-TRANSFERMARKT_FILES = ("games.csv.gz", "clubs.csv.gz", "competitions.csv.gz")
+TRANSFERMARKT_FILES = (
+    "games.csv.gz",
+    "game_events.csv.gz",
+    "clubs.csv.gz",
+    "competitions.csv.gz",
+)
 BRAZIL_BASE = (
     "https://raw.githubusercontent.com/BrazilianFootball/Data/"
     "master/results/processed"

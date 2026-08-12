@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
+from html import unescape
 import hashlib
 import json
 from pathlib import Path
@@ -64,8 +65,56 @@ def validate_prebuilt_club_site(output: Path) -> dict[str, Any]:
         raise ValueError("Prebuilt club metadata is empty or invalid")
     shell = (root / "index.html").read_text(encoding="utf-8")
     script = (root / "clubs.js").read_text(encoding="utf-8")
+    club_css = (root / "clubs.css").read_text(encoding="utf-8")
     if "../assets/styles.css" not in shell or "useGrouping: false" not in script:
         raise ValueError("Prebuilt club UI does not satisfy the NFELO visual contract")
+    if re.search(r"clubs\.js\?v=[^\"']+\?fallback", shell):
+        raise ValueError("Prebuilt club fallback URL is malformed")
+
+    def anchor_labels(document: str, pattern: str) -> list[str]:
+        match = re.search(pattern, document, flags=re.DOTALL)
+        if not match:
+            return []
+        return [
+            unescape(re.sub(r"<[^>]+>", "", label)).strip()
+            for label in re.findall(r"<a\b[^>]*>(.*?)</a>", match.group(0), flags=re.DOTALL)
+        ]
+
+    club_nav = anchor_labels(shell, r'<nav\s+id="site-nav"[^>]*>.*?</nav>')
+    club_footer = anchor_labels(shell, r'<nav\s+class="footer-links"[^>]*>.*?</nav>')
+    expected_nav = [
+        "Rankings", "Nations", "History", "Tournaments", "Matches", "Records",
+        "Compare", "Upcoming matches", "Match calculator", "Methodology", "FAQ", "About",
+    ]
+    expected_footer = [
+        "Rankings", "Nations", "Upcoming matches", "Predict", "History", "Tournaments",
+        "Matches", "Compare", "Records", "Methodology", "FAQ", "About", "GitHub",
+    ]
+    if club_nav != expected_nav or club_footer != expected_footer:
+        raise ValueError("Prebuilt club navigation no longer mirrors the national site")
+    required_components = {
+        "ranking-desktop", "ranking-cards", "team-hero", "forecast",
+        "faq-page", "methodology-page", "about-page", "club-context",
+    }
+    if any(component not in script for component in required_components):
+        raise ValueError("Prebuilt club pages no longer use the national NFELO components")
+    forbidden_overrides = (".site-header", ".site-footer", ".site-nav", ".page-heading", ".toolbar")
+    if any(selector in club_css for selector in forbidden_overrides):
+        raise ValueError("Club-only CSS must not override the shared NFELO page shell")
+
+    national_shell_path = output / "index.html"
+    if national_shell_path.is_file():
+        national_shell = national_shell_path.read_text(encoding="utf-8")
+        national_nav = anchor_labels(national_shell, r'<nav\s+id="site-nav"[^>]*>.*?</nav>')
+        national_footer = anchor_labels(national_shell, r'<nav\s+class="footer-links"[^>]*>.*?</nav>')
+        if len(national_nav) < 2 or national_nav[1] != "Clubs":
+            raise ValueError("National navigation must expose Clubs in the reciprocal slot")
+        if len(national_footer) < 2 or national_footer[1] != "Clubs":
+            raise ValueError("National footer must expose Clubs in the reciprocal slot")
+        if national_nav[:1] + national_nav[2:] != club_nav[:1] + club_nav[2:]:
+            raise ValueError("National and club navigation structures have drifted apart")
+        if national_footer[:1] + national_footer[2:] != club_footer[:1] + club_footer[2:]:
+            raise ValueError("National and club footer structures have drifted apart")
     return meta
 
 

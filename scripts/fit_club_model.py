@@ -18,11 +18,13 @@ GRID: tuple[tuple[str, tuple[float, ...], str], ...] = (
     ("home_advantage_domestic", (25.0, 35.0, 45.0, 55.0), "all"),
     ("home_advantage_cross_border", (65.0, 80.0, 95.0, 110.0, 125.0), "all"),
     ("k_factor", (16.0, 18.0, 20.0), "all"),
-    ("margin_scale", (0.60, 0.75, 0.90), "all"),
-    ("season_retention", (0.70, 0.77, 0.84, 0.89), "all"),
-    ("association_share", (0.30, 0.40, 0.50, 0.60, 0.70), "all"),
-    ("tier_gap", (55.0, 65.0, 75.0), "all"),
-    ("aggregate_floor", (0.10, 0.25, 0.40, 0.60, 1.00), "post_controlled_tie"),
+    ("margin_scale", (0.75, 0.90, 1.05, 1.20), "all"),
+    ("club_retention", (0.76, 0.82, 0.88), "all"),
+    ("country_share", (0.35, 0.50, 0.65), "country"),
+    ("country_anchor_quantile", (0.80, 0.90, 0.95), "confederation"),
+    ("confederation_share", (0.35, 0.50, 0.65), "confederation"),
+    ("tier_gap", (35.0, 45.0, 55.0), "tier"),
+    ("aggregate_floor", (0.00, 0.10, 0.25, 0.40, 0.60, 1.00), "post_controlled_tie"),
     ("aggregate_scale", (0.60, 1.00, 1.45, 2.00), "post_controlled_tie"),
 )
 

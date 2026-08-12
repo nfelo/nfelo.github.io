@@ -7,12 +7,14 @@ import argparse
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
+import gzip
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import shutil
+import tempfile
 from typing import Any, Iterable
 
 import duckdb
@@ -55,11 +57,20 @@ def ordinal_date(value: int | None) -> str | None:
 
 
 def write_json(path: Path, value: Any) -> None:
+    payload = json.dumps(
+        value, ensure_ascii=False, separators=(",", ":")
+    ).encode("utf-8")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(value, ensure_ascii=False, separators=(",", ":")),
-        encoding="utf-8",
-    )
+    path.write_bytes(payload)
+
+
+def write_gzip_json(path: Path, value: Any) -> None:
+    """Write deterministic browser-decompressed JSON inside the staged archive."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(
+        value, ensure_ascii=False, separators=(",", ":")
+    ).encode("utf-8")
+    path.write_bytes(gzip.compress(payload, compresslevel=9, mtime=0))
 
 
 def sha256_path(path: Path) -> str:
@@ -68,6 +79,56 @@ def sha256_path(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def verify_static_data(data: Path, expected_matches: int) -> None:
+    """Reject an incomplete refresh before it can be committed or deployed."""
+    temporary = list(data.rglob(".*.tmp"))
+    if temporary:
+        raise OSError(f"temporary generated file remains: {temporary[0]}")
+    empty = [path for path in data.rglob("*") if path.is_file() and path.stat().st_size == 0]
+    if empty:
+        raise OSError(f"empty generated file: {empty[0]}")
+    index = json.loads((data / "matches" / "index.json").read_text(encoding="utf-8"))
+    indexed_files = {str(item["file"]) for item in index["years"]}
+    actual_files = {path.name for path in (data / "matches").glob("*.json.gz")}
+    if indexed_files != actual_files:
+        raise OSError("match archive index does not match the generated archive files")
+    total = 0
+    for item in index["years"]:
+        archive = data / "matches" / str(item["file"])
+        with gzip.open(archive, "rt", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if int(payload.get("year", -1)) != int(item["year"]):
+            raise OSError(f"wrong year payload in {archive.name}")
+        rows = payload.get("matches")
+        if not isinstance(rows, list) or len(rows) != int(item["count"]):
+            raise OSError(f"wrong match count in {archive.name}")
+        total += len(rows)
+    if total != int(expected_matches):
+        raise OSError(
+            f"archive total {total:,} does not match ledger total {expected_matches:,}"
+        )
+
+
+def publish_static_data(staged: Path, destination: Path) -> None:
+    """Swap a verified archive into place while preserving the prior snapshot."""
+    backup = destination.with_name(f".{destination.name}-previous")
+    if backup.exists():
+        shutil.rmtree(backup)
+    had_previous = destination.exists()
+    if had_previous:
+        os.replace(destination, backup)
+    try:
+        os.replace(staged, destination)
+    except Exception:
+        if had_previous and backup.exists() and not destination.exists():
+            os.replace(backup, destination)
+        raise
+    if staged.exists():
+        shutil.rmtree(staged)
+    if backup.exists():
+        shutil.rmtree(backup)
 
 
 def attach_model(connection: duckdb.DuckDBPyConnection, model: Path) -> None:
@@ -116,10 +177,11 @@ def export_club_site(
 ) -> dict[str, Any]:
     """Export a replay to compact, traceable static files."""
     root = output / "clubs"
-    data = root / "data"
-    if data.exists():
-        shutil.rmtree(data)
-    data.mkdir(parents=True)
+    root.mkdir(parents=True, exist_ok=True)
+    for stale in root.glob(".data-building-*"):
+        shutil.rmtree(stale)
+    data = Path(tempfile.mkdtemp(prefix=".data-building-", dir=root))
+    destination = root / "data"
 
     config = load_club_config(config_dir / "club_model.json")
     connection = duckdb.connect(str(ledger), read_only=True)
@@ -307,14 +369,18 @@ def export_club_site(
         for year in years:
             rows = connection.execute(archive_query, [year]).fetchall()
             values = [match_array(row) for row in rows]
-            write_json(data / "matches" / f"{year}.json", {"year": year, "matches": values})
+            filename = f"{year}.json.gz"
+            write_gzip_json(
+                data / "matches" / filename,
+                {"year": year, "matches": values},
+            )
             match_index.append(
                 {
                     "year": year,
                     "count": len(values),
                     "first": values[0][1],
                     "last": values[-1][1],
-                    "file": f"{year}.json",
+                    "file": filename,
                 }
             )
             print(f"club site: exported {year} ({len(values):,} matches)")
@@ -473,7 +539,7 @@ def export_club_site(
                 "sources": ledger_summary["sources"],
             },
             "method": {
-                "rating": "1500 + club residual + association coefficient - uncertainty penalty",
+                "rating": "1500 + club residual + tier + association coefficient + confederation coefficient - uncertainty penalty",
                 "home": "Separate fitted domestic and cross-border home advantages; neutral matches receive zero.",
                 "same_date": "Every match on a date is forecast from one frozen start-of-day state, then that date is updated.",
                 "aggregate": "Only a controlled second-leg loss by a club that remains ahead on aggregate is discounted; comebacks, level ties, and confirming wins retain full weight.",
@@ -494,6 +560,8 @@ def export_club_site(
     finally:
         connection.close()
 
+    verify_static_data(data, int(ledger_summary["matches"]))
+    publish_static_data(data, destination)
     version_club_assets(root)
     return meta
 
@@ -506,8 +574,8 @@ def version_club_assets(root: Path) -> None:
     for asset in ("clubs.css", "clubs.js"):
         revision = sha256_path(root / asset)[:12]
         html = re.sub(
-            rf'{re.escape(asset)}(?:\?v=[^"\']*)?',
-            f"{asset}?v={revision}",
+            rf'(?P<attribute>\b(?:href|src)=["\']){re.escape(asset)}(?:\?v=[^"\']*)?',
+            rf'\g<attribute>{asset}?v={revision}',
             html,
         )
     index.write_text(html, encoding="utf-8")

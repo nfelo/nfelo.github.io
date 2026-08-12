@@ -162,6 +162,18 @@ TRANSFERMARKT_FALLBACK_COMPETITIONS = {
     "POCP": ("Taça de Portugal", "domestic_cup", "Portugal"),
     "UKRS": ("Ukrainian Super Cup", "super_cup", "Ukraine"),
 }
+# Transfermarkt's current-club catalog omits some historic or non-covered
+# participants even though its game feed still uses their stable club IDs.
+# These reviewed identities cover every such participant in the expanded 2025
+# Club World Cup; deterministic global-name matching handles other omissions.
+TRANSFERMARKT_GAME_ONLY_CLUB_FALLBACKS = {
+    7: ("Al Ahly", "egypt"),
+    2150: ("Al Ain", "united-arab-emirates"),
+    3342: ("ES Tunis", "tunisia"),
+    6356: ("Mamelodi Sundowns FC", "south-africa"),
+    6603: ("Wydad Casablanca", "morocco"),
+    11391: ("Auckland City", "new-zealand"),
+}
 CROSS_BORDER_JURISDICTIONS = {
     "australia": {"new-zealand"},
     "england": {"wales"},
@@ -250,6 +262,21 @@ EXPLICIT_SOURCE_ALIASES = {
     ("switzerland", "grasshopperszurich"): "grasshoppers",
     ("wales", "barrytown"): "barrytownunited",
 }
+
+# Reviewed public labels.  These are presentation corrections, not identity
+# merges: the source identity and stable public code remain unchanged.
+PUBLIC_CLUB_NAME_CORRECTIONS = {
+    ("brazil", "sepalmeiras"): "Palmeiras",
+    ("congo-dr", "tpmazembe"): "TP Mazembe",
+}
+
+CLUB_ACRONYMS = {
+    "ac": "AC", "afc": "AFC", "as": "AS", "ca": "CA", "cd": "CD",
+    "cf": "CF", "cr": "CR", "cs": "CS", "ec": "EC", "fc": "FC",
+    "fk": "FK", "if": "IF", "nk": "NK", "sc": "SC", "sk": "SK",
+    "sv": "SV", "tp": "TP", "us": "US",
+}
+
 # Brazilian source labels can be short enough to collide across states.  These
 # reviewed mappings therefore include the federation code rather than relying
 # on a country-wide "Guarani", "Atlético", or "Brasil" rule.
@@ -339,26 +366,42 @@ def display_country(value: str) -> str:
     replacements = {
         "bosnia-herzegovina": "Bosnia and Herzegovina",
         "brunei-darussalam": "Brunei",
-        "cape-verde": "Cabo Verde",
+        "american-samoa": "Eastern Samoa",
+        "cape-verde": "Cape Verde",
+        "cape-verde-islands": "Cape Verde",
+        "china-pr": "China",
+        "chinese-taipei": "Taiwan",
+        "congo-dr": "DR Congo",
+        "cote-divoire": "Ivory Coast",
         "czech-republic": "Czechia",
         "democratic-republic-of-congo": "DR Congo",
         "congo-democratic-republic": "DR Congo",
-        "east-timor": "Timor-Leste",
+        "curacao": "Curaçao",
+        "east-timor": "East Timor",
         "england": "England",
         "eswatini": "Eswatini",
+        "french-guyana": "French Guiana",
+        "guinea-bissau": "Guinea-Bissau",
         "hong-kong-china": "Hong Kong",
         "iran-islamic-republic": "Iran",
+        "ireland-republic": "Ireland",
         "ivory-coast": "Ivory Coast",
         "korea-republic": "South Korea",
         "korea-dpr": "North Korea",
-        "macao": "Macau",
+        "macao": "Macao",
+        "macau": "Macao",
         "moldova-republic": "Moldova",
         "palestinian-territories": "Palestine",
         "russia": "Russia",
+        "sao-tome-e-principe": "Sao Tome and Principe",
+        "st-kitts-and-nevis": "Saint Kitts and Nevis",
+        "st-lucia": "Saint Lucia",
+        "st-vincent-and-the-grenadines": "Saint Vincent and the Grenadines",
         "syrian-arab-republic": "Syria",
-        "taiwan": "Chinese Taipei",
+        "taiwan": "Taiwan",
         "tanzania-united-republic": "Tanzania",
-        "turkey": "Türkiye",
+        "timor-leste": "East Timor",
+        "turkey": "Turkey",
         "united-states": "United States",
         "united-states-of-america": "United States",
         "northern-ireland": "Northern Ireland",
@@ -366,6 +409,20 @@ def display_country(value: str) -> str:
         "viet-nam": "Vietnam",
     }
     return replacements.get(value, value.replace("-", " ").title())
+
+
+def canonical_club_name(country: str, value: str) -> str:
+    """Return a reviewed display label without changing club identity."""
+    clean = " ".join(str(value or "").split()).strip()
+    corrected = PUBLIC_CLUB_NAME_CORRECTIONS.get(
+        (clean_country(country), normalise_name(clean))
+    )
+    if corrected:
+        return corrected
+    tokens = clean.split(" ")
+    if tokens and tokens[0].casefold() in CLUB_ACRONYMS:
+        tokens[0] = CLUB_ACRONYMS[tokens[0].casefold()]
+    return " ".join(tokens)
 
 
 def football_confederation(country: str, geography: str | None = None) -> str:
@@ -659,6 +716,26 @@ class ClubRegistry:
         self.identity_to_index[old_club.identity] = new
         old_club.resolution = f"redirected to {self.clubs[new].identity} by fixture fingerprint"
 
+    def finalise_metadata(self, nfelo_country_codes: dict[str, str]) -> None:
+        """Backfill metadata after every source has populated the country map.
+
+        A club can first appear on a row whose geographic fields are blank and
+        only later share its association with a fully described club.  Doing
+        this once, immediately before publication, makes import order
+        irrelevant and prevents valid clubs from leaking into "Unassigned".
+        """
+        for club in self.clubs:
+            metadata = self.country_metadata.get(club.country, ("", ""))
+            geography = club.continent or metadata[1]
+            club.continent = football_confederation(club.country, geography)
+            public_country = display_country(club.country)
+            club.country_code = (
+                nfelo_country_codes.get(public_country.casefold())
+                or club.country_code
+                or metadata[0]
+            )
+            club.name = canonical_club_name(club.country, club.name)
+
 
 RAW_SCHEMA = """
 CREATE TABLE raw_matches (
@@ -703,8 +780,23 @@ class ClubLedgerBuilder:
         self.connection.execute("PRAGMA threads=4")
         self.connection.execute(RAW_SCHEMA)
         self.registry = ClubRegistry()
+        self.nfelo_country_codes = self._load_nfelo_country_codes(source)
         self.tiers: dict[tuple[int, int], int] = {}
         self.tiers_by_club: dict[int, dict[int, int]] = defaultdict(dict)
+
+    @staticmethod
+    def _load_nfelo_country_codes(source: Path) -> dict[str, str]:
+        """Read the national site's canonical public name/code pairs."""
+        path = source / "en.teams.tsv"
+        if not path.is_file():
+            return {}
+        result: dict[str, str] = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            fields = [field.strip() for field in line.split("\t")]
+            if len(fields) < 2 or not fields[0] or fields[0].endswith("_loc"):
+                continue
+            result.setdefault(fields[1].casefold(), fields[0])
+        return result
 
     def close(self) -> None:
         self.connection.close()
@@ -793,6 +885,8 @@ class ClubLedgerBuilder:
                 CAST(g.gh AS SMALLINT),
                 CAST(g.ga AS SMALLINT),
                 CASE
+                    WHEN g.competition='Fifa Club' AND g.date >= DATE '2024-01-01'
+                        THEN 'FIFA Intercontinental Cup'
                     WHEN g.level='international' THEN coalesce(n.display, g.competition)
                     ELSE concat(
                         replace(
@@ -813,16 +907,21 @@ class ClubLedgerBuilder:
                             THEN g.home_country
                         WHEN g.level='national' AND g.competition='Copa Sud'
                             THEN 'chile'
+                        WHEN g.competition='Fifa Club' AND g.date >= DATE '2024-01-01'
+                            THEN 'Fifa Intercontinental'
                         ELSE g.competition
                     END
                 ),
                 CASE
                     WHEN g.level='national' THEN 'league'
+                    WHEN g.competition='Fifa Club' AND g.date >= DATE '2024-01-01'
+                        THEN 'intercontinental'
                     WHEN g.competition='Fifa Club' THEN 'global'
                     WHEN g.competition IN ('UEFA SC','CAF SC','Recopa') THEN 'super_cup'
                     ELSE 'continental'
                 END,
-                1,1,false,g.level='international',coalesce(g.full_time,'F'),0,NULL,'',
+                1,1,coalesce(g.competition='Fifa Club',false),g.level='international',
+                coalesce(g.full_time,'F'),0,NULL,'',
                 'schochastics',concat('games.parquet:',cast(g.date as varchar)),10
             FROM read_parquet(?) g
             JOIN backbone_clubs h ON h.ident=g.home_ident
@@ -1312,6 +1411,54 @@ class ClubLedgerBuilder:
         games: list[dict[str, str]] = []
         with gzip.open(directory / "games.csv.gz", "rt", encoding="utf-8-sig", newline="") as handle:
             games.extend(csv.DictReader(handle))
+        game_side_names: dict[int, str] = {}
+        for row in games:
+            for id_field, name_field in (
+                ("home_club_id", "home_club_name"),
+                ("away_club_id", "away_club_name"),
+            ):
+                tm_id = integer(row.get(id_field))
+                name = str(row.get(name_field) or "").strip()
+                if tm_id is not None and name:
+                    game_side_names.setdefault(tm_id, name)
+
+        # Transfermarkt's published game total sometimes adds successful
+        # shootout kicks to the football score (for example, Liverpool 1-1
+        # Manchester City in the 2019 Community Shield appears as 5-6).  The
+        # event feed identifies shootout kicks separately, so rebuild the
+        # regulation/extra-time score from ordinary goal events and mark the
+        # decision as penalties before identity matching or modelling.
+        events_path = directory / "game_events.csv.gz"
+        shootout_games: set[int] = set()
+        with gzip.open(events_path, "rt", encoding="utf-8-sig", newline="") as handle:
+            for event in csv.DictReader(handle):
+                if str(event.get("type") or "") == "Shootout":
+                    game_id = integer(event.get("game_id"))
+                    if game_id is not None:
+                        shootout_games.add(game_id)
+        shootout_goals: defaultdict[int, Counter[int]] = defaultdict(Counter)
+        with gzip.open(events_path, "rt", encoding="utf-8-sig", newline="") as handle:
+            for event in csv.DictReader(handle):
+                game_id = integer(event.get("game_id"))
+                if game_id not in shootout_games or str(event.get("type") or "") != "Goals":
+                    continue
+                club_id = integer(event.get("club_id"))
+                if club_id is not None:
+                    shootout_goals[int(game_id)][club_id] += 1
+        corrected_shootouts = 0
+        for row in games:
+            game_id = integer(row.get("game_id"))
+            row["_nfelo_status"] = "F"
+            if game_id not in shootout_games:
+                continue
+            home_id = integer(row.get("home_club_id"))
+            away_id = integer(row.get("away_club_id"))
+            if home_id is None or away_id is None:
+                continue
+            row["home_club_goals"] = str(shootout_goals[int(game_id)][home_id])
+            row["away_club_goals"] = str(shootout_goals[int(game_id)][away_id])
+            row["_nfelo_status"] = "P"
+            corrected_shootouts += 1
 
         mapping: dict[int, int] = {}
         unresolved: set[int] = set()
@@ -1369,7 +1516,22 @@ class ClubLedgerBuilder:
                 continue
             best_club, best = options[0]
             runner = options[1][1] if len(options) > 1 else 0
-            if best >= 4 and best >= runner + 3 and best >= totals[tm_id] * 0.04:
+            competition = competitions.get(
+                str(club_rows[tm_id].get("domestic_competition_id") or ""), {}
+            )
+            expected_country = clean_country(competition.get("country_name"))
+            # A score/date fingerprint is only identifying inside the same
+            # association.  Without this guard, a sparse international-only
+            # side can be mistaken for its opponent after sharing fixtures.
+            same_association = bool(expected_country) and (
+                self.registry.clubs[best_club].country == expected_country
+            )
+            if (
+                same_association
+                and best >= 4
+                and best >= runner + 3
+                and best >= totals[tm_id] * 0.04
+            ):
                 mapping[tm_id] = best_club
                 unresolved.remove(tm_id)
                 fingerprint_matches += 1
@@ -1385,6 +1547,30 @@ class ClubLedgerBuilder:
             )
             assert resolved is not None
             mapping[tm_id] = resolved
+
+        game_only_matches = 0
+        for tm_id, source_name in sorted(game_side_names.items()):
+            if tm_id in mapping:
+                continue
+            fallback = TRANSFERMARKT_GAME_ONLY_CLUB_FALLBACKS.get(tm_id)
+            if fallback:
+                canonical_name, country = fallback
+                resolved = self.registry.resolve(
+                    canonical_name,
+                    country,
+                    allow_fuzzy=False,
+                    create_identity=f"transfermarkt:{tm_id}",
+                    resolution="reviewed Transfermarkt game-only identity",
+                )
+            else:
+                # Country-free matching is accepted only when the complete or
+                # football-search label identifies one existing club globally.
+                resolved = self.registry.resolve(
+                    source_name, "", allow_fuzzy=False
+                )
+            if resolved is not None:
+                mapping[tm_id] = resolved
+                game_only_matches += 1
 
         tier_by_tm_season: dict[tuple[int, int], int] = {}
         for row in games:
@@ -1420,7 +1606,13 @@ class ClubLedgerBuilder:
                 continue
             season = integer(row.get("season"), int(day[:4])) or int(day[:4])
             subtype = str(comp.get("sub_type") or "")
-            if comp_type == "domestic_league":
+            # Several game IDs are published before their catalog rows.  The
+            # reviewed fallback is authoritative for those known gaps; KLUB in
+            # particular must reach the inter-confederation bridge.
+            override = TRANSFERMARKT_FALLBACK_COMPETITIONS.get(comp_id)
+            if override:
+                kind = override[1]
+            elif comp_type == "domestic_league":
                 kind = "league"
             elif comp_type == "domestic_cup":
                 kind = "domestic_cup"
@@ -1451,27 +1643,38 @@ class ClubLedgerBuilder:
             if leg:
                 first, second = sorted((home, away))
                 tie_key = f"tm:{comp_id}:{season}:{round_base}:{first}:{second}"
-            display = str(comp.get("name") or comp.get("competition_code") or comp_id)
-            display = " ".join(display.replace("-", " ").split()).title()
-            neutral = leg == 0 and round_name.strip().casefold() == "final" and kind in {
-                "domestic_cup", "continental", "global"
-            }
+            display = (
+                override[0]
+                if override
+                else str(comp.get("name") or comp.get("competition_code") or comp_id)
+            )
+            if not override:
+                display = " ".join(display.replace("-", " ").split()).title()
+            neutral = kind == "global" or (
+                leg == 0
+                and round_name.strip().casefold() == "final"
+                and kind in {"domestic_cup", "continental", "intercontinental"}
+            )
             cross_border = not bool(comp.get("country_name")) and kind in {
                 "continental", "intercontinental", "global", "super_cup"
             }
             prepared.append((
                 day, season, home, away, home_goals, away_goals, display,
                 f"tm:{comp_id}", kind, home_tier, away_tier, neutral,
-                cross_border, "F", leg, tie_key, round_name, "transfermarkt",
+                cross_border, str(row.get("_nfelo_status") or "F"), leg,
+                tie_key, round_name, "transfermarkt",
                 f"games.csv.gz:{row.get('game_id','')}", 20,
             ))
         print(
             f"Transfermarkt identity resolution: {len(mapping) - len(unresolved)} linked; "
-            f"{fingerprint_matches} by fixture fingerprint; {len(unresolved)} source identities"
+            f"{fingerprint_matches} by fixture fingerprint; {len(unresolved)} source identities; "
+            f"{game_only_matches} game-only identities; "
+            f"{corrected_shootouts} shootout scores separated"
         )
         return self._insert(prepared)
 
     def finalise(self) -> dict[str, Any]:
+        self.registry.finalise_metadata(self.nfelo_country_codes)
         self.connection.execute(
             """
             CREATE TABLE matches AS

@@ -6,59 +6,162 @@
     <base href="/clubs/">
     <meta name="theme-color" content="#3b1232" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#170b14" media="(prefers-color-scheme: dark)">
-    <meta name="description" content="Global senior men's club football ratings, results, historical rankings, records and match probabilities from 1871 onward.">
+    <meta name="description" content="Global senior men's club football ratings, historical results, records and match probabilities from 1871 to the present.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://nfelo.github.io/clubs/">
-    <link rel="icon" href="../favicon-2026.svg" type="image/svg+xml">
+    <link rel="icon" href="../favicon-2026.ico?v=20260729l1" sizes="16x16 32x32 48x48">
+    <link rel="icon" href="../favicon-2026.svg?v=20260729l1" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-2026.png?v=20260729l1">
+    <link rel="manifest" href="../site.webmanifest?v=20260729l1">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Global Club Rankings · Network Football Elo">
     <meta property="og:description" content="Independent global club ratings across domestic leagues, deep tiers, cups and international competitions.">
     <meta property="og:url" content="https://nfelo.github.io/clubs/">
+    <meta property="og:image" content="https://nfelo.github.io/social-card.png?v=20260729l1">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Global Club Rankings · Network Football Elo">
+    <meta name="twitter:description" content="Independent global club ratings across domestic leagues, deep tiers, cups and international competitions.">
+    <meta name="twitter:image" content="https://nfelo.github.io/social-card.png?v=20260729l1">
     <title>Global Club Rankings · Network Football Elo</title>
-    <link rel="stylesheet" href="../assets/critical.css">
-    <link rel="stylesheet" href="../assets/styles.css">
-    <link rel="stylesheet" href="clubs.css?v=0bca5ad65865">
-    <script src="clubs.js?v=1119b6df386f" defer></script>
+    <script>
+      window.__nfeloStyleReady = new Promise((resolve) => {
+        window.__nfeloStyleResolve = resolve;
+      });
+    </script>
+    <link rel="stylesheet" href="../assets/critical.css?v=3f241cfa91c8">
+    <link rel="preload" href="../assets/styles.css?v=455fb1ab1b20" as="style">
+    <link
+      id="nfelo-full-style"
+      rel="stylesheet"
+      href="../assets/styles.css?v=455fb1ab1b20"
+      media="print"
+      onload="this.media='all';window.__nfeloStyleResolve?.()"
+      onerror="window.__nfeloStyleResolve?.()">
+    <noscript><link rel="stylesheet" href="../assets/styles.css?v=455fb1ab1b20"></noscript>
+    <link rel="stylesheet" href="clubs.css?v=206191916aef">
+    <script>
+      window.__nfeloBoot = window.__nfeloBoot || {
+        started: false,
+        ready: false,
+        failed: false,
+      };
+      window.__nfeloShowBootError = (message) => {
+        const target = document.getElementById("content");
+        if (!target || !target.querySelector(".loading-shell")) return;
+        target.innerHTML = (
+          `<div class="error-panel" role="alert">
+            <p class="eyebrow">Browser startup problem</p>
+            <h2>The ratings application did not start.</h2>
+            <p>`
+          + message
+          + `</p>
+            <button class="button button-dark" type="button"
+              onclick="location.reload()">Reload page</button>
+          </div>`
+        );
+      };
+      window.addEventListener("DOMContentLoaded", () => {
+        window.setTimeout(() => {
+          if (window.__nfeloBoot.started) return;
+          const fallback = document.createElement("script");
+          fallback.src = "clubs.js?fallback=" + Date.now();
+          fallback.onerror = () => (
+            window.__nfeloShowBootError(
+              "The application script could not be loaded."
+            )
+          );
+          document.head.appendChild(fallback);
+        }, 1500);
+        window.setTimeout(() => {
+          if (
+            !window.__nfeloBoot.ready
+            && !window.__nfeloBoot.failed
+          ) {
+            window.__nfeloShowBootError(
+              "The application loaded but did not finish starting."
+            );
+          }
+        }, 10000);
+      });
+    </script>
+    <script
+      src="clubs.js?v=517de0b7b9f8"
+      defer
+      fetchpriority="high"
+      onerror="window.__nfeloShowBootError(
+        'The application script could not be loaded.'
+      )">
+    </script>
+    <script>
+      window.goatcounter = { no_onload: true };
+    </script>
+    <script
+      data-goatcounter="https://nfelo.goatcounter.com/count"
+      async
+      fetchpriority="low"
+      src="https://gc.zgo.at/count.js">
+    </script>
   </head>
   <body>
-    <a class="skip-link" href="#club-content">Skip to content</a>
+    <a class="skip-link" href="#content">Skip to content</a>
     <header class="site-header">
-      <a class="brand" href="#/rankings" aria-label="Global Club Elo home">
-        <img class="brand-mark" src="../favicon-2026.svg" width="38" height="38" alt="" aria-hidden="true">
+      <a class="brand" href="#/" aria-label="Network Football Elo clubs home">
+        <img class="brand-mark" src="../favicon-2026.svg?v=20260729l1" width="38" height="38" alt="" aria-hidden="true">
         <span><strong>Network</strong><small>Football Elo</small></span>
       </a>
       <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
-      <nav id="site-nav" class="site-nav" aria-label="Club section navigation">
+      <nav id="site-nav" class="site-nav" aria-label="Main navigation">
         <a href="#/rankings">Rankings</a>
-        <a href="#/history">History</a>
-        <a href="#/clubs">Clubs</a>
-        <a href="#/matches">Matches</a>
-        <a href="#/records">Records</a>
-        <a href="#/compare">Compare</a>
-        <a href="#/predict">Predict</a>
-        <a href="#/methodology">Method</a>
-        <a href="#/sources">Sources</a>
-        <a href="../">National teams</a>
+        <a href="/">Nations</a>
+        <details class="nav-group">
+          <summary>Explore</summary>
+          <div class="nav-submenu">
+            <a href="#/history">History</a>
+            <a href="#/tournaments">Tournaments</a>
+            <a href="#/matches">Matches</a>
+            <a href="#/records">Records</a>
+            <a href="#/compare">Compare</a>
+          </div>
+        </details>
+        <details class="nav-group">
+          <summary>Forecasts</summary>
+          <div class="nav-submenu">
+            <a href="#/fixtures">Upcoming matches</a>
+            <a href="#/predict">Match calculator</a>
+          </div>
+        </details>
+        <a href="#/methodology">Methodology</a>
+        <a href="#/faq">FAQ</a>
+        <a href="#/about">About</a>
       </nav>
     </header>
-    <main id="club-content" tabindex="-1">
-      <section class="loading-card" role="status" aria-live="polite">
+    <main id="content" tabindex="-1">
+      <div class="loading-shell" role="status">
         <span class="spinner" aria-hidden="true"></span>
-        <div><strong>Opening the global club archive…</strong><p>Loading current ratings and coverage.</p></div>
-      </section>
+        <p>Loading the latest club ratings…</p>
+      </div>
     </main>
     <footer class="site-footer">
-      <p>Independent, reproducible estimates for senior men’s clubs. Every displayed match remains traceable to a source row.</p>
-      <nav class="footer-links" aria-label="Club footer navigation">
-        <a href="#/rankings">Rankings</a>
-        <a href="#/matches">Match archive</a>
-        <a href="#/methodology">Methodology</a>
-        <a href="#/sources">Sources &amp; limitations</a>
-        <a href="../">National teams</a>
-        <a href="https://github.com/nfelo/nfelo.github.io" rel="external">GitHub</a>
-      </nav>
-      <p>Ratings are estimates, not betting advice.</p>
+      <p>Independent analysis of senior men’s club football using traceable competitive results from domestic leagues, lower tiers, cups and international competitions.</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+          <a href="#/rankings">Rankings</a>
+          <a href="/">Nations</a>
+          <a href="#/fixtures">Upcoming matches</a>
+          <a href="#/predict">Predict</a>
+          <a href="#/history">History</a>
+          <a href="#/tournaments">Tournaments</a>
+          <a href="#/matches">Matches</a>
+          <a href="#/compare">Compare</a>
+          <a href="#/records">Records</a>
+          <a href="#/methodology">Methodology</a>
+          <a href="#/faq">FAQ</a>
+          <a href="#/about">About</a>
+          <a href="https://github.com/nfelo/nfelo.github.io" rel="external">GitHub</a>
+        </nav>
+      <p>Not affiliated with FIFA or any confederation. Ratings are estimates, not betting advice.</p>
     </footer>
-    <noscript>This section needs JavaScript to explore its generated static archive.</noscript>
+    <noscript>This site needs JavaScript to search and explore the generated static data.</noscript>
   </body>
 </html>

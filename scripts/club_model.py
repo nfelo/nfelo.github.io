@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import date
 import json
 import math
+import os
 from pathlib import Path
 import tempfile
 from typing import Any, Iterable, Iterator
@@ -44,7 +45,8 @@ def load_club_config(path: Path) -> dict[str, Any]:
         "base_rating", "k_factor", "home_advantage_domestic",
         "home_advantage_cross_border", "draw_peak", "margin_scale",
         "club_retention", "tier_retention", "tier_share", "tier_gap",
-        "country_retention", "country_share", "confederation_retention",
+        "country_retention", "country_share", "country_anchor_quantile",
+        "confederation_retention",
         "confederation_share", "extra_time_weight", "penalty_weight",
         "aggregate_floor", "aggregate_scale",
         "effective_matches_half_life_days", "club_prior_sd", "tier_prior_sd",
@@ -59,6 +61,8 @@ def load_club_config(path: Path) -> dict[str, Any]:
             raise ValueError(f"{key} must be between zero and one")
     if not 0.0 <= float(value["aggregate_floor"]) <= 1.0:
         raise ValueError("aggregate_floor must be between zero and one")
+    if not 0.5 <= float(value["country_anchor_quantile"]) <= 1.0:
+        raise ValueError("country_anchor_quantile must be between 0.5 and one")
     return value
 
 
@@ -541,13 +545,20 @@ class ClubRatingModel:
         values[4] += 1.0
 
     def _centre_country_components(self, day: int) -> None:
+        """Identify association effects relative to the continental elite.
+
+        Global club tournaments select champions and other leading clubs, not
+        an average association.  Anchoring each confederation at an upper,
+        evidence-weighted association quantile therefore puts its independent
+        global bridge on the same level as the matches that estimate it.  A
+        quantile rather than a raw maximum is robust to one sparse outlier.
+        """
         by_confederation: defaultdict[str, list[int]] = defaultdict(list)
         for index, confederation in enumerate(self.country_confederation):
             if confederation:
                 by_confederation[confederation].append(index)
-        for countries in by_confederation.values():
-            weighted = 0.0
-            evidence = 0.0
+        for confederation_name, countries in by_confederation.items():
+            values: list[tuple[float, float]] = []
             for country in countries:
                 weight = self._decay(
                     self.country_bridge_effective[country],
@@ -555,11 +566,20 @@ class ClubRatingModel:
                     day,
                 )
                 if weight > 0.0:
-                    weighted += weight * self.country_rating[country]
-                    evidence += weight
+                    values.append((self.country_rating[country], weight))
+            evidence = sum(weight for _, weight in values)
             if evidence <= 0.0:
                 continue
-            centre = weighted / evidence
+            threshold = evidence * float(
+                self.config["country_anchor_quantile"]
+            )
+            cumulative = 0.0
+            centre = max(value for value, _ in values)
+            for value, weight in sorted(values):
+                cumulative += weight
+                if cumulative >= threshold:
+                    centre = value
+                    break
             for country in countries:
                 self.country_rating[country] -= centre
 
@@ -1061,7 +1081,7 @@ class ClubRatingModel:
         target.execute("DROP VIEW IF EXISTS current_association_ratings")
         target.execute(
             "CREATE VIEW current_association_ratings AS "
-            "SELECT country,rating,se,international_updates "
+            "SELECT country,rating,se,cross_border_updates AS international_updates "
             "FROM current_country_ratings"
         )
 
@@ -1112,8 +1132,11 @@ class ClubRatingModel:
         target.execute(
             """
             CREATE TABLE current_country_ratings(
-                country VARCHAR,confederation VARCHAR,rating DOUBLE,se DOUBLE,
-                international_updates INTEGER,bridge_evidence DOUBLE
+                country VARCHAR,confederation VARCHAR,country_rating DOUBLE,
+                confederation_rating DOUBLE,rating DOUBLE,country_se DOUBLE,
+                confederation_se DOUBLE,se DOUBLE,international_updates INTEGER,
+                interconfederation_updates INTEGER,cross_border_updates INTEGER,
+                bridge_evidence DOUBLE
             )
             """
         )
@@ -1130,6 +1153,25 @@ class ClubRatingModel:
             se = float(self.config["country_prior_sd"]) / math.sqrt(
                 1.0 + information / 4.0
             )
+            confederation_name = self.country_confederation[index]
+            confederation = self.confederation_index.get(confederation_name)
+            if confederation is None:
+                confederation_rating = -anchor
+                confederation_se = float(self.config["confederation_prior_sd"])
+                interconfederation_updates = 0
+            else:
+                confederation_information = self._decay(
+                    self.confederation_effective[confederation],
+                    self.confederation_info_day[confederation],
+                    ordinal,
+                )
+                confederation_rating = (
+                    self.confederation_rating[confederation] - anchor
+                )
+                confederation_se = float(
+                    self.config["confederation_prior_sd"]
+                ) / math.sqrt(1.0 + confederation_information / 3.0)
+                interconfederation_updates = self.confederation_matches[confederation]
             bridge = self._decay(
                 self.country_bridge_effective[index],
                 self.country_bridge_info_day[index],
@@ -1138,10 +1180,16 @@ class ClubRatingModel:
             country_rows.append(
                 (
                     country,
-                    self.country_confederation[index],
+                    confederation_name,
                     self.country_rating[index],
+                    confederation_rating,
+                    self.country_rating[index] + confederation_rating,
                     se,
+                    confederation_se,
+                    math.hypot(se, confederation_se),
                     self.country_matches[index],
+                    interconfederation_updates,
+                    self.country_matches[index] + interconfederation_updates,
                     bridge,
                 )
             )
@@ -1230,19 +1278,22 @@ def run_club_model(
 ) -> dict[str, Any]:
     connection = duckdb.connect(str(database), read_only=True)
     output_connection: duckdb.DuckDBPyConnection | None = None
+    working_database: Path | None = None
     if write_tables:
         output_database = output_database or database.with_name(
             "club-model.duckdb"
         )
         output_database.parent.mkdir(parents=True, exist_ok=True)
-        output_database.unlink(missing_ok=True)
-        output_connection = duckdb.connect(str(output_database))
+        descriptor, working_name = tempfile.mkstemp(
+            prefix=f".{output_database.name}.building-",
+            dir=output_database.parent,
+        )
+        os.close(descriptor)
+        working_database = Path(working_name)
+        working_database.unlink()
+        output_connection = duckdb.connect(str(working_database))
     result: dict[str, Any] | None = None
-    transaction_open = False
     try:
-        if output_connection is not None:
-            output_connection.execute("BEGIN TRANSACTION")
-            transaction_open = True
         model = ClubRatingModel(
             connection,
             config,
@@ -1256,20 +1307,17 @@ def run_club_model(
         if output_database is not None:
             result["model_database"] = str(output_database)
         if output_connection is not None:
-            output_connection.execute("COMMIT")
-            transaction_open = False
             output_connection.execute("CHECKPOINT").fetchall()
-    except Exception:
-        if output_connection is not None and transaction_open:
-            output_connection.execute("ROLLBACK")
-        raise
     finally:
         connection.close()
         if output_connection is not None:
             output_connection.close()
+        if result is None and working_database is not None:
+            working_database.unlink(missing_ok=True)
     assert result is not None
-    if write_tables and output_database is not None:
-        verifier = duckdb.connect(str(output_database), read_only=True)
+
+    def verify_model(path: Path) -> None:
+        verifier = duckdb.connect(str(path), read_only=True)
         try:
             tables = {
                 str(row[0]) for row in verifier.execute("SHOW TABLES").fetchall()
@@ -1298,6 +1346,14 @@ def run_club_model(
                 )
         finally:
             verifier.close()
+
+    if write_tables and output_database is not None and working_database is not None:
+        try:
+            verify_model(working_database)
+            os.replace(working_database, output_database)
+            verify_model(output_database)
+        finally:
+            working_database.unlink(missing_ok=True)
     return result
 
 

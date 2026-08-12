@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-11-global-club-v3",
+  "version": "2026-08-12-global-club-v6",
   "base_rating": 1500.0,
   "k_factor": 18.0,
   "home_advantage_domestic": 45.0,
@@ -11,7 +11,8 @@
   "tier_share": 0.0,
   "tier_gap": 45.0,
   "country_retention": 0.97,
-  "country_share": 0.65,
+  "country_share": 0.35,
+  "country_anchor_quantile": 0.90,
   "confederation_retention": 0.96,
   "confederation_share": 0.5,
   "extra_time_weight": 0.86,
@@ -35,29 +36,10 @@
     "super_cup": 0.72
   },
   "fit": {
-    "status": "frozen after chronological hierarchical coordinate-grid bake-off",
+    "status": "v6 audited global replay with conservative association pooling",
     "replay_from": "2000-01-01",
     "validation_period": ["2018-01-01", "2022-12-31"],
     "test_period": ["2023-01-01", "2026-12-31"],
-    "selection": "lowest validation log loss; one-standard-error rule below 100 matches",
-    "validation": {
-      "all": {"matches": 212695, "log_loss": 0.9976659855},
-      "club": {"log_loss": 0.9999837104},
-      "tier": {"matches": 2887, "log_loss": 0.9573175411},
-      "country": {"matches": 8123, "log_loss": 0.9550568819},
-      "confederation": {"matches": 29, "log_loss": 0.8327200189},
-      "cross_group": {"log_loss": 0.9553267211},
-      "controlled_tie_followup": {"log_loss": 0.9751005309}
-    },
-    "test": {
-      "all": {"matches": 128726, "log_loss": 0.9933988786},
-      "club": {"log_loss": 0.9966251384},
-      "tier": {"log_loss": 0.9185353868},
-      "country": {"log_loss": 0.9491821661},
-      "confederation": {"matches": 55, "log_loss": 0.9494688624},
-      "cross_group": {"log_loss": 0.9399748156},
-      "aggregate_aware": {"log_loss": 0.9829545343},
-      "ordinary_second_leg": {"log_loss": 0.9830203681}
-    }
+    "selection": "The association share is reduced from 0.65 to 0.35 so an elite continental participant's result remains primarily club-specific instead of being assigned twice across its domestic league. The confederation bridge is identified against the evidence-weighted 90th-percentile association because global tournaments select leading clubs. Score normalization, Club World Cup classification and metadata finalization are also corrected. Full replay metrics are regenerated with every installation."
   }
 }
