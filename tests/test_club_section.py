@@ -8,18 +8,27 @@ import math
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 import unittest
+
+import duckdb
 
 from scripts.club_ledger import (
     ClubRegistry,
+    COUNTRY_CODE_ALIASES,
     EXPLICIT_SOURCE_ALIASES,
     canonical_club_name,
+    canonical_competition_name,
+    clean_country,
     display_country,
+    football_confederation,
     normalise_name,
 )
 from scripts.club_model import (
     ClubRatingModel,
     aggregate_leg_weight,
+    load_club_config,
+    run_club_model,
     three_way_probabilities,
 )
 
@@ -69,7 +78,113 @@ class ClubModelUnitTests(unittest.TestCase):
 
     def test_penalty_decision_is_learned_as_a_match_draw(self) -> None:
         self.assertEqual(ClubRatingModel._score(5, 4, "P"), 0.5)
+        self.assertEqual(ClubRatingModel._score(0, 0, "P?"), 0.5)
         self.assertEqual(ClubRatingModel._score(2, 1, "F"), 1.0)
+
+    def test_domestic_tier_learning_is_anchored_on_tier_one(self) -> None:
+        model = object.__new__(ClubRatingModel)
+        model.tier_rating = {
+            ("england", 1): 35.0,
+            ("england", 2): -25.0,
+            ("england", 3): -80.0,
+            ("spain", 1): -12.0,
+            ("spain", 2): -72.0,
+            ("orphan", 2): 9.0,
+        }
+        model._centre_tier_components()
+        self.assertEqual(model.tier_rating[("england", 1)], 0.0)
+        self.assertEqual(model.tier_rating[("england", 2)], -60.0)
+        self.assertEqual(model.tier_rating[("england", 3)], -115.0)
+        self.assertEqual(model.tier_rating[("spain", 1)], 0.0)
+        self.assertEqual(model.tier_rating[("spain", 2)], -60.0)
+        self.assertEqual(model.tier_rating[("orphan", 2)], 9.0)
+
+    def test_atomic_model_database_reopens_with_every_final_table(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT.parent) as directory:
+            ledger = Path(directory) / "ledger.duckdb"
+            output = Path(directory) / "model.duckdb"
+            connection = duckdb.connect(str(ledger))
+            connection.execute(
+                """
+                CREATE TABLE clubs(
+                    club INTEGER,code VARCHAR,name VARCHAR,country VARCHAR,
+                    country_name VARCHAR,country_code VARCHAR,continent VARCHAR,
+                    identity VARCHAR,resolution VARCHAR
+                )
+                """
+            )
+            connection.executemany(
+                "INSERT INTO clubs VALUES (?,?,?,?,?,?,?,?,?)",
+                [
+                    (0, "a", "Alpha", "england", "England", "EN", "Europe", "a", "test"),
+                    (1, "b", "Beta", "spain", "Spain", "ES", "Europe", "b", "test"),
+                ],
+            )
+            connection.execute(
+                """
+                CREATE TABLE matches(
+                    match_id VARCHAR,day DATE,season INTEGER,home INTEGER,away INTEGER,
+                    home_goals SMALLINT,away_goals SMALLINT,competition VARCHAR,
+                    competition_key VARCHAR,kind VARCHAR,home_tier SMALLINT,
+                    away_tier SMALLINT,neutral BOOLEAN,cross_border BOOLEAN,
+                    status VARCHAR,leg SMALLINT,tie_key VARCHAR,round_name VARCHAR,
+                    source VARCHAR,source_ref VARCHAR,aggregate_before_home SMALLINT,
+                    aggregate_after_home SMALLINT
+                )
+                """
+            )
+            connection.execute(
+                """
+                INSERT INTO matches VALUES (
+                    'm1',DATE '2020-01-01',2020,0,1,2,1,'Test Cup','test',
+                    'continental',1,1,false,true,'F',0,NULL,'Final','test','m1',NULL,NULL
+                )
+                """
+            )
+            connection.close()
+
+            result = run_club_model(
+                ledger,
+                load_club_config(ROOT / "config" / "club_model.json"),
+                output_database=output,
+            )
+            self.assertEqual(result["matches"], 1)
+            verifier = duckdb.connect(str(output), read_only=True)
+            try:
+                tables = {row[0] for row in verifier.execute("SHOW TABLES").fetchall()}
+                self.assertTrue({
+                    "rated_matches", "year_openings", "current_club_ratings",
+                    "current_country_ratings", "current_confederation_ratings",
+                }.issubset(tables))
+                self.assertEqual(
+                    verifier.execute("SELECT count(*) FROM rated_matches").fetchone()[0],
+                    1,
+                )
+                self.assertEqual(
+                    verifier.execute(
+                        "SELECT count(*) FROM current_club_ratings"
+                    ).fetchone()[0],
+                    2,
+                )
+                self.assertEqual(
+                    verifier.execute(
+                        "SELECT count(*) FROM current_country_ratings"
+                    ).fetchone()[0],
+                    2,
+                )
+                self.assertEqual(
+                    verifier.execute(
+                        "SELECT count(*) FROM current_confederation_ratings"
+                    ).fetchone()[0],
+                    1,
+                )
+            finally:
+                verifier.close()
+            self.assertFalse(Path(f"{output}.wal").exists())
+            self.assertEqual(
+                list(output.parent.glob(f".{output.name}.building-*")),
+                [],
+            )
 
     def test_reviewed_aliases_are_country_scoped(self) -> None:
         self.assertEqual(
@@ -85,6 +200,17 @@ class ClubModelUnitTests(unittest.TestCase):
             EXPLICIT_SOURCE_ALIASES[("brazil", normalise_name("Athletico PR"))],
             normalise_name("Atletico Paranaense"),
         )
+        for country, source_name, canonical_name in (
+            ("italy", "FC Internazionale Milano", "Inter"),
+            ("portugal", "Sport Lisboa e Benfica", "Benfica"),
+            ("spain", "Real Betis Balompié", "Real Betis"),
+            ("france", "Racing Club de Lens", "Lens"),
+            ("netherlands", "Feyenoord Rotterdam", "Feyenoord"),
+        ):
+            self.assertEqual(
+                EXPLICIT_SOURCE_ALIASES[(country, normalise_name(source_name))],
+                normalise_name(canonical_name),
+            )
 
     def test_brazil_state_identity_prevents_same_name_interstate_merge(self) -> None:
         registry = ClubRegistry()
@@ -129,9 +255,43 @@ class ClubModelUnitTests(unittest.TestCase):
         self.assertEqual(registry.clubs[bournemouth].continent, "Europe")
         self.assertEqual(registry.clubs[bournemouth].country_code, "EN")
 
+    def test_association_aliases_and_football_affiliations_are_canonical(self) -> None:
+        self.assertEqual(clean_country("Cabo Verde"), "cape-verde")
+        self.assertEqual(clean_country("Cape Verde Islands"), "cape-verde")
+        self.assertEqual(clean_country("Ireland Republic"), "ireland")
+        self.assertEqual(football_confederation("ireland"), "Europe")
+        self.assertEqual(football_confederation("cape-verde"), "Africa")
+        self.assertEqual(football_confederation("colombia"), "South America")
+        for code, association in (
+            ("AND", "andorra"), ("ARM", "armenia"),
+            ("AZE", "azerbaijan"), ("BUL", "bulgaria"),
+            ("FRO", "faroe-islands"), ("GIB", "gibraltar"),
+            ("LTU", "lithuania"), ("SMR", "san-marino"),
+        ):
+            self.assertEqual(COUNTRY_CODE_ALIASES[code], association)
+
+    def test_reviewed_continental_only_club_gets_association_metadata(self) -> None:
+        registry = ClubRegistry()
+        klaksvik = registry.add(
+            "continental-only:ki-klaksvik",
+            "KI Klaksvik",
+            "",
+        )
+        registry.finalise_metadata({"faroe islands": "FO"})
+        club = registry.clubs[klaksvik]
+        self.assertEqual(club.country, "faroe-islands")
+        self.assertEqual(club.country_code, "FO")
+        self.assertEqual(club.continent, "Europe")
+
     def test_reviewed_public_club_names_are_canonical(self) -> None:
         self.assertEqual(canonical_club_name("brazil", "Se Palmeiras"), "Palmeiras")
         self.assertEqual(canonical_club_name("congo-dr", "Tp Mazembe"), "TP Mazembe")
+
+    def test_public_competition_names_preserve_acronyms_and_nation_labels(self) -> None:
+        self.assertEqual(canonical_competition_name("Uefa Champions League"), "UEFA Champions League")
+        self.assertEqual(canonical_competition_name("Fa Cup"), "FA Cup")
+        self.assertEqual(canonical_competition_name("Laliga"), "La Liga")
+        self.assertEqual(canonical_competition_name("czech republic top division"), "Czechia top division")
 
 
 class ClubPublicationTests(unittest.TestCase):
@@ -233,15 +393,18 @@ class ClubPublicationTests(unittest.TestCase):
 
     def test_model_release_and_fit_are_frozen(self) -> None:
         parameters = self.meta["parameters"]
-        self.assertEqual(parameters["version"], "2026-08-12-global-club-v6")
+        self.assertEqual(parameters["version"], "2026-08-12-global-club-v7")
         self.assertEqual(parameters["k_factor"], 18.0)
-        self.assertEqual(parameters["country_share"], 0.35)
+        self.assertEqual(parameters["tier_gap"], 80.0)
+        self.assertEqual(parameters["tier_share"], 0.45)
+        self.assertEqual(parameters["country_share"], 0.15)
         self.assertEqual(parameters["country_anchor_quantile"], 0.9)
         self.assertEqual(parameters["confederation_share"], 0.5)
         self.assertEqual(parameters["home_advantage_domestic"], 45.0)
         self.assertEqual(parameters["home_advantage_cross_border"], 80.0)
         self.assertEqual(parameters["aggregate_floor"], 0.0)
         self.assertEqual(parameters["aggregate_scale"], 1.0)
+        self.assertEqual(parameters["uncertainty_penalty"], 1.25)
         self.assertEqual(self.meta["fit"]["validation_period"], ["2018-01-01", "2022-12-31"])
 
     def test_shell_routes_and_reciprocal_links_mirror_the_national_site(self) -> None:
@@ -270,8 +433,16 @@ class ClubPublicationTests(unittest.TestCase):
         for component in (
             "ranking-desktop", "ranking-cards", "team-hero", "forecast",
             "faq-page", "methodology-page", "about-page", "club-context",
+            "club-match-cards", "record-definition", "PAGE_FAMILIES",
         ):
             self.assertIn(component, script)
+        faq_source = script[script.index("function faqItems"):script.index("function faqPage")]
+        self.assertGreaterEqual(faq_source.count('["'), 25)
+        for phrase in (
+            "Every release coefficient", "Club identity and duplicate control",
+            "Two-leg ties and the Aggregate cases list", "Post-match club peaks",
+        ):
+            self.assertIn(phrase, script)
 
         national_nav = anchor_labels(root_shell, r'<nav\s+id="site-nav"[^>]*>.*?</nav>')
         club_nav = anchor_labels(shell, r'<nav\s+id="site-nav"[^>]*>.*?</nav>')
@@ -291,6 +462,9 @@ class ClubPublicationTests(unittest.TestCase):
         for selector in (".site-header", ".site-footer", ".site-nav", ".page-heading", ".toolbar"):
             self.assertNotIn(selector, club_css)
         self.assertNotRegex(club_css, r"#[0-9a-fA-F]{3,8}\b")
+        self.assertIn(".club-match-table > table", club_css)
+        self.assertIn("@media (max-width: 1024px)", club_css)
+        self.assertIn(".record-cards", club_css)
 
     def test_public_country_names_match_nfelo_conventions(self) -> None:
         expected = {
@@ -304,9 +478,27 @@ class ClubPublicationTests(unittest.TestCase):
             "cote-divoire": "Ivory Coast",
             "china-pr": "China",
             "taiwan": "Taiwan",
+            "antigua-and-barbuda": "Antigua and Barbuda",
+            "trinidad-and-tobago": "Trinidad and Tobago",
+            "turks-and-caicos-islands": "Turks and Caicos Islands",
+            "us-virgin-islands": "US Virgin Islands",
         }
         for raw, public in expected.items():
             self.assertEqual(display_country(raw), public)
+
+        national_labels = {
+            fields[1]
+            for line in (ROOT / "source" / "en.teams.tsv").read_text(
+                encoding="utf-8"
+            ).splitlines()
+            if len(fields := line.split("\t")) >= 2
+            and not fields[0].endswith("_loc")
+        }
+        club_labels = {club["country_name"] for club in self.catalog}
+        self.assertFalse(
+            club_labels - national_labels,
+            f"club-only country labels: {sorted(club_labels - national_labels)}",
+        )
 
     def test_club_browser_javascript_parses(self) -> None:
         subprocess.run(
@@ -368,8 +560,112 @@ class ClubPublicationTests(unittest.TestCase):
         self.assertLess(best["South America"], best["North America"])
         self.assertGreaterEqual(
             sum(club["continent"] == "South America" for club in self.rankings[:100]),
-            4,
+            5,
         )
+        for club in self.catalog:
+            self.assertTrue(club["country_name"], club["name"])
+            self.assertNotIn(club["country_name"], {"Unassigned", "Unknown"})
+            self.assertTrue(club["continent"], club["name"])
+        self.assertNotIn("NA", catalog_names)
+        public_identities = [
+            (club["country_name"], club["name"])
+            for club in self.catalog
+        ]
+        self.assertEqual(len(public_identities), len(set(public_identities)))
+        self.assertNotIn("Cabo Verde", {club["country_name"] for club in self.catalog})
+        self.assertIn("Cape Verde", {club["country_name"] for club in self.catalog})
+        for name, country, continent in (
+            ("Millonarios", "Colombia", "South America"),
+            ("KI Klaksvik", "Faroe Islands", "Europe"),
+            ("FK Zalgiris Vilnius", "Lithuania", "Europe"),
+            ("Attack Energy", "Afghanistan", "Asia"),
+            ("Corvinul", "Romania", "Europe"),
+        ):
+            candidates = [club for club in self.catalog if club["name"] == name]
+            self.assertTrue(candidates, name)
+            self.assertTrue(
+                any(
+                    club["country_name"] == country
+                    and club["continent"] == continent
+                    for club in candidates
+                ),
+                f"{name}: {candidates}",
+            )
+        self.assertGreater(by_name["Stockport County"]["rank"], 50)
+        self.assertTrue(all(int(club["tier"]) < 3 for club in self.rankings[:50]))
+        for variants in (
+            {"Inter", "FC Internazionale Milano"},
+            {"Benfica", "Sport Lisboa e Benfica"},
+            {"Real Betis", "Real Betis Balompié"},
+            {"Lens", "Racing Club de Lens"},
+            {"Feyenoord", "Feyenoord Rotterdam"},
+        ):
+            self.assertLessEqual(len(variants & set(by_name)), 1)
+
+    def test_guarded_records_block_known_false_world_claims(self) -> None:
+        records = json.loads((DATA / "records.json").read_text(encoding="utf-8"))
+        expected = {
+            "peaks", "strongest_matches", "upsets", "aggregate_examples",
+            "year_opening_number_ones",
+        }
+        self.assertEqual(set(records["definitions"]), expected)
+        for definition in records["definitions"].values():
+            self.assertTrue(definition["measure"])
+            self.assertTrue(definition["order"])
+            self.assertTrue(definition["eligibility"])
+            self.assertTrue(definition["interpretation"])
+        peaks = {row["name"]: row for row in records["peaks"]}
+        self.assertGreater(peaks["Ajax"]["rating"], peaks["Kawasaki Frontale"]["rating"])
+        leaders = {row["year"]: row["name"] for row in records["year_opening_number_ones"]}
+        self.assertNotEqual(leaders.get(1999), "ES Tunis")
+
+    def test_reviewed_2026_champions_league_final_is_published_exactly(self) -> None:
+        row = next(item for item in self.match_index["years"] if item["year"] == 2026)
+        payload = read_json(DATA / "matches" / row["file"])
+        positions = {name: i for i, name in enumerate(self.match_index["schema"])}
+        final = [
+            match for match in payload["matches"]
+            if match[positions["date"]] == "2026-05-30"
+            and match[positions["competition"]] == "UEFA Champions League"
+            and match[positions["round"]]
+            == "Final · Paris Saint-Germain won 4–3 on penalties"
+        ]
+        self.assertEqual(len(final), 1)
+        match = final[0]
+        clubs = {club["code"]: club["name"] for club in self.catalog}
+        self.assertEqual(clubs[match[positions["home"]]], "PSG")
+        self.assertEqual(clubs[match[positions["away"]]], "Arsenal FC")
+        self.assertEqual(match[positions["home_goals"]], 1)
+        self.assertEqual(match[positions["away_goals"]], 1)
+        self.assertEqual(match[positions["status"]], "P")
+        self.assertTrue(match[positions["neutral"]])
+        self.assertEqual(
+            match[positions["source_ref"]],
+            "https://www.uefa.com/uefachampionsleague/match/2047742--paris-vs-arsenal/final/",
+        )
+
+    def test_santa_clara_associations_are_not_cross_country_merged(self) -> None:
+        santa_claras = [club for club in self.catalog if club["name"] == "Santa Clara"]
+        countries = {club["country_name"] for club in santa_claras}
+        self.assertIn("Portugal", countries)
+        codes = {club["code"]: club["country_name"] for club in santa_claras}
+        for year in (2023, 2024, 2025):
+            row = next(item for item in self.match_index["years"] if item["year"] == year)
+            payload = read_json(DATA / "matches" / row["file"])
+            positions = {name: i for i, name in enumerate(self.match_index["schema"])}
+            for match in payload["matches"]:
+                competition = str(match[positions["competition"]]).lower()
+                if competition.startswith("portugal"):
+                    for side in ("home", "away"):
+                        code = match[positions[side]]
+                        if code in codes:
+                            self.assertEqual(codes[code], "Portugal")
+
+    def test_all_ledger_quality_checks_are_published_as_passed(self) -> None:
+        sources = json.loads((DATA / "sources.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(sources["quality_checks"]), 6)
+        self.assertTrue(all(row["passed"] for row in sources["quality_checks"]))
+        self.assertEqual(self.meta["quality"]["checks"], self.meta["quality"]["passed"])
 
     def test_repository_brazil_snapshot_matches_its_manifest(self) -> None:
         snapshot = ROOT / "source" / "club_brazil.csv.gz"

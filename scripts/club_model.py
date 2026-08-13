@@ -17,6 +17,9 @@ import json
 import math
 import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 import tempfile
 from typing import Any, Iterable, Iterator
 
@@ -33,6 +36,17 @@ RATED_FIELDS = (
     "home_probability", "draw_probability", "away_probability", "model_score",
     "rating_delta", "post_home_mean", "post_away_mean", "post_home_rating",
     "post_away_rating", "post_home_se", "post_away_se", "surprise",
+)
+
+CURRENT_TABLES = (
+    "current_club_ratings",
+    "current_country_ratings",
+    "current_confederation_ratings",
+)
+PERSISTED_TABLES = (
+    "rated_matches",
+    "year_openings",
+    *CURRENT_TABLES,
 )
 
 BOUNDARY_KINDS = {"continental", "intercontinental", "global", "super_cup"}
@@ -493,13 +507,13 @@ class ClubRatingModel:
         duration = 1.0
         if status == "E":
             duration = float(self.config["extra_time_weight"])
-        elif status == "P":
+        elif status.startswith("P"):
             duration = float(self.config["penalty_weight"])
         return competition * duration * aggregate_weight
 
     @staticmethod
     def _score(home_goals: int, away_goals: int, status: str) -> float:
-        if status == "P" or home_goals == away_goals:
+        if status.startswith("P") or home_goals == away_goals:
             return 0.5
         return 1.0 if home_goals > away_goals else 0.0
 
@@ -582,6 +596,26 @@ class ClubRatingModel:
                     break
             for country in countries:
                 self.country_rating[country] -= centre
+
+    def _centre_tier_components(self) -> None:
+        """Keep every association's tier-one level at the zero reference.
+
+        Domestic cup matches identify the *gap* between divisions, but they
+        cannot identify an association's absolute strength.  Without this
+        constraint, equal-and-opposite tier updates let a successful top
+        division acquire a positive global offset from purely domestic games.
+        Recentring preserves every learned inter-tier gap while preventing
+        that unidentifiable offset from leaking into global comparisons.
+        """
+        tier_one = {
+            country: value
+            for (country, tier), value in self.tier_rating.items()
+            if tier == 1
+        }
+        for key in list(self.tier_rating):
+            country, _ = key
+            if country in tier_one:
+                self.tier_rating[key] -= tier_one[country]
 
     def _create_output_tables(self) -> None:
         assert self.output_connection is not None
@@ -777,7 +811,7 @@ class ClubRatingModel:
                 )
                 margin = (
                     0
-                    if str(status) == "P"
+                    if str(status).startswith("P")
                     else abs(int(home_goals) - int(away_goals))
                 )
                 movement = (
@@ -959,6 +993,7 @@ class ClubRatingModel:
                 )
                 self.country_bridge_info_day[country] = ordinal
 
+            self._centre_tier_components()
             self._centre_country_components(ordinal)
             post_anchor = self._publication_anchor()
             for item in temporary:
@@ -1037,10 +1072,21 @@ class ClubRatingModel:
         flush_rated()
         if self.write_tables:
             self._write_current_tables()
-            self._deduplicate_output_tables(processed)
+            self._validate_output_tables(processed)
         return self.summary(processed)
 
-    def _deduplicate_output_tables(self, expected_matches: int) -> None:
+    def _validate_output_tables(self, expected_matches: int) -> None:
+        """Prove output keys are unique without rewriting completed tables.
+
+        The replay consumes the already-unique ledger exactly once and writes
+        one current row per entity, so a duplicate is a model bug and must stop
+        publication.  An earlier defensive implementation rebuilt every table
+        and renamed it with ``ALTER TABLE``.  On large DuckDB 1.4.x databases,
+        those final catalog renames could remain in a WAL that intermittently
+        failed to replay after a clean-clone checkpoint.  Validation plus
+        unique indexes gives the same invariant without a fragile final
+        catalog rewrite.
+        """
         assert self.output_connection is not None
         target = self.output_connection
         for table, keys in (
@@ -1050,14 +1096,16 @@ class ClubRatingModel:
             ("current_country_ratings", "country"),
             ("current_confederation_ratings", "confederation"),
         ):
-            clean = f"{table}_unique"
-            target.execute(f"DROP TABLE IF EXISTS {clean}")
-            target.execute(
-                f"CREATE TABLE {clean} AS SELECT * FROM {table} QUALIFY "
-                f"row_number() OVER (PARTITION BY {keys})=1"
-            )
-            target.execute(f"DROP TABLE {table}")
-            target.execute(f"ALTER TABLE {clean} RENAME TO {table}")
+            duplicate_groups = int(target.execute(
+                f"SELECT count(*) FROM ("
+                f"SELECT {keys} FROM {table} GROUP BY {keys} "
+                f"HAVING count(*)>1) duplicates"
+            ).fetchone()[0])
+            if duplicate_groups:
+                raise RuntimeError(
+                    f"club model produced {duplicate_groups:,} duplicate "
+                    f"key groups in {table}"
+                )
         stored = int(
             target.execute("SELECT count(*) FROM rated_matches").fetchone()[0]
         )
@@ -1266,33 +1314,30 @@ def integer_or_none(value: Any) -> int | None:
     return None if value is None else int(value)
 
 
-def run_club_model(
+def _replay_model_once(
     database: Path,
     config: dict[str, Any],
     *,
-    write_tables: bool = True,
+    write_tables: bool,
     output_database: Path | None = None,
+    snapshot_directory: Path | None = None,
     replay_from: str | None = None,
     evaluation_start: str | None = None,
     evaluation_end: str | None = None,
 ) -> dict[str, Any]:
+    """Replay in the current process; the caller owns process isolation."""
+
     connection = duckdb.connect(str(database), read_only=True)
     output_connection: duckdb.DuckDBPyConnection | None = None
-    working_database: Path | None = None
     if write_tables:
-        output_database = output_database or database.with_name(
-            "club-model.duckdb"
-        )
+        if output_database is None or snapshot_directory is None:
+            raise ValueError(
+                "an output database and snapshot directory are required "
+                "for a persistent club replay"
+            )
         output_database.parent.mkdir(parents=True, exist_ok=True)
-        descriptor, working_name = tempfile.mkstemp(
-            prefix=f".{output_database.name}.building-",
-            dir=output_database.parent,
-        )
-        os.close(descriptor)
-        working_database = Path(working_name)
-        working_database.unlink()
-        output_connection = duckdb.connect(str(working_database))
-    result: dict[str, Any] | None = None
+        snapshot_directory.mkdir(parents=True, exist_ok=True)
+        output_connection = duckdb.connect(str(output_database))
     try:
         model = ClubRatingModel(
             connection,
@@ -1307,54 +1352,261 @@ def run_club_model(
         if output_database is not None:
             result["model_database"] = str(output_database)
         if output_connection is not None:
-            output_connection.execute("CHECKPOINT").fetchall()
+            # The replay database is deliberately disposable. DuckDB 1.4.x can
+            # lose earlier COPY batches when a large, repeatedly appended file
+            # is checkpointed and cold-reopened. Export every completed table
+            # while the writer's catalog is known-good; another process builds
+            # the publication database from these immutable snapshots.
+            assert snapshot_directory is not None
+            result["year_openings"] = int(
+                output_connection.execute(
+                    "SELECT count(*) FROM year_openings"
+                ).fetchone()[0]
+            )
+            for table in PERSISTED_TABLES:
+                output_connection.execute(
+                    f"COPY {table} TO ? (FORMAT PARQUET, COMPRESSION ZSTD)",
+                    [str(snapshot_directory / f"{table}.parquet")],
+                )
+        return result
     finally:
         connection.close()
         if output_connection is not None:
             output_connection.close()
-        if result is None and working_database is not None:
-            working_database.unlink(missing_ok=True)
-    assert result is not None
 
-    def verify_model(path: Path) -> None:
-        verifier = duckdb.connect(str(path), read_only=True)
-        try:
-            tables = {
-                str(row[0]) for row in verifier.execute("SHOW TABLES").fetchall()
-            }
-            required = {
-                "rated_matches",
-                "year_openings",
-                "current_club_ratings",
-                "current_country_ratings",
-                "current_confederation_ratings",
-            }
-            if not required.issubset(tables):
-                raise RuntimeError(
-                    "club model persistence check failed; missing "
-                    + ", ".join(sorted(required - tables))
-                )
-            stored = int(
-                verifier.execute(
-                    "SELECT count(*) FROM rated_matches"
-                ).fetchone()[0]
+
+def _atomic_worker(payload_path: Path) -> None:
+    """Write a raw model and snapshots, then let interpreter exit release it."""
+
+    payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    result = _replay_model_once(
+        Path(payload["database"]),
+        payload["config"],
+        write_tables=True,
+        output_database=Path(payload["working_database"]),
+        snapshot_directory=Path(payload["snapshot_directory"]),
+        replay_from=payload.get("replay_from"),
+        evaluation_start=payload.get("evaluation_start"),
+        evaluation_end=payload.get("evaluation_end"),
+    )
+    Path(payload["result_path"]).write_text(
+        json.dumps(result, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def run_club_model(
+    database: Path,
+    config: dict[str, Any],
+    *,
+    write_tables: bool = True,
+    output_database: Path | None = None,
+    replay_from: str | None = None,
+    evaluation_start: str | None = None,
+    evaluation_end: str | None = None,
+) -> dict[str, Any]:
+    """Replay ratings, publishing persistent databases across process boundaries.
+
+    DuckDB 1.4.x can retain a closed database instance until its interpreter
+    exits.  On a million-row replay that stale instance can recreate an old WAL
+    after a second connection has checkpointed the final catalog.  Persistent
+    builds therefore run the complete writer in a child process; only after it
+    exits do separate processes finalize and verify the atomic database.
+    """
+
+    if not write_tables:
+        return _replay_model_once(
+            database,
+            config,
+            write_tables=False,
+            replay_from=replay_from,
+            evaluation_start=evaluation_start,
+            evaluation_end=evaluation_end,
+        )
+
+    output_database = output_database or database.with_name(
+        "club-model.duckdb"
+    )
+    output_database.parent.mkdir(parents=True, exist_ok=True)
+    working_directory = Path(tempfile.mkdtemp(
+        prefix=f".{output_database.name}.building-",
+        dir=output_database.parent,
+    ))
+    raw_database = working_directory / "writer.duckdb"
+    working_database = working_directory / output_database.name
+    snapshot_directory = working_directory / "current-snapshots"
+    payload_path = working_directory / "worker-input.json"
+    result_path = working_directory / "worker-result.json"
+    payload_path.write_text(
+        json.dumps(
+            {
+                "database": str(database.resolve()),
+                "config": config,
+                "working_database": str(raw_database.resolve()),
+                "snapshot_directory": str(snapshot_directory.resolve()),
+                "result_path": str(result_path.resolve()),
+                "replay_from": replay_from,
+                "evaluation_start": evaluation_start,
+                "evaluation_end": evaluation_end,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result: dict[str, Any] | None = None
+    try:
+        writer = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--atomic-worker",
+                str(payload_path.resolve()),
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if writer.returncode:
+            detail = (writer.stderr or writer.stdout).strip()
+            raise RuntimeError(
+                "isolated club model writer failed"
+                + (f": {detail}" if detail else "")
             )
-            if stored != int(result["matches"]):
-                raise RuntimeError(
-                    f"club model reopened {stored:,} matches; "
-                    f"expected {int(result['matches']):,}"
-                )
-        finally:
-            verifier.close()
+        if not result_path.is_file() or not raw_database.is_file():
+            raise RuntimeError(
+                "isolated club model writer did not produce its result and database"
+            )
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        result["model_database"] = str(output_database)
 
-    if write_tables and output_database is not None and working_database is not None:
+        def database_helper(mode: str, path: Path) -> None:
+            """Finalize or verify in another fresh interpreter process."""
+            assert result is not None
+            helper = r"""
+import duckdb
+from pathlib import Path
+import sys
+
+mode, path, expected_matches, expected_openings, expected_clubs, expected_countries, expected_confederations, snapshots = sys.argv[1:9]
+expected = {
+    "rated_matches": int(expected_matches),
+    "year_openings": int(expected_openings),
+    "current_club_ratings": int(expected_clubs),
+    "current_country_ratings": int(expected_countries),
+    "current_confederation_ratings": int(expected_confederations),
+}
+if mode == "finalize":
+    connection = duckdb.connect(path)
+    try:
+        for table in (
+            "rated_matches",
+            "year_openings",
+            "current_club_ratings",
+            "current_country_ratings",
+            "current_confederation_ratings",
+        ):
+            source = str(Path(snapshots) / f"{table}.parquet")
+            if not Path(source).is_file():
+                raise SystemExit(f"missing final snapshot {source}")
+            connection.execute(
+                f"CREATE TABLE {table} AS SELECT * FROM read_parquet(?)",
+                [source],
+            )
+        for name, table, keys in (
+            ("rated_matches_match_id_unique", "rated_matches", "match_id"),
+            ("year_openings_year_club_unique", "year_openings", "year,club"),
+            ("current_club_ratings_club_unique", "current_club_ratings", "club"),
+            ("current_country_ratings_country_unique", "current_country_ratings", "country"),
+            (
+                "current_confederation_ratings_confederation_unique",
+                "current_confederation_ratings",
+                "confederation",
+            ),
+        ):
+            connection.execute(f"CREATE UNIQUE INDEX {name} ON {table}({keys})")
+        connection.execute(
+            "CREATE VIEW current_association_ratings AS "
+            "SELECT country,rating,se,cross_border_updates AS international_updates "
+            "FROM current_country_ratings"
+        )
+        connection.execute("FORCE CHECKPOINT").fetchall()
+    finally:
+        connection.close()
+else:
+    connection = duckdb.connect(path, read_only=True)
+    try:
+        tables = {str(row[0]) for row in connection.execute("SHOW TABLES").fetchall()}
+        required = {
+            "rated_matches", "year_openings", "current_club_ratings",
+            "current_country_ratings", "current_confederation_ratings",
+        }
+        missing = sorted(required - tables)
+        if missing:
+            raise SystemExit("missing " + ", ".join(missing))
+        for table, wanted in expected.items():
+            stored = int(connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0])
+            if stored != wanted:
+                raise SystemExit(
+                    f"reopened {stored:,} rows from {table}; expected {wanted:,}"
+                )
+    finally:
+        connection.close()
+"""
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    helper,
+                    mode,
+                    str(path.resolve()),
+                    str(int(result["matches"])),
+                    str(int(result["year_openings"])),
+                    str(int(result["clubs"])),
+                    str(int(result["countries"])),
+                    str(int(result["confederations"])),
+                    str(snapshot_directory.resolve()),
+                ],
+                text=True,
+                capture_output=True,
+            )
+            if completed.returncode:
+                detail = (completed.stderr or completed.stdout).strip()
+                raise RuntimeError(
+                    f"club model persistence {mode} failed"
+                    + (f": {detail}" if detail else "")
+                )
+
+        def verify_model(path: Path) -> None:
+            database_helper("verify", path)
+
+        def finalize_model(path: Path) -> None:
+            """Build a new durable database solely from verified snapshots."""
+            database_helper("finalize", path)
+
+        finalize_model(working_database)
+        verify_model(working_database)
+        working_wal = Path(f"{working_database}.wal")
+        if working_wal.exists():
+            raise RuntimeError(
+                "club model finalizer left a write-ahead log beside the "
+                "verified atomic database"
+            )
+        # The destination is a generated cache artifact. A WAL left by an
+        # interrupted earlier replay must not be paired with the new file.
+        Path(f"{output_database}.wal").unlink(missing_ok=True)
+        os.replace(working_database, output_database)
+        verify_model(output_database)
+        return result
+    finally:
         try:
-            verify_model(working_database)
-            os.replace(working_database, output_database)
-            verify_model(output_database)
-        finally:
-            working_database.unlink(missing_ok=True)
-    return result
+            shutil.rmtree(working_directory)
+        except FileNotFoundError:
+            pass
+        if working_directory.exists():
+            raise RuntimeError(
+                f"atomic club model workspace was not removed: {working_directory}"
+            )
 
 
 __all__ = [
@@ -1366,3 +1618,9 @@ __all__ = [
     "run_club_model",
     "three_way_probabilities",
 ]
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3 or sys.argv[1] != "--atomic-worker":
+        raise SystemExit("club_model.py is an internal module")
+    _atomic_worker(Path(sys.argv[2]))

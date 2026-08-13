@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-12-global-club-v6",
+  "version": "2026-08-12-global-club-v7",
   "base_rating": 1500.0,
   "k_factor": 18.0,
   "home_advantage_domestic": 45.0,
@@ -7,11 +7,11 @@
   "draw_peak": 0.285,
   "margin_scale": 1.05,
   "club_retention": 0.82,
-  "tier_retention": 0.3,
-  "tier_share": 0.0,
-  "tier_gap": 45.0,
+  "tier_retention": 0.65,
+  "tier_share": 0.45,
+  "tier_gap": 80.0,
   "country_retention": 0.97,
-  "country_share": 0.35,
+  "country_share": 0.15,
   "country_anchor_quantile": 0.90,
   "confederation_retention": 0.96,
   "confederation_share": 0.5,
@@ -24,7 +24,7 @@
   "tier_prior_sd": 65.0,
   "country_prior_sd": 105.0,
   "confederation_prior_sd": 95.0,
-  "uncertainty_penalty": 1.5,
+  "uncertainty_penalty": 1.25,
   "competition_weights": {
     "league": 1.0,
     "state": 0.82,
@@ -36,10 +36,10 @@
     "super_cup": 0.72
   },
   "fit": {
-    "status": "v6 audited global replay with conservative association pooling",
+    "status": "v7 audited global replay with current-tier repair and guarded records",
     "replay_from": "2000-01-01",
     "validation_period": ["2018-01-01", "2022-12-31"],
     "test_period": ["2023-01-01", "2026-12-31"],
-    "selection": "The association share is reduced from 0.65 to 0.35 so an elite continental participant's result remains primarily club-specific instead of being assigned twice across its domestic league. The confederation bridge is identified against the evidence-weighted 90th-percentile association because global tournaments select leading clubs. Score normalization, Club World Cup classification and metadata finalization are also corrected. Full replay metrics are regenerated with every installation."
+    "selection": "The club retains 85% of an ordinary same-confederation cross-border result; this prevents association coefficients from stretching well-connected European leagues far apart while preserving a regional bridge. Cross-tier cup evidence is split between the clubs and the two tier levels around an 80-point baseline gap, with every association's tier-one effect fixed at zero so domestic cups cannot create a global league offset. The published lower estimate subtracts 1.25 standard errors: still conservative, without letting modern match-density differences dominate cross-era records. Complete 2025/26 league files repair current promotion and relegation states. Identity, shootout, historical-jurisdiction and world-record eligibility checks run before publication. Full replay metrics are regenerated with every installation."
   }
 }

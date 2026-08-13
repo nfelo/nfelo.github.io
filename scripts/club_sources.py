@@ -52,6 +52,20 @@ TRANSFERMARKT_FILES = (
     "clubs.csv.gz",
     "competitions.csv.gz",
 )
+OPENFOOTBALL_BASE = (
+    "https://raw.githubusercontent.com/openfootball/football.json/"
+    "master/2025-26"
+)
+# The current complete season is deliberately catalogued rather than scraped.
+# Every JSON file is small, schema-checkable, CC0, and supplies the league tier
+# that cup-only feeds cannot infer after a promotion or relegation.
+OPENFOOTBALL_FILES = (
+    "at.1.json", "at.2.json", "be.1.json", "de.1.json", "de.2.json",
+    "en.1.json", "en.2.json", "en.3.json", "en.4.json",
+    "es.1.json", "es.2.json", "fr.1.json", "fr.2.json", "gr.1.json",
+    "it.1.json", "it.2.json", "nl.1.json", "pt.1.json", "sco.1.json",
+    "tr.1.json",
+)
 BRAZIL_BASE = (
     "https://raw.githubusercontent.com/BrazilianFootball/Data/"
     "master/results/processed"
@@ -188,6 +202,18 @@ def ensure_runtime_sources(cache: Path, *, refresh: bool = False) -> dict[str, A
                 1_000,
                 "CC0 1.0 (dataset repository); underlying source attribution retained",
                 "dcaribou/transfermarkt-datasets and Transfermarkt",
+                True,
+            )
+        )
+    for filename in OPENFOOTBALL_FILES:
+        requested.append(
+            (
+                f"openfootball:{filename}",
+                f"{OPENFOOTBALL_BASE}/{filename}",
+                cache / "openfootball" / "2025-26" / filename,
+                1_000,
+                "CC0 1.0 / public domain dedication",
+                "OpenFootball football.json",
                 True,
             )
         )

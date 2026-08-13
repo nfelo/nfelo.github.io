@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 import gzip
@@ -25,6 +25,44 @@ from club_sources import ensure_runtime_sources
 
 
 ACTIVE_DAYS = 550
+WORLD_COMPARABLE_MAX_SE = 145.0
+WORLD_COMPARABLE_MIN_MATCHES = 50
+# Same-club public labels previously created separate active rating histories
+# when a current-season feed used a longer corporate name.  These reviewed,
+# association-scoped groups are release blockers rather than display aliases:
+# the evidence must have been merged before the replay.
+PUBLIC_IDENTITY_VARIANT_GROUPS = (
+    ("belgium", {"Antwerp", "Royal Antwerp FC"}),
+    ("belgium", {"Gent", "KAA Gent"}),
+    ("belgium", {"Sint-Truiden", "Sint-Truidense VV"}),
+    ("belgium", {"Westerlo", "KVC Westerlo"}),
+    ("croatia", {"Rijeka", "HNK Rijeka"}),
+    ("france", {"Brest", "Stade Brestois 29"}),
+    ("france", {"Lens", "Racing Club de Lens"}),
+    ("france", {"Strasbourg", "RC Strasbourg Alsace"}),
+    ("germany", {"Bochum", "VfL Bochum"}),
+    ("germany", {"Hoffenheim", "TSG 1899 Hoffenheim", "TSG Hoffenheim"}),
+    ("germany", {"St. Pauli", "FC St. Pauli 1910"}),
+    ("greece", {"PAOK", "PAOK Saloniki"}),
+    ("italy", {"Cagliari", "Cagliari Calcio"}),
+    ("italy", {"Genoa", "Genoa CFC"}),
+    ("italy", {"Inter", "FC Internazionale Milano"}),
+    ("italy", {"Lazio", "SS Lazio"}),
+    ("italy", {"Parma", "Parma Calcio 1913"}),
+    ("italy", {"Udinese", "Udinese Calcio"}),
+    ("italy", {"Venezia", "Venezia FC"}),
+    ("netherlands", {"AZ", "AZ Alkmaar"}),
+    ("netherlands", {"Feyenoord", "Feyenoord Rotterdam"}),
+    ("netherlands", {"NEC", "NEC Nijmegen"}),
+    ("netherlands", {"SC Telstar", "Telstar 1963"}),
+    ("portugal", {"Benfica", "Sport Lisboa e Benfica"}),
+    ("portugal", {"Estoril", "GD Estoril Praia"}),
+    ("portugal", {"Sporting CP", "Sporting Clube de Portugal"}),
+    ("spain", {"Espanyol", "RCD Espanyol de Barcelona"}),
+    ("spain", {"Las Palmas", "UD Las Palmas"}),
+    ("spain", {"Rayo Vallecano", "Rayo Vallecano de Madrid"}),
+    ("spain", {"Real Betis", "Real Betis Balompié"}),
+)
 MATCH_SCHEMA = [
     "id", "date", "home", "away", "home_goals", "away_goals",
     "competition", "kind", "home_tier", "away_tier", "neutral",
@@ -109,6 +147,87 @@ def verify_static_data(data: Path, expected_matches: int) -> None:
         raise OSError(
             f"archive total {total:,} does not match ledger total {expected_matches:,}"
         )
+    rankings = json.loads((data / "rankings.json").read_text(encoding="utf-8"))["clubs"]
+    catalog = json.loads((data / "clubs.json").read_text(encoding="utf-8"))["clubs"]
+    invalid_catalog = [
+        club for club in catalog
+        if not str(club.get("name") or "").strip()
+        or str(club.get("name") or "").strip().casefold()
+        in {"na", "none", "null", "tbd", "unknown", "bye"}
+        or str(club.get("country_name") or "").strip()
+        in {"", "Unassigned", "Unknown"}
+        or str(club.get("continent") or "").strip()
+        in {"", "Unassigned", "Unknown"}
+    ]
+    if invalid_catalog:
+        raise OSError(
+            "a published club has placeholder identity metadata: "
+            + str(invalid_catalog[0].get("name") or invalid_catalog[0].get("code"))
+        )
+    public_identity_keys = [
+        (str(club["country_name"]), str(club["name"]))
+        for club in catalog
+    ]
+    if len(public_identity_keys) != len(set(public_identity_keys)):
+        duplicates = Counter(public_identity_keys)
+        example = next(key for key, count in duplicates.items() if count > 1)
+        raise OSError(
+            "duplicate public club history inside one association: "
+            + " · ".join(example)
+        )
+    if any(int(club["tier"]) >= 3 for club in rankings[:50]):
+        raise OSError("a third-tier-or-lower club entered the published top 50")
+    if any(
+        not club.get("country")
+        or club.get("continent") in {None, "", "Unassigned"}
+        for club in rankings[:250]
+    ):
+        raise OSError("a top-250 club has unassigned nation or confederation metadata")
+    if sum(club.get("continent") == "South America" for club in rankings[:100]) < 5:
+        raise OSError("global top 100 lost plausible South American representation")
+    public_names = defaultdict(set)
+    for club in rankings:
+        public_names[str(club.get("country") or "")].add(str(club.get("name") or ""))
+    for country, variants in PUBLIC_IDENTITY_VARIANT_GROUPS:
+        retained = variants & public_names[country]
+        if len(retained) > 1:
+            raise OSError(
+                "same club has multiple active public identities: "
+                + ", ".join(sorted(retained))
+            )
+
+    records = json.loads((data / "records.json").read_text(encoding="utf-8"))
+    if set(records.get("definitions", {})) != {
+        "peaks", "strongest_matches", "upsets", "aggregate_examples",
+        "year_opening_number_ones",
+    }:
+        raise OSError("record definitions are incomplete")
+    peak_by_name = {row["name"]: float(row["rating"]) for row in records["peaks"]}
+    if peak_by_name.get("Ajax", float("-inf")) <= peak_by_name.get(
+        "Kawasaki Frontale", float("inf")
+    ):
+        raise OSError("peak sanity check failed: Ajax must exceed Kawasaki Frontale")
+    leader_1999 = next(
+        (row for row in records["year_opening_number_ones"] if int(row["year"]) == 1999),
+        None,
+    )
+    if leader_1999 and leader_1999["name"] == "ES Tunis":
+        raise OSError("world No. 1 sanity check failed for 1999")
+
+    archive_2026 = next(
+        (data / "matches" / str(item["file"]) for item in index["years"] if int(item["year"]) == 2026),
+        None,
+    )
+    if archive_2026 is None:
+        raise OSError("2026 match archive is missing")
+    with gzip.open(archive_2026, "rt", encoding="utf-8") as handle:
+        matches_2026 = json.load(handle)["matches"]
+    if not any(
+        row[1] == "2026-05-30" and row[6] == "UEFA Champions League"
+        and row[4:6] == [1, 1] and row[12] == "P"
+        for row in matches_2026
+    ):
+        raise OSError("the verified 2026 UEFA Champions League final is missing")
 
 
 def publish_static_data(staged: Path, destination: Path) -> None:
@@ -319,10 +438,25 @@ def export_club_site(
                 )
             write_json(data / "history" / f"{year}.json", {"year": year, "rankings": values})
             history_index.append({"year": year, "clubs": len(values), "file": f"{year}.json"})
-            if values:
-                leader = clubs_by_id[int(rows[0][1])]
+            world_rows = [
+                row for row in rows
+                if int(row[7]) == 1
+                and int(row[6]) >= WORLD_COMPARABLE_MIN_MATCHES
+                and float(row[4]) <= WORLD_COMPARABLE_MAX_SE
+            ]
+            if world_rows:
+                leader_row = world_rows[0]
+                leader = clubs_by_id[int(leader_row[1])]
                 number_ones.append(
-                    {"year": year, "club": leader["code"], "name": leader["name"], "rating": values[0][2]}
+                    {
+                        "year": year,
+                        "club": leader["code"],
+                        "name": leader["name"],
+                        "country": leader["country_name"],
+                        "rating": rounded(float(leader_row[3]), 2),
+                        "se": rounded(float(leader_row[4]), 2),
+                        "published_rank": rows.index(leader_row) + 1,
+                    }
                 )
         write_json(
             data / "history" / "index.json",
@@ -425,31 +559,61 @@ def export_club_site(
         peak_rows = connection.execute(
             """
             WITH points AS (
-                SELECT home club,day,post_home_rating rating FROM model.rated_matches
+                SELECT match_id,home club,away opponent,day,post_home_rating rating,
+                       post_home_mean mean,post_home_se se,home_goals gf,away_goals ga,
+                       competition,status,cross_border
+                FROM model.rated_matches
                 UNION ALL
-                SELECT away club,day,post_away_rating rating FROM model.rated_matches
+                SELECT match_id,away,home,day,post_away_rating,post_away_mean,
+                       post_away_se,away_goals,home_goals,competition,status,cross_border
+                FROM model.rated_matches
+            ), numbered AS (
+                SELECT *,row_number() OVER (PARTITION BY club ORDER BY day,match_id) games
+                FROM points
             ), peaks AS (
-                SELECT club,max(rating) rating,arg_max(day,rating) peak_day FROM points GROUP BY club
+                SELECT * FROM numbered
+                WHERE games>=? AND se<=?
+                QUALIFY row_number() OVER (PARTITION BY club ORDER BY rating DESC,day)=1
             )
-            SELECT c.code,c.name,c.country_name,p.rating,p.peak_day
-            FROM peaks p JOIN clubs c USING(club)
+            SELECT c.code,c.name,c.country_name,p.rating,p.day,p.mean,p.se,
+                   o.code,o.name,p.gf,p.ga,p.competition,p.status,p.games,p.cross_border
+            FROM peaks p JOIN clubs c USING(club) JOIN clubs o ON o.club=p.opponent
             ORDER BY p.rating DESC,c.name LIMIT 250
-            """
+            """,
+            [WORLD_COMPARABLE_MIN_MATCHES, WORLD_COMPARABLE_MAX_SE],
         ).fetchall()
         peaks = [
-            {"club": r[0], "name": r[1], "country": r[2], "rating": rounded(float(r[3]), 2), "date": str(r[4])}
+            {
+                "club": r[0], "name": r[1], "country": r[2],
+                "rating": rounded(float(r[3]), 2), "date": str(r[4]),
+                "mean": rounded(float(r[5]), 2), "se": rounded(float(r[6]), 2),
+                "opponent": r[7], "opponent_name": r[8],
+                "goals_for": int(r[9]), "goals_against": int(r[10]),
+                "competition": r[11], "status": r[12],
+                "matches_at_peak": int(r[13]), "cross_border": bool(r[14]),
+            }
             for r in peak_rows
         ]
         strongest = [
             match_array(row)
             for row in connection.execute(
-                _match_select("ORDER BY r.pre_home_rating+r.pre_away_rating DESC LIMIT 250")
+                _match_select(
+                    f"WHERE r.pre_home_se<={WORLD_COMPARABLE_MAX_SE} "
+                    f"AND r.pre_away_se<={WORLD_COMPARABLE_MAX_SE} "
+                    "ORDER BY r.pre_home_rating+r.pre_away_rating DESC LIMIT 250"
+                )
             ).fetchall()
         ]
         upsets = [
             match_array(row)
             for row in connection.execute(
-                _match_select("ORDER BY r.surprise DESC LIMIT 250")
+                _match_select(
+                    f"WHERE r.pre_home_se<={WORLD_COMPARABLE_MAX_SE} "
+                    f"AND r.pre_away_se<={WORLD_COMPARABLE_MAX_SE} "
+                    "AND r.model_score IN (0.0,1.0) AND r.status NOT LIKE 'P%' "
+                    "AND r.evidence_weight>=0.5 "
+                    "ORDER BY r.surprise DESC LIMIT 250"
+                )
             ).fetchall()
         ]
         aggregate_examples = [
@@ -465,6 +629,43 @@ def export_club_site(
             data / "records.json",
             {
                 "match_schema": MATCH_SCHEMA,
+                "definitions": {
+                    "peaks": {
+                        "title": "Post-match club peaks",
+                        "measure": "The highest cautious published rating a club held immediately after a retained match.",
+                        "order": "Descending post-match rating; ties break by the earlier date.",
+                        "eligibility": f"At least {WORLD_COMPARABLE_MIN_MATCHES} prior retained results and post-match uncertainty no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "The underlying mean is shown for transparency, but the record is the uncertainty-adjusted rating.",
+                    },
+                    "strongest_matches": {
+                        "title": "Highest-rated matches",
+                        "measure": "The sum of both clubs' cautious ratings before kick-off.",
+                        "order": "Descending combined pre-match rating.",
+                        "eligibility": f"Both pre-match uncertainties must be no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "This describes the strength of the pairing, not the importance or entertainment value of the match.",
+                    },
+                    "upsets": {
+                        "title": "Largest winning upsets",
+                        "measure": "Negative log probability of the winning outcome: −ln(P(observed winner)).",
+                        "order": "Descending surprise; a smaller pre-match win probability produces a larger score.",
+                        "eligibility": f"A decisive win, at least half ordinary evidence weight, and both uncertainties at or below {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "Draws and penalty shootouts are excluded. Identity and duplicate checks run before this list is built.",
+                    },
+                    "aggregate_examples": {
+                        "title": "Controlled second-leg cases",
+                        "measure": "Second legs whose result carried less than full information because the losing club remained ahead on aggregate.",
+                        "order": "Lowest information weight first, then newest date.",
+                        "eligibility": "A paired second leg with known first-leg score, same leader before and after, and a result opposite to the aggregate winner.",
+                        "interpretation": "The before and after aggregate margins are from the second-leg home club's perspective; positive means that club led the tie.",
+                    },
+                    "year_opening_number_ones": {
+                        "title": "World-comparable No. 1 chronology",
+                        "measure": "The highest eligible rating at the opening of each calendar year.",
+                        "order": "Calendar year.",
+                        "eligibility": f"Active within {ACTIVE_DAYS} days, tier one, at least {WORLD_COMPARABLE_MIN_MATCHES} prior results, uncertainty at or below {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "Years before the evidence network clears those safeguards are not labeled with a world No. 1.",
+                    },
+                },
                 "peaks": peaks,
                 "strongest_matches": strongest,
                 "upsets": upsets,
@@ -483,6 +684,10 @@ def export_club_site(
             json.loads(brazil_states_manifest_path.read_text(encoding="utf-8"))
             if brazil_states_manifest_path.exists() else None
         )
+        quality_rows = connection.execute(
+            "SELECT check_name,actual,expected,passed,note "
+            "FROM data_quality_checks ORDER BY check_name"
+        ).fetchall()
         sources = {
             "discovery_index": {
                 "name": "Sabino football-statistics research sources",
@@ -501,13 +706,20 @@ def export_club_site(
             ],
             "additional_research": [
                 {"name": "RSSSF", "url": "https://www.rsssf.org/", "role": "Historical corroboration and gap discovery"},
-                {"name": "OpenFootball", "url": "https://openfootball.github.io/", "role": "Open-format corroboration and future ingestion candidate"},
+                {"name": "OpenFootball", "url": "https://openfootball.github.io/", "role": "Current-season league and tier repair, plus open-format corroboration"},
             ],
             "limitations": [
                 "Coverage is broad, not literally complete: lower tiers, state competitions, early cups, and some confederations remain uneven.",
                 "A club identity is kept separate when legal or sporting succession is genuinely ambiguous.",
                 "Mutable upstream feeds are hash-recorded on every build; historical corrections can change a later replay without refitting coefficients.",
                 "Penalty-shootout-decided matches are learned as regulation/extra-time draws; shootout goals are not treated as ordinary goal margin.",
+            ],
+            "quality_checks": [
+                {
+                    "name": row[0], "actual": int(row[1]),
+                    "expected": int(row[2]), "passed": bool(row[3]), "note": row[4],
+                }
+                for row in quality_rows
             ],
         }
         write_json(data / "sources.json", sources)
@@ -537,6 +749,13 @@ def export_club_site(
                 "maximum_tier": max((int(row[0]) for row in tier_rows), default=1),
                 "tiers": {str(row[0]): int(row[1]) for row in tier_rows},
                 "sources": ledger_summary["sources"],
+            },
+            "quality": {
+                "checks": len(quality_rows),
+                "passed": sum(bool(row[3]) for row in quality_rows),
+                "corrections": ledger_summary.get("quality", {}),
+                "world_comparable_max_se": WORLD_COMPARABLE_MAX_SE,
+                "world_comparable_min_matches": WORLD_COMPARABLE_MIN_MATCHES,
             },
             "method": {
                 "rating": "1500 + club residual + tier + association coefficient + confederation coefficient - uncertainty penalty",

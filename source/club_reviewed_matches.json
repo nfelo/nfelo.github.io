@@ -1,0 +1,23 @@
+[
+  {
+    "date": "2026-05-30",
+    "season": 2025,
+    "home": "PSG",
+    "away": "Arsenal FC",
+    "home_country": "france",
+    "away_country": "england",
+    "home_goals": 1,
+    "away_goals": 1,
+    "competition": "UEFA Champions League",
+    "competition_key": "reviewed:uefa-champions-league:2025-26",
+    "kind": "continental",
+    "home_tier": 1,
+    "away_tier": 1,
+    "neutral": true,
+    "cross_border": true,
+    "status": "P",
+    "leg": 0,
+    "round": "Final · Paris Saint-Germain won 4–3 on penalties",
+    "source_ref": "https://www.uefa.com/uefachampionsleague/match/2047742--paris-vs-arsenal/final/"
+  }
+]

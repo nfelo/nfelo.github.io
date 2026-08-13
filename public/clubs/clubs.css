@@ -111,6 +111,13 @@
 }
 
 .club-match-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overscroll-behavior-inline: contain;
+}
+
+.club-match-table > table {
   min-width: 1160px;
 }
 
@@ -160,6 +167,114 @@
 .club-probabilities b {
   color: var(--ink);
   font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.club-match-table-view,
+.club-match-cards,
+.record-desktop,
+.record-cards,
+#record-table,
+#record-results {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.club-match-cards,
+.record-cards {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-definition {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 24px;
+  padding: clamp(20px, 3vw, 30px);
+  background:
+    radial-gradient(
+      ellipse 24rem 11rem at 103% -15%,
+      color-mix(in srgb, var(--accent-soft) 72%, transparent),
+      transparent 74%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 94%, var(--note-bg)),
+      var(--surface)
+    );
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-small);
+}
+
+.record-definition::after {
+  position: absolute;
+  right: -18px;
+  bottom: -18px;
+  width: 62px;
+  height: 62px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 34% 34%, var(--accent-soft) 0 18%, transparent 20%),
+    radial-gradient(circle at 65% 34%, var(--note-bg) 0 18%, transparent 20%),
+    radial-gradient(circle at 50% 62%, var(--accent-soft) 0 18%, transparent 20%);
+  opacity: 0.72;
+  content: "";
+  transform: rotate(-12deg);
+}
+
+.record-definition h2 {
+  margin: 3px 0 20px;
+}
+
+.record-definition dl,
+.method-definition-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.record-definition dl > div,
+.method-definition-list > div {
+  min-width: 0;
+  padding: 14px 15px;
+  background: color-mix(in srgb, var(--surface) 86%, var(--accent-soft));
+  border: 1px solid var(--border);
+  border-radius: 11px 16px 11px 16px;
+}
+
+.record-definition dt,
+.method-definition-list dt {
+  margin: 0 0 5px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.record-definition dd,
+.method-definition-list dd {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.record-metric {
+  display: block;
+  margin-top: 7px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.record-metric b {
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -249,6 +364,217 @@
   line-height: 1.35;
 }
 
+@media (max-width: 1024px) {
+  .club-match-table-view,
+  .record-desktop {
+    display: none;
+  }
+
+  .club-match-cards,
+  .record-cards {
+    display: grid;
+    gap: 14px;
+  }
+
+  .record-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .club-match-card,
+  .record-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 18px;
+    background:
+      radial-gradient(
+        ellipse 16rem 8rem at 103% -12%,
+        color-mix(in srgb, var(--accent-soft) 68%, transparent),
+        transparent 74%
+      ),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--surface) 96%, var(--note-bg)),
+        var(--surface)
+      );
+    border: 1px solid var(--border);
+    border-radius: 16px 22px 16px 22px;
+    box-shadow: var(--shadow-small);
+  }
+
+  .club-match-card:nth-child(3n + 2),
+  .record-card:nth-child(3n + 2) {
+    background:
+      radial-gradient(
+        ellipse 16rem 8rem at 103% -12%,
+        color-mix(in srgb, var(--note-bg) 78%, transparent),
+        transparent 74%
+      ),
+      var(--surface);
+  }
+
+  .club-match-card > header,
+  .record-card > header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 11px;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .club-match-card > header span {
+    max-width: 64%;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .club-match-card-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+  }
+
+  .club-match-card-pair > div {
+    min-width: 0;
+  }
+
+  .club-match-card-pair > div:last-child {
+    text-align: right;
+  }
+
+  .club-match-card-pair > div:last-child .club-identity {
+    justify-items: end;
+  }
+
+  .club-match-card-pair > strong {
+    min-width: 46px;
+    padding: 7px 8px;
+    color: var(--ink);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-numeric);
+    font-size: 16px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .club-match-status {
+    margin: 13px 0 0;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .club-match-card .record-metric {
+    margin: 10px auto 0;
+    text-align: center;
+  }
+
+  .club-match-card-data,
+  .record-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 15px 0 0;
+  }
+
+  .club-match-card-data > div,
+  .record-card dl > div {
+    min-width: 0;
+    padding: 10px;
+    background: color-mix(in srgb, var(--surface-subtle) 86%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 10px 14px 10px 14px;
+  }
+
+  .club-match-card-data dt,
+  .record-card dt {
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .club-match-card-data dd,
+  .record-card dd {
+    margin: 4px 0 0;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .club-match-card .club-probabilities {
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+  }
+
+  .aggregate-note {
+    margin-top: 12px;
+    padding: 12px 13px;
+    color: var(--note-ink);
+    background: var(--note-bg);
+    border-radius: 11px 15px 11px 15px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .aggregate-note p {
+    margin: 4px 0 0;
+  }
+
+  .club-match-card > details {
+    margin: 13px -18px -18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .club-match-card > details summary {
+    padding: 12px 18px;
+    color: var(--link);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .club-match-card > details p {
+    margin: 0;
+    padding: 0 18px 12px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .record-card > header strong {
+    color: var(--ink);
+    font-family: var(--font-numeric);
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .record-card > .club-identity {
+    width: 100%;
+  }
+
+  .record-card > .club-identity .club-name {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 3vw, 25px);
+    font-weight: 620;
+  }
+}
+
 @media (max-width: 760px) {
   .club-match-pair {
     min-width: 390px;
@@ -256,6 +582,12 @@
 
   .club-context {
     font-size: 10px;
+  }
+
+  .record-definition dl,
+  .method-definition-list,
+  .record-cards {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -266,5 +598,42 @@
 
   .club-chart-legend {
     padding-inline: 4px;
+  }
+
+  .club-match-card,
+  .record-card {
+    padding: 14px;
+  }
+
+  .club-match-card > details {
+    margin: 12px -14px -14px;
+  }
+
+  .club-match-card > details summary,
+  .club-match-card > details p {
+    padding-inline: 14px;
+  }
+
+  .club-match-card-pair {
+    gap: 6px;
+  }
+
+  .club-match-card-pair > strong {
+    min-width: 40px;
+    padding-inline: 6px;
+    font-size: 14px;
+  }
+
+  .club-match-card-pair .club-name {
+    font-size: 13px;
+  }
+
+  .club-match-card-pair .club-context {
+    font-size: 9px;
+  }
+
+  .club-match-card-data,
+  .record-card dl {
+    grid-template-columns: 1fr;
   }
 }
