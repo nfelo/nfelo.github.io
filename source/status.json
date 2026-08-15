@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-08-15T15:40:14+00:00",
+  "source_checked_at": "2026-08-15T23:35:04+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-15",
   "supplemental_results": 0,
@@ -18,14 +18,19 @@
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-08-15T15:40:11+00:00",
+    "source_checked_at": "2026-08-15T23:34:59+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
-    "pages_checked": 2,
-    "pages_changed": 2,
+    "pages_checked": 7,
+    "pages_changed": 7,
     "changed": [
-      "Thailand",
-      "Singapore"
+      "Kosovo",
+      "Costa_Rica",
+      "Finland",
+      "Kurdistan",
+      "Pakistan",
+      "Macao",
+      "Eastern_Samoa"
     ],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
