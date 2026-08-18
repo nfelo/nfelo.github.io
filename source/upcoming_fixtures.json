@@ -5,22 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-18T15:52:54+00:00",
+  "checked_at": "2026-08-18T23:37:16+00:00",
   "fixtures": [
-    {
-      "date": "2026-08-18",
-      "date_precision": "day",
-      "team1_code": "TH",
-      "team2_code": "SG",
-      "team1_name": "Thailand",
-      "team2_name": "Singapore",
-      "tournament_code": "SEA",
-      "tournament_name": "Southeast Asian Championship",
-      "city": "",
-      "country": "Thailand",
-      "neutral": false,
-      "home_sign": 1
-    },
     {
       "date": "2026-08-19",
       "date_precision": "day",
@@ -708,6 +694,20 @@
       "home_sign": 0
     },
     {
+      "date": "2026-09-24",
+      "date_precision": "day",
+      "team1_code": "UZ",
+      "team2_code": "IR",
+      "team1_name": "Uzbekistan",
+      "team2_name": "Iran",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Uzbekistan",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
       "date": "2026-09-25",
       "kickoff_utc": "2026-09-25T16:00:00",
       "team1_code": "AM",
@@ -1250,6 +1250,20 @@
       "tournament_name": "Gulf Cup",
       "city": "",
       "country": "Saudi Arabia",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-27",
+      "date_precision": "day",
+      "team1_code": "BO",
+      "team2_code": "PY",
+      "team1_name": "Bolivia",
+      "team2_name": "Paraguay",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
       "neutral": true,
       "home_sign": 0
     },
@@ -1994,6 +2008,20 @@
       "country": "Saudi Arabia",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-30",
+      "date_precision": "day",
+      "team1_code": "CN",
+      "team2_code": "UZ",
+      "team1_name": "China",
+      "team2_name": "Uzbekistan",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "China",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-30",
