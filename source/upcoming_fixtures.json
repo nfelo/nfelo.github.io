@@ -5,15 +5,29 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-19T15:51:45+00:00",
+  "checked_at": "2026-08-19T23:38:03+00:00",
   "fixtures": [
     {
-      "date": "2026-08-19",
+      "date": "2026-08-22",
+      "date_precision": "day",
+      "team1_code": "TH",
+      "team2_code": "VN",
+      "team1_name": "Thailand",
+      "team2_name": "Vietnam",
+      "tournament_code": "SEA",
+      "tournament_name": "Southeast Asian Championship",
+      "city": "",
+      "country": "Thailand",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-08-26",
       "date_precision": "day",
       "team1_code": "VN",
-      "team2_code": "MY",
+      "team2_code": "TH",
       "team1_name": "Vietnam",
-      "team2_name": "Malaysia",
+      "team2_name": "Thailand",
       "tournament_code": "SEA",
       "tournament_name": "Southeast Asian Championship",
       "city": "",
