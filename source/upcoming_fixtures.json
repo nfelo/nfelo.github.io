@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-20T15:53:20+00:00",
+  "checked_at": "2026-08-20T23:42:33+00:00",
   "fixtures": [
     {
       "date": "2026-08-22",
@@ -2862,6 +2862,20 @@
       "country": "Bosnia and Herzegovina",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-10-02",
+      "date_precision": "day",
+      "team1_code": "CO",
+      "team2_code": "PY",
+      "team1_name": "Colombia",
+      "team2_name": "Paraguay",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "United States",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-10-02",
