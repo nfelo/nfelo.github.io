@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-20T07:12:22+00:00",
+  "checked_at": "2026-08-20T15:53:20+00:00",
   "fixtures": [
     {
       "date": "2026-08-22",
@@ -372,6 +372,34 @@
       "home_sign": 1
     },
     {
+      "date": "2026-09-17",
+      "date_precision": "day",
+      "team1_code": "FJ",
+      "team2_code": "SB",
+      "team1_name": "Fiji",
+      "team2_name": "Solomon Islands",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-17",
+      "date_precision": "day",
+      "team1_code": "PG",
+      "team2_code": "VU",
+      "team1_name": "Papua New Guinea",
+      "team2_name": "Vanuatu",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
       "date": "2026-09-18",
       "date_precision": "day",
       "team1_code": "KW",
@@ -382,6 +410,34 @@
       "tournament_name": "Friendly",
       "city": "",
       "country": "Saudi Arabia",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-20",
+      "date_precision": "day",
+      "team1_code": "FJ",
+      "team2_code": "VU",
+      "team1_name": "Fiji",
+      "team2_name": "Vanuatu",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-20",
+      "date_precision": "day",
+      "team1_code": "NC",
+      "team2_code": "SB",
+      "team1_name": "New Caledonia",
+      "team2_name": "Solomon Islands",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
       "neutral": true,
       "home_sign": 0
     },
@@ -444,6 +500,20 @@
     {
       "date": "2026-09-23",
       "date_precision": "day",
+      "team1_code": "NC",
+      "team2_code": "PG",
+      "team1_name": "New Caledonia",
+      "team2_name": "Papua New Guinea",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-23",
+      "date_precision": "day",
       "team1_code": "SA",
       "team2_code": "KW",
       "team1_name": "Saudi Arabia",
@@ -454,6 +524,20 @@
       "country": "Saudi Arabia",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-23",
+      "date_precision": "day",
+      "team1_code": "SB",
+      "team2_code": "VU",
+      "team1_name": "Solomon Islands",
+      "team2_name": "Vanuatu",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-23",
@@ -1073,6 +1157,20 @@
     },
     {
       "date": "2026-09-26",
+      "date_precision": "day",
+      "team1_code": "FJ",
+      "team2_code": "PG",
+      "team1_name": "Fiji",
+      "team2_name": "Papua New Guinea",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-26",
       "kickoff_utc": "2026-09-26T16:00:00",
       "team1_code": "IS",
       "team2_code": "EE",
@@ -1112,6 +1210,20 @@
       "country": "Montserrat",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-26",
+      "date_precision": "day",
+      "team1_code": "NC",
+      "team2_code": "VU",
+      "team1_name": "New Caledonia",
+      "team2_name": "Vanuatu",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-26",
@@ -1801,6 +1913,20 @@
     },
     {
       "date": "2026-09-29",
+      "date_precision": "day",
+      "team1_code": "FJ",
+      "team2_code": "NC",
+      "team1_name": "Fiji",
+      "team2_name": "New Caledonia",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-29",
       "kickoff_utc": "2026-09-29T18:45:00",
       "team1_code": "FI",
       "team2_code": "BY",
@@ -1882,6 +2008,20 @@
       "country": "Moldova",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-29",
+      "date_precision": "day",
+      "team1_code": "PG",
+      "team2_code": "SB",
+      "team1_name": "Papua New Guinea",
+      "team2_name": "Solomon Islands",
+      "tournament_code": "MLN",
+      "tournament_name": "Melanesian Cup",
+      "city": "",
+      "country": "Fiji",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-29",

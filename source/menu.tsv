@@ -1170,7 +1170,8 @@ SPG	3	1971	1971-09-08	1971-09-18	1971_South_Pacific_Games
 SPG	3	1969	1969-08-13	1969-08-22	1969_South_Pacific_Games
 SPG	3	1966	1966-12-08	1966-12-17	1966_South_Pacific_Games
 SPG	3	1963	1963-08-28	1963-09-07	1963_South_Pacific_Games
-MLN	2				2025_Melanesian_Cup
+MLN	2				2026_Melanesian_Cup
+MLN	3	2026			2026_Melanesian_Cup
 MLN	3	2025	2025-11-12	2025-11-23	2025_Melanesian_Cup
 MLN	3	2024	2024-12-08	2024-12-21	2024_Melanesian_Cup
 MLN	3	2023	2023-10-07	2023-10-14	2023_Melanesian_Cup
@@ -1206,7 +1207,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-08-19	Unaffiliated
+UN	1	UFL		2026-08-20	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1234,12 +1235,12 @@ SEE	2				Southeast_Europe
 SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-08-19	Melanesia
-MI	2			2026-08-19	Micronesia
-PO	2			2026-08-19	Polynesia
+ME	2				Melanesia
+MI	2			2026-08-20	Micronesia
+PO	2			2026-08-20	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-08-19	2026
+YR	2	2026	2025-12-31	2026-08-20	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
