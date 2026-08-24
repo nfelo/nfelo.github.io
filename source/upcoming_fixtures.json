@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-24T16:01:07+00:00",
+  "checked_at": "2026-08-24T23:36:46+00:00",
   "fixtures": [
     {
       "date": "2026-08-26",
@@ -3861,9 +3861,9 @@
       "date": "2026-10-06",
       "date_precision": "day",
       "team1_code": "IN",
-      "team2_code": "CV",
+      "team2_code": "UY",
       "team1_name": "India",
-      "team2_name": "Cape Verde",
+      "team2_name": "Uruguay",
       "tournament_code": "F",
       "tournament_name": "Friendly",
       "city": "",
