@@ -1207,7 +1207,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-08-24	Unaffiliated
+UN	1	UFL		2026-08-25	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1236,11 +1236,11 @@ SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
 ME	2				Melanesia
-MI	2			2026-08-24	Micronesia
-PO	2			2026-08-24	Polynesia
+MI	2			2026-08-25	Micronesia
+PO	2			2026-08-25	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-08-24	2026
+YR	2	2026	2025-12-31	2026-08-25	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
