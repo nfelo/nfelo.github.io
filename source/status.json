@@ -1,10 +1,10 @@
 {
-  "source_checked_at": "2026-08-26T16:35:56+00:00",
+  "source_checked_at": "2026-08-27T04:32:06+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-26",
   "supplemental_results": 0,
   "upcoming_fixtures": 475,
-  "open_feed_rows": 49520,
+  "open_feed_rows": 49547,
   "unresolved_names": [],
   "base_urls": [
     "https://raw.githubusercontent.com/martj42/international_results/master/results.csv",
@@ -18,15 +18,12 @@
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-08-26T16:35:53+00:00",
+    "source_checked_at": "2026-08-27T04:32:04+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
-    "pages_checked": 2,
-    "pages_changed": 2,
-    "changed": [
-      "Vietnam",
-      "Thailand"
-    ],
+    "pages_checked": 0,
+    "pages_changed": 0,
+    "changed": [],
     "unresolved_world_names": [],
     "base_url": "https://www.eloratings.net",
     "first_party_source": "live Eloratings TSV responses",
