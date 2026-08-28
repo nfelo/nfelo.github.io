@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-28T06:56:40+00:00",
+  "checked_at": "2026-08-28T18:50:38+00:00",
   "fixtures": [
     {
       "date": "2026-09-01",
@@ -468,6 +468,20 @@
       "country": "US Virgin Islands",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-23",
+      "date_precision": "day",
+      "team1_code": "CN",
+      "team2_code": "PS",
+      "team1_name": "China",
+      "team2_name": "Palestine",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "China",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-23",
@@ -1406,6 +1420,20 @@
       "country": "Dominica",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-27",
+      "date_precision": "day",
+      "team1_code": "CN",
+      "team2_code": "NZ",
+      "team1_name": "China",
+      "team2_name": "New Zealand",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "China",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-27",
