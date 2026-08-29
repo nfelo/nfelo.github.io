@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-08-29T12:45:26+00:00",
+  "checked_at": "2026-08-29T18:39:43+00:00",
   "fixtures": [
     {
       "date": "2026-09-01",
@@ -602,8 +602,8 @@
       "team2_code": "PS",
       "team1_name": "China",
       "team2_name": "Palestine",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
       "city": "",
       "country": "China",
       "neutral": false,
@@ -720,6 +720,20 @@
       "country": "The Netherlands",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-24",
+      "date_precision": "day",
+      "team1_code": "NZ",
+      "team2_code": "TM",
+      "team1_name": "New Zealand",
+      "team2_name": "Turkmenistan",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "China",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-24",
@@ -1428,8 +1442,8 @@
       "team2_code": "NZ",
       "team1_name": "China",
       "team2_name": "New Zealand",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
       "city": "",
       "country": "China",
       "neutral": false,
@@ -1756,6 +1770,20 @@
       "country": "Northern Ireland",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-28",
+      "date_precision": "day",
+      "team1_code": "PS",
+      "team2_code": "TM",
+      "team1_name": "Palestine",
+      "team2_name": "Turkmenistan",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "China",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-28",
@@ -2180,6 +2208,20 @@
     {
       "date": "2026-09-30",
       "date_precision": "day",
+      "team1_code": "AR",
+      "team2_code": "UZ",
+      "team1_name": "Argentina",
+      "team2_name": "Uzbekistan",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "China",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-30",
+      "date_precision": "day",
       "team1_code": "BH",
       "team2_code": "YE",
       "team1_name": "Bahrain",
@@ -2190,20 +2232,6 @@
       "country": "Saudi Arabia",
       "neutral": true,
       "home_sign": 0
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "CN",
-      "team2_code": "UZ",
-      "team1_name": "China",
-      "team2_name": "Uzbekistan",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "China",
-      "neutral": false,
-      "home_sign": 1
     },
     {
       "date": "2026-09-30",
@@ -2880,6 +2908,20 @@
     {
       "date": "2026-10-02",
       "date_precision": "day",
+      "team1_code": "CN",
+      "team2_code": "TM",
+      "team1_name": "China",
+      "team2_name": "Turkmenistan",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "China",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-10-02",
+      "date_precision": "day",
       "team1_code": "CO",
       "team2_code": "PY",
       "team1_name": "Colombia",
@@ -3030,6 +3072,20 @@
       "country": "Martinique",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-10-02",
+      "date_precision": "day",
+      "team1_code": "PS",
+      "team2_code": "TJ",
+      "team1_name": "Palestine",
+      "team2_name": "Tajikistan",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "China",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-10-02",
@@ -3593,6 +3649,20 @@
     },
     {
       "date": "2026-10-05",
+      "date_precision": "day",
+      "team1_code": "EG",
+      "team2_code": "TZ",
+      "team1_name": "Egypt",
+      "team2_name": "Tanzania",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Egypt",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-10-05",
       "kickoff_utc": "2026-10-05T18:45:00",
       "team1_code": "FR",
       "team2_code": "BE",
@@ -3828,6 +3898,20 @@
       "country": "United States",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-10-06",
+      "date_precision": "day",
+      "team1_code": "CN",
+      "team2_code": "TJ",
+      "team1_name": "China",
+      "team2_name": "Tajikistan",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "China",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-10-06",
