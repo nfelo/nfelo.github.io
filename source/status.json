@@ -1,5 +1,5 @@
 {
-  "source_checked_at": "2026-08-29T18:39:43+00:00",
+  "source_checked_at": "2026-08-30T01:18:27+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-08-26",
   "supplemental_results": 0,
@@ -18,10 +18,10 @@
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-08-29T18:39:40+00:00",
-    "mode": "rating-change detection",
+    "source_checked_at": "2026-08-30T01:16:23+00:00",
+    "mode": "full reconciliation",
     "world_teams": 244,
-    "pages_checked": 0,
+    "pages_checked": 244,
     "pages_changed": 0,
     "changed": [],
     "unresolved_world_names": [],
