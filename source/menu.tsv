@@ -1053,6 +1053,8 @@ SEA	3	2000	2000-11-04	2000-11-18	2000_Southeast_Asian_Championship
 SEA	3	1998	1998-08-25	1998-09-05	1998_Southeast_Asian_Championship
 SET	4	Q	1998-03-13	1998-03-28	1998_Southeast_Asian_Championship_qualifying
 SEA	3	1996	1996-09-01	1996-09-15	1996_Southeast_Asian_Championship
+SEC	2				2026_Southeast_Asian_Cup
+SEC	3	2026			2026_Southeast_Asian_Cup
 WAH	2				2019_West_Asian_Championship
 WAH	3	2019	2019-07-29	2019-08-14	2019_West_Asian_Championship
 WAH	3	2013-14	2013-12-24	2014-01-07	2013-14_West_Asian_Championship
@@ -1207,7 +1209,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-08-29	Unaffiliated
+UN	1	UFL		2026-08-30	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1236,11 +1238,11 @@ SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
 ME	2				Melanesia
-MI	2			2026-08-29	Micronesia
-PO	2			2026-08-29	Polynesia
+MI	2			2026-08-30	Micronesia
+PO	2			2026-08-30	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-08-29	2026
+YR	2	2026	2025-12-31	2026-08-30	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
