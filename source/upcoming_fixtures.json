@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-04T18:29:38+00:00",
+  "checked_at": "2026-09-05T00:58:56+00:00",
   "fixtures": [
     {
       "date": "2026-09-17",
@@ -76,6 +76,20 @@
       "country": "Fiji",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-21",
+      "date_precision": "day",
+      "team1_code": "DM",
+      "team2_code": "AI",
+      "team1_name": "Dominica",
+      "team2_name": "Anguilla",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Dominica",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-23",
@@ -276,6 +290,20 @@
     {
       "date": "2026-09-24",
       "date_precision": "day",
+      "team1_code": "CF",
+      "team2_code": "MR",
+      "team1_name": "Central African Republic",
+      "team2_name": "Mauritania",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Morocco",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-24",
+      "date_precision": "day",
       "team1_code": "CN",
       "team2_code": "PS",
       "team1_name": "China",
@@ -286,6 +314,20 @@
       "country": "China",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-09-24",
+      "date_precision": "day",
+      "team1_code": "CG",
+      "team2_code": "NA",
+      "team1_name": "Congo",
+      "team2_name": "Namibia",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Botswana",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-24",
@@ -443,34 +485,6 @@
     },
     {
       "date": "2026-09-24",
-      "date_precision": "day",
-      "team1_code": "MR",
-      "team2_code": "CF",
-      "team1_name": "Mauritania",
-      "team2_name": "Central African Republic",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Mauritania",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-24",
-      "date_precision": "day",
-      "team1_code": "NA",
-      "team2_code": "CG",
-      "team1_name": "Namibia",
-      "team2_name": "Congo",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Namibia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-24",
       "kickoff_utc": "2026-09-24T18:45:00",
       "team1_code": "NL",
       "team2_code": "DE",
@@ -549,9 +563,9 @@
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
-      "country": "Sierra Leone",
-      "neutral": false,
-      "home_sign": 1
+      "country": "Liberia",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-24",
@@ -752,6 +766,20 @@
     {
       "date": "2026-09-25",
       "date_precision": "day",
+      "team1_code": "ET",
+      "team2_code": "SD",
+      "team1_name": "Ethiopia",
+      "team2_name": "Sudan",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "South Sudan",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-25",
+      "date_precision": "day",
       "team1_code": "GM",
       "team2_code": "SO",
       "team1_name": "Gambia",
@@ -864,6 +892,20 @@
     {
       "date": "2026-09-25",
       "date_precision": "day",
+      "team1_code": "LS",
+      "team2_code": "NE",
+      "team1_name": "Lesotho",
+      "team2_name": "Niger",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Ghana",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-09-25",
+      "date_precision": "day",
       "team1_code": "MW",
       "team2_code": "SS",
       "team1_name": "Malawi",
@@ -914,20 +956,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Morocco",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "NE",
-      "team2_code": "LS",
-      "team1_name": "Niger",
-      "team2_name": "Lesotho",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Niger",
       "neutral": false,
       "home_sign": 1
     },
@@ -998,34 +1026,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Senegal",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "SC",
-      "team2_code": "LK",
-      "team1_name": "Seychelles",
-      "team2_name": "Sri Lanka",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Seychelles",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "SD",
-      "team2_code": "ET",
-      "team1_name": "Sudan",
-      "team2_name": "Ethiopia",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Sudan",
       "neutral": false,
       "home_sign": 1
     },
@@ -1182,6 +1182,20 @@
       "country": "United States",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-26",
+      "date_precision": "day",
+      "team1_code": "CK",
+      "team2_code": "TI",
+      "team1_name": "Cook Islands",
+      "team2_name": "Tahiti",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Cook Islands",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-26",
@@ -1647,6 +1661,20 @@
     },
     {
       "date": "2026-09-27",
+      "date_precision": "day",
+      "team1_code": "JO",
+      "team2_code": "SY",
+      "team1_name": "Jordan",
+      "team2_name": "Syria",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Jordan",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-27",
       "kickoff_utc": "2026-09-27T13:00:00",
       "team1_code": "LT",
       "team2_code": "AZ",
@@ -1712,6 +1740,20 @@
       "tournament_name": "UEFA Nations League",
       "city": "Stadion Rajko Mitić",
       "country": "Serbia",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-27",
+      "date_precision": "day",
+      "team1_code": "SC",
+      "team2_code": "LK",
+      "team1_name": "Seychelles",
+      "team2_name": "Sri Lanka",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Seychelles",
       "neutral": false,
       "home_sign": 1
     },
@@ -2117,9 +2159,9 @@
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
-      "country": "Benin",
-      "neutral": false,
-      "home_sign": 1
+      "country": "Ivory Coast",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-29",
@@ -2300,6 +2342,20 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Guinea-Bissau",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-29",
+      "date_precision": "day",
+      "team1_code": "CI",
+      "team2_code": "SO",
+      "team1_name": "Ivory Coast",
+      "team2_name": "Somalia",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Ivory Coast",
       "neutral": false,
       "home_sign": 1
     },
@@ -2530,20 +2586,6 @@
     {
       "date": "2026-09-29",
       "date_precision": "day",
-      "team1_code": "SO",
-      "team2_code": "CI",
-      "team1_name": "Somalia",
-      "team2_name": "Ivory Coast",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Somalia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-29",
-      "date_precision": "day",
       "team1_code": "SS",
       "team2_code": "EG",
       "team1_name": "South Sudan",
@@ -2680,6 +2722,20 @@
       "country": "Hong Kong",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-09-30",
+      "date_precision": "day",
+      "team1_code": "CK",
+      "team2_code": "TI",
+      "team1_name": "Cook Islands",
+      "team2_name": "Tahiti",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Cook Islands",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-09-30",
@@ -3369,6 +3425,20 @@
     },
     {
       "date": "2026-10-02",
+      "date_precision": "day",
+      "team1_code": "TZ",
+      "team2_code": "GH",
+      "team1_name": "Tanzania",
+      "team2_name": "Ghana",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Tanzania",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-10-02",
       "kickoff_utc": "2026-10-02T18:45:00",
       "team1_code": "UA",
       "team2_code": "EI",
@@ -3580,20 +3650,6 @@
     {
       "date": "2026-10-03",
       "date_precision": "day",
-      "team1_code": "TZ",
-      "team2_code": "GH",
-      "team1_name": "Tanzania",
-      "team2_name": "Ghana",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Tanzania",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-03",
-      "date_precision": "day",
       "team1_code": "TN",
       "team2_code": "ML",
       "team1_name": "Tunisia",
@@ -3646,6 +3702,20 @@
       "country": "Azerbaijan",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-10-04",
+      "date_precision": "day",
+      "team1_code": "KM",
+      "team2_code": "SN",
+      "team1_name": "Comoros",
+      "team2_name": "Senegal",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "France",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-10-04",
@@ -3924,6 +3994,20 @@
       "tournament_name": "UEFA Nations League",
       "city": "AEK Arena",
       "country": "Cyprus",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-10-05",
+      "date_precision": "day",
+      "team1_code": "EG",
+      "team2_code": "TZ",
+      "team1_name": "Egypt",
+      "team2_name": "Tanzania",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Egypt",
       "neutral": false,
       "home_sign": 1
     },
