@@ -3,12 +3,12 @@
   "source_url": "https://github.com/BrazilianFootball/Data",
   "licence": "MIT",
   "attribution": "Igor Patricio Michels and contributors; source match reports: CBF",
-  "refreshed_at": "2026-09-06T11:08:51+00:00",
+  "refreshed_at": "2026-09-06T17:39:49+00:00",
   "first": "2013-04-03",
   "last": "2025-12-21",
   "matches": 18929,
   "snapshot_bytes": 206374,
-  "snapshot_sha256": "71c8971ed21f3487d2164bb5c037fb15608f02325e853ed90abfc01171bb723e",
+  "snapshot_sha256": "6b5d5c3b303d128836523e1158d9e43629f16f5684d8786b4e613d83015da8b9",
   "upstream_set_sha256": "1e79d8d384b3f64e5b2f59d7635d4755b909508b1a041732fc62f5a078a83a78",
   "upstream_files": [
     {
