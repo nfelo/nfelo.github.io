@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-14T13:02:49+00:00",
+  "checked_at": "2026-09-14T19:52:32+00:00",
   "fixtures": [
     {
       "date": "2026-09-17",
@@ -2775,9 +2775,9 @@
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
-      "country": "Eritrea",
-      "neutral": false,
-      "home_sign": 1
+      "country": "Egypt",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-09-30",
