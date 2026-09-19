@@ -5,22 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-18T18:33:56+00:00",
+  "checked_at": "2026-09-19T01:11:21+00:00",
   "fixtures": [
-    {
-      "date": "2026-09-18",
-      "date_precision": "day",
-      "team1_code": "KW",
-      "team2_code": "YE",
-      "team1_name": "Kuwait",
-      "team2_name": "Yemen",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Saudi Arabia",
-      "neutral": true,
-      "home_sign": 0
-    },
     {
       "date": "2026-09-21",
       "date_precision": "day",
