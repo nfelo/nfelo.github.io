@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-19T01:11:21+00:00",
+  "checked_at": "2026-09-19T11:11:57+00:00",
   "fixtures": [
     {
       "date": "2026-09-21",
@@ -1353,7 +1353,7 @@
     },
     {
       "date": "2026-09-26",
-      "kickoff_utc": "2026-09-26T18:45:00",
+      "kickoff_utc": "2026-09-26T13:00:00",
       "team1_code": "SI",
       "team2_code": "SQ",
       "team1_name": "Slovenia",
