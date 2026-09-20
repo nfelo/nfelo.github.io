@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-19T18:07:08+00:00",
+  "checked_at": "2026-09-20T01:13:18+00:00",
   "fixtures": [
     {
       "date": "2026-09-21",
@@ -2684,6 +2684,20 @@
     {
       "date": "2026-09-30",
       "date_precision": "day",
+      "team1_code": "BW",
+      "team2_code": "MZ",
+      "team1_name": "Botswana",
+      "team2_name": "Mozambique",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Botswana",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-30",
+      "date_precision": "day",
       "team1_code": "KH",
       "team2_code": "TL",
       "team1_name": "Cambodia",
@@ -3265,7 +3279,7 @@
       "tournament_code": "F",
       "tournament_name": "Friendly",
       "city": "",
-      "country": "South Africa",
+      "country": "Ivory Coast",
       "neutral": true,
       "home_sign": 0
     },
@@ -4077,7 +4091,7 @@
       "tournament_code": "F",
       "tournament_name": "Friendly",
       "city": "",
-      "country": "South Africa",
+      "country": "Ivory Coast",
       "neutral": true,
       "home_sign": 0
     },
