@@ -5,22 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-21T13:01:17+00:00",
+  "checked_at": "2026-09-21T20:02:21+00:00",
   "fixtures": [
-    {
-      "date": "2026-09-21",
-      "date_precision": "day",
-      "team1_code": "DM",
-      "team2_code": "AI",
-      "team1_name": "Dominica",
-      "team2_name": "Anguilla",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Dominica",
-      "neutral": false,
-      "home_sign": 1
-    },
     {
       "date": "2026-09-23",
       "date_precision": "day",
