@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-23T01:31:10+00:00",
+  "checked_at": "2026-09-23T11:50:57+00:00",
   "fixtures": [
     {
       "date": "2026-09-23",
@@ -878,6 +878,20 @@
     {
       "date": "2026-09-25",
       "date_precision": "day",
+      "team1_code": "MZ",
+      "team2_code": "SN",
+      "team1_name": "Mozambique",
+      "team2_name": "Senegal",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Mozambique",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-09-25",
+      "date_precision": "day",
       "team1_code": "NG",
       "team2_code": "MG",
       "team1_name": "Nigeria",
@@ -942,20 +956,6 @@
       "tournament_name": "CONCACAF Nations League B",
       "city": "",
       "country": "Saint Lucia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "SN",
-      "team2_code": "MZ",
-      "team1_name": "Senegal",
-      "team2_name": "Mozambique",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Senegal",
       "neutral": false,
       "home_sign": 1
     },
@@ -7150,20 +7150,6 @@
     {
       "date": "2027-03-01",
       "date_precision": "month",
-      "team1_code": "MZ",
-      "team2_code": "SN",
-      "team1_name": "Mozambique",
-      "team2_name": "Senegal",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Mozambique",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2027-03-01",
-      "date_precision": "month",
       "team1_code": "NA",
       "team2_code": "KM",
       "team1_name": "Namibia",
@@ -7224,6 +7210,20 @@
       "team2_code": "ET",
       "team1_name": "Senegal",
       "team2_name": "Ethiopia",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Senegal",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2027-03-01",
+      "date_precision": "month",
+      "team1_code": "SN",
+      "team2_code": "MZ",
+      "team1_name": "Senegal",
+      "team2_name": "Mozambique",
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
