@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-25T11:59:46+00:00",
+  "checked_at": "2026-09-25T19:21:05+00:00",
   "fixtures": [
     {
       "date": "2026-09-25",
@@ -32,20 +32,6 @@
       "tournament_name": "European Nations League C",
       "city": "",
       "country": "Armenia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "AU",
-      "team2_code": "BR",
-      "team1_name": "Australia",
-      "team2_name": "Brazil",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Australia",
       "neutral": false,
       "home_sign": 1
     },
@@ -122,20 +108,6 @@
     {
       "date": "2026-09-25",
       "date_precision": "day",
-      "team1_code": "ET",
-      "team2_code": "SD",
-      "team1_name": "Ethiopia",
-      "team2_name": "Sudan",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "South Sudan",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
       "team1_code": "GM",
       "team2_code": "SO",
       "team1_name": "Gambia",
@@ -192,34 +164,6 @@
     {
       "date": "2026-09-25",
       "date_precision": "day",
-      "team1_code": "IN",
-      "team2_code": "PA",
-      "team1_name": "India",
-      "team2_name": "Panama",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "India",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "ID",
-      "team2_code": "SG",
-      "team1_name": "Indonesia",
-      "team2_name": "Singapore",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Indonesia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
       "team1_code": "IT",
       "team2_code": "BE",
       "team1_name": "Italy",
@@ -244,20 +188,6 @@
       "country": "Jamaica",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "LS",
-      "team2_code": "NE",
-      "team1_name": "Lesotho",
-      "team2_name": "Niger",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Ghana",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-09-25",
@@ -312,20 +242,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Morocco",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "MZ",
-      "team2_code": "SN",
-      "team1_name": "Mozambique",
-      "team2_name": "Senegal",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Mozambique",
       "neutral": false,
       "home_sign": 1
     },
@@ -410,20 +326,6 @@
       "tournament_name": "European Nations League B",
       "city": "",
       "country": "Sweden",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-25",
-      "date_precision": "day",
-      "team1_code": "TZ",
-      "team2_code": "GW",
-      "team1_name": "Tanzania",
-      "team2_name": "Guinea-Bissau",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Tanzania",
       "neutral": false,
       "home_sign": 1
     },
