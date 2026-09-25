@@ -257,8 +257,8 @@ EC	3	1960	1960-07-05	1960-07-10	1960_European_Championship
 EQT	4	Q	1958-09-27	1960-05-29	1960_European_Championship_qualifying
 ENL	2				2026-27_European_Nations_League_A
 ENL	3	2026-27			2026-27_European_Nations_League_A
-ENA	4	LA			2026-27_European_Nations_League_A
-ENB	4	LB			2026-27_European_Nations_League_B
+ENA	4	LA	2026-09-23		2026-27_European_Nations_League_A
+ENB	4	LB	2026-09-23		2026-27_European_Nations_League_B
 ENC	4	LC			2026-27_European_Nations_League_C
 END	4	LD	2026-09-23		2026-27_European_Nations_League_D
 ENL	3	2024-25	2025-03-19	2025-06-08	2024-25_European_Nations_League
@@ -514,7 +514,7 @@ CCH	3	1963	1963-03-22	1963-04-07	1963_CONCACAF_Championship
 CNL	2				2026-27_CONCACAF_Nations_League_A
 CNL	3	2026-27			2026-27_CONCACAF_Nations_League_A
 CLA	4	LA			2026-27_CONCACAF_Nations_League_A
-CLB	4	LB			2026-27_CONCACAF_Nations_League_B
+CLB	4	LB	2026-09-23		2026-27_CONCACAF_Nations_League_B
 CLC	4	LC	2026-09-22		2026-27_CONCACAF_Nations_League_C
 CNL	3	2024-25	2024-11-13	2025-03-23	2024-25_CONCACAF_Nations_League
 CLA	4	LA	2024-09-04	2024-10-15	2024-25_CONCACAF_Nations_League_A
