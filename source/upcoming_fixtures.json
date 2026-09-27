@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-27T12:15:36+00:00",
+  "checked_at": "2026-09-27T19:06:08+00:00",
   "fixtures": [
     {
       "date": "2026-09-27",
@@ -52,20 +52,6 @@
     {
       "date": "2026-09-27",
       "date_precision": "day",
-      "team1_code": "KH",
-      "team2_code": "MM",
-      "team1_name": "Cambodia",
-      "team2_name": "Myanmar",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Hong Kong",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-09-27",
-      "date_precision": "day",
       "team1_code": "KY",
       "team2_code": "GY",
       "team1_name": "Cayman Islands",
@@ -76,20 +62,6 @@
       "country": "Dominica",
       "neutral": true,
       "home_sign": 0
-    },
-    {
-      "date": "2026-09-27",
-      "date_precision": "day",
-      "team1_code": "CN",
-      "team2_code": "NZ",
-      "team1_name": "China",
-      "team2_name": "New Zealand",
-      "tournament_code": "FT",
-      "tournament_name": "Friendly tournament",
-      "city": "",
-      "country": "China",
-      "neutral": false,
-      "home_sign": 1
     },
     {
       "date": "2026-09-27",
@@ -206,20 +178,6 @@
     {
       "date": "2026-09-27",
       "date_precision": "day",
-      "team1_code": "LT",
-      "team2_code": "AZ",
-      "team1_name": "Lithuania",
-      "team2_name": "Azerbaijan",
-      "tournament_code": "END",
-      "tournament_name": "European Nations League D",
-      "city": "",
-      "country": "Lithuania",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-27",
-      "date_precision": "day",
       "team1_code": "MT",
       "team2_code": "LI",
       "team1_name": "Malta",
@@ -270,20 +228,6 @@
       "tournament_name": "European Nations League A",
       "city": "",
       "country": "Serbia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-27",
-      "date_precision": "day",
-      "team1_code": "SC",
-      "team2_code": "LK",
-      "team1_name": "Seychelles",
-      "team2_name": "Sri Lanka",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Seychelles",
       "neutral": false,
       "home_sign": 1
     },
