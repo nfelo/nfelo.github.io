@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-30T12:47:37+00:00",
+  "checked_at": "2026-09-30T20:08:18+00:00",
   "fixtures": [
     {
       "date": "2026-09-30",
@@ -52,48 +52,6 @@
     {
       "date": "2026-09-30",
       "date_precision": "day",
-      "team1_code": "ER",
-      "team2_code": "ZA",
-      "team1_name": "Eritrea",
-      "team2_name": "South Africa",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Egypt",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "HK",
-      "team2_code": "BN",
-      "team1_name": "Hong Kong",
-      "team2_name": "Brunei",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Hong Kong",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "LT",
-      "team2_code": "AD",
-      "team1_name": "Lithuania",
-      "team2_name": "Andorra",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Lithuania",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
       "team1_code": "QA",
       "team2_code": "AE",
       "team1_name": "Qatar",
@@ -104,20 +62,6 @@
       "country": "Saudi Arabia",
       "neutral": true,
       "home_sign": 0
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "SC",
-      "team2_code": "LK",
-      "team1_name": "Seychelles",
-      "team2_name": "Sri Lanka",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Seychelles",
-      "neutral": false,
-      "home_sign": 1
     },
     {
       "date": "2026-10-01",
