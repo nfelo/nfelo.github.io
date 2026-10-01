@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-01T13:32:53+00:00",
+  "checked_at": "2026-10-01T20:24:00+00:00",
   "fixtures": [
     {
       "date": "2026-10-01",
@@ -18,20 +18,6 @@
       "tournament_name": "CONCACAF Nations League C",
       "city": "",
       "country": "Antigua and Barbuda",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
-      "team1_code": "AZ",
-      "team2_code": "LI",
-      "team1_name": "Azerbaijan",
-      "team2_name": "Liechtenstein",
-      "tournament_code": "END",
-      "tournament_name": "European Nations League D",
-      "city": "",
-      "country": "Azerbaijan",
       "neutral": false,
       "home_sign": 1
     },
@@ -150,34 +136,6 @@
     {
       "date": "2026-10-01",
       "date_precision": "day",
-      "team1_code": "GN",
-      "team2_code": "KE",
-      "team1_name": "Guinea",
-      "team2_name": "Kenya",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Guinea",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
-      "team1_code": "ID",
-      "team2_code": "BD",
-      "team1_name": "Indonesia",
-      "team2_name": "Bangladesh",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Indonesia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
       "team1_code": "IE",
       "team2_code": "AT",
       "team1_name": "Ireland",
@@ -200,34 +158,6 @@
       "tournament_name": "European Nations League B",
       "city": "",
       "country": "Hungary",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
-      "team1_code": "LB",
-      "team2_code": "MV",
-      "team1_name": "Lebanon",
-      "team2_name": "Maldives",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Kyrgyzstan",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
-      "team1_code": "MY",
-      "team2_code": "SG",
-      "team1_name": "Malaysia",
-      "team2_name": "Singapore",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Indonesia",
       "neutral": true,
       "home_sign": 0
     },
@@ -270,20 +200,6 @@
       "tournament_name": "CONCACAF Nations League C",
       "city": "",
       "country": "US Virgin Islands",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-01",
-      "date_precision": "day",
-      "team1_code": "UZ",
-      "team2_code": "SY",
-      "team1_name": "Uzbekistan",
-      "team2_name": "Syria",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Uzbekistan",
       "neutral": false,
       "home_sign": 1
     },
