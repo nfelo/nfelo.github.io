@@ -5,64 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-09-30T20:08:18+00:00",
+  "checked_at": "2026-10-01T02:11:01+00:00",
   "fixtures": [
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "AR",
-      "team2_code": "BO",
-      "team1_name": "Argentina",
-      "team2_name": "Bolivia",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Argentina",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "BH",
-      "team2_code": "YE",
-      "team1_name": "Bahrain",
-      "team2_name": "Yemen",
-      "tournament_code": "GLF",
-      "tournament_name": "Gulf Cup",
-      "city": "",
-      "country": "Saudi Arabia",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "CK",
-      "team2_code": "TI",
-      "team1_name": "Cook Islands",
-      "team2_name": "Tahiti",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Cook Islands",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-09-30",
-      "date_precision": "day",
-      "team1_code": "QA",
-      "team2_code": "AE",
-      "team1_name": "Qatar",
-      "team2_name": "United Arab Emirates",
-      "tournament_code": "GLF",
-      "tournament_name": "Gulf Cup",
-      "city": "",
-      "country": "Saudi Arabia",
-      "neutral": true,
-      "home_sign": 0
-    },
     {
       "date": "2026-10-01",
       "date_precision": "day",
@@ -835,6 +779,20 @@
     },
     {
       "date": "2026-10-03",
+      "date_precision": "day",
+      "team1_code": "HK",
+      "team2_code": "KH",
+      "team1_name": "Hong Kong",
+      "team2_name": "Cambodia",
+      "tournament_code": "SEC",
+      "tournament_name": "Southeast Asian Cup",
+      "city": "",
+      "country": "Hong Kong",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-10-03",
       "kickoff_utc": "2026-10-03T16:00:00",
       "team1_code": "IS",
       "team2_code": "BG",
@@ -892,6 +850,20 @@
     {
       "date": "2026-10-03",
       "date_precision": "day",
+      "team1_code": "OM",
+      "team2_code": "AE",
+      "team1_name": "Oman",
+      "team2_name": "United Arab Emirates",
+      "tournament_code": "GLF",
+      "tournament_name": "Gulf Cup",
+      "city": "",
+      "country": "Saudi Arabia",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-10-03",
+      "date_precision": "day",
       "team1_code": "RU",
       "team2_code": "NA",
       "team1_name": "Russia",
@@ -916,6 +888,20 @@
       "country": "Belize",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-10-03",
+      "date_precision": "day",
+      "team1_code": "SA",
+      "team2_code": "QA",
+      "team1_name": "Saudi Arabia",
+      "team2_name": "Qatar",
+      "tournament_code": "GLF",
+      "tournament_name": "Gulf Cup",
+      "city": "",
+      "country": "Saudi Arabia",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-10-03",
