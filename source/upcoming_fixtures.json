@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-02T12:51:27+00:00",
+  "checked_at": "2026-10-02T19:59:35+00:00",
   "fixtures": [
     {
       "date": "2026-10-02",
@@ -66,20 +66,6 @@
     {
       "date": "2026-10-02",
       "date_precision": "day",
-      "team1_code": "CN",
-      "team2_code": "PS",
-      "team1_name": "China",
-      "team2_name": "Palestine",
-      "tournament_code": "FT",
-      "tournament_name": "Friendly tournament",
-      "city": "",
-      "country": "China",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-02",
-      "date_precision": "day",
       "team1_code": "CO",
       "team2_code": "PY",
       "team1_name": "Colombia",
@@ -118,20 +104,6 @@
       "country": "Cyprus",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-10-02",
-      "date_precision": "day",
-      "team1_code": "CD",
-      "team2_code": "UG",
-      "team1_name": "DR Congo",
-      "team2_name": "Uganda",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Ivory Coast",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-10-02",
@@ -206,20 +178,6 @@
     {
       "date": "2026-10-02",
       "date_precision": "day",
-      "team1_code": "KZ",
-      "team2_code": "MD",
-      "team1_name": "Kazakhstan",
-      "team2_name": "Moldova",
-      "tournament_code": "ENC",
-      "tournament_name": "European Nations League C",
-      "city": "",
-      "country": "Kazakhstan",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-02",
-      "date_precision": "day",
       "team1_code": "LV",
       "team2_code": "ME",
       "team1_name": "Latvia",
@@ -276,20 +234,6 @@
     {
       "date": "2026-10-02",
       "date_precision": "day",
-      "team1_code": "PH",
-      "team2_code": "TH",
-      "team1_name": "Philippines",
-      "team2_name": "Thailand",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Indonesia",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-10-02",
-      "date_precision": "day",
       "team1_code": "PL",
       "team2_code": "RO",
       "team1_name": "Poland",
@@ -298,20 +242,6 @@
       "tournament_name": "European Nations League B",
       "city": "",
       "country": "Poland",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-02",
-      "date_precision": "day",
-      "team1_code": "KR",
-      "team2_code": "VE",
-      "team1_name": "South Korea",
-      "team2_name": "Venezuela",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "South Korea",
       "neutral": false,
       "home_sign": 1
     },
@@ -1112,6 +1042,20 @@
       "country": "Liechtenstein",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-10-05",
+      "date_precision": "day",
+      "team1_code": "MY",
+      "team2_code": "VN",
+      "team1_name": "Malaysia",
+      "team2_name": "Vietnam",
+      "tournament_code": "SEC",
+      "tournament_name": "Southeast Asian Cup",
+      "city": "",
+      "country": "Indonesia",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-10-05",
