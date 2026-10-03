@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-03T11:50:06+00:00",
+  "checked_at": "2026-10-03T18:09:02+00:00",
   "fixtures": [
     {
       "date": "2026-10-03",
@@ -94,34 +94,6 @@
     {
       "date": "2026-10-03",
       "date_precision": "day",
-      "team1_code": "FI",
-      "team2_code": "AL",
-      "team1_name": "Finland",
-      "team2_name": "Albania",
-      "tournament_code": "ENC",
-      "tournament_name": "European Nations League C",
-      "city": "",
-      "country": "Finland",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-03",
-      "date_precision": "day",
-      "team1_code": "HK",
-      "team2_code": "KH",
-      "team1_name": "Hong Kong",
-      "team2_name": "Cambodia",
-      "tournament_code": "SEC",
-      "tournament_name": "Southeast Asian Cup",
-      "city": "",
-      "country": "Hong Kong",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-03",
-      "date_precision": "day",
       "team1_code": "IS",
       "team2_code": "BG",
       "team1_name": "Iceland",
@@ -130,20 +102,6 @@
       "tournament_name": "European Nations League C",
       "city": "",
       "country": "Iceland",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-10-03",
-      "date_precision": "day",
-      "team1_code": "IN",
-      "team2_code": "BR",
-      "team1_name": "India",
-      "team2_name": "Brazil",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "India",
       "neutral": false,
       "home_sign": 1
     },
