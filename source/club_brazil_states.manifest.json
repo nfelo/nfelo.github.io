@@ -3,13 +3,13 @@
   "source_url": "https://github.com/FerrerasRP/FootballData",
   "licence": "CC0 1.0",
   "attribution": "FerrerasRP/FootballData contributors",
-  "refreshed_at": "2026-10-04T01:50:40+00:00",
+  "refreshed_at": "2026-10-04T02:43:50+00:00",
   "first": "2018-12-22",
   "last": "2026-03-15",
   "matches": 7347,
   "competitions": 14,
   "snapshot_bytes": 93879,
-  "snapshot_sha256": "fd0fca4a39406d93b2914970a218e27ef234b8dba6f24b38bd905db653d330ed",
+  "snapshot_sha256": "dac1c380d6c8a4f59136085a16e171cc0b168dc4de88e703bb7eeb4dd1845820",
   "upstream_set_sha256": "0e67b87c7e5245d04d48f152c468c6dd5e7a8d47cebc5ea740de367120e7aef4",
   "upstream_files": [
     {
