@@ -1,7 +1,7 @@
 {
   "AC": "Asian Cup",
   "CLB": "CONCACAF Nations League B",
-  "CLC": "CONCACAF Nations League C",
+  "CNL": "CONCACAF Nations League",
   "ENA": "European Nations League A",
   "ENB": "European Nations League B",
   "ENC": "European Nations League C",
@@ -9,7 +9,6 @@
   "F": "Friendly",
   "FQ": "African Nations Cup qualifier",
   "FT": "Friendly tournament",
-  "GLF": "Gulf Cup",
   "NL": "UEFA Nations League",
   "SFF": "South Asian Championship",
   "WC": "FIFA World Cup"
