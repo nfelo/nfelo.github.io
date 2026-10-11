@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-10T19:22:22+00:00",
+  "checked_at": "2026-10-11T01:57:31+00:00",
   "fixtures": [
     {
       "date": "2026-11-01",
@@ -344,12 +344,12 @@
       "home_sign": 1
     },
     {
-      "date": "2026-11-04",
+      "date": "2026-11-05",
       "date_precision": "day",
       "team1_code": "BD",
-      "team2_code": "LK",
+      "team2_code": "BT",
       "team1_name": "Bangladesh",
-      "team2_name": "Sri Lanka",
+      "team2_name": "Bhutan",
       "tournament_code": "SFF",
       "tournament_name": "South Asian Championship",
       "city": "",
@@ -372,7 +372,7 @@
       "home_sign": 0
     },
     {
-      "date": "2026-11-07",
+      "date": "2026-11-08",
       "date_precision": "day",
       "team1_code": "BT",
       "team2_code": "LK",
@@ -400,12 +400,12 @@
       "home_sign": 0
     },
     {
-      "date": "2026-11-10",
+      "date": "2026-11-11",
       "date_precision": "day",
       "team1_code": "BD",
-      "team2_code": "BT",
+      "team2_code": "LK",
       "team1_name": "Bangladesh",
-      "team2_name": "Bhutan",
+      "team2_name": "Sri Lanka",
       "tournament_code": "SFF",
       "tournament_name": "South Asian Championship",
       "city": "",
@@ -1004,6 +1004,20 @@
     {
       "date": "2026-11-14",
       "date_precision": "day",
+      "team1_code": "BH",
+      "team2_code": "OM",
+      "team1_name": "Bahrain",
+      "team2_name": "Oman",
+      "tournament_code": "KNG",
+      "tournament_name": "King's Cup",
+      "city": "",
+      "country": "Thailand",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-11-14",
+      "date_precision": "day",
       "team1_code": "BR",
       "team2_code": "JP",
       "team1_name": "Brazil",
@@ -1180,6 +1194,20 @@
       "tournament_name": "UEFA Nations League",
       "city": "Strawberry Arena",
       "country": "Sweden",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-11-14",
+      "date_precision": "day",
+      "team1_code": "TH",
+      "team2_code": "TJ",
+      "team1_name": "Thailand",
+      "team2_name": "Tajikistan",
+      "tournament_code": "KNG",
+      "tournament_name": "King's Cup",
+      "city": "",
+      "country": "Thailand",
       "neutral": false,
       "home_sign": 1
     },
