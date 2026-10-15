@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-14T19:29:56+00:00",
+  "checked_at": "2026-10-15T01:29:56+00:00",
   "fixtures": [
     {
       "date": "2026-11-01",
@@ -1014,20 +1014,6 @@
       "country": "Austria",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
-      "team1_code": "BH",
-      "team2_code": "OM",
-      "team1_name": "Bahrain",
-      "team2_name": "Oman",
-      "tournament_code": "KNG",
-      "tournament_name": "King's Cup",
-      "city": "",
-      "country": "Thailand",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-11-14",
