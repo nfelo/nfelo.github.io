@@ -20,6 +20,7 @@ from typing import Any, Iterable
 import duckdb
 
 from club_model import load_club_config, run_club_model
+from publication_checks import LEGACY_IDENTITY_HOLDS, ledger_quality_checks, public_club_name
 
 
 ACTIVE_DAYS = 550
@@ -327,8 +328,8 @@ def export_club_site(
     connection = duckdb.connect(str(ledger), read_only=True)
     attach_model(connection, model)
     connection.execute("CREATE TEMP VIEW competition_coverage AS SELECT competition_key, max(competition) competition,max(kind) kind,count(*) matches,min(day) first_date,max(day) last_date,count(*)*2 club_sides,list(distinct source) sources FROM matches GROUP BY competition_key")
-    connection.execute("CREATE TEMP VIEW data_quality_checks AS SELECT 'unique_match_ids' check_name,cast(count(*)-count(distinct match_id) as bigint) actual,0::bigint expected,count(*)=count(distinct match_id) passed,'Canonical match IDs are unique' note FROM matches")
     try:
+        quality_rows = ledger_quality_checks(connection)
         maximum_day = int(
             connection.execute(
                 "SELECT max(last_day) FROM model.current_club_ratings"
@@ -349,7 +350,7 @@ def export_club_site(
         for row in current_rows:
             club = {
                 "code": row[1],
-                "name": row[2],
+                "name": public_club_name(row[1], row[2]),
                 "country": row[3],
                 "country_name": row[4],
                 "country_code": row[5],
@@ -366,6 +367,8 @@ def export_club_site(
                 "active": int(row[14]) >= active_after,
                 "provisional": int(row[12]) < 30,
             }
+            if row[1] in LEGACY_IDENTITY_HOLDS:
+                club["identity_status"] = "unresolved_legacy_identity"
             clubs_by_id[int(row[0])] = club
 
         active = sorted(
@@ -397,10 +400,10 @@ def export_club_site(
             """
             SELECT a.country,coalesce(max(c.country_name),replace(a.country,'-',' ')),
                    coalesce(max(c.country_code),''),coalesce(max(c.continent),'Unassigned'),
-                   a.rating,a.se,a.international_updates
-            FROM model.current_association_ratings a
+                   a.rating,a.se,a.cross_border_updates
+            FROM model.current_country_ratings a
             LEFT JOIN clubs c USING(country)
-            GROUP BY a.country,a.rating,a.se,a.international_updates
+            GROUP BY a.country,a.rating,a.se,a.cross_border_updates
             ORDER BY a.rating DESC,a.country
             """
         ).fetchall()
@@ -610,10 +613,10 @@ def export_club_site(
         ).fetchall()
         peaks = [
             {
-                "club": r[0], "name": r[1], "country": r[2],
+                "club": r[0], "name": public_club_name(r[0], r[1]), "country": r[2],
                 "rating": rounded(float(r[3]), 2), "date": str(r[4]),
                 "mean": rounded(float(r[5]), 2), "se": rounded(float(r[6]), 2),
-                "opponent": r[7], "opponent_name": r[8],
+                "opponent": r[7], "opponent_name": public_club_name(r[7], r[8]),
                 "goals_for": int(r[9]), "goals_against": int(r[10]),
                 "competition": r[11], "status": r[12],
                 "matches_at_peak": int(r[13]), "cross_border": bool(r[14]),
@@ -712,10 +715,6 @@ def export_club_site(
             json.loads(brazil_states_manifest_path.read_text(encoding="utf-8"))
             if brazil_states_manifest_path.exists() else None
         )
-        quality_rows = connection.execute(
-            "SELECT check_name,actual,expected,passed,note "
-            "FROM data_quality_checks ORDER BY check_name"
-        ).fetchall()
         sources = {
             "discovery_index": {
                 "name": "Sabino football-statistics research sources",

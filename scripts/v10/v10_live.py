@@ -261,6 +261,11 @@ def initialize(root,input_path,model_path,config):
   meta=dict(schema=1,generation='seed',input='generations/seed/input.duckdb',model='generations/seed/model.duckdb',site=None,created_at=now(),model_runs=0,seed_matches=count)
   atomic(root/'config.json',config);atomic(root/'current.json',meta);return meta
 
+def site_code_sha(full_site):
+ files=['v10_live.py']
+ if full_site:files+=['full_site.py','club_site_export.py','publication_checks.py']
+ return digest(encoded({name:file_sha(HERE/name) for name in files}))
+
 def update(root,as_of=None,*,fail_before_publish=False):
  root=Path(root).resolve();as_of=as_of or datetime.now(timezone.utc).date()
  if file_sha(HERE/'engine/club_model.py')!=ENGINE_SHA or file_sha(HERE/'engine/club_model.json')!=CONFIG_SHA:raise ValueError('Frozen engine or coefficients changed')
@@ -268,7 +273,8 @@ def update(root,as_of=None,*,fail_before_publish=False):
   current=read_json(root/'current.json');config=read_json(root/'config.json');started=time.monotonic()
   observations,health,transport=collect(root,config,as_of);old_input=root/current['input'];old_model=root/current['model']
   changes,fixtures,exceptions,unchanged=reconcile(old_input,observations,as_of)
-  view_sha=digest(encoded(dict(site_version=3,full_site=config.get('full_site',False),fixtures=fixtures,exceptions=exceptions,health=[{k:v for k,v in h.items() if k!='last_success'} for h in health],limitations=config['limitations'],as_of=as_of.isoformat())))
+  export_sha=site_code_sha(config.get('full_site',False))
+  view_sha=digest(encoded(dict(site_version=3,site_code_sha=export_sha,full_site=config.get('full_site',False),fixtures=fixtures,exceptions=exceptions,health=[{k:v for k,v in h.items() if k!='last_success'} for h in health],limitations=config['limitations'],as_of=as_of.isoformat())))
   if not changes and current.get('view_sha')==view_sha and current.get('site'):
    report=dict(result='no_change',generation=current['generation'],model_ran=False,changed_matches=0,fixtures=len(fixtures),exceptions=len(exceptions),sources=health,elapsed_seconds=round(time.monotonic()-started,3),**transport)
    atomic(root/'last_run.json',report);return report
@@ -290,9 +296,9 @@ def update(root,as_of=None,*,fail_before_publish=False):
     os.environ['PYTHONPATH']=os.pathsep.join([str(HERE/'engine'),*sys.path])
     result=run_club_model(input_path,load_club_config(HERE/'engine/club_model.json'),output_database=model_path)
     atomic(gen/'model_run.json',result);atomic(gen/'validation.json',validate_model(input_path,model_path));atomic(gen/'changes.json',changes)
-   previous=root/current['site'] if current.get('site') and not changes else None
+   previous=root/current['site'] if current.get('site') and not changes and current.get('site_code_sha')==export_sha else None
    meta=build_site(input_path,model_path,gen/'site',fixtures,exceptions,health,config['limitations'],as_of,config.get('full_site',False),previous)
-   next_current=dict(current,generation=identifier,input=str(input_path.relative_to(root)),model=str(model_path.relative_to(root)),site=str((gen/'site').relative_to(root)),view_sha=view_sha,created_at=now(),model_runs=current.get('model_runs',0)+bool(changes))
+   next_current=dict(current,generation=identifier,input=str(input_path.relative_to(root)),model=str(model_path.relative_to(root)),site=str((gen/'site').relative_to(root)),view_sha=view_sha,site_code_sha=export_sha,created_at=now(),model_runs=current.get('model_runs',0)+bool(changes))
    atomic(gen/'receipt.json',dict(schema=1,prior_generation=current['generation'],input_sha256=file_sha(input_path),model_sha256=file_sha(model_path),engine_sha256=ENGINE_SHA,config_sha256=CONFIG_SHA,changes=len(changes),site=meta))
    if fail_before_publish:raise RuntimeError('Injected interruption before publication')
    atomic(root/'current.json',next_current)

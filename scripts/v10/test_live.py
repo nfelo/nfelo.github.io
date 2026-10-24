@@ -2,6 +2,7 @@
 from datetime import date
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import os,tempfile,threading,unittest
+from unittest.mock import patch
 from pathlib import Path
 import v10_live as live
 
@@ -50,6 +51,13 @@ class PipelineTest(unittest.TestCase):
   r=self.run_update();self.assertFalse(r['model_ran']);self.assertEqual(r['matches'],4);self.assertEqual(r['fixtures'],1)
   self.responses['/a']['events']=[self.event()];r=self.run_update();self.assertEqual(r['matches'],5);self.assertEqual(r['fixtures'],0)
   self.responses['/a']['events']=[e];r=self.run_update();self.assertEqual(r['matches'],4)
+ def test_export_code_change_rebuilds_site_without_replaying_model(self):
+  self.run_update();old=self.current();model_sha=live.file_sha(self.state/old['model'])
+  with patch.object(live,'site_code_sha',return_value='new-publication-code'),patch.object(live,'build_site',wraps=live.build_site) as build:
+   r=self.run_update();self.assertEqual(r['result'],'site_updated');self.assertFalse(r['model_ran'])
+   self.assertIsNone(build.call_args.args[-1])
+   self.assertEqual(live.file_sha(self.state/self.current()['model']),model_sha)
+   self.assertEqual(self.run_update()['result'],'no_change')
  def test_source_outage_does_not_block_other(self):
   self.responses['/a']['events']=[self.event()];self.run_update();self.responses['/a']=503
   self.responses['/b']['events']=[self.event('two',date='2026-01-11',home=2,away=3)];r=self.run_update();self.assertEqual(r['matches'],6);self.assertEqual(r['sources'][0]['status'],'stale');self.assertEqual(r['sources'][1]['status'],'healthy')

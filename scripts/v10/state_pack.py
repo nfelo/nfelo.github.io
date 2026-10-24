@@ -69,7 +69,7 @@ def hydrate(bundle,state,site=None):
     if signature(c,table)!=spec['signature']:raise ValueError('Typed state differs: '+kind+'.'+table)
    if kind=='input':
     c.execute('CREATE UNIQUE INDEX live_match_id ON matches(match_id)');c.execute('CREATE INDEX live_match_day ON matches(day)')
-   else:c.execute('CREATE VIEW current_association_ratings AS SELECT country,rating,se,international_updates FROM current_country_ratings')
+   else:c.execute('CREATE VIEW current_association_ratings AS SELECT country,rating,se,cross_border_updates AS international_updates FROM current_country_ratings')
    c.execute('CHECKPOINT');c.close()
   for name in ['config.json','last_run.json']:
    if (bundle/name).exists():shutil.copy2(bundle/name,state/name)

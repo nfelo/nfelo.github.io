@@ -4,10 +4,12 @@ from datetime import date,timedelta
 from pathlib import Path
 import json,shutil
 import v10_live as live
-from club_site_export import export_club_site,version_club_assets
+from club_site_export import export_club_site,version_club_assets,verify_static_data
 from club_model import three_way_probabilities
+from publication_checks import public_club_name
 
 def verify_export(path,expected):
+ verify_static_data(path,expected)
  index=live.read_json(path/'matches/index.json');clubs=live.read_json(path/'clubs.json')['clubs']
  if sum(r['count'] for r in index['years'])!=expected:raise ValueError('Archive count differs')
  if len({x['code'] for x in clubs})!=len(clubs):raise ValueError('Duplicate club display code')
@@ -19,6 +21,7 @@ def verify_export(path,expected):
 def build(input_path,model_path,destination,fixtures,exceptions,health,limitations,as_of,previous=None):
  c=live.duckdb.connect(str(input_path),read_only=True);c.execute("ATTACH '"+str(model_path).replace("'","''")+"' AS model (READ_ONLY)")
  clubs={r['club']:r for r in live.query(c,'SELECT c.*,r.mean,r.rating FROM clubs c JOIN model.current_club_ratings r USING(club)')}
+ for club in clubs.values():club['name']=public_club_name(club['code'],club['name'])
  count,first,last,legs=c.execute('SELECT count(*),min(day),max(day),count(*) FILTER(WHERE leg=2) FROM matches').fetchone()
  source_names=[r[0] for r in c.execute('SELECT distinct source FROM matches').fetchall()];c.close()
  if previous and (previous/'clubs/data/meta.json').exists():shutil.copytree(previous,destination,dirs_exist_ok=True)
@@ -90,5 +93,6 @@ def build(input_path,model_path,destination,fixtures,exceptions,health,limitatio
  live.atomic(data/'publication.json',dict(results=count,fixtures=len(future),unresolved=len(held),clubs=len(clubs),coverage_rows=len(coverage),as_of=str(as_of),global_coverage_accepted=False))
  live.atomic(data/'claims.json',dict(scope='descriptive within documented corpus',global_comparability_established=False,limitations=limitations))
  live.atomic(data/'records-evidence.json',dict(source='frozen native model',model_sha256=live.file_sha(model_path),global_comparability_established=False))
+ if previous:verify_export(data,count)
  live.atomic(destination/'index.html',b'<!doctype html><meta http-equiv="refresh" content="0;url=clubs/"><a href="clubs/">NFElo Clubs</a>')
  return meta
