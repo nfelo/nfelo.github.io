@@ -1,0 +1,1400 @@
+{
+  "limitations": [
+    "Automatic routes are configured for 15 senior men’s domestic leagues in Europe, South America, Asia, Australia and South Africa; source availability and identity holds are listed separately.",
+    "Cups, other leagues and older history retain their saved snapshot until their adapters are enabled. Global historical coverage is incomplete.",
+    "259 inherited mixed-identity matches remain unresolved. Ratings are descriptive within the documented corpus."
+  ],
+  "sources": [
+    {
+      "adapter": "espn_league",
+      "competition": "Premier League",
+      "competition_key": "v7:82367a4c6152dfe1",
+      "correction_days": 14,
+      "fixture_days": 35,
+      "id": "espn-eng1",
+      "league": "eng.1",
+      "start_after": "2026-05-24",
+      "teams": {
+        "306": {
+          "club": 4611,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Hull City",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "331": {
+          "club": 871,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Brighton & Hove Albion",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "337": {
+          "club": 9457,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Brentford",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "349": {
+          "club": 4975,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "AFC Bournemouth",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "357": {
+          "club": 8285,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Leeds United",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "359": {
+          "club": 6253,
+          "country": "england",
+          "rule": "multiple unique dated fixture correspondences",
+          "source_label": "Arsenal",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": [
+            {
+              "club": 6253,
+              "date": "2026-01-03",
+              "event_id": "740788",
+              "match_id": "fe5b94f202041f6ceb13a346f28fc32c"
+            },
+            {
+              "club": 6253,
+              "date": "2026-01-08",
+              "event_id": "740796",
+              "match_id": "1ae405e7532f0adffdc7d3b26158d269"
+            },
+            {
+              "club": 6253,
+              "date": "2026-01-17",
+              "event_id": "740812",
+              "match_id": "c80c1209a09962287383d05e7cd868b5"
+            },
+            {
+              "club": 6253,
+              "date": "2026-01-25",
+              "event_id": "740816",
+              "match_id": "d3c6ca4a0cbcae32d5e7d83891034b5a"
+            },
+            {
+              "club": 6253,
+              "date": "2026-01-31",
+              "event_id": "740829",
+              "match_id": "aa40643c72a46fb3d1544a1a1c0fa39b"
+            },
+            {
+              "club": 6253,
+              "date": "2026-02-07",
+              "event_id": "740836",
+              "match_id": "2c7ade5ff8d1ae94ab3833fb8e4eab6c"
+            },
+            {
+              "club": 6253,
+              "date": "2026-02-12",
+              "event_id": "740847",
+              "match_id": "68c5d79c27f29bd6b19c65932dff35f6"
+            },
+            {
+              "club": 6253,
+              "date": "2026-02-18",
+              "event_id": "740901",
+              "match_id": "8d667ac37f0852bdbec2133ad7e03fb4"
+            },
+            {
+              "club": 6253,
+              "date": "2026-02-22",
+              "event_id": "740865",
+              "match_id": "52ee8335062217993a567aeca6032b0a"
+            },
+            {
+              "club": 6253,
+              "date": "2026-03-01",
+              "event_id": "740871",
+              "match_id": "55de8649c92ef8bfc3097542f8881b07"
+            },
+            {
+              "club": 6253,
+              "date": "2026-03-04",
+              "event_id": "740878",
+              "match_id": "20a85f5ebdbb6e9b09284d75f1bda753"
+            },
+            {
+              "club": 6253,
+              "date": "2026-03-14",
+              "event_id": "740886",
+              "match_id": "18baf41daf805c961256649d8bc04167"
+            },
+            {
+              "club": 6253,
+              "date": "2026-04-11",
+              "event_id": "740908",
+              "match_id": "330a09d051043d842f177fba0208c18a"
+            },
+            {
+              "club": 6253,
+              "date": "2026-04-19",
+              "event_id": "740916",
+              "match_id": "3816dcfa3d2e18143ad03096414b92b9"
+            },
+            {
+              "club": 6253,
+              "date": "2026-04-25",
+              "event_id": "740931",
+              "match_id": "0832bc6425e67d4bf98f0c972933ee68"
+            },
+            {
+              "club": 6253,
+              "date": "2026-05-02",
+              "event_id": "740936",
+              "match_id": "84156ab1baa48673269b4fda70600732"
+            },
+            {
+              "club": 6253,
+              "date": "2026-05-10",
+              "event_id": "740955",
+              "match_id": "82761d00fe5458cf153bef24f57a911a"
+            },
+            {
+              "club": 6253,
+              "date": "2026-05-18",
+              "event_id": "740956",
+              "match_id": "e393a8ab0c5a4c5616e9196437046ce3"
+            },
+            {
+              "club": 6253,
+              "date": "2026-05-24",
+              "event_id": "740968",
+              "match_id": "628f067e478cd0e34be16bc751aab376"
+            }
+          ]
+        },
+        "360": {
+          "club": 1823,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Manchester United",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "361": {
+          "club": 1576,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Newcastle United",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "362": {
+          "club": 1327,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Aston Villa",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "363": {
+          "club": 3105,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Chelsea",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "364": {
+          "club": 9607,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Liverpool",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "366": {
+          "club": 3859,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Sunderland",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "367": {
+          "club": 1879,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Tottenham Hotspur",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "368": {
+          "club": 1660,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Everton",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "370": {
+          "club": 7521,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Fulham",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "371": {
+          "club": 9720,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "West Ham United",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "373": {
+          "club": 3791,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Ipswich Town",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "379": {
+          "club": 5946,
+          "country": "england",
+          "rule": "multiple unique dated fixture correspondences",
+          "source_label": "Burnley",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": [
+            {
+              "club": 5946,
+              "date": "2026-01-03",
+              "event_id": "740795",
+              "match_id": "0282f83ad4eeed55de43bb2859986ba7"
+            },
+            {
+              "club": 5946,
+              "date": "2026-01-07",
+              "event_id": "740799",
+              "match_id": "0f245990a4f30c27169e77efc349da3b"
+            },
+            {
+              "club": 5946,
+              "date": "2026-01-17",
+              "event_id": "740810",
+              "match_id": "b45f91e10cc43f6031ef67d1f8435f6f"
+            },
+            {
+              "club": 5946,
+              "date": "2026-01-24",
+              "event_id": "740819",
+              "match_id": "7ea09bdae82793723b0ca2de28a7c8a1"
+            },
+            {
+              "club": 5946,
+              "date": "2026-02-02",
+              "event_id": "740830",
+              "match_id": "6ed72f158f4d493c7a3b3c633813565c"
+            },
+            {
+              "club": 5946,
+              "date": "2026-02-07",
+              "event_id": "740839",
+              "match_id": "73791a38c4807aa89888934e9d369a4b"
+            },
+            {
+              "club": 5946,
+              "date": "2026-02-11",
+              "event_id": "740851",
+              "match_id": "3b49533e863f875686635243c395d1dc"
+            },
+            {
+              "club": 5946,
+              "date": "2026-02-21",
+              "event_id": "740864",
+              "match_id": "55437db432b5e7ddda6903449baff462"
+            },
+            {
+              "club": 5946,
+              "date": "2026-02-28",
+              "event_id": "740867",
+              "match_id": "39809d21b4d1ab05f632af464ccfa586"
+            },
+            {
+              "club": 5946,
+              "date": "2026-03-03",
+              "event_id": "740879",
+              "match_id": "57d856ffd96ebdeb528e1a154628bc76"
+            },
+            {
+              "club": 5946,
+              "date": "2026-03-14",
+              "event_id": "740888",
+              "match_id": "c0ac6421eec24035de4b91d8278395d1"
+            },
+            {
+              "club": 5946,
+              "date": "2026-03-21",
+              "event_id": "740905",
+              "match_id": "2db375c5f2425f7ce984c851b276c8b8"
+            },
+            {
+              "club": 5946,
+              "date": "2026-04-11",
+              "event_id": "740907",
+              "match_id": "ce105f756b13e168450d6a777c88c929"
+            },
+            {
+              "club": 5946,
+              "date": "2026-04-19",
+              "event_id": "740917",
+              "match_id": "656876eef66478c9a1a704819fba2da2"
+            },
+            {
+              "club": 5946,
+              "date": "2026-04-22",
+              "event_id": "740929",
+              "match_id": "02b5edfda506ed6659681664604c81f0"
+            },
+            {
+              "club": 5946,
+              "date": "2026-05-01",
+              "event_id": "740942",
+              "match_id": "f2ae36f4e412946676d4f9293ce69263"
+            },
+            {
+              "club": 5946,
+              "date": "2026-05-10",
+              "event_id": "740947",
+              "match_id": "355e331913a3bc35435c72763af87cc7"
+            },
+            {
+              "club": 5946,
+              "date": "2026-05-24",
+              "event_id": "740967",
+              "match_id": "3f675854f70fad4073119f8b1282af35"
+            }
+          ]
+        },
+        "380": {
+          "club": 4068,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Wolverhampton Wanderers",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "382": {
+          "club": 2901,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Manchester City",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "384": {
+          "club": 7111,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Crystal Palace",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "388": {
+          "club": 298,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Coventry City",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        },
+        "393": {
+          "club": 487,
+          "country": "england",
+          "rule": "unique exact label within English canonical identities",
+          "source_label": "Nottingham Forest",
+          "valid_from": "2026-01-01",
+          "valid_to": "9999-12-31",
+          "witnesses": []
+        }
+      },
+      "tier": 1,
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London"
+      },
+      "identity_country": "england",
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-eng2",
+      "adapter": "espn_league",
+      "league": "eng.2",
+      "identity_country": "england",
+      "tier": 2,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-eng3",
+      "adapter": "espn_league",
+      "league": "eng.3",
+      "identity_country": "england",
+      "tier": 3,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-eng4",
+      "adapter": "espn_league",
+      "league": "eng.4",
+      "identity_country": "england",
+      "tier": 4,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-esp1",
+      "adapter": "espn_league",
+      "league": "esp.1",
+      "identity_country": "spain",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-ita1",
+      "adapter": "espn_league",
+      "league": "ita.1",
+      "identity_country": "italy",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-ger1",
+      "adapter": "espn_league",
+      "league": "ger.1",
+      "identity_country": "germany",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-fra1",
+      "adapter": "espn_league",
+      "league": "fra.1",
+      "identity_country": "france",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-por1",
+      "adapter": "espn_league",
+      "league": "por.1",
+      "identity_country": "portugal",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-ned1",
+      "adapter": "espn_league",
+      "league": "ned.1",
+      "identity_country": "netherlands",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-bra1",
+      "adapter": "espn_league",
+      "league": "bra.1",
+      "identity_country": "brazil",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-jpn1",
+      "adapter": "espn_league",
+      "league": "jpn.1",
+      "identity_country": "japan",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-aus1",
+      "adapter": "espn_league",
+      "league": "aus.1",
+      "identity_country": "australia",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-rsa1",
+      "adapter": "espn_league",
+      "league": "rsa.1",
+      "identity_country": "south-africa",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    },
+    {
+      "id": "espn-ksa1",
+      "adapter": "espn_league",
+      "league": "ksa.1",
+      "identity_country": "saudi-arabia",
+      "tier": 1,
+      "binding_from": "2026-01-01",
+      "fixture_days": 35,
+      "correction_days": 14,
+      "teams": {},
+      "venue_timezones": {
+        "England": "Europe/London",
+        "Scotland": "Europe/London",
+        "Wales": "Europe/London",
+        "Northern Ireland": "Europe/London",
+        "Spain": [
+          "Europe/Madrid",
+          "Africa/Ceuta",
+          "Atlantic/Canary"
+        ],
+        "Italy": "Europe/Rome",
+        "Germany": "Europe/Berlin",
+        "France": "Europe/Paris",
+        "Monaco": "Europe/Monaco",
+        "Portugal": [
+          "Europe/Lisbon",
+          "Atlantic/Azores",
+          "Atlantic/Madeira"
+        ],
+        "Netherlands": "Europe/Amsterdam",
+        "Japan": "Asia/Tokyo",
+        "South Africa": "Africa/Johannesburg",
+        "Saudi Arabia": "Asia/Riyadh",
+        "New Zealand": [
+          "Pacific/Auckland",
+          "Pacific/Chatham"
+        ],
+        "Australia": [
+          "Australia/Sydney",
+          "Australia/Brisbane",
+          "Australia/Darwin",
+          "Australia/Adelaide",
+          "Australia/Perth",
+          "Australia/Hobart",
+          "Australia/Lord_Howe"
+        ],
+        "Brazil": [
+          "America/Noronha",
+          "America/Belem",
+          "America/Fortaleza",
+          "America/Recife",
+          "America/Araguaina",
+          "America/Maceio",
+          "America/Bahia",
+          "America/Sao_Paulo",
+          "America/Campo_Grande",
+          "America/Cuiaba",
+          "America/Santarem",
+          "America/Porto_Velho",
+          "America/Boa_Vista",
+          "America/Manaus",
+          "America/Eirunepe",
+          "America/Rio_Branco"
+        ]
+      },
+      "fetch_workers": 4
+    }
+  ],
+  "full_site": true
+}

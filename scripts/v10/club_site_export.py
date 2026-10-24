@@ -1,0 +1,832 @@
+#!/usr/bin/env python3
+"""Build the independent global-club ratings section and static data archive."""
+
+from __future__ import annotations
+
+import argparse
+from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, datetime, timezone
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import tempfile
+from typing import Any, Iterable
+
+import duckdb
+
+from club_model import load_club_config, run_club_model
+
+
+ACTIVE_DAYS = 550
+WORLD_COMPARABLE_MAX_SE = 145.0
+WORLD_COMPARABLE_MIN_MATCHES = 50
+# Same-club public labels previously created separate active rating histories
+# when a current-season feed used a longer corporate name.  These reviewed,
+# association-scoped groups are release blockers rather than display aliases:
+# the evidence must have been merged before the replay.
+PUBLIC_IDENTITY_VARIANT_GROUPS = (
+    ("belgium", {"Antwerp", "Royal Antwerp FC"}),
+    ("belgium", {"Gent", "KAA Gent"}),
+    ("belgium", {"Sint-Truiden", "Sint-Truidense VV"}),
+    ("belgium", {"Westerlo", "KVC Westerlo"}),
+    ("croatia", {"Rijeka", "HNK Rijeka"}),
+    ("france", {"Brest", "Stade Brestois 29"}),
+    ("france", {"Lens", "Racing Club de Lens"}),
+    ("france", {"Strasbourg", "RC Strasbourg Alsace"}),
+    ("germany", {"Bochum", "VfL Bochum"}),
+    ("germany", {"Hoffenheim", "TSG 1899 Hoffenheim", "TSG Hoffenheim"}),
+    ("germany", {"St. Pauli", "FC St. Pauli 1910"}),
+    ("greece", {"PAOK", "PAOK Saloniki"}),
+    ("italy", {"Cagliari", "Cagliari Calcio"}),
+    ("italy", {"Genoa", "Genoa CFC"}),
+    ("italy", {"Inter", "FC Internazionale Milano"}),
+    ("italy", {"Lazio", "SS Lazio"}),
+    ("italy", {"Parma", "Parma Calcio 1913"}),
+    ("italy", {"Udinese", "Udinese Calcio"}),
+    ("italy", {"Venezia", "Venezia FC"}),
+    ("netherlands", {"AZ", "AZ Alkmaar"}),
+    ("netherlands", {"Feyenoord", "Feyenoord Rotterdam"}),
+    ("netherlands", {"NEC", "NEC Nijmegen"}),
+    ("netherlands", {"SC Telstar", "Telstar 1963"}),
+    ("portugal", {"Benfica", "Sport Lisboa e Benfica"}),
+    ("portugal", {"Estoril", "GD Estoril Praia"}),
+    ("portugal", {"Sporting CP", "Sporting Clube de Portugal"}),
+    ("spain", {"Espanyol", "RCD Espanyol de Barcelona"}),
+    ("spain", {"Las Palmas", "UD Las Palmas"}),
+    ("spain", {"Rayo Vallecano", "Rayo Vallecano de Madrid"}),
+    ("spain", {"Real Betis", "Real Betis Balompié"}),
+)
+MATCH_SCHEMA = [
+    "id", "date", "home", "away", "home_goals", "away_goals",
+    "competition", "kind", "home_tier", "away_tier", "neutral",
+    "cross_border", "status", "leg", "tie_key",
+    "aggregate_before_home", "aggregate_after_home", "aggregate_weight",
+    "evidence_weight", "pre_home_rating", "pre_away_rating",
+    "post_home_rating", "post_away_rating", "home_probability",
+    "draw_probability", "away_probability", "home_rating_delta",
+    "surprise", "source", "source_ref", "round",
+]
+HISTORY_SCHEMA = [
+    "rank", "club", "rating", "mean", "standard_error", "matches", "tier",
+    "last_match",
+]
+ANNUAL_SCHEMA = [
+    "year", "rating", "mean", "standard_error", "matches", "tier",
+]
+
+
+def rounded(value: Any, digits: int = 4) -> Any:
+    if isinstance(value, float):
+        return round(value, digits)
+    return value
+
+
+def ordinal_date(value: int | None) -> str | None:
+    if value is None or int(value) < 1:
+        return None
+    return date.fromordinal(int(value)).isoformat()
+
+
+def write_json(path: Path, value: Any) -> None:
+    payload = json.dumps(
+        value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(payload)
+
+
+def write_gzip_json(path: Path, value: Any) -> None:
+    """Write deterministic browser-decompressed JSON inside the staged archive."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(
+        value, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
+    path.write_bytes(gzip.compress(payload, compresslevel=9, mtime=0))
+
+
+def sha256_path(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_static_data(
+    data: Path,
+    expected_matches: int,
+    *,
+    verification_profile: str = "v7",
+) -> None:
+    """Reject an incomplete refresh before it can be committed or deployed."""
+    if verification_profile not in {"v7", "v8", "v9"}:
+        raise ValueError(f"unknown club publication profile: {verification_profile}")
+    temporary = list(data.rglob(".*.tmp"))
+    if temporary:
+        raise OSError(f"temporary generated file remains: {temporary[0]}")
+    empty = [path for path in data.rglob("*") if path.is_file() and path.stat().st_size == 0]
+    if empty:
+        raise OSError(f"empty generated file: {empty[0]}")
+    index = json.loads((data / "matches" / "index.json").read_text(encoding="utf-8"))
+    indexed_files = {str(item["file"]) for item in index["years"]}
+    actual_files = {path.name for path in (data / "matches").glob("*.json.gz")}
+    if indexed_files != actual_files:
+        raise OSError("match archive index does not match the generated archive files")
+    total = 0
+    for item in index["years"]:
+        archive = data / "matches" / str(item["file"])
+        with gzip.open(archive, "rt", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if int(payload.get("year", -1)) != int(item["year"]):
+            raise OSError(f"wrong year payload in {archive.name}")
+        rows = payload.get("matches")
+        if not isinstance(rows, list) or len(rows) != int(item["count"]):
+            raise OSError(f"wrong match count in {archive.name}")
+        total += len(rows)
+    if total != int(expected_matches):
+        raise OSError(
+            f"archive total {total:,} does not match ledger total {expected_matches:,}"
+        )
+    rankings = json.loads((data / "rankings.json").read_text(encoding="utf-8"))["clubs"]
+    catalog = json.loads((data / "clubs.json").read_text(encoding="utf-8"))["clubs"]
+    invalid_catalog = [
+        club for club in catalog
+        if not str(club.get("name") or "").strip()
+        or str(club.get("name") or "").strip().casefold()
+        in {"na", "none", "null", "tbd", "unknown", "bye"}
+        or str(club.get("country_name") or "").strip()
+        in {"", "Unassigned", "Unknown"}
+        or str(club.get("continent") or "").strip()
+        in {"", "Unassigned", "Unknown"}
+    ]
+    if invalid_catalog:
+        raise OSError(
+            "a published club has placeholder identity metadata: "
+            + str(invalid_catalog[0].get("name") or invalid_catalog[0].get("code"))
+        )
+    public_identity_keys = [
+        (str(club["country_name"]), str(club["name"]))
+        for club in catalog
+    ]
+    if len(public_identity_keys) != len(set(public_identity_keys)):
+        duplicates = Counter(public_identity_keys)
+        example = next(key for key, count in duplicates.items() if count > 1)
+        raise OSError(
+            "duplicate public club history inside one association: "
+            + " · ".join(example)
+        )
+    if any(int(club["tier"]) >= 3 for club in rankings[:50]):
+        raise OSError("a third-tier-or-lower club entered the published top 50")
+    if any(
+        not club.get("country")
+        or club.get("continent") in {None, "", "Unassigned"}
+        for club in rankings[:250]
+    ):
+        raise OSError("a top-250 club has unassigned nation or confederation metadata")
+    if (
+        verification_profile in {"v7", "v9"}
+        and sum(club.get("continent") == "South America" for club in rankings[:100]) < 5
+    ):
+        raise OSError("global top 100 lost plausible South American representation")
+    public_names = defaultdict(set)
+    for club in rankings:
+        public_names[str(club.get("country") or "")].add(str(club.get("name") or ""))
+    for country, variants in PUBLIC_IDENTITY_VARIANT_GROUPS:
+        retained = variants & public_names[country]
+        if len(retained) > 1:
+            raise OSError(
+                "same club has multiple active public identities: "
+                + ", ".join(sorted(retained))
+            )
+
+    records = json.loads((data / "records.json").read_text(encoding="utf-8"))
+    if set(records.get("definitions", {})) != {
+        "peaks", "strongest_matches", "upsets", "aggregate_examples",
+        "year_opening_number_ones",
+    }:
+        raise OSError("record definitions are incomplete")
+    peak_by_name = {row["name"]: float(row["rating"]) for row in records["peaks"]}
+    if verification_profile in {"v7", "v9"} and peak_by_name.get(
+        "Ajax", float("-inf")
+    ) <= peak_by_name.get("Kawasaki Frontale", float("inf")):
+        raise OSError("peak sanity check failed: Ajax must exceed Kawasaki Frontale")
+    leader_1999 = next(
+        (row for row in records["year_opening_number_ones"] if int(row["year"]) == 1999),
+        None,
+    )
+    if (
+        verification_profile in {"v7", "v9"}
+        and leader_1999
+        and leader_1999["name"] == "ES Tunis"
+    ):
+        raise OSError("corpus leader sanity check failed for 1999")
+
+    archive_2026 = next(
+        (data / "matches" / str(item["file"]) for item in index["years"] if int(item["year"]) == 2026),
+        None,
+    )
+    if archive_2026 is None:
+        raise OSError("2026 match archive is missing")
+    with gzip.open(archive_2026, "rt", encoding="utf-8") as handle:
+        matches_2026 = json.load(handle)["matches"]
+    if not any(
+        row[1] == "2026-05-30"
+        and (
+            row[6] == "UEFA Champions League"
+            if verification_profile in {"v7", "v9"}
+            else str(row[6]).startswith("UEFA Champions League")
+        )
+        and row[4:6] == [1, 1]
+        and row[12] == "P"
+        for row in matches_2026
+    ):
+        raise OSError("the verified 2026 UEFA Champions League final is missing")
+
+
+def publish_static_data(staged: Path, destination: Path) -> None:
+    """Swap a verified archive into place while preserving the prior snapshot."""
+    backup = destination.with_name(f".{destination.name}-previous")
+    if backup.exists():
+        shutil.rmtree(backup)
+    had_previous = destination.exists()
+    if had_previous:
+        os.replace(destination, backup)
+    try:
+        os.replace(staged, destination)
+    except Exception:
+        if had_previous and backup.exists() and not destination.exists():
+            os.replace(backup, destination)
+        raise
+    if staged.exists():
+        shutil.rmtree(staged)
+    if backup.exists():
+        shutil.rmtree(backup)
+
+
+def attach_model(connection: duckdb.DuckDBPyConnection, model: Path) -> None:
+    escaped = str(model.resolve()).replace("'", "''")
+    connection.execute(f"ATTACH '{escaped}' AS model (READ_ONLY)")
+
+
+def match_array(row: tuple[Any, ...]) -> list[Any]:
+    values = list(row)
+    values[1] = str(values[1])
+    for position in (17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27):
+        values[position] = (
+            None if values[position] is None else rounded(float(values[position]))
+        )
+    values[10] = 1 if values[10] else 0
+    values[11] = 1 if values[11] else 0
+    return values
+
+
+def _match_select(extra: str = "") -> str:
+    return f"""
+        SELECT r.match_id,r.day,h.code,a.code,r.home_goals,r.away_goals,
+               r.competition,r.kind,r.home_tier,r.away_tier,r.neutral,
+               r.cross_border,r.status,r.leg,r.tie_key,
+               r.aggregate_before_home,r.aggregate_after_home,r.aggregate_weight,
+               r.evidence_weight,r.pre_home_rating,r.pre_away_rating,
+               r.post_home_rating,r.post_away_rating,r.home_probability,
+               r.draw_probability,r.away_probability,r.rating_delta,r.surprise,
+               r.source,r.source_ref,r.round_name
+        FROM model.rated_matches r
+        JOIN clubs h ON h.club=r.home
+        JOIN clubs a ON a.club=r.away
+        {extra}
+    """
+
+
+def export_club_site(
+    ledger: Path,
+    model: Path,
+    source: Path,
+    config_dir: Path,
+    output: Path,
+    runtime_manifest: dict[str, Any],
+    ledger_summary: dict[str, Any],
+    model_summary: dict[str, Any],
+    *,
+    verification_profile: str = "v7",
+    static_verifier=None,
+) -> dict[str, Any]:
+    """Export a replay to compact, traceable static files."""
+    root = output / "clubs"
+    root.mkdir(parents=True, exist_ok=True)
+    for stale in root.glob(".data-building-*"):
+        shutil.rmtree(stale)
+    data = Path(tempfile.mkdtemp(prefix=".data-building-", dir=root))
+    destination = root / "data"
+
+    config = load_club_config(config_dir / "club_model.json")
+    connection = duckdb.connect(str(ledger), read_only=True)
+    attach_model(connection, model)
+    connection.execute("CREATE TEMP VIEW competition_coverage AS SELECT competition_key, max(competition) competition,max(kind) kind,count(*) matches,min(day) first_date,max(day) last_date,count(*)*2 club_sides,list(distinct source) sources FROM matches GROUP BY competition_key")
+    connection.execute("CREATE TEMP VIEW data_quality_checks AS SELECT 'unique_match_ids' check_name,cast(count(*)-count(distinct match_id) as bigint) actual,0::bigint expected,count(*)=count(distinct match_id) passed,'Canonical match IDs are unique' note FROM matches")
+    try:
+        maximum_day = int(
+            connection.execute(
+                "SELECT max(last_day) FROM model.current_club_ratings"
+            ).fetchone()[0]
+        )
+        active_after = maximum_day - ACTIVE_DAYS
+        current_rows = connection.execute(
+            """
+            SELECT c.club,c.code,c.name,c.country,c.country_name,c.country_code,
+                   c.continent,c.identity,c.resolution,r.mean,r.rating,r.se,
+                   r.matches,r.first_day,r.last_day,r.tier
+            FROM model.current_club_ratings r JOIN clubs c USING(club)
+            ORDER BY c.club
+            """
+        ).fetchall()
+
+        clubs_by_id: dict[int, dict[str, Any]] = {}
+        for row in current_rows:
+            club = {
+                "code": row[1],
+                "name": row[2],
+                "country": row[3],
+                "country_name": row[4],
+                "country_code": row[5],
+                "continent": row[6] or "Unassigned",
+                "identity": row[7],
+                "resolution": row[8],
+                "mean": rounded(float(row[9]), 2),
+                "rating": rounded(float(row[10]), 2),
+                "se": rounded(float(row[11]), 2),
+                "matches": int(row[12]),
+                "first": ordinal_date(int(row[13])),
+                "last": ordinal_date(int(row[14])),
+                "tier": int(row[15]),
+                "active": int(row[14]) >= active_after,
+                "provisional": int(row[12]) < 30,
+            }
+            clubs_by_id[int(row[0])] = club
+
+        active = sorted(
+            (club for club in clubs_by_id.values() if club["active"]),
+            key=lambda club: (-float(club["rating"]), str(club["name"]), str(club["code"])),
+        )
+        for rank, club in enumerate(active, start=1):
+            club["rank"] = rank
+
+        all_clubs = sorted(
+            clubs_by_id.values(),
+            key=lambda club: (str(club["name"]).casefold(), str(club["country"]), str(club["code"])),
+        )
+        club_catalog = [
+            {
+                key: club[key]
+                for key in (
+                    "code", "name", "country", "country_name", "country_code",
+                    "continent", "rating", "mean", "se", "matches", "first",
+                    "last", "tier", "active", "provisional",
+                )
+            }
+            for club in all_clubs
+        ]
+        write_json(data / "rankings.json", {"active_days": ACTIVE_DAYS, "clubs": active})
+        write_json(data / "clubs.json", {"clubs": club_catalog})
+
+        association_rows = connection.execute(
+            """
+            SELECT a.country,coalesce(max(c.country_name),replace(a.country,'-',' ')),
+                   coalesce(max(c.country_code),''),coalesce(max(c.continent),'Unassigned'),
+                   a.rating,a.se,a.international_updates
+            FROM model.current_association_ratings a
+            LEFT JOIN clubs c USING(country)
+            GROUP BY a.country,a.rating,a.se,a.international_updates
+            ORDER BY a.rating DESC,a.country
+            """
+        ).fetchall()
+        associations = [
+            {
+                "rank": rank,
+                "country": row[0],
+                "name": str(row[1]).title() if not row[2] else row[1],
+                "code": row[2],
+                "continent": row[3],
+                "coefficient": rounded(float(row[4]), 2),
+                "index": rounded(float(config["base_rating"]) + float(row[4]), 2),
+                "se": rounded(float(row[5]), 2),
+                "cross_border_updates": int(row[6]),
+            }
+            for rank, row in enumerate(association_rows, start=1)
+        ]
+        write_json(data / "associations.json", {"associations": associations})
+
+        opening_rows = connection.execute(
+            """
+            SELECT y.year,y.club,y.mean,y.rating,y.se,y.last_match_day,y.matches,y.tier
+            FROM model.year_openings y ORDER BY y.year,y.club
+            """
+        ).fetchall()
+        annual_by_club: dict[int, list[list[Any]]] = defaultdict(list)
+        eligible_by_year: dict[int, list[tuple[Any, ...]]] = defaultdict(list)
+        for row in opening_rows:
+            year, club_id = int(row[0]), int(row[1])
+            if club_id not in clubs_by_id:
+                continue
+            annual_by_club[club_id].append(
+                [
+                    year, rounded(float(row[3]), 2), rounded(float(row[2]), 2),
+                    rounded(float(row[4]), 2), int(row[6]), int(row[7]),
+                ]
+            )
+            opening_ordinal = date(year, 1, 1).toordinal()
+            if int(row[5]) >= opening_ordinal - ACTIVE_DAYS:
+                eligible_by_year[year].append(row)
+
+        history_index: list[dict[str, Any]] = []
+        number_ones: list[dict[str, Any]] = []
+        for year in sorted(eligible_by_year):
+            rows = sorted(
+                eligible_by_year[year],
+                key=lambda row: (-float(row[3]), clubs_by_id[int(row[1])]["name"]),
+            )
+            values = []
+            for rank, row in enumerate(rows, start=1):
+                values.append(
+                    [
+                        rank, clubs_by_id[int(row[1])]["code"],
+                        rounded(float(row[3]), 2), rounded(float(row[2]), 2),
+                        rounded(float(row[4]), 2), int(row[6]), int(row[7]),
+                        ordinal_date(int(row[5])),
+                    ]
+                )
+            write_json(data / "history" / f"{year}.json", {"year": year, "rankings": values})
+            history_index.append({"year": year, "clubs": len(values), "file": f"{year}.json"})
+            world_rows = [
+                row for row in rows
+                if int(row[7]) == 1
+                and int(row[6]) >= WORLD_COMPARABLE_MIN_MATCHES
+                and float(row[4]) <= WORLD_COMPARABLE_MAX_SE
+            ]
+            if world_rows:
+                leader_row = world_rows[0]
+                leader = clubs_by_id[int(leader_row[1])]
+                number_ones.append(
+                    {
+                        "year": year,
+                        "club": leader["code"],
+                        "name": leader["name"],
+                        "country": leader["country_name"],
+                        "rating": rounded(float(leader_row[3]), 2),
+                        "se": rounded(float(leader_row[4]), 2),
+                        "published_rank": rows.index(leader_row) + 1,
+                    }
+                )
+        write_json(
+            data / "history" / "index.json",
+            {"schema": HISTORY_SCHEMA, "active_days": ACTIVE_DAYS, "years": history_index},
+        )
+
+        match_year_rows = connection.execute(
+            """
+            SELECT club,year(day) year_value,count(*) matches FROM (
+                SELECT home club,day FROM matches
+                UNION ALL SELECT away,day FROM matches
+            ) GROUP BY club,year_value ORDER BY club,year_value
+            """
+        ).fetchall()
+        years_by_club: dict[int, list[list[int]]] = defaultdict(list)
+        for club_id, year, matches in match_year_rows:
+            years_by_club[int(club_id)].append([int(year), int(matches)])
+
+        def write_club_detail(item: tuple[int, dict[str, Any]]) -> None:
+            club_id, club = item
+            write_json(
+                data / "club" / f"{club['code']}.json",
+                {
+                    "club": club,
+                    "annual_schema": ANNUAL_SCHEMA,
+                    "annual": annual_by_club.get(club_id, []),
+                    "match_years": years_by_club.get(club_id, []),
+                },
+            )
+
+        with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 2)) as executor:
+            list(executor.map(write_club_detail, clubs_by_id.items()))
+
+        years = [
+            int(row[0])
+            for row in connection.execute(
+                "SELECT distinct year(day) FROM model.rated_matches ORDER BY 1"
+            ).fetchall()
+        ]
+        match_index: list[dict[str, Any]] = []
+        archive_query = _match_select(
+            "WHERE year(r.day)=? ORDER BY r.day,r.match_id"
+        )
+        for year in years:
+            rows = connection.execute(archive_query, [year]).fetchall()
+            values = [match_array(row) for row in rows]
+            filename = f"{year}.json.gz"
+            write_gzip_json(
+                data / "matches" / filename,
+                {"year": year, "matches": values},
+            )
+            match_index.append(
+                {
+                    "year": year,
+                    "count": len(values),
+                    "first": values[0][1],
+                    "last": values[-1][1],
+                    "file": filename,
+                }
+            )
+            print(f"club site: exported {year} ({len(values):,} matches)")
+        write_json(
+            data / "matches" / "index.json",
+            {"schema": MATCH_SCHEMA, "years": match_index},
+        )
+
+        coverage_rows = connection.execute(
+            """
+            SELECT competition_key,competition,kind,matches,first_date,last_date,
+                   club_sides,sources FROM competition_coverage
+            ORDER BY matches DESC,competition
+            """
+        ).fetchall()
+        competitions = [
+            {
+                "key": row[0], "name": row[1], "kind": row[2],
+                "matches": int(row[3]), "first": str(row[4]), "last": str(row[5]),
+                "club_sides": int(row[6]), "sources": list(row[7]),
+            }
+            for row in coverage_rows
+        ]
+        write_json(data / "competitions.json", {"competitions": competitions})
+
+        source_coverage_rows = connection.execute(
+            """
+            SELECT source,count(*),min(day),max(day),count(distinct competition_key)
+            FROM matches GROUP BY source ORDER BY count(*) DESC,source
+            """
+        ).fetchall()
+        kind_rows = connection.execute(
+            "SELECT kind,count(*) FROM matches GROUP BY kind ORDER BY count(*) DESC,kind"
+        ).fetchall()
+        tier_rows = connection.execute(
+            """
+            SELECT greatest(home_tier,away_tier) tier,count(*)
+            FROM matches GROUP BY 1 ORDER BY 1
+            """
+        ).fetchall()
+
+        peak_rows = connection.execute(
+            """
+            WITH points AS (
+                SELECT match_id,home club,away opponent,day,post_home_rating rating,
+                       post_home_mean mean,post_home_se se,home_goals gf,away_goals ga,
+                       competition,status,cross_border
+                FROM model.rated_matches
+                UNION ALL
+                SELECT match_id,away,home,day,post_away_rating,post_away_mean,
+                       post_away_se,away_goals,home_goals,competition,status,cross_border
+                FROM model.rated_matches
+            ), numbered AS (
+                SELECT *,row_number() OVER (PARTITION BY club ORDER BY day,match_id) games
+                FROM points
+            ), peaks AS (
+                SELECT * FROM numbered
+                WHERE games>=? AND se<=?
+                QUALIFY row_number() OVER (
+                    PARTITION BY club ORDER BY rating DESC,day,match_id
+                )=1
+            )
+            SELECT c.code,c.name,c.country_name,p.rating,p.day,p.mean,p.se,
+                   o.code,o.name,p.gf,p.ga,p.competition,p.status,p.games,p.cross_border,
+                   p.match_id
+            FROM peaks p JOIN clubs c USING(club) JOIN clubs o ON o.club=p.opponent
+            ORDER BY p.rating DESC,c.name,p.match_id LIMIT 250
+            """,
+            [WORLD_COMPARABLE_MIN_MATCHES, WORLD_COMPARABLE_MAX_SE],
+        ).fetchall()
+        peaks = [
+            {
+                "club": r[0], "name": r[1], "country": r[2],
+                "rating": rounded(float(r[3]), 2), "date": str(r[4]),
+                "mean": rounded(float(r[5]), 2), "se": rounded(float(r[6]), 2),
+                "opponent": r[7], "opponent_name": r[8],
+                "goals_for": int(r[9]), "goals_against": int(r[10]),
+                "competition": r[11], "status": r[12],
+                "matches_at_peak": int(r[13]), "cross_border": bool(r[14]),
+                "event_id": str(r[15]),
+            }
+            for r in peak_rows
+        ]
+        strongest = [
+            match_array(row)
+            for row in connection.execute(
+                _match_select(
+                    f"WHERE r.pre_home_se<={WORLD_COMPARABLE_MAX_SE} "
+                    f"AND r.pre_away_se<={WORLD_COMPARABLE_MAX_SE} "
+                    "ORDER BY r.pre_home_rating+r.pre_away_rating DESC,r.match_id "
+                    "LIMIT 250"
+                )
+            ).fetchall()
+        ]
+        upsets = [
+            match_array(row)
+            for row in connection.execute(
+                _match_select(
+                    f"WHERE r.pre_home_se<={WORLD_COMPARABLE_MAX_SE} "
+                    f"AND r.pre_away_se<={WORLD_COMPARABLE_MAX_SE} "
+                    "AND r.model_score IN (0.0,1.0) AND r.status NOT LIKE 'P%' "
+                    "AND r.evidence_weight>=0.5 "
+                    "ORDER BY r.surprise DESC,r.match_id LIMIT 250"
+                )
+            ).fetchall()
+        ]
+        aggregate_examples = [
+            match_array(row)
+            for row in connection.execute(
+                _match_select(
+                    "WHERE r.leg=2 AND r.aggregate_weight<0.999999 "
+                    "ORDER BY r.aggregate_weight,r.day DESC,r.match_id LIMIT 250"
+                )
+            ).fetchall()
+        ]
+        write_json(
+            data / "records.json",
+            {
+                "match_schema": MATCH_SCHEMA,
+                "definitions": {
+                    "peaks": {
+                        "title": "Post-match club peaks",
+                        "measure": "The highest cautious published rating a club held immediately after a retained match.",
+                        "order": "Descending post-match rating; ties break by the earlier date.",
+                        "eligibility": f"At least {WORLD_COMPARABLE_MIN_MATCHES} prior retained results and post-match uncertainty no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "The underlying mean is shown for transparency, but the record is the uncertainty-adjusted rating.",
+                    },
+                    "strongest_matches": {
+                        "title": "Highest-rated matches",
+                        "measure": "The sum of both clubs' cautious ratings before kick-off.",
+                        "order": "Descending combined pre-match rating.",
+                        "eligibility": f"Both pre-match uncertainties must be no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "This describes the strength of the pairing, not the importance or entertainment value of the match.",
+                    },
+                    "upsets": {
+                        "title": "Largest winning upsets",
+                        "measure": "Negative log probability of the winning outcome: −ln(P(observed winner)).",
+                        "order": "Descending surprise; a smaller pre-match win probability produces a larger score.",
+                        "eligibility": f"A decisive win, at least half ordinary evidence weight, and both uncertainties at or below {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "Draws and penalty shootouts are excluded. Identity and duplicate checks run before this list is built.",
+                    },
+                    "aggregate_examples": {
+                        "title": "Controlled second-leg cases",
+                        "measure": "Second legs whose result carried less than full information because the losing club remained ahead on aggregate.",
+                        "order": "Lowest information weight first, then newest date.",
+                        "eligibility": "A paired second leg with known first-leg score, same leader before and after, and a result opposite to the aggregate winner.",
+                        "interpretation": "The before and after aggregate margins are from the second-leg home club's perspective; positive means that club led the tie.",
+                    },
+                    "year_opening_number_ones": {
+                        "title": "Eligible corpus leaders at year opening",
+                        "measure": "The highest eligible rating at the opening of each calendar year.",
+                        "order": "Calendar year.",
+                        "eligibility": f"Active within {ACTIVE_DAYS} days, tier one, at least {WORLD_COMPARABLE_MIN_MATCHES} prior results, uncertainty at or below {WORLD_COMPARABLE_MAX_SE:.0f} points.",
+                        "interpretation": "Years before the evidence network clears those safeguards are not labeled with a corpus leader.",
+                    },
+                },
+                "peaks": peaks,
+                "strongest_matches": strongest,
+                "upsets": upsets,
+                "aggregate_examples": aggregate_examples,
+                "year_opening_number_ones": number_ones,
+            },
+        )
+
+        brazil_manifest_path = source / "club_brazil.manifest.json"
+        brazil_manifest = (
+            json.loads(brazil_manifest_path.read_text(encoding="utf-8"))
+            if brazil_manifest_path.exists() else None
+        )
+        brazil_states_manifest_path = source / "club_brazil_states.manifest.json"
+        brazil_states_manifest = (
+            json.loads(brazil_states_manifest_path.read_text(encoding="utf-8"))
+            if brazil_states_manifest_path.exists() else None
+        )
+        quality_rows = connection.execute(
+            "SELECT check_name,actual,expected,passed,note "
+            "FROM data_quality_checks ORDER BY check_name"
+        ).fetchall()
+        sources = {
+            "discovery_index": {
+                "name": "Sabino football-statistics research sources",
+                "url": "https://docs.ufpr.br/~mmsabino/sstatistics/fontes_pesquisa.html",
+                "role": "Discovery and corroboration index; not parsed by the unattended build.",
+            },
+            "runtime": runtime_manifest,
+            "brazil": brazil_manifest,
+            "brazil_states": brazil_states_manifest,
+            "coverage": [
+                {
+                    "source": row[0], "matches": int(row[1]), "first": str(row[2]),
+                    "last": str(row[3]), "competitions": int(row[4]),
+                }
+                for row in source_coverage_rows
+            ],
+            "additional_research": [
+                {"name": "RSSSF", "url": "https://www.rsssf.org/", "role": "Historical corroboration and gap discovery"},
+                {"name": "OpenFootball", "url": "https://openfootball.github.io/", "role": "Current-season league and tier repair, plus open-format corroboration"},
+            ],
+            "limitations": [
+                "Coverage is broad, not literally complete: lower tiers, state competitions, early cups, and some confederations remain uneven.",
+                "A club identity is kept separate when legal or sporting succession is genuinely ambiguous.",
+                "Mutable upstream feeds are hash-recorded on every build; historical corrections can change a later replay without refitting coefficients.",
+                "Penalty-shootout-decided matches are learned as regulation/extra-time draws; shootout goals are not treated as ordinary goal margin.",
+            ],
+            "quality_checks": [
+                {
+                    "name": row[0], "actual": int(row[1]),
+                    "expected": int(row[2]), "passed": bool(row[3]), "note": row[4],
+                }
+                for row in quality_rows
+            ],
+        }
+        write_json(data / "sources.json", sources)
+
+        generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+        meta = {
+            "generated_at": generated_at,
+            "model_version": config["version"],
+            "results_through": ledger_summary["last"],
+            "first_result": ledger_summary["first"],
+            "candidate_matches": ledger_summary["raw_matches"],
+            "matches": ledger_summary["matches"],
+            "deduplicated": ledger_summary["deduplicated"],
+            "rated_clubs": len(clubs_by_id),
+            "active_clubs": len(active),
+            "associations": len(associations),
+            "competitions": len(competitions),
+            "explicit_second_legs": ledger_summary["explicit_second_legs"],
+            "active_days": ACTIVE_DAYS,
+            "match_schema": MATCH_SCHEMA,
+            "history_schema": HISTORY_SCHEMA,
+            "model_metrics": model_summary["metrics"],
+            "fit": config.get("fit", {}),
+            "parameters": config,
+            "coverage": {
+                "kinds": {str(key): int(value) for key, value in kind_rows},
+                "maximum_tier": max((int(row[0]) for row in tier_rows), default=1),
+                "tiers": {str(row[0]): int(row[1]) for row in tier_rows},
+                "sources": ledger_summary["sources"],
+            },
+            "quality": {
+                "checks": len(quality_rows),
+                "passed": sum(bool(row[3]) for row in quality_rows),
+                "corrections": ledger_summary.get("quality", {}),
+                "world_comparable_max_se": WORLD_COMPARABLE_MAX_SE,
+                "world_comparable_min_matches": WORLD_COMPARABLE_MIN_MATCHES,
+            },
+            "method": {
+                "rating": "1500 + club residual + tier + association coefficient + confederation coefficient - uncertainty penalty",
+                "home": "Separate fitted domestic and cross-border home advantages; neutral matches receive zero.",
+                "same_date": "Every match on a date is forecast from one frozen start-of-day state, then that date is updated.",
+                "aggregate": "Only a controlled second-leg loss by a club that remains ahead on aggregate is discounted; comebacks, level ties, and confirming wins retain full weight.",
+            },
+        }
+        write_json(data / "meta.json", meta)
+        write_json(
+            data / "bootstrap.json",
+            {
+                "meta": {key: meta[key] for key in (
+                    "generated_at", "model_version", "results_through", "first_result",
+                    "matches", "rated_clubs", "active_clubs", "associations",
+                    "competitions", "explicit_second_legs",
+                )},
+                "top": active[:20],
+            },
+        )
+    finally:
+        connection.close()
+
+    if static_verifier is None:
+        verify_static_data(data, int(ledger_summary["matches"]), verification_profile=verification_profile)
+    else:
+        static_verifier(data, int(ledger_summary["matches"]))
+    publish_static_data(data, destination)
+    version_club_assets(root)
+    return meta
+
+
+def version_club_assets(root: Path) -> None:
+    index = root / "index.html"
+    if not index.exists():
+        raise FileNotFoundError(f"Club application shell is missing: {index}")
+    html = index.read_text(encoding="utf-8")
+    for asset in ("clubs.css", "clubs.js"):
+        revision = sha256_path(root / asset)[:12]
+        html = re.sub(
+            rf'(?P<attribute>\b(?:href|src)=["\']){re.escape(asset)}(?:\?v=[^"\']*)?',
+            rf'\g<attribute>{asset}?v={revision}',
+            html,
+        )
+    index.write_text(html, encoding="utf-8")
+

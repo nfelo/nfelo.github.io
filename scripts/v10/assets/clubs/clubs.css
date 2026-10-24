@@ -1,0 +1,844 @@
+/* The national NFELO styles own the page shell and every shared component.
+   This file only fits club-specific identity and data content into them. */
+
+.club-identity {
+  display: inline-grid;
+  min-width: 0;
+  max-width: 100%;
+  gap: 3px;
+  align-content: center;
+  vertical-align: middle;
+}
+
+.club-name {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.club-name .team-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+}
+
+.club-name .team-link:hover {
+  color: var(--link);
+  text-decoration-color: currentColor;
+}
+
+.club-context {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.club-identity-compact .club-name {
+  font-size: 13px;
+  line-height: 1.18;
+}
+
+.club-identity-compact .club-context {
+  font-size: 10px;
+}
+
+.club-ranking-table {
+  min-width: 940px;
+}
+
+.club-ranking-table td:nth-child(2) {
+  width: 26%;
+  min-width: 190px;
+}
+
+.club-tier {
+  display: block;
+  font-weight: 750;
+}
+
+.club-list-count {
+  margin: 0 0 14px;
+}
+
+.ranking-card-team .club-identity {
+  width: 100%;
+}
+
+.ranking-card-team .club-name {
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.ranking-card-team .club-context {
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.home-ranking-list .home-club-identity {
+  min-width: 0;
+}
+
+.home-ranking-list .club-identity {
+  width: 100%;
+}
+
+.home-ranking-list .club-name {
+  font-size: 14px;
+}
+
+.home-ranking-list .club-context {
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.club-home-date {
+  margin: 18px 0 12px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.club-match-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overscroll-behavior-inline: contain;
+}
+
+.club-match-table > table {
+  min-width: 1160px;
+}
+
+.club-match-pair {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 430px;
+}
+
+.club-match-pair > span:last-child {
+  text-align: right;
+}
+
+.club-match-pair > span:last-child .club-identity {
+  justify-items: end;
+}
+
+.club-match-pair .score {
+  min-width: 54px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.club-probabilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(54px, 1fr));
+  gap: 5px;
+  min-width: 190px;
+}
+
+.club-probabilities span {
+  display: grid;
+  gap: 3px;
+  padding: 7px 6px;
+  color: var(--ink-soft);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.club-probabilities b {
+  color: var(--ink);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.club-match-table-view,
+.club-match-cards,
+.record-desktop,
+.record-cards,
+#record-table,
+#record-results {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.club-match-cards,
+.record-cards {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record-definition {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 24px;
+  padding: clamp(20px, 3vw, 30px);
+  background:
+    radial-gradient(
+      ellipse 24rem 11rem at 103% -15%,
+      color-mix(in srgb, var(--accent-soft) 72%, transparent),
+      transparent 74%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface) 94%, var(--note-bg)),
+      var(--surface)
+    );
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-small);
+}
+
+.record-definition::after {
+  position: absolute;
+  right: -18px;
+  bottom: -18px;
+  width: 62px;
+  height: 62px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 34% 34%, var(--accent-soft) 0 18%, transparent 20%),
+    radial-gradient(circle at 65% 34%, var(--note-bg) 0 18%, transparent 20%),
+    radial-gradient(circle at 50% 62%, var(--accent-soft) 0 18%, transparent 20%);
+  opacity: 0.72;
+  content: "";
+  transform: rotate(-12deg);
+}
+
+.record-definition h2 {
+  margin: 3px 0 20px;
+}
+
+.record-definition dl,
+.method-definition-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.record-definition dl > div,
+.method-definition-list > div {
+  min-width: 0;
+  padding: 14px 15px;
+  background: color-mix(in srgb, var(--surface) 86%, var(--accent-soft));
+  border: 1px solid var(--border);
+  border-radius: 11px 16px 11px 16px;
+}
+
+.record-definition dt,
+.method-definition-list dt {
+  margin: 0 0 5px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.record-definition dd,
+.method-definition-list dd {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.record-metric {
+  display: block;
+  margin-top: 7px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.record-metric b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.club-chart-wrap {
+  min-width: 0;
+  padding: 8px 0 0;
+}
+
+.club-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.club-chart-grid line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.club-chart text {
+  fill: var(--ink-soft);
+  font: 11px var(--font-body);
+}
+
+.club-chart-series {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.club-chart-series-1 {
+  stroke: var(--chart-a);
+}
+
+.club-chart-series-2 {
+  stroke: var(--chart-c);
+}
+
+.club-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  padding: 0 36px 10px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.club-chart-legend span::before {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  margin-right: 7px;
+  background: var(--chart-a);
+  vertical-align: middle;
+  content: "";
+}
+
+.club-chart-legend .club-chart-key-2::before {
+  background: var(--chart-c);
+}
+
+.club-forecast-context {
+  display: block;
+  margin-top: 3px;
+  color: inherit;
+  font-size: 10px;
+  opacity: 0.78;
+}
+
+.team-stats > div {
+  min-width: 0;
+}
+
+.team-stats strong {
+  overflow-wrap: anywhere;
+}
+
+.team-stats > div:nth-child(2) strong,
+.team-stats > div:nth-child(3) strong {
+  font-size: 18px;
+}
+
+.team-stats > div:nth-child(5) strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.home-v8-events {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.home-v8-events > div {
+  min-width: 0;
+}
+
+.v8-event-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-v8-events .v8-event-list {
+  grid-template-columns: 1fr;
+}
+
+.v8-event-card {
+  min-width: 0;
+  padding: 17px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 17rem 8rem at 104% -14%,
+      color-mix(in srgb, var(--accent-soft) 68%, transparent),
+      transparent 74%
+    ),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 15px 21px 15px 21px;
+  box-shadow: var(--shadow-small);
+}
+
+.v8-event-meta,
+.v8-event-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.v8-event-meta a,
+.v8-event-footer a {
+  color: var(--link);
+}
+
+.v8-event-matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 16px 0 13px;
+}
+
+.v8-event-matchup > .club-identity:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.v8-event-score {
+  min-width: 44px;
+  padding: 7px 8px;
+  color: var(--ink);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-numeric);
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.v8-event-note,
+.v8-forecast-unavailable {
+  display: block;
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.v8-probabilities {
+  margin: 12px 0;
+}
+
+.v8-event-footer {
+  justify-content: flex-start;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.v8-event-footer span {
+  overflow-wrap: anywhere;
+}
+
+.status-pill {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px 8px;
+  color: var(--ink-soft);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.status-good {
+  color: var(--link);
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface));
+}
+
+.status-warning {
+  color: var(--note-ink);
+  background: var(--note-bg);
+}
+
+.v8-health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 clamp(24px, 4vw, 40px);
+}
+
+.v8-health-grid > div {
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px 17px 12px 17px;
+}
+
+.v8-health-grid span,
+.v8-health-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.v8-health-grid span {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.v8-health-grid strong {
+  margin-top: 7px;
+  color: var(--ink);
+  font-family: var(--font-numeric);
+  font-size: clamp(22px, 3vw, 31px);
+  line-height: 1;
+}
+
+@media (max-width: 1024px) {
+  .home-v8-events,
+  .v8-event-list {
+    grid-template-columns: 1fr;
+  }
+
+  .v8-health-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .club-match-table-view,
+  .record-desktop {
+    display: none;
+  }
+
+  .club-match-cards,
+  .record-cards {
+    display: grid;
+    gap: 14px;
+  }
+
+  .record-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .club-match-card,
+  .record-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 18px;
+    background:
+      radial-gradient(
+        ellipse 16rem 8rem at 103% -12%,
+        color-mix(in srgb, var(--accent-soft) 68%, transparent),
+        transparent 74%
+      ),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--surface) 96%, var(--note-bg)),
+        var(--surface)
+      );
+    border: 1px solid var(--border);
+    border-radius: 16px 22px 16px 22px;
+    box-shadow: var(--shadow-small);
+  }
+
+  .club-match-card:nth-child(3n + 2),
+  .record-card:nth-child(3n + 2) {
+    background:
+      radial-gradient(
+        ellipse 16rem 8rem at 103% -12%,
+        color-mix(in srgb, var(--note-bg) 78%, transparent),
+        transparent 74%
+      ),
+      var(--surface);
+  }
+
+  .club-match-card > header,
+  .record-card > header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 11px;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .club-match-card > header span {
+    max-width: 64%;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .club-match-card-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+  }
+
+  .club-match-card-pair > div {
+    min-width: 0;
+  }
+
+  .club-match-card-pair > div:last-child {
+    text-align: right;
+  }
+
+  .club-match-card-pair > div:last-child .club-identity {
+    justify-items: end;
+  }
+
+  .club-match-card-pair > strong {
+    min-width: 46px;
+    padding: 7px 8px;
+    color: var(--ink);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-numeric);
+    font-size: 16px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .club-match-status {
+    margin: 13px 0 0;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .club-match-card .record-metric {
+    margin: 10px auto 0;
+    text-align: center;
+  }
+
+  .club-match-card-data,
+  .record-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 15px 0 0;
+  }
+
+  .club-match-card-data > div,
+  .record-card dl > div {
+    min-width: 0;
+    padding: 10px;
+    background: color-mix(in srgb, var(--surface-subtle) 86%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 10px 14px 10px 14px;
+  }
+
+  .club-match-card-data dt,
+  .record-card dt {
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .club-match-card-data dd,
+  .record-card dd {
+    margin: 4px 0 0;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .club-match-card .club-probabilities {
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+  }
+
+  .aggregate-note {
+    margin-top: 12px;
+    padding: 12px 13px;
+    color: var(--note-ink);
+    background: var(--note-bg);
+    border-radius: 11px 15px 11px 15px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .aggregate-note p {
+    margin: 4px 0 0;
+  }
+
+  .club-match-card > details {
+    margin: 13px -18px -18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .club-match-card > details summary {
+    padding: 12px 18px;
+    color: var(--link);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .club-match-card > details p {
+    margin: 0;
+    padding: 0 18px 12px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .record-card > header strong {
+    color: var(--ink);
+    font-family: var(--font-numeric);
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .record-card > .club-identity {
+    width: 100%;
+  }
+
+  .record-card > .club-identity .club-name {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 3vw, 25px);
+    font-weight: 620;
+  }
+}
+
+@media (max-width: 760px) {
+  .club-match-pair {
+    min-width: 390px;
+  }
+
+  .club-context {
+    font-size: 10px;
+  }
+
+  .record-definition dl,
+  .method-definition-list,
+  .record-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .v8-event-card {
+    padding: 14px;
+  }
+
+  .v8-event-matchup {
+    gap: 6px;
+  }
+
+  .v8-event-matchup .club-name {
+    font-size: 13px;
+  }
+
+  .v8-event-matchup .club-context {
+    font-size: 9px;
+  }
+
+  .v8-event-score {
+    min-width: 39px;
+    padding-inline: 6px;
+    font-size: 14px;
+  }
+
+  .v8-health-grid > div {
+    padding: 12px;
+  }
+
+  .home-ranking-list .club-name {
+    font-size: 13px;
+  }
+
+  .club-chart-legend {
+    padding-inline: 4px;
+  }
+
+  .club-match-card,
+  .record-card {
+    padding: 14px;
+  }
+
+  .club-match-card > details {
+    margin: 12px -14px -14px;
+  }
+
+  .club-match-card > details summary,
+  .club-match-card > details p {
+    padding-inline: 14px;
+  }
+
+  .club-match-card-pair {
+    gap: 6px;
+  }
+
+  .club-match-card-pair > strong {
+    min-width: 40px;
+    padding-inline: 6px;
+    font-size: 14px;
+  }
+
+  .club-match-card-pair .club-name {
+    font-size: 13px;
+  }
+
+  .club-match-card-pair .club-context {
+    font-size: 9px;
+  }
+
+  .club-match-card-data,
+  .record-card dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+.club-data-links {text-align:center;padding:24px 12px;line-height:2;overflow-wrap:anywhere}

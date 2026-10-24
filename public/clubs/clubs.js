@@ -22,6 +22,7 @@
   let clubCatalog = null;
   let clubMap = null;
   let matchArchiveFiles = null;
+  let fixtureRows = null;
 
   const PAGE_FAMILIES = {
     home: "cover",
@@ -209,14 +210,84 @@
     return getJSON(`matches/${matchArchiveFiles.get(String(year)) || `${year}.json.gz`}`);
   }
 
+  async function getFixtures() {
+    if (!fixtureRows) {
+      const index = await getJSON("fixtures/index.json");
+      const archives = await Promise.all(
+        index.months.map((row) => getJSON(`fixtures/${row.file}`)),
+      );
+      fixtureRows = archives.flatMap((payload) => payload.fixtures || []);
+    }
+    return fixtureRows;
+  }
+
+  function v8ClubIdentity(side) {
+    const club = side?.club ? clubFor(side.club) : null;
+    if (club) return clubIdentity(club);
+    const name = side?.name || "Unassigned club";
+    const association = slugLabel(side?.association || "unassigned");
+    return `<span class="club-identity"><span class="club-name">${escapeHTML(name)}</span><span class="club-context">${escapeHTML(association)}</span></span>`;
+  }
+
+  function v8ProbabilityStrip(forecast) {
+    const values = forecast?.probabilities;
+    if (!values) return `<span class="v8-forecast-unavailable">No rating forecast</span>`;
+    return `<div class="club-probabilities v8-probabilities" aria-label="Frozen pre-match probabilities">
+      <span>Home<b>${percent(values.home)}</b></span>
+      <span>Draw<b>${percent(values.draw)}</b></span>
+      <span>Away<b>${percent(values.away)}</b></span>
+    </div>`;
+  }
+
+  function v8EventCard(row, { fixture = false, unresolved = false } = {}) {
+    const displayed = row.score?.displayed || row.rating_score;
+    const score = fixture ? "v" : row.score?.model_status === "P?" ? "Draw" : displayed ? `${displayed[0]}–${displayed[1]}` : "—";
+    const shootout = row.score?.shootout
+      ? `<span class="v8-event-note">Shootout ${escapeHTML(row.score.shootout.join("–"))}</span>` : "";
+    const status = unresolved
+      ? `<span class="status-pill status-warning">${escapeHTML(slugLabel(row.reason || row.lifecycle))}</span>`
+      : fixture
+        ? `<span class="status-pill">Scheduled</span>`
+        : row.rating_eligible
+          ? `<span class="status-pill status-good">Rated result</span>`
+          : `<span class="status-pill status-warning">Excluded from ratings</span>`;
+    const coverageKey = encodeURIComponent(`${row.competition.scope}::${row.competition.season_anchor}`);
+    const dateLabel = row.date
+      ? `<a href="#/date/${encodeURIComponent(row.date)}">${validDate(row.date)}</a>`
+      : `<span>Date unresolved</span>`;
+    return `<article class="v8-event-card" data-event-id="${escapeHTML(row.id)}">
+      <header class="v8-event-meta">
+        ${dateLabel}
+        ${status}
+      </header>
+      <div class="v8-event-matchup">
+        ${v8ClubIdentity(row.home)}
+        <strong class="v8-event-score">${escapeHTML(score)}</strong>
+        ${v8ClubIdentity(row.away)}
+      </div>
+      ${shootout}
+      ${fixture ? v8ProbabilityStrip(row.forecast) : ""}
+      <footer class="v8-event-footer">
+        <a href="#/competition/${coverageKey}">${escapeHTML(row.competition.name)}</a>
+        <span>${escapeHTML(row.round || row.competition.season || "")}</span>
+        <span>${escapeHTML(row.source?.key || "")}</span>
+      </footer>
+    </article>`;
+  }
+
+  function v8EventList(rows, options = {}) {
+    if (!rows.length) return `<div class="empty"><h2>No matching events</h2><p>Try another date, competition or search term.</p></div>`;
+    return `<div class="v8-event-list">${rows.map((row) => v8EventCard(row, options)).join("")}</div>`;
+  }
+
   function matchObject(row) {
     return Object.fromEntries(MATCH_FIELDS.map((field, index) => [field, row[index]]));
   }
 
   function setTitle(title = "") {
     document.title = title
-      ? `${title} · Global Club Rankings · Network Football Elo`
-      : "Global Club Rankings · Network Football Elo";
+      ? `${title} · V10 Club Ratings · Network Football Elo`
+      : "V10 Club Ratings · Network Football Elo";
   }
 
   function loading(label = "Loading club data…") {
@@ -332,7 +403,7 @@
   function associationRankingTable(items) {
     return `
       <div class="ranking-desktop"><div class="table-shell"><table class="ranking-table">
-        <thead><tr><th class="numeric">Rank</th><th>Nation</th><th class="numeric">Global coefficient</th><th class="numeric">Index</th><th class="numeric">Uncertainty</th><th class="numeric">Cross-border updates</th></tr></thead>
+        <thead><tr><th class="numeric">Order</th><th>Nation</th><th class="numeric">Cross-regional coefficient</th><th class="numeric">Index</th><th class="numeric">Uncertainty</th><th class="numeric">Cross-border updates</th></tr></thead>
         <tbody>${items.map((row) => `<tr>
           <td class="rank-cell numeric">${row.rank}</td>
           <td><span class="club-identity"><span class="club-name">${escapeHTML(row.name)}</span><span class="club-context">${escapeHTML(row.continent)}</span></span></td>
@@ -344,7 +415,7 @@
       </table></div></div>
       <ol class="ranking-cards" aria-label="Association rankings">
         ${items.map((row) => `<li class="ranking-card">
-          <div class="ranking-card-heading"><span class="ranking-card-rank">No. ${row.rank}</span><div class="ranking-card-rating"><strong>${signed(row.coefficient, 1)}</strong><small>global coefficient</small></div></div>
+          <div class="ranking-card-heading"><span class="ranking-card-rank">No. ${row.rank}</span><div class="ranking-card-rating"><strong>${signed(row.coefficient, 1)}</strong><small>cross-regional coefficient</small></div></div>
           <div class="ranking-card-team"><span class="club-identity"><span class="club-name">${escapeHTML(row.name)}</span><span class="club-context">${escapeHTML(row.continent)}</span></span></div>
           <div class="ranking-card-snapshot"><div><span>Index</span><b>${rating(row.index)}</b></div><div><span>Uncertainty</span><b>±${rating(row.se)}</b></div></div>
           <details class="ranking-card-details"><summary>More ranking details</summary><dl><div><dt>Cross-border updates</dt><dd>${number(row.cross_border_updates)}</dd></div></dl></details>
@@ -501,42 +572,50 @@
     const [records] = await Promise.all([getJSON("records.json"), getClubs()]);
     const topTen = bootstrap.top.slice(0, 10);
     const strongest = records.strongest_matches.slice(0, 5).map(matchObject);
+    const recent = bootstrap.recent_results || [];
+    const upcoming = bootstrap.upcoming_fixtures || [];
     content.innerHTML = `
       <div class="page home-page">
         <section class="home-intro">
           <div class="home-intro-copy">
-            <p class="eyebrow">A global club rating, rebuilt from 1871</p>
-            <h1>Club football, ranked in context.</h1>
-            <p class="lede">Competitive results connect domestic leagues, lower tiers, cups and international competitions through club, nation and confederation strength.</p>
+            <p class="eyebrow">Descriptive V10 corpus · global claim withheld</p>
+            <h1>Club football, rated with its limits visible.</h1>
+            <p class="lede">Competitive results connect domestic leagues, lower tiers, cups and international competitions. Ordering and records are descriptive within the accepted corpus. Coverage and claim evidence document the limits of comparisons.</p>
             <div class="hero-actions">
               <a class="button button-primary home-action home-action-rankings" href="#/rankings">See the rankings</a>
-              <a class="button home-action home-action-fixtures" href="#/matches">Browse matches</a>
+              <a class="button home-action home-action-fixtures" href="#/fixtures">Upcoming matches</a>
               <a class="button home-action home-action-predict" href="#/predict">Predict a matchup</a>
             </div>
           </div>
           <dl class="home-facts">
             <div><dt>Latest result</dt><dd>${validDate(bootstrap.meta.results_through)}</dd></div>
             <div><dt>Matches</dt><dd>${number(bootstrap.meta.matches)}</dd></div>
+            <div><dt>Prior results retained</dt><dd>${number(bootstrap.meta.v10_counts?.v9_model_contributions_preserved ?? 0)}</dd></div>
+            <div><dt>Net-new rated</dt><dd>${number(bootstrap.meta.v10_counts?.v10_net_new_results ?? 0)}</dd></div>
             <div><dt>Clubs</dt><dd>${number(bootstrap.meta.rated_clubs)}</dd></div>
             <div class="home-accuracy"><dt>Associations</dt><dd>${number(bootstrap.meta.associations)}</dd></div>
           </dl>
         </section>
         <section class="home-dashboard">
           <div class="home-ranking-list">
-            <div class="compact-heading"><div><p class="eyebrow">Current rankings</p><h2>Top ten</h2></div><a href="#/rankings">Full rankings →</a></div>
+            <div class="compact-heading"><div><p class="eyebrow">Descriptive current order</p><h2>Top ten in the corpus</h2></div><a href="#/rankings">Full ordering →</a></div>
             <ol>${topTen.map((club, index) => `<li><span class="home-rank">${index + 1}</span><span class="home-club-identity">${clubIdentity(club)}</span><strong>${rating(club.rating)}</strong><small>±${rating(club.se)}</small></li>`).join("")}</ol>
           </div>
           <aside class="home-upcoming">
-            <div class="compact-heading"><div><p class="eyebrow">Latest archive</p><h2>Results through</h2></div><a href="#/matches">All matches →</a></div>
-            <p class="club-home-date">${validDate(bootstrap.meta.results_through)}</p>
-            <p class="muted">The static archive contains only completed, validated competitive matches. Use the match calculator for an arbitrary current pairing.</p>
-            <a class="button button-dark" href="#/predict">Open match calculator →</a>
+            <div class="compact-heading"><div><p class="eyebrow">Lifecycle split</p><h2>Results and fixtures</h2></div><a href="#/coverage">Coverage →</a></div>
+            <p class="club-home-date">${number(bootstrap.meta.completed_results ?? bootstrap.meta.matches)} completed</p>
+            <p class="muted">${number(bootstrap.meta.fixtures ?? 0)} future fixtures and ${number(bootstrap.meta.unresolved ?? 0)} unresolved observations remain separate from the rating replay.</p>
+            <a class="button button-dark" href="#/results">Recent results →</a>
           </aside>
+        </section>
+        <section class="section home-v8-events" aria-label="Latest results and fixtures">
+          <div><div class="compact-heading"><div><p class="eyebrow">Completed</p><h2>Latest results</h2></div><a href="#/results">All recent results →</a></div>${v8EventList(recent.slice(0, 5))}</div>
+          <div><div class="compact-heading"><div><p class="eyebrow">Frozen after ${validDate(bootstrap.meta.results_through)}</p><h2>Next fixtures</h2></div><a href="#/fixtures">All upcoming matches →</a></div>${v8EventList(upcoming.slice(0, 5), { fixture: true })}</div>
         </section>
         <section class="home-support">
           <div>
             <p class="eyebrow">What makes it different</p><h2>Club, nation and confederation all matter.</h2>
-            <p>A club remains the main unit. Cross-border evidence also estimates domestic-association and confederation strength, allowing disconnected league systems to share one cautious scale.</p>
+            <p>A club remains the main unit. Cross-border evidence also estimates domestic-association and confederation strength. Connected components and uneven coverage are disclosed in the claim evidence.</p>
             <div class="home-help-links"><a href="#/methodology?section=strength">How the hierarchy works →</a><a href="#/faq">Questions? Read the FAQ →</a></div>
           </div>
           <div class="home-records">
@@ -558,7 +637,7 @@
 
   async function rankingsPage() {
     setTitle("Rankings");
-    loading("Loading global club rankings…");
+    loading("Loading V10 club ratings…");
     const [rankings, associations, allClubs] = await Promise.all([
       getJSON("rankings.json"),
       getJSON("associations.json"),
@@ -566,7 +645,7 @@
     ]);
     content.innerHTML = `
       <div class="page">
-        ${pageHeading("Current senior men’s clubs", "Rankings", `The published rating combines estimated playing strength with an allowance for uncertainty. Club names remain the primary label; nation and confederation are shown beneath them. <a href="#/history">Choose a historical year →</a>`)}
+        ${pageHeading("Descriptive · global claim withheld", "Club rating order", `The published rating combines estimated playing strength with an allowance for uncertainty. Ordering across the documented corpus is descriptive; this publication does not establish global comparability. Club names remain the primary label; nation and component context are evidence, not a universal rank. <a href="#/history">Choose a historical year →</a>`)}
         <div class="toolbar">
           <div class="field field-grow"><label for="ranking-search">Find a club or nation</label><input id="ranking-search" type="search" placeholder="Club, nation or confederation…"></div>
           <div class="field"><label for="ranking-sort">Sort</label><select id="ranking-sort"><option value="rating">Rating</option><option value="matches">Matches played</option><option value="name">Name</option><option value="country">Nation</option></select></div>
@@ -576,7 +655,7 @@
             <button class="button" data-pool="associations" aria-pressed="false">Nations</button>
           </div>
         </div>
-        <div class="record-note"><strong>Rating</strong><div><b>One cautious rating is used throughout the club section.</b> Forecasts use the underlying mean, while the ranking subtracts an uncertainty allowance. Nation and confederation coefficients connect otherwise separate domestic systems.</div></div>
+        <div class="record-note"><strong>Claim scope</strong><div><b>Descriptive inside the documented V10 corpus.</b> Forecasts use the underlying mean, while the displayed order subtracts an uncertainty allowance. The scope of these comparisons is recorded in <a href="data/claims.json">claim evidence</a>.</div></div>
         <div id="rankings-table"></div>
       </div>`;
     const search = document.getElementById("ranking-search");
@@ -727,15 +806,214 @@
     await load();
   }
 
-  function fixturesPage() {
-    setTitle("Upcoming matches");
+  function v8EventSearchText(row) {
+    return `${row.home?.name || clubFor(row.home?.club)?.name || ""} ${row.away?.name || clubFor(row.away?.club)?.name || ""} ${row.home?.association || ""} ${row.away?.association || ""} ${row.competition?.name || ""} ${row.competition?.scope || ""} ${row.round || ""}`.toLocaleLowerCase();
+  }
+
+  async function resultsPage(selectedDate = "") {
+    setTitle(selectedDate ? `Results · ${selectedDate}` : "Recent results");
+    loading("Loading recent completed results…");
+    const [payload] = await Promise.all([getJSON("results/recent.json"), getClubs()]);
+    const competitions = [...new Set(payload.results.map((row) => row.competition.scope))].sort();
     content.innerHTML = `
       <div class="page">
-        ${pageHeading("Fixture status", "Upcoming matches", "The club installation currently publishes a validated results archive, not an unverified global fixture feed. This page is retained in the same location as the national section so the two interfaces remain consistent.")}
-        <section class="section">
-          <div class="empty"><h2>No connected fixture feed</h2><p>Use the current-state calculator to evaluate any two active clubs at a home, away or neutral venue.</p><a class="button button-dark" href="#/predict">Open match calculator →</a></div>
-        </section>
+        ${pageHeading("Completed · validated · separate from fixtures", selectedDate ? `Results on ${validDate(selectedDate)}` : "Recent results", `Completed results from ${validDate(payload.window_start)} through ${validDate(payload.as_of)}. Rating exclusions remain visible and never update form, records or ratings.`)}
+        <div class="toolbar">
+          <div class="field field-grow"><label for="v8-result-search">Club or competition</label><input id="v8-result-search" type="search" placeholder="Search recent results…"></div>
+          <div class="field"><label for="v8-result-date">Date</label><input id="v8-result-date" type="date" value="${escapeHTML(selectedDate)}" min="${escapeHTML(payload.window_start)}" max="${escapeHTML(payload.as_of)}"></div>
+          <div class="field"><label for="v8-result-competition">Competition</label><select id="v8-result-competition"><option value="">All competitions</option>${competitions.map((key) => `<option value="${escapeHTML(key)}">${escapeHTML(slugLabel(key))}</option>`).join("")}</select></div>
+        </div>
+        <div class="record-note"><strong>Lifecycle boundary</strong><div><b>These rows are completed results.</b> Upcoming fixtures live on their own page and cannot affect any rating, match count, form line or record.</div></div>
+        <div id="v8-results-list"></div>
       </div>`;
+    const search = document.getElementById("v8-result-search");
+    const dateInput = document.getElementById("v8-result-date");
+    const competition = document.getElementById("v8-result-competition");
+    const target = document.getElementById("v8-results-list");
+    const draw = () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      const rows = payload.results.filter((row) => (
+        (!dateInput.value || row.date === dateInput.value)
+        && (!competition.value || row.competition.scope === competition.value)
+        && (!query || v8EventSearchText(row).includes(query))
+      ));
+      target.innerHTML = v8EventList(rows.slice(0, 250));
+      if (rows.length > 250) target.insertAdjacentHTML("beforeend", `<p class="muted small">Showing the newest 250 of ${number(rows.length)} matching results.</p>`);
+    };
+    [search, dateInput, competition].forEach((field) => field.addEventListener("input", draw));
+    draw();
+  }
+
+  async function fixturesPage() {
+    setTitle("Upcoming matches");
+    loading("Loading accepted future fixtures…");
+    const [rows, index] = await Promise.all([getFixtures(), getJSON("fixtures/index.json"), getClubs()]);
+    const competitions = [...new Set(rows.map((row) => row.competition.scope))].sort();
+    content.innerHTML = `
+      <div class="page">
+        ${pageHeading("Scheduled · future · zero rating effect", "Upcoming matches", `${number(index.count)} accepted fixtures through ${validDate(index.months.at(-1)?.last)}. Every probability is frozen after the latest completed model day, ${validDate(index.frozen_after)}.`)}
+        <div class="toolbar">
+          <div class="field field-grow"><label for="v8-fixture-search">Club or competition</label><input id="v8-fixture-search" type="search" placeholder="Search fixtures…"></div>
+          <div class="field"><label for="v8-fixture-month">Month</label><select id="v8-fixture-month"><option value="">All months</option>${index.months.map((row) => `<option value="${escapeHTML(row.month)}">${escapeHTML(row.month)} · ${number(row.count)}</option>`).join("")}</select></div>
+          <div class="field"><label for="v8-fixture-competition">Competition</label><select id="v8-fixture-competition"><option value="">All competitions</option>${competitions.map((key) => `<option value="${escapeHTML(key)}">${escapeHTML(slugLabel(key))}</option>`).join("")}</select></div>
+        </div>
+        <div class="record-note"><strong>Frozen forecast</strong><div><b>Fixtures use the latest accepted rating state without updating it.</b> Unknown club identities remain held until they can be resolved.</div></div>
+        <div id="v8-fixtures-list"></div>
+      </div>`;
+    const search = document.getElementById("v8-fixture-search");
+    const month = document.getElementById("v8-fixture-month");
+    const competition = document.getElementById("v8-fixture-competition");
+    const target = document.getElementById("v8-fixtures-list");
+    const draw = () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      const filtered = rows.filter((row) => (
+        (!month.value || row.date.startsWith(month.value))
+        && (!competition.value || row.competition.scope === competition.value)
+        && (!query || v8EventSearchText(row).includes(query))
+      ));
+      target.innerHTML = v8EventList(filtered.slice(0, 250), { fixture: true });
+      if (filtered.length > 250) target.insertAdjacentHTML("beforeend", `<p class="muted small">Showing the next 250 of ${number(filtered.length)} matching fixtures.</p>`);
+    };
+    [search, month, competition].forEach((field) => field.addEventListener("input", draw));
+    draw();
+  }
+
+  async function coveragePage() {
+    setTitle("Coverage");
+    loading("Loading competition-season coverage…");
+    const payload = await getJSON("coverage.json");
+    content.innerHTML = `
+      <div class="page">
+        ${pageHeading("Competition · season · observed completeness", "Coverage", `${number(payload.coverage.length)} competition-season rows disclose observed results, fixtures, unresolved observations, conflicts and identity quarantine.`)}
+        <div class="toolbar">
+          <div class="field field-grow"><label for="v8-coverage-search">Competition or association</label><input id="v8-coverage-search" type="search" placeholder="Search coverage…"></div>
+          <div class="field"><label for="v8-coverage-status">Coverage status</label><select id="v8-coverage-status"><option value="">All statuses</option>${payload.statuses.map((status) => `<option value="${escapeHTML(status)}">${escapeHTML(slugLabel(status))}</option>`).join("")}</select></div>
+        </div>
+        <div id="v8-coverage-table"></div>
+      </div>`;
+    const search = document.getElementById("v8-coverage-search");
+    const status = document.getElementById("v8-coverage-status");
+    const target = document.getElementById("v8-coverage-table");
+    const draw = () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      const rows = payload.coverage.filter((row) => (
+        (!status.value || row.coverage_status === status.value)
+        && (!query || `${row.name} ${row.competition_scope} ${row.season_anchor}`.toLocaleLowerCase().includes(query))
+      )).slice(0, 500);
+      target.innerHTML = `<div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="Competition-season coverage"><thead><tr><th>Competition season</th><th>Status</th><th class="numeric">Results</th><th class="numeric">Fixtures</th><th class="numeric">Unresolved</th><th>Observed span</th><th>Sources</th></tr></thead><tbody>${rows.map((row) => `<tr><td><a href="#/competition/${encodeURIComponent(`${row.competition_scope}::${row.season_anchor}`)}"><b>${escapeHTML(row.name)}</b></a><span class="rating-sub">${escapeHTML(row.season_anchor)} · ${escapeHTML(row.competition_scope)}</span></td><td><span class="status-pill">${escapeHTML(slugLabel(row.coverage_status))}</span></td><td class="numeric">${number(row.results)}</td><td class="numeric">${number(row.fixtures)}</td><td class="numeric">${number(row.unresolved)}</td><td>${validDate(row.earliest_result)} – ${validDate(row.latest_fixture || row.latest_result)}</td><td>${escapeHTML((row.sources || []).join(", "))}</td></tr>`).join("")}</tbody></table></div>`;
+      syncResponsivePresentation();
+    };
+    [search, status].forEach((field) => field.addEventListener("input", draw));
+    draw();
+  }
+
+  async function healthPage() {
+    setTitle("Data health");
+    loading("Loading source freshness…");
+    const payload = await getJSON("source-health.json");
+    const counts = payload.source_health.reduce((result, row) => ({ ...result, [row.health]: (result[row.health] || 0) + 1 }), {});
+    content.innerHTML = `
+      <div class="page">
+        ${pageHeading("Freshness · horizon · provenance", "Data health", "Fresh completed results, future schedule horizon and retrieval time are reported independently for every observed source and competition scope.")}
+        <div class="v8-health-grid">${Object.entries(counts).map(([name, count]) => `<div><span>${escapeHTML(slugLabel(name))}</span><strong>${number(count)}</strong></div>`).join("")}</div>
+        <div class="toolbar"><div class="field field-grow"><label for="v8-health-search">Source or competition</label><input id="v8-health-search" type="search" placeholder="Search source health…"></div><div class="field"><label for="v8-health-status">Health</label><select id="v8-health-status"><option value="">All statuses</option>${Object.keys(counts).sort().map((name) => `<option value="${escapeHTML(name)}">${escapeHTML(slugLabel(name))}</option>`).join("")}</select></div></div>
+        <div id="v8-health-table"></div>
+      </div>`;
+    const search = document.getElementById("v8-health-search");
+    const status = document.getElementById("v8-health-status");
+    const target = document.getElementById("v8-health-table");
+    const draw = () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      const rows = payload.source_health.filter((row) => (!status.value || row.health === status.value) && (!query || `${row.source_name} ${row.source_key} ${row.competition_scope}`.toLocaleLowerCase().includes(query))).slice(0, 500);
+      target.innerHTML = `<div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="Source health and freshness"><thead><tr><th>Source</th><th>Competition scope</th><th>Status</th><th>Latest result</th><th>Fixture horizon</th><th>Retrieved</th></tr></thead><tbody>${rows.map((row) => `<tr><td><b>${escapeHTML(row.source_name)}</b><span class="rating-sub">${escapeHTML(row.authority || "")}</span></td><td>${escapeHTML(row.competition_scope)}</td><td><span class="status-pill status-${["fresh", "healthy"].includes(row.health) ? "good" : "warning"}">${escapeHTML(slugLabel(row.health))}</span></td><td>${validDate(row.latest_result)}<span class="rating-sub">${row.result_lag_days == null ? "No current result" : `${number(row.result_lag_days)} day lag`}</span></td><td>${row.fixture_horizon_days == null ? "—" : `${number(row.fixture_horizon_days)} days`}</td><td>${validTimestamp(row.latest_retrieved_at)}</td></tr>`).join("")}</tbody></table></div>`;
+      syncResponsivePresentation();
+    };
+    [search, status].forEach((field) => field.addEventListener("input", draw));
+    draw();
+  }
+
+  async function unresolvedPage() {
+    setTitle("Unresolved observations");
+    loading("Loading quarantine audit…");
+    const index = await getJSON("unresolved/index.json");
+    const reasons = Object.entries(index.reasons).slice(0, 20);
+    content.innerHTML = `
+      <div class="page">
+        ${pageHeading("Quarantined · disclosed · zero rating effect", "Unresolved observations", `${number(index.count)} postponed, undated, conflicting, disputed or identity-unsafe observations are retained for audit without entering the model.`)}
+        <div class="v8-health-grid">${reasons.slice(0, 6).map(([reason, count]) => `<div><span>${escapeHTML(slugLabel(reason))}</span><strong>${number(count)}</strong></div>`).join("")}</div>
+        <div class="toolbar"><div class="field"><label for="v8-unresolved-period">Archive period</label><select id="v8-unresolved-period">${[...index.archives].reverse().map((row) => `<option value="${escapeHTML(row.file)}">${escapeHTML(row.period)} · ${number(row.count)}</option>`).join("")}</select></div><div class="field field-grow"><label for="v8-unresolved-search">Club, competition or reason</label><input id="v8-unresolved-search" type="search" placeholder="Search quarantine…"></div></div>
+        <div id="v8-unresolved-list"></div>
+      </div>`;
+    const period = document.getElementById("v8-unresolved-period");
+    const search = document.getElementById("v8-unresolved-search");
+    const target = document.getElementById("v8-unresolved-list");
+    let rows = [];
+    const draw = () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      const filtered = rows.filter((row) => !query || `${v8EventSearchText(row)} ${row.reason}`.toLocaleLowerCase().includes(query));
+      target.innerHTML = v8EventList(filtered.slice(0, 250), { unresolved: true });
+    };
+    const load = async () => {
+      target.innerHTML = `<div class="loading-shell compact-loading" role="status"><span class="spinner" aria-hidden="true"></span><p>Loading quarantine archive…</p></div>`;
+      if (!period.value) {
+        rows = [];
+        draw();
+        return;
+      }
+      rows = (await getJSON(`unresolved/${period.value}`)).observations || [];
+      draw();
+    };
+    period.addEventListener("change", load);
+    search.addEventListener("input", draw);
+    await load();
+  }
+
+  async function competitionPage(value) {
+    setTitle("Competition coverage");
+    loading("Loading competition-season evidence…");
+    const [payload, recent, fixtures, unresolved] = await Promise.all([
+      getJSON("coverage.json"), getJSON("results/recent.json"), getFixtures(), getJSON("unresolved/index.json"), getClubs(),
+    ]);
+    const [scope, seasonAnchor] = value.split("::");
+    const row = payload.coverage.find((item) => item.competition_scope === scope && String(item.season_anchor) === String(seasonAnchor));
+    if (!row) throw new Error("Competition-season coverage row was not found.");
+    const matchesKey = (item) => item.competition.scope === scope && String(item.competition.season_anchor) === String(seasonAnchor);
+    const resultRows = recent.results.filter(matchesKey);
+    const fixtureRowsForCompetition = fixtures.filter(matchesKey);
+    const unresolvedRows = unresolved.recent.filter(matchesKey);
+    content.innerHTML = `<div class="page">
+      ${pageHeading("Competition-season evidence", row.name, `${escapeHTML(row.season_anchor)} · ${escapeHTML(slugLabel(row.coverage_status))}. Observed counts are disclosed without inferring completeness from a global row total.`)}
+      <div class="v8-health-grid"><div><span>Results</span><strong>${number(row.results)}</strong></div><div><span>Rated</span><strong>${number(row.rated_results)}</strong></div><div><span>Fixtures</span><strong>${number(row.fixtures)}</strong></div><div><span>Unresolved</span><strong>${number(row.unresolved)}</strong></div></div>
+      <section class="section"><div class="section-heading"><div><p class="eyebrow">Current window</p><h2>Recent results</h2></div></div>${v8EventList(resultRows.slice(0, 50))}</section>
+      <section class="section"><div class="section-heading"><div><p class="eyebrow">Future only</p><h2>Upcoming fixtures</h2></div></div>${v8EventList(fixtureRowsForCompetition.slice(0, 50), { fixture: true })}</section>
+      ${unresolvedRows.length ? `<section class="section"><div class="section-heading"><div><p class="eyebrow">Quarantine</p><h2>Unresolved observations</h2></div></div>${v8EventList(unresolvedRows, { unresolved: true })}</section>` : ""}
+    </div>`;
+  }
+
+  async function datePage(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("Date routes use YYYY-MM-DD.");
+    setTitle(`Events · ${value}`);
+    loading("Loading date view…");
+    const [dateIndex, recent, fixtures, unresolvedIndex] = await Promise.all([
+      getJSON("indexes/dates.json"), getJSON("results/recent.json"), getFixtures(), getJSON("unresolved/index.json"), getClubs(),
+    ]);
+    const counts = dateIndex.dates.find((row) => row.date === value) || { results: 0, fixtures: 0, unresolved: 0 };
+    let results = recent.results.filter((row) => row.date === value);
+    let archivedMatches = [];
+    if (!results.length && counts.results) {
+      archivedMatches = (await getMatchYear(value.slice(0, 4))).matches.map(matchObject).filter((row) => row.date === value);
+    }
+    const fixtureRowsForDate = fixtures.filter((row) => row.date === value);
+    const unresolvedArchive = unresolvedIndex.archives.find((row) => row.period === value.slice(0, 4));
+    const unresolvedRows = unresolvedArchive
+      ? (await getJSON(`unresolved/${unresolvedArchive.file}`)).observations.filter((row) => row.date === value)
+      : [];
+    content.innerHTML = `<div class="page">
+      ${pageHeading("Completed · scheduled · unresolved", validDate(value), `${number(counts.results)} completed results, ${number(counts.fixtures)} future fixtures and ${number(counts.unresolved)} unresolved observations are kept in separate lifecycle views.`)}
+      <section class="section"><div class="section-heading"><div><p class="eyebrow">Completed</p><h2>Results</h2></div></div>${results.length ? v8EventList(results) : archivedMatches.length ? matchTableHTML(archivedMatches) : v8EventList([])}</section>
+      <section class="section"><div class="section-heading"><div><p class="eyebrow">Future</p><h2>Fixtures</h2></div></div>${v8EventList(fixtureRowsForDate, { fixture: true })}</section>
+      <section class="section"><div class="section-heading"><div><p class="eyebrow">Quarantine</p><h2>Unresolved</h2></div></div>${v8EventList(unresolvedRows, { unresolved: true })}</section>
+    </div>`;
   }
 
   function recordDefinitionHTML(definition) {
@@ -747,6 +1025,8 @@
         <div><dt>How it is ordered</dt><dd>${escapeHTML(definition.order)}</dd></div>
         <div><dt>Who is eligible</dt><dd>${escapeHTML(definition.eligibility)}</dd></div>
         <div><dt>How to read it</dt><dd>${escapeHTML(definition.interpretation)}</dd></div>
+        <div><dt>Claim scope</dt><dd>${escapeHTML(definition.claim_scope || "descriptive")} · ${escapeHTML(definition.coverage_class || "documented corpus")}</dd></div>
+        <div><dt>Evidence</dt><dd><a href="data/${escapeHTML(definition.evidence_manifest || "records-evidence.json")}">Machine-readable record manifest</a></dd></div>
       </dl>
     </article>`;
   }
@@ -766,8 +1046,8 @@
 
   function leaderRecordsHTML(rows) {
     const ordered = [...rows].reverse();
-    return `<div class="record-desktop"><div class="table-shell"><table aria-label="World-comparable number one chronology"><thead><tr><th>Opening year</th><th>World-comparable No. 1</th><th class="numeric">Rating</th><th class="numeric">Uncertainty</th><th class="numeric">Published rank</th></tr></thead><tbody>${ordered.map((row) => `<tr><td>${row.year}</td><td>${clubIdentity(clubFor(row.club) || { code: row.club, name: row.name, country_name: row.country })}</td><td class="numeric"><span class="rating-main">${rating(row.rating)}</span></td><td class="numeric">±${rating(row.se)}</td><td class="numeric">${number(row.published_rank)}</td></tr>`).join("")}</tbody></table></div></div>
-    <ol class="record-cards" aria-label="World-comparable number one chronology">${ordered.map((row) => `<li class="record-card"><header><span>${row.year}</span><strong>${rating(row.rating)}</strong></header>${clubIdentity(clubFor(row.club) || { code: row.club, name: row.name, country_name: row.country })}<dl><div><dt>Uncertainty</dt><dd>±${rating(row.se)}</dd></div><div><dt>Rank among all published clubs</dt><dd>${number(row.published_rank)}</dd></div></dl></li>`).join("")}</ol>`;
+    return `<div class="record-desktop"><div class="table-shell"><table aria-label="Year-opening documented-corpus leaders"><thead><tr><th>Opening year</th><th>Documented-corpus leader</th><th class="numeric">Rating</th><th class="numeric">Uncertainty</th><th class="numeric">Published order</th></tr></thead><tbody>${ordered.map((row) => `<tr><td>${row.year}</td><td>${clubIdentity(clubFor(row.club) || { code: row.club, name: row.name, country_name: row.country })}</td><td class="numeric"><span class="rating-main">${rating(row.rating)}</span></td><td class="numeric">±${rating(row.se)}</td><td class="numeric">${number(row.published_rank)}</td></tr>`).join("")}</tbody></table></div></div>
+    <ol class="record-cards" aria-label="Year-opening documented-corpus leaders">${ordered.map((row) => `<li class="record-card"><header><span>${row.year}</span><strong>${rating(row.rating)}</strong></header>${clubIdentity(clubFor(row.club) || { code: row.club, name: row.name, country_name: row.country })}<dl><div><dt>Uncertainty</dt><dd>±${rating(row.se)}</dd></div><div><dt>Order in documented corpus</dt><dd>${number(row.published_rank)}</dd></div></dl></li>`).join("")}</ol>`;
   }
 
   async function recordsPage() {
@@ -776,13 +1056,13 @@
     const [records] = await Promise.all([getJSON("records.json"), getClubs()]);
     content.innerHTML = `
       <div class="page">
-        ${pageHeading("Defined · guarded · reproducible", "Records", "Every list states its measure, ordering and eligibility. Peaks are post-match; upset probabilities are pre-match; world No. 1 is claimed only where the evidence network is comparable.")}
+        ${pageHeading("Descriptive · guarded · reproducible", "Records", "Every list states its measure, ordering, eligibility and evidence digest. Peaks are post-match and upset probabilities are pre-match. The global claim is withheld, so these are bounded records in the documented V10 corpus.")}
         <div class="record-tabs" role="tablist" aria-label="Record type">
           <button class="button button-dark" role="tab" data-record="peaks" aria-pressed="true" aria-selected="true">Club peaks</button>
           <button class="button" role="tab" data-record="strongest" aria-pressed="false" aria-selected="false">Highest-rated matches</button>
           <button class="button" role="tab" data-record="upsets" aria-pressed="false" aria-selected="false">Largest upsets</button>
           <button class="button" role="tab" data-record="aggregate" aria-pressed="false" aria-selected="false">Controlled second legs</button>
-          <button class="button" role="tab" data-record="leaders" aria-pressed="false" aria-selected="false">World No. 1 chronology</button>
+          <button class="button" role="tab" data-record="leaders" aria-pressed="false" aria-selected="false">Year-opening corpus leaders</button>
         </div>
         <div id="record-table"></div>
       </div>`;
@@ -824,7 +1104,7 @@
     const second = rankings.clubs[1]?.code;
     content.innerHTML = `
       <div class="page">
-        ${pageHeading("Shared global scale", "Compare clubs", "Compare the latest state and annual rating trajectory of any two rated clubs, including historical and inactive identities.")}
+        ${pageHeading("Shared model scale · descriptive claim", "Compare clubs", "Compare the latest state and annual rating trajectory of any two rated clubs. These comparisons are descriptive within the accepted corpus and do not establish global comparability.")}
         <section class="comparison-selection" aria-labelledby="comparison-selection-title">
           <div class="section-heading compact-heading"><div><p class="eyebrow">Two clubs</p><h2 id="comparison-selection-title">Clubs in this comparison</h2></div></div>
           <div class="predictor comparison-picker">
@@ -928,7 +1208,7 @@
     content.innerHTML = `
       <div class="page">
         <section class="team-hero">
-          <div><p class="eyebrow">${escapeHTML(club.country_name)} · ${escapeHTML(club.continent)} · ${club.active ? `current world no. ${club.rank}` : "historical club record"}</p><h1>${escapeHTML(club.name)}</h1></div>
+          <div><p class="eyebrow">${escapeHTML(club.country_name)} · ${escapeHTML(club.continent)} · ${club.active ? `current corpus order no. ${club.rank}` : "historical club record"}</p><h1>${escapeHTML(club.name)}</h1></div>
           <div class="team-rating"><strong>${rating(club.rating)}</strong><span>uncertainty ${rating(club.se)}</span></div>
         </section>
         <div class="team-stats">
@@ -939,6 +1219,9 @@
           <div><span>Coverage</span><strong>${validDate(club.first)} – ${validDate(club.last)}</strong></div>
         </div>
         <nav class="context-actions team-context-actions" aria-label="Club tools"><a class="button button-quiet" href="#/compare">Compare this club</a><a class="button button-quiet" href="#/predict">Predict a matchup</a><a class="button button-quiet" href="#/rankings">Current rankings</a></nav>
+        <div class="v8-health-grid" aria-label="Club event coverage"><div><span>Completed results</span><strong>${number(payload.coverage?.results ?? club.matches)}</strong></div><div><span>Rated results</span><strong>${number(payload.coverage?.rated_results ?? club.matches)}</strong></div><div><span>Fixtures</span><strong>${number(payload.coverage?.fixtures ?? 0)}</strong></div><div><span>Unresolved</span><strong>${number(payload.coverage?.unresolved ?? 0)}</strong></div></div>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">Completed only</p><h2>Recent results</h2></div><a href="#/results">All recent results →</a></div>${v8EventList(payload.recent_results || [])}</section>
+        <section class="section"><div class="section-heading"><div><p class="eyebrow">Future only · zero rating effect</p><h2>Upcoming fixtures</h2></div><a href="#/fixtures">All fixtures →</a></div>${v8EventList(payload.upcoming_fixtures || [], { fixture: true })}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Opening of each year</p><h2>Rating history</h2></div></div>${lineChart([{ name: club.name, points: payload.annual.map((row) => [row[0], row[1]]) }], `${club.name} annual ratings`)}</section>
         <section class="section"><div class="section-heading"><div><p class="eyebrow">Complete competitive record</p><h2>Matches</h2></div></div><div class="toolbar"><div class="field"><label for="club-match-year">Calendar year</label><select id="club-match-year">${[...payload.match_years].reverse().map((row) => `<option value="${row[0]}"${row[0] === latestYear ? " selected" : ""}>${row[0]} · ${number(row[1])} matches</option>`).join("")}</select></div></div><div id="club-matches"></div></section>
       </div>`;
@@ -966,7 +1249,7 @@
     const fit = meta.fit || {};
     const exampleWeight = Number(p.aggregate_floor) + (1 - Number(p.aggregate_floor)) * Math.exp(-3 / Number(p.aggregate_scale));
     const parameterRows = [
-      ["Base rating", rating(p.base_rating), "Origin of the global club scale"],
+      ["Base rating", rating(p.base_rating), "Origin of the shared model scale"],
       ["K factor", number(p.k_factor, 1), "Base size of an ordinary result update"],
       ["Domestic home advantage", signed(p.home_advantage_domestic, 1), "Home adjustment when both clubs share an association"],
       ["Cross-border home advantage", signed(p.home_advantage_cross_border, 1), "Home adjustment when the clubs represent different associations"],
@@ -1001,11 +1284,11 @@
         <nav class="method-contents" aria-label="Methodology sections">
           <a href="#/methodology?section=overview">Overview</a><a href="#/methodology?section=scope">Scope</a><a href="#/methodology?section=identity">Identity</a><a href="#/methodology?section=strength">Strength hierarchy</a><a href="#/methodology?section=tiers">Tiers</a><a href="#/methodology?section=venue">Venue</a><a href="#/methodology?section=probabilities">Probabilities</a><a href="#/methodology?section=learning">Result updates</a><a href="#/methodology?section=decisions">Extra time & penalties</a><a href="#/methodology?section=aggregate">Two-leg ties</a><a href="#/methodology?section=chronology">Chronology</a><a href="#/methodology?section=ratings">Published ratings</a><a href="#/methodology?section=records">Records</a><a href="#/methodology?section=coefficients">Coefficients</a><a href="#/methodology?section=validation">Validation</a><a href="#/methodology?section=limits">Limits</a>
         </nav>
-        <section class="method-section" aria-labelledby="method-overview"><h2 id="method-overview" tabindex="-1">In plain English</h2><ol class="method-steps"><li><b>Keep the club primary.</b> A result chiefly changes the two clubs that played it.</li><li><b>Join otherwise separate leagues.</b> Cross-border matches estimate association strength; inter-confederation matches join the regional scales.</li><li><b>Respect competitive depth.</b> Domestic tiers have an explicit baseline and can learn from cross-tier cup evidence.</li><li><b>Predict before learning.</b> The archived W/D/L probabilities and ratings are frozen before the result is applied.</li><li><b>Judge a two-leg contest in context.</b> A controlled second-leg loss can carry less information when the losing club remains safely ahead on aggregate.</li><li><b>Publish cautiously.</b> The ranking subtracts uncertainty, so sparse or disconnected evidence cannot masquerade as world-leading certainty.</li></ol></section>
-        <section class="method-section" aria-labelledby="method-scope"><h2 id="method-scope" tabindex="-1">Scope and source order</h2><p>The replay retains validated senior men’s competitive club results: domestic and state leagues, lower tiers, cups, playoffs, continental competitions, intercontinental competitions and global tournaments. Friendlies and future fixtures are outside this release.</p><p>Rows are normalized into one ledger, then merged by source priority. A higher-priority row can add a better score, venue, tier or identity; it cannot create a second copy of the same match. Current-season open league files repair promotion and relegation metadata, and a small reviewed layer can fill an important match only when it carries a direct authoritative source.</p></section>
+        <section class="method-section" aria-labelledby="method-overview"><h2 id="method-overview" tabindex="-1">In plain English</h2><ol class="method-steps"><li><b>Keep the club primary.</b> A result chiefly changes the two clubs that played it.</li><li><b>Join otherwise separate leagues.</b> Cross-border matches estimate association strength; inter-confederation matches join regional scales where evidence exists.</li><li><b>Respect competitive depth.</b> Domestic tiers have an explicit baseline and can learn from cross-tier cup evidence.</li><li><b>Predict before learning.</b> The archived W/D/L probabilities and ratings are frozen before the result is applied.</li><li><b>Judge a two-leg contest in context.</b> A controlled second-leg loss can carry less information when the losing club remains safely ahead on aggregate.</li><li><b>Publish cautiously.</b> The displayed order subtracts uncertainty, and failed connectivity prevents a global claim.</li></ol></section>
+        <section class="method-section" aria-labelledby="method-scope"><h2 id="method-scope" tabindex="-1">Scope and source order</h2><p>The replay retains validated senior men’s competitive club results: domestic and state leagues, lower tiers, cups, playoffs, continental competitions, intercontinental competitions and global tournaments. Friendlies are excluded. Future fixtures are published in a separate ledger with frozen forecasts and zero rating effect.</p><p>Rows are normalized into one ledger, then merged by source priority. A higher-priority row can add a better score, venue, tier or identity; it cannot create a second copy of the same match. Current-season open league files repair promotion and relegation metadata, and a small reviewed layer can fill an important match only when it carries a direct authoritative source.</p></section>
         <section class="method-section" aria-labelledby="method-identity"><h2 id="method-identity" tabindex="-1">Club identity and duplicate control</h2><p>A normalized name is never a global identifier by itself. Identity resolution uses the name together with association, competition jurisdiction, season and curated aliases. That keeps same-named clubs in different countries separate and gives ambiguous historical successions separate records.</p><p>Competition-aware corrections can repair a bad country label when the competition makes the association unambiguous. Same-day home/away/score fingerprints, source references and explicit priorities remove duplicate rows. The build then rejects self-matches, unresolved associations and known cross-country collision signatures.</p></section>
         <section class="method-section" aria-labelledby="method-strength"><h2 id="method-strength" tabindex="-1">Club, tier, nation and confederation strength</h2><p>Each forecast mean is additive. The club remains the largest and most specific component; the other levels make sparse and cross-border comparisons possible without treating every domestic competition as equally strong.</p><div class="formula">mean = ${rating(p.base_rating)} + club residual + tier component + nation coefficient + confederation bridge<br>forecast difference = home mean − away mean + venue adjustment</div><details class="method-details"><summary>Why the nation anchor uses elite clubs</summary><p>Continental and global competitions select leading clubs rather than an average club from each association. Nation coefficients are therefore centred at the evidence-weighted ${number(Number(p.country_anchor_quantile) * 100, 0)}th percentile within each confederation. This stops a region receiving an artificial lift merely because it contains many weak leagues.</p></details></section>
-        <section class="method-section" aria-labelledby="method-tiers"><h2 id="method-tiers" tabindex="-1">Domestic tiers, promotion and relegation</h2><p>Tier one is constrained to zero; each lower level begins ${rating(p.tier_gap)} points below the previous one. Cross-tier domestic cups and playoffs can learn a country-specific departure from that baseline. Recentring every learned tier gap on tier one is essential: a domestic cup can identify the distance between divisions, but cannot make an entire association stronger than another. A club’s current tier comes from the newest reliable league membership, not from the last source that happened to mention it.</p><div class="formula">tier component = −(tier − 1) × ${rating(p.tier_gap)} + learned gap relative to tier one</div><p>The club receives ${number((1 - Number(p.tier_share)) * 100, 0)}% of ordinary cross-tier learning and the tier levels share the remaining ${number(Number(p.tier_share) * 100, 0)}%. Current world rankings may contain lower-tier clubs, but guarded world-record lists and year-opening No. 1 claims require tier one.</p></section>
+        <section class="method-section" aria-labelledby="method-tiers"><h2 id="method-tiers" tabindex="-1">Domestic tiers, promotion and relegation</h2><p>Tier one is constrained to zero; each lower level begins ${rating(p.tier_gap)} points below the previous one. Cross-tier domestic cups and playoffs can learn a country-specific departure from that baseline. Recentring every learned tier gap on tier one is essential: a domestic cup can identify the distance between divisions, but cannot make an entire association stronger than another. A club’s current tier comes from the newest reliable league membership, not from the last source that happened to mention it.</p><div class="formula">tier component = −(tier − 1) × ${rating(p.tier_gap)} + learned gap relative to tier one</div><p>The club receives ${number((1 - Number(p.tier_share)) * 100, 0)}% of ordinary cross-tier learning and the tier levels share the remaining ${number(Number(p.tier_share) * 100, 0)}%. Lower-tier clubs may appear in the descriptive order; guarded rating-based lists retain the tier-one eligibility rule where specified.</p></section>
         <section class="method-section" aria-labelledby="method-venue"><h2 id="method-venue" tabindex="-1">Home, away and neutral</h2><p>Domestic home advantage is <b>${signed(p.home_advantage_domestic, 0)}</b> points. Cross-border home advantage is <b>${signed(p.home_advantage_cross_border, 0)}</b> points. Neutral and correctly identified global-tournament matches receive zero.</p><div class="formula">d = μhome − μaway + H<br>H = 0 at a neutral venue</div></section>
         <section class="method-section" aria-labelledby="method-probabilities"><h2 id="method-probabilities" tabindex="-1">Win, draw and loss probabilities</h2><p>The strength difference first becomes a logistic expected score. A draw curve then reaches its maximum when the clubs are equal and declines as the mismatch grows. The three displayed values are normalized to sum to 100%.</p><div class="formula">E = 1 / (1 + 10<sup>−d/400</sup>)<br>P(draw) = ${number(p.draw_peak, 3)} × 4E(1 − E)<br>P(home) = E − P(draw)/2 &nbsp; · &nbsp; P(away) = 1 − E − P(draw)/2</div><p>Forecasts use the underlying mean and venue adjustment. They do not use the cautious published rating, line-ups, injuries, travel, weather, rest or betting prices.</p></section>
         <section class="method-section" aria-labelledby="method-learning"><h2 id="method-learning" tabindex="-1">How a result changes the model</h2><p>The observed score is 1 for a home win, ½ for a draw and 0 for an away win. The residual between that score and the pre-match expectation is multiplied by competition, duration, aggregate and goal-margin factors.</p><div class="formula">Δ = K × competition weight × duration weight × aggregate weight × margin multiplier × (observed − expected)<br>margin multiplier = 1 + ${number(p.margin_scale, 2)} × ln(1 + winning margin − 1), for margins above one</div><p>Same-association, same-tier matches update the clubs. Cross-tier matches can also update tier levels. Cross-border matches can update association coefficients, and only inter-confederation evidence updates the regional bridge. The opposite sides receive equal and opposite changes at each active level.</p></section>
@@ -1013,10 +1296,10 @@
         <section class="method-section" aria-labelledby="method-aggregate"><h2 id="method-aggregate" tabindex="-1">Two-leg ties and the Aggregate cases list</h2><p>The first leg is an ordinary match. A paired second leg keeps full weight when the tie was level, changes leader, ends level, or the match result confirms the aggregate leader. Only a controlled loss by a club that remains ahead is discounted.</p><div class="formula">weight = floor + (1 − floor) × max(exp(−|before margin| / scale), exp(−|after margin| / scale))<br>floor = ${number(p.aggregate_floor, 2)} &nbsp; · &nbsp; scale = ${number(p.aggregate_scale, 2)} goals</div><p>A 4–0 first leg followed by a controlled 0–1 loss retains about <b>${number(exampleWeight * 100, 1)}%</b> of ordinary second-leg information. The Records page’s <b>Controlled second legs</b> list contains precisely these discounted cases, ordered by lowest information weight. Its before/after margins use the second-leg home club’s perspective: positive means that club led the tie.</p></section>
         <section class="method-section" aria-labelledby="method-chronology"><h2 id="method-chronology" tabindex="-1">Chronology, same-day matches and annual carryover</h2><p>All forecasts on one calendar date use the same frozen start-of-day state. Their updates are accumulated and applied together, so file order cannot let one same-day match leak into another forecast. Post-match values shown for that date include the completed date batch.</p><p>At each calendar-year boundary, club, learned tier, nation and confederation components regress toward their priors using the disclosed retention factors. This limits permanent drift while preserving most established evidence. Uncertainty uses decayed effective match counts with a ${number(p.effective_matches_half_life_days, 0)}-day half-life.</p></section>
         <section class="method-section" aria-labelledby="method-ratings"><h2 id="method-ratings" tabindex="-1">The published rating</h2><div class="formula">rating = mean − ${number(p.uncertainty_penalty, 2)} × standard error</div><p>The mean powers forecasts. The lower confidence-adjusted rating powers current and historical rankings, club pages and post-match peaks. Ratings are always displayed with one decimal place and no thousands separator.</p></section>
-        <section class="method-section" aria-labelledby="method-records"><h2 id="method-records" tabindex="-1">What every Records list means</h2><dl class="method-definition-list"><div><dt>Post-match club peaks</dt><dd>A club’s highest cautious rating immediately after a retained match, with at least ${number(meta.quality.world_comparable_min_matches)} results and uncertainty no greater than ${rating(meta.quality.world_comparable_max_se)}.</dd></div><div><dt>Highest-rated matches</dt><dd>The sum of both clubs’ cautious pre-match ratings; both uncertainties must clear the world-comparable ceiling.</dd></div><div><dt>Largest winning upsets</dt><dd>−ln(pre-match probability of the eventual winner). Draws, shootouts and low-evidence results are excluded.</dd></div><div><dt>Controlled second legs</dt><dd>The aggregate-context cases defined above, ordered by the smallest retained information weight.</dd></div><div><dt>Year-opening world No. 1</dt><dd>The highest eligible rating at the start of a year. The club must be active, tier one, have at least ${number(meta.quality.world_comparable_min_matches)} results and uncertainty no greater than ${rating(meta.quality.world_comparable_max_se)}. Years that cannot clear those safeguards are left unclaimed.</dd></div></dl><p>Historical peaks are always <b>post-match</b>. Match strength and upset probability are always <b>pre-match</b>. Those timing labels are part of the generated record definition and are tested before release.</p></section>
+        <section class="method-section" aria-labelledby="method-records"><h2 id="method-records" tabindex="-1">What every Records list means</h2><dl class="method-definition-list"><div><dt>Post-match club peaks</dt><dd>A club’s highest cautious rating immediately after a retained match, with at least ${number(meta.quality.world_comparable_min_matches)} results and uncertainty no greater than ${rating(meta.quality.world_comparable_max_se)}.</dd></div><div><dt>Highest-rated matches</dt><dd>The sum of both clubs’ cautious pre-match ratings; both uncertainties must clear the published ceiling.</dd></div><div><dt>Largest winning upsets</dt><dd>−ln(pre-match probability of the eventual winner). Draws, shootouts and low-evidence results are excluded.</dd></div><div><dt>Controlled second legs</dt><dd>The aggregate-context cases defined above, ordered by the smallest retained information weight.</dd></div><div><dt>Year-opening documented-corpus leader</dt><dd>The highest eligible rating in the retained corpus at the start of a year. The club must be active, tier one, have at least ${number(meta.quality.world_comparable_min_matches)} results and uncertainty no greater than ${rating(meta.quality.world_comparable_max_se)}. This is descriptive, not a world claim.</dd></div></dl><p>Historical peaks are always <b>post-match</b>. Match strength and upset probability are always <b>pre-match</b>. Those timing labels and evidence digests are tested before release.</p></section>
         <section class="method-section" aria-labelledby="method-coefficients"><h2 id="method-coefficients" tabindex="-1">Every release coefficient</h2><div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell parameter-table"><table aria-label="Complete club model coefficients"><thead><tr><th>Coefficient</th><th class="numeric">Value</th><th>Role</th></tr></thead><tbody>${parameterRows.map(([name, value, role]) => `<tr><td>${escapeHTML(name)}</td><td class="numeric">${escapeHTML(value)}</td><td>${escapeHTML(role)}</td></tr>`).join("")}</tbody></table></div><h3>Competition multipliers</h3><div class="table-shell parameter-table"><table aria-label="Competition update multipliers"><thead><tr><th>Competition kind</th><th class="numeric">Multiplier</th></tr></thead><tbody>${competitionRows.map(([name, value]) => `<tr><td>${escapeHTML(name)}</td><td class="numeric">${escapeHTML(value)}</td></tr>`).join("")}</tbody></table></div></section>
         <section class="method-section" aria-labelledby="method-validation"><h2 id="method-validation" tabindex="-1">Release validation and update safety</h2><p><b>${escapeHTML(fit.status || "Chronological club replay")}.</b> ${escapeHTML(fit.selection || "")}</p><p>The installation builds a temporary ledger, replays the full chronology, generates a temporary static archive, and runs ledger, model, record and browser-data checks. Publication occurs only after every check passes, so a failed source refresh cannot mix old indexes with new club or match files.</p><ul><li>Identity, association, competition-jurisdiction and self-match checks.</li><li>Duplicate and score normalization checks, including shootout totals.</li><li>Probability-sum, chronology, venue and aggregate-pairing checks.</li><li>Current-tier, regional representation and uncertainty safeguards.</li><li>Named regression checks for known identity collisions, implausible historical leaders and the latest reviewed final.</li></ul>${correctionRows.length ? `<details class="method-details"><summary>Corrections made during this replay</summary><ul>${correctionRows.map(([name, value]) => `<li>${escapeHTML(slugLabel(name))}: ${number(value)}</li>`).join("")}</ul></details>` : ""}<div class="record-note"><strong>Release</strong><div><b>${escapeHTML(meta.model_version)}</b><br>${number(meta.matches)} retained matches from ${validDate(meta.first_result)} through ${validDate(meta.results_through)}; ${number(meta.active_clubs)} active clubs, ${number(meta.rated_clubs)} club histories and ${number(meta.associations)} associations. ${number(meta.quality.passed)} of ${number(meta.quality.checks)} ledger release checks passed.</div></div></section>
-        <section class="method-section" aria-labelledby="method-limits"><h2 id="method-limits" tabindex="-1">Reproducibility and limits</h2><p>The installer rebuilds a temporary ledger, model database and static archive, validates them, then replaces the published version as a whole. A failed refresh leaves the previous site intact.</p><p>The model does not know line-ups, injuries, red cards, tactics, travel, rest, weather or betting markets. Historical identity resolution and incomplete competition coverage remain modelling limits.</p></section>
+        <section class="method-section" aria-labelledby="method-limits"><h2 id="method-limits" tabindex="-1">Reproducibility and limits</h2><p>The updater builds and validates a temporary ledger, model database and static archive before publication. Installation restores the saved state without replaying history. A failed refresh leaves the previous site intact.</p><p>The model does not know line-ups, injuries, red cards, tactics, travel, rest, weather or betting markets. Historical identity resolution and incomplete competition coverage remain modelling limits.</p></section>
       </article>`;
     const requested = query.get("section");
     if (["overview", "scope", "identity", "strength", "tiers", "venue", "probabilities", "learning", "decisions", "aggregate", "chronology", "ratings", "records", "coefficients", "validation", "limits"].includes(requested)) {
@@ -1033,7 +1316,7 @@
       ["Why are nation and confederation shown beneath each club?", "The club remains the large primary identity. Nation and confederation are smaller context labels and identify the two structural levels that connect otherwise separate domestic systems."],
       ["How can clubs from different continents be compared?", "Competitive continental matches estimate association strength inside each region. Inter-confederation and global matches bridge those regional scales. Sparse bridges retain visibly larger uncertainty."],
       ["Does a strong domestic league automatically receive a high coefficient?", "No. Its coefficient is learned from competitive cross-border results, anchored around elite clubs because continental competitions select elite clubs rather than a league-average team."],
-      ["Can a lower-tier club appear in the rankings?", "Yes, if it has recent competitive evidence. Its tier baseline and uncertainty still apply. Guarded world-record lists and year-opening No. 1 claims require tier one."],
+      ["Can a lower-tier club appear in the ratings?", "Yes, if it has recent competitive evidence. Its tier baseline and uncertainty still apply. Each record list states its separate eligibility rule."],
       ["How are promotions and relegations kept current?", "The newest complete domestic league membership files override stale tier labels from older cup or historical feeds. Cross-tier cup evidence then updates both the clubs and the relevant learned tier effects."],
       ["What does active mean?", "A club is active when it has a retained competitive result inside the published activity window. Historical clubs remain searchable on club and archive pages but are not mixed into the current active ranking."],
       ["What does provisional mean?", "The club has limited effective evidence and therefore larger uncertainty. The cautious rating automatically discounts it; provisional status is not a judgment about the club’s importance."],
@@ -1048,16 +1331,16 @@
       ["Are peaks measured before or after a match?", "After the match. A peak is the highest cautious post-match rating produced by a retained result, subject to the stated match-count and uncertainty safeguards."],
       ["What does Highest-rated matches measure?", "It adds the two clubs’ cautious ratings immediately before kick-off. Both clubs must clear the uncertainty ceiling. It measures the strength of the pairing, not spectacle or historical importance."],
       ["How is Largest upset calculated?", "It is minus the natural logarithm of the eventual winner’s pre-match win probability. Only decisive, sufficiently evidenced wins qualify; draws and penalty decisions do not."],
-      ["What does year-opening world No. 1 mean?", "It is the highest eligible rating at the opening of that calendar year. The club must be active, tier one, sufficiently experienced and below the uncertainty ceiling. Unsupported early years are left without a claim."],
+      ["What is a year-opening corpus leader?", "It is the highest eligible rating in the documented V10 corpus at the opening of that calendar year. It is descriptive within the accepted corpus and does not establish a world No. 1."],
       ["Why might the historical No. 1 differ after an update?", "Newly recovered historical results, corrected identities or better competition metadata cause the entire chronology to replay. The model version, source hashes and results-through date identify each release."],
       ["How are same-named clubs kept apart?", "A name alone is never treated as a global identifier. Association, competition jurisdiction, season and curated aliases are part of resolution; known cross-country collision patterns are release-blocking checks."],
       ["How are duplicate results handled?", "Normalized date, clubs, score, competition and source fingerprints are merged under explicit source priorities. The final ledger must have unique match IDs and cannot contain a club playing itself."],
       ["Which matches are included?", "Validated competitive senior men’s domestic, state, lower-tier, cup, playoff, continental, intercontinental and global results are eligible. Friendlies are excluded."],
       ["Why might a club or result still be missing?", "Worldwide historical club data remain uneven. A row that cannot be assigned a safe identity, score or competition is withheld rather than allowed to corrupt the connected replay."],
       ["How can an important missing match be added?", "A small reviewed layer accepts the date, clubs, football score, competition, venue, decision status and a direct authoritative source. It passes the same identity, duplicate and model checks as bulk data."],
-      ["Are upcoming fixtures included?", "No verified global fixture feed is connected. The Fixtures page says so explicitly and links to the current-state predictor instead of presenting stale or invented fixtures."],
+      ["Are upcoming fixtures included?", "Yes. Accepted future fixtures are published separately with probabilities frozen after the latest completed model day. They never update ratings, form, records or match counts before becoming validated results."],
       ["Can a data update partly break the published site?", "The installer builds and checks the ledger, replay and complete static archive before publication. Only a successful full build is committed, so old indexes cannot be mixed with new match or club files."],
-      ["Is this a betting model?", "No. It is a results-only historical strength and prediction system. It does not account for line-ups, injuries, tactics, travel, rest, weather or market prices."],
+      ["Is this a betting model?", "No. It is a historical strength and fixture-forecast system. It does not account for line-ups, injuries, tactics, travel, rest, weather or market prices."],
       ["What should a correction report contain?", "Include both clubs, date, football score excluding shootout kicks, competition, venue, decision status and a reliable supporting URL in the project’s GitHub repository."],
     ];
   }
@@ -1066,7 +1349,7 @@
     setTitle("Frequently asked questions");
     content.innerHTML = `
       <article class="page page-narrow prose faq-page">
-        ${pageHeading("Understanding the club section", "Frequently asked questions", "Straightforward answers about global club ratings, regional coefficients, aggregate ties, penalties, records, coverage and updates.", true)}
+        ${pageHeading("Understanding the club section", "Frequently asked questions", "Straightforward answers about V10 club ratings, claim scope, regional coefficients, aggregate ties, penalties, records, coverage and updates.", true)}
         <div class="faq-tools" role="search"><div class="field field-grow"><label for="faq-search">Search questions</label><input id="faq-search" type="search" placeholder="Ratings, continents, penalties…" autocomplete="off"></div><div class="faq-actions" aria-label="Question controls"><button class="button" type="button" id="faq-expand">Expand all</button><button class="button button-quiet" type="button" id="faq-collapse">Collapse all</button></div></div>
         <p id="faq-count" class="muted small" aria-live="polite"></p><div id="faq-list" class="faq-list"></div>
         <div class="callout faq-more"><b>Looking for the exact calculations?</b> Start with <a href="#/methodology?section=strength">the club, nation and confederation hierarchy</a>, or open the full Methodology page.</div>
@@ -1090,31 +1373,37 @@
   async function aboutPage() {
     setTitle("About");
     loading("Loading source and build information…");
-    const [sources, competitions, meta] = await Promise.all([
-      getJSON("sources.json"), getJSON("competitions.json"), getJSON("meta.json"),
+    const [sources, competitions, meta, publication] = await Promise.all([
+      getJSON("sources.json"), getJSON("competitions.json"), getJSON("meta.json"), getJSON("publication.json"),
     ]);
-    const groups = new Map();
-    for (const source of sources.runtime.sources) {
-      const family = source.key.split(":")[0];
-      if (!groups.has(family)) groups.set(family, { ...source, files: 0, bytes: 0 });
-      const group = groups.get(family);
-      group.files += 1;
-      group.bytes += Number(source.bytes);
-    }
+    const runtimeSources = (sources.runtime?.sources || []).map((source) => ({
+      name: source.name || source.attribution || source.key,
+      key: source.key || "source",
+      authority: source.authority || source.licence || "declared source",
+      roles: source.roles || [],
+      snapshots: source.snapshots ?? source.files ?? 0,
+      status: source.status || "verified",
+    }));
+    const discovery = sources.discovery_index || {};
+    const discoveryName = escapeHTML(discovery.name || "the declared source registry");
+    const discoveryLink = discovery.url
+      ? `<a href="${escapeHTML(discovery.url)}" rel="external">${discoveryName}</a>`
+      : discoveryName;
     content.innerHTML = `
       <div class="page page-narrow prose about-page">
-        ${pageHeading("Data · updates · limitations", "About", "Network Football Elo’s club section is an independent, results-only global strength and prediction system. Its model is separate from the national-team model, while its interface deliberately follows the national site.", true)}
+        ${pageHeading("Data · updates · limitations", "About", "Network Football Elo’s club section separates completed results, future fixtures and unresolved observations. Its model remains independent from the national-team model, while the interface deliberately follows the national site.", true)}
         <section class="section split">
-          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(bootstrap.meta.results_through)}</h2><p>${number(bootstrap.meta.matches)} matches across ${number(bootstrap.meta.rated_clubs)} club histories and ${number(bootstrap.meta.associations)} associations.</p><p class="muted small">Source data checked: ${validTimestamp(sources.runtime.retrieved_at)}<br>Site generated: ${validTimestamp(bootstrap.meta.generated_at)}<br>Model: ${escapeHTML(bootstrap.meta.model_version)}</p></div>
+          <div class="panel"><p class="eyebrow">Results included through</p><h2>${validDate(bootstrap.meta.results_through)}</h2><p>${number(publication.results)} completed results, ${number(publication.fixtures)} accepted future fixtures and ${number(publication.unresolved)} quarantined observations across ${number(publication.clubs)} club identities.</p><p class="muted small">Publication evidence through: ${validDate(publication.as_of)}<br>Latest immutable snapshot: ${validTimestamp(bootstrap.meta.generated_at)}<br>Model: ${escapeHTML(bootstrap.meta.model_version)}</p></div>
           <div class="panel panel-dark"><p class="eyebrow">Update safety</p><h2>Built before it replaces anything.</h2><p class="muted">Each refresh creates and validates temporary databases and a complete temporary static archive. Only a successful build replaces the live club data; a failed update leaves the previous site unchanged.</p></div>
         </section>
         <article class="section prose">
-          <h2>Data sources</h2><p>The discovery starting point was <a href="${escapeHTML(sources.discovery_index.url)}" rel="external">${escapeHTML(sources.discovery_index.name)}</a>. The installation uses machine-readable feeds that can be schema-checked, attributed and traced to individual rows. Current OpenFootball league files repair 2025/26 promotion and relegation state; a reviewed, source-linked layer supplies the 30 May 2026 UEFA Champions League final where the bulk feeds stop short.</p>
-          <div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table><thead><tr><th>Source family</th><th class="numeric">Files</th><th class="numeric">Downloaded</th><th>Licence / terms</th><th>Endpoint</th></tr></thead><tbody>${[...groups.values()].map((group) => `<tr><td><b>${escapeHTML(group.attribution)}</b></td><td class="numeric">${number(group.files)}</td><td class="numeric">${number(group.bytes / 1_000_000, 1)} MB</td><td>${escapeHTML(group.licence)}</td><td><a href="${escapeHTML(group.url)}" rel="external">Source endpoint</a></td></tr>`).join("")}</tbody></table></div>
+          <nav class="context-actions" aria-label="Publication evidence"><a class="button button-quiet" href="#/coverage">Competition coverage</a><a class="button button-quiet" href="#/health">Source health</a><a class="button button-quiet" href="#/unresolved">Unresolved audit</a></nav>
+          <h2>Data sources</h2><p>The discovery starting point was ${discoveryLink}. The installation accepts immutable, schema-checked snapshots and keeps every public event linked to its selected source observation. A declared adapter without a cached snapshot contributes no event rows.</p>
+          <div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="V8 source registry"><thead><tr><th>Source</th><th>Authority</th><th>Roles</th><th class="numeric">Snapshots</th><th>Status</th></tr></thead><tbody>${runtimeSources.map((source) => `<tr><td><b>${escapeHTML(source.name)}</b><span class="rating-sub">${escapeHTML(source.key)}</span></td><td>${escapeHTML(slugLabel(source.authority))}</td><td>${escapeHTML(source.roles.map(slugLabel).join(", ") || "Declared only")}</td><td class="numeric">${number(source.snapshots)}</td><td><span class="status-pill">${escapeHTML(slugLabel(source.status))}</span></td></tr>`).join("")}</tbody></table></div>
           <h2>Retained coverage</h2><div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="Retained club match coverage by source"><thead><tr><th>Source</th><th class="numeric">Matches</th><th>First</th><th>Last</th><th class="numeric">Competitions</th></tr></thead><tbody>${sources.coverage.map((row) => `<tr><td>${escapeHTML(row.source)}</td><td class="numeric">${number(row.matches)}</td><td>${validDate(row.first)}</td><td>${validDate(row.last)}</td><td class="numeric">${number(row.competitions)}</td></tr>`).join("")}</tbody></table></div>
-          <h2>Competition scope</h2><p>The generated catalog currently contains ${number(competitions.competitions.length)} distinct competition keys. It spans domestic leagues and deep tiers, state championships, cups, playoffs, continental competitions and inter-confederation/global events.</p>
+          <h2>Competition scope</h2><p>The rating archive contains ${number(competitions.competitions.length)} retained competition keys. The coverage report lists ${number(publication.coverage_rows)} competition-season observations and never infers completeness from a global result count.</p>
           <h2>Known limitations</h2><ul>${sources.limitations.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul>
-          <h2>Quality checks</h2><p>This release passed ${number(meta.quality.passed)} of ${number(meta.quality.checks)} blocking ledger checks. Model and static-site checks then validate probabilities, current tiers, regional representation, guarded records and known regression cases.</p><div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="Blocking club ledger quality checks"><thead><tr><th>Check</th><th class="numeric">Actual</th><th class="numeric">Expected</th><th>Status</th><th>Purpose</th></tr></thead><tbody>${sources.quality_checks.map((row) => `<tr><td>${escapeHTML(slugLabel(row.name))}</td><td class="numeric">${number(row.actual)}</td><td class="numeric">${number(row.expected)}</td><td><b>${row.passed ? "Passed" : "Failed"}</b></td><td>${escapeHTML(row.note)}</td></tr>`).join("")}</tbody></table></div>
+          <h2>Quality checks</h2><p>This release passed ${number(meta.quality.passed)} of ${number(meta.quality.checks)} blocking ledger checks. The updater separately validates input/output agreement and finite normalized probabilities. Historical global coverage remains incomplete.</p><div class="table-hint" aria-hidden="true">Swipe horizontally to see every column →</div><div class="table-shell"><table aria-label="Blocking club ledger quality checks"><thead><tr><th>Check</th><th class="numeric">Actual</th><th class="numeric">Expected</th><th>Status</th><th>Purpose</th></tr></thead><tbody>${sources.quality_checks.map((row) => `<tr><td>${escapeHTML(slugLabel(row.name))}</td><td class="numeric">${number(row.actual)}</td><td class="numeric">${number(row.expected)}</td><td><b>${row.passed ? "Passed" : "Failed"}</b></td><td>${escapeHTML(row.note)}</td></tr>`).join("")}</tbody></table></div>
           ${Object.keys(meta.quality.corrections || {}).length ? `<h3>Automatic source corrections in this replay</h3><ul>${Object.entries(meta.quality.corrections).map(([name, value]) => `<li>${escapeHTML(slugLabel(name))}: ${number(value)}</li>`).join("")}</ul>` : ""}
           <div class="callout"><b>One result, one trace.</b> Every archive row retains its source family and source reference. The complete formulas, timing rules, coefficients and record eligibility gates are published on <a href="#/methodology">Methodology</a>.</div>
         </article>
@@ -1160,6 +1449,7 @@
       clubCatalog = null;
       clubMap = null;
       matchArchiveFiles = null;
+      fixtureRows = null;
       window.__nfeloBoot.failed = false;
     }
     const current = parseRoute();
@@ -1178,7 +1468,13 @@
         history: historyPage,
         tournaments: tournamentsPage,
         matches: matchesPage,
+        results: () => resultsPage(),
         fixtures: fixturesPage,
+        coverage: coveragePage,
+        health: healthPage,
+        unresolved: unresolvedPage,
+        competition: () => current.value ? competitionPage(current.value) : coveragePage(),
+        date: () => current.value ? datePage(current.value) : resultsPage(),
         records: recordsPage,
         compare: comparePage,
         predict: predictPage,

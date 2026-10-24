@@ -8,3 +8,8 @@ public/404.html
 source/source-refresh-*/
 .club-cache/
 .club-install-venv/
+
+# Local V10 runtime and installation recovery
+.v10-runtime/
+.v10-install-backups/
+.v10-install.json

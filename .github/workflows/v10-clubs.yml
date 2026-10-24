@@ -1,0 +1,61 @@
+name: Update V10 clubs
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 5,14,22 * * *'
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: v10-club-updater
+  cancel-in-progress: false
+jobs:
+  update:
+    if: github.event_name == 'workflow_dispatch' || vars.V10_CLUBS_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install frozen database runtime
+        run: python -m pip install duckdb==1.4.0
+      - name: Refresh club data and build the full club archive
+        run: python scripts/v10/run_update.py --repo .
+      - name: Commit only successful club output
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- club-state public/clubs V10_LAST_UPDATE.json
+          if git diff --cached --quiet; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(clubs): refresh V10 results and fixtures [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+      - name: Ask the existing Pages workflow to publish
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main -f refresh_source=false -f full_refresh=false
+      - name: Preserve update diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v10-club-update-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: |
+            V10_LAST_UPDATE.json
+            .v10-runtime/last_run.json
+            .v10-runtime/generations/*/FAILED.json

@@ -364,7 +364,184 @@
   line-height: 1.35;
 }
 
+.home-v8-events {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.home-v8-events > div {
+  min-width: 0;
+}
+
+.v8-event-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-v8-events .v8-event-list {
+  grid-template-columns: 1fr;
+}
+
+.v8-event-card {
+  min-width: 0;
+  padding: 17px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse 17rem 8rem at 104% -14%,
+      color-mix(in srgb, var(--accent-soft) 68%, transparent),
+      transparent 74%
+    ),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 15px 21px 15px 21px;
+  box-shadow: var(--shadow-small);
+}
+
+.v8-event-meta,
+.v8-event-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.v8-event-meta a,
+.v8-event-footer a {
+  color: var(--link);
+}
+
+.v8-event-matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 16px 0 13px;
+}
+
+.v8-event-matchup > .club-identity:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.v8-event-score {
+  min-width: 44px;
+  padding: 7px 8px;
+  color: var(--ink);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-numeric);
+  font-size: 16px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.v8-event-note,
+.v8-forecast-unavailable {
+  display: block;
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.v8-probabilities {
+  margin: 12px 0;
+}
+
+.v8-event-footer {
+  justify-content: flex-start;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.v8-event-footer span {
+  overflow-wrap: anywhere;
+}
+
+.status-pill {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px 8px;
+  color: var(--ink-soft);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.status-good {
+  color: var(--link);
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface));
+}
+
+.status-warning {
+  color: var(--note-ink);
+  background: var(--note-bg);
+}
+
+.v8-health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 clamp(24px, 4vw, 40px);
+}
+
+.v8-health-grid > div {
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px 17px 12px 17px;
+}
+
+.v8-health-grid span,
+.v8-health-grid strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.v8-health-grid span {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.v8-health-grid strong {
+  margin-top: 7px;
+  color: var(--ink);
+  font-family: var(--font-numeric);
+  font-size: clamp(22px, 3vw, 31px);
+  line-height: 1;
+}
+
 @media (max-width: 1024px) {
+  .home-v8-events,
+  .v8-event-list {
+    grid-template-columns: 1fr;
+  }
+
+  .v8-health-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .club-match-table-view,
   .record-desktop {
     display: none;
@@ -592,6 +769,32 @@
 }
 
 @media (max-width: 520px) {
+  .v8-event-card {
+    padding: 14px;
+  }
+
+  .v8-event-matchup {
+    gap: 6px;
+  }
+
+  .v8-event-matchup .club-name {
+    font-size: 13px;
+  }
+
+  .v8-event-matchup .club-context {
+    font-size: 9px;
+  }
+
+  .v8-event-score {
+    min-width: 39px;
+    padding-inline: 6px;
+    font-size: 14px;
+  }
+
+  .v8-health-grid > div {
+    padding: 12px;
+  }
+
   .home-ranking-list .club-name {
     font-size: 13px;
   }
@@ -637,3 +840,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+.club-data-links {text-align:center;padding:24px 12px;line-height:2;overflow-wrap:anywhere}
