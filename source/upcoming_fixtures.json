@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-10-24T18:14:32+00:00",
+  "checked_at": "2026-10-25T01:13:57+00:00",
   "fixtures": [
     {
       "date": "2026-11-05",
@@ -118,20 +118,6 @@
       "country": "Bangladesh",
       "neutral": true,
       "home_sign": 0
-    },
-    {
-      "date": "2026-11-11",
-      "date_precision": "day",
-      "team1_code": "SA",
-      "team2_code": "UZ",
-      "team1_name": "Saudi Arabia",
-      "team2_name": "Uzbekistan",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Saudi Arabia",
-      "neutral": false,
-      "home_sign": 1
     },
     {
       "date": "2026-11-11",
