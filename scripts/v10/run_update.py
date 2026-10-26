@@ -11,6 +11,7 @@ def main():
  if not (state/'current.json').is_file():
   if state.exists():raise RuntimeError('Incomplete runtime exists; rename it before retrying')
   state_pack.hydrate(bundle,state,repo/'public')
+ cfg=live.read_json(state/'config.json');cfg['free_sources']=live.read_json(repo/'config/club_sources.json');cfg['limitations']=cfg['free_sources']['limitations'];live.atomic(state/'config.json',cfg)
  report=live.update(state,a.as_of);current=live.read_json(state/'current.json');source=state/current['site']/'clubs'
  if not (source/'data/meta.json').is_file():raise RuntimeError('Full club export did not complete')
  if report['result']!='no_change':

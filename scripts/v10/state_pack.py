@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Portable, deterministic state for GitHub/phone installation; no model replay."""
-import argparse,gzip,json,os,shutil,sqlite3,tempfile
+import argparse,gzip,json,os,shutil,sqlite3,tempfile,subprocess,sys
 from pathlib import Path
 import v10_live as live
 TABLES={'input':{'matches':['match_id'],'clubs':['club']},'model':{'rated_matches':['match_id'],'current_club_ratings':['club'],'current_country_ratings':['country'],'current_confederation_ratings':['confederation'],'year_openings':['year','club']}}
@@ -29,12 +29,15 @@ def pack(state,destination):
    c.close()
   for name in ['config.json','last_run.json']:
    if (state/name).exists():shutil.copy2(state/name,stage/name)
+  if (state/'replay-states').exists():shutil.copytree(state/'replay-states',stage/'replay-states')
+  model_report=state/cur['model'];model_report=model_report.parent/'model_run.json'
+  if model_report.exists():shutil.copy2(model_report,stage/'model_run.json')
   if (state/'observations.sqlite').exists():
    src=sqlite3.connect(state/'observations.sqlite');db=stage/'observations.sqlite';dst=sqlite3.connect(db);src.backup(dst);src.close()
    # Raw HTTP objects are a local cache. Persist only the minimal source facts needed by the adapter.
    dst.execute('DELETE FROM requests')
    for source,eid,payload in dst.execute('SELECT source,event_id,payload FROM summaries').fetchall():
-    raw=json.loads(payload);header=raw.get('header',{});small={'header':{'id':header.get('id'),'competitions':header.get('competitions',[])},'gameInfo':{'venue':raw.get('gameInfo',{}).get('venue')}}
+    raw=json.loads(payload);header=raw.get('header',{});small=raw if 'general' in raw else {'header':{'id':header.get('id'),'competitions':header.get('competitions',[])},'gameInfo':{'venue':raw.get('gameInfo',{}).get('venue')}}
     dst.execute('UPDATE summaries SET payload=? WHERE source=? AND event_id=?',(json.dumps(small,separators=(',',':')),source,eid))
    dst.commit();dst.execute('VACUUM');dst.close()
    with db.open('rb') as a,(stage/'observations.sqlite.gz').open('wb') as raw:
@@ -54,6 +57,35 @@ def pack(state,destination):
   return result
 
 def hydrate(bundle,state,site=None):
+ # A cold process must verify restoration after the writer has exited. This
+ # avoids stale DuckDB instances recreating a WAL after a subsequent open.
+ command=[sys.executable,str(Path(__file__).resolve()),'hydrate-inner','--bundle',str(bundle.resolve()),'--state',str(state.resolve())]
+ if site:command+=['--site',str(site.resolve())]
+ completed=subprocess.run(command,capture_output=True,text=True)
+ if completed.returncode:raise RuntimeError('State restoration failed: '+completed.stderr[-3000:])
+ try:
+  manifest=live.read_json(bundle/'MANIFEST.json')
+  # Verify the checkpointed base files independently of any stale writer WAL.
+  # Discarding that WAL is permitted only after every typed table matches the
+  # portable bundle's complete count/xor/sum signature.
+  for kind,tables in manifest['tables'].items():
+   original=state/'generations/seed'/(kind+'.duckdb');verified=original.with_name(kind+'-verified.duckdb');shutil.copy2(original,verified)
+   c=live.duckdb.connect(str(verified),read_only=True)
+   try:
+    for table,spec in tables.items():
+     if signature(c,table)!=spec['signature']:raise ValueError('Cold base table differs: '+kind+'.'+table)
+   finally:c.close()
+   os.replace(verified,original)
+   wal=original.with_suffix('.duckdb.wal')
+   if wal.exists():os.replace(wal,original.with_suffix('.redundant-wal.saved'))
+  current=live.read_json(state/'current.json');validation=live.validate_model(state/current['input'],state/current['model'])
+  live.atomic(state/'RESTORE_VERIFIED.json',dict(cold_process_verified=True,**validation))
+  return dict(restored_without_model_replay=True,cold_process_verified=True,**validation)
+ except Exception:
+  (state/'current.json').unlink(missing_ok=True)
+  live.atomic(state/'RESTORE_FAILED.json',{'error':'Cold verification failed; published bundle retained'});raise
+
+def hydrate_inner(bundle,state,site=None):
  if state.exists():raise ValueError('Runtime destination already exists; retain it or choose a fresh path')
  bundle=bundle.resolve();hashes=live.read_json(bundle/'CHECKSUMS.json')
  for name,sha in hashes.items():
@@ -65,7 +97,7 @@ def hydrate(bundle,state,site=None):
    c=live.duckdb.connect(str(generation/(kind+'.duckdb')))
    for table,spec in tables.items():
     cols=','.join('"'+name+'" '+typ for name,typ in spec['columns']);c.execute('CREATE TABLE '+table+'('+cols+')')
-    for name in spec['files']:c.execute('INSERT INTO '+table+' SELECT * FROM read_parquet(?)',[str(bundle/name)])
+    c.execute('INSERT INTO '+table+' SELECT * FROM read_parquet(?)',[[str(bundle/name) for name in spec['files']]])
     if signature(c,table)!=spec['signature']:raise ValueError('Typed state differs: '+kind+'.'+table)
    if kind=='input':
     c.execute('CREATE UNIQUE INDEX live_match_id ON matches(match_id)');c.execute('CREATE INDEX live_match_day ON matches(day)')
@@ -73,6 +105,8 @@ def hydrate(bundle,state,site=None):
    c.execute('CHECKPOINT');c.close()
   for name in ['config.json','last_run.json']:
    if (bundle/name).exists():shutil.copy2(bundle/name,state/name)
+  if (bundle/'replay-states').exists():shutil.copytree(bundle/'replay-states',state/'replay-states')
+  if (bundle/'model_run.json').exists():shutil.copy2(bundle/'model_run.json',generation/'model_run.json')
   if (bundle/'observations.sqlite.gz').exists():
    with gzip.open(bundle/'observations.sqlite.gz','rb') as a,(state/'observations.sqlite').open('wb') as b:shutil.copyfileobj(a,b)
   (state/'objects').mkdir()
@@ -83,8 +117,8 @@ def hydrate(bundle,state,site=None):
     p=site/name
     if p.is_dir():shutil.copytree(p,generation/'site'/name)
     elif p.is_file():shutil.copy2(p,generation/'site'/name)
-  validation=live.validate_model(generation/'input.duckdb',generation/'model.duckdb');live.atomic(state/'RESTORE_VERIFIED.json',validation);live.atomic(state/'current.json',current)
-  return dict(restored_without_model_replay=True,**validation)
+  live.atomic(state/'current.json',current)
+  return dict(writer_completed=True,matches=manifest['tables']['input']['matches']['signature']['count'])
  except Exception:
   live.atomic(state/'RESTORE_FAILED.json',{'error':'Incomplete restoration; do not use'});raise
 
@@ -102,6 +136,7 @@ def compare(a,b):
 if __name__=='__main__':
  p=argparse.ArgumentParser();s=p.add_subparsers(dest='command',required=True)
  x=s.add_parser('pack');x.add_argument('--state',type=Path,required=True);x.add_argument('--output',type=Path,required=True)
- x=s.add_parser('hydrate');x.add_argument('--bundle',type=Path,required=True);x.add_argument('--state',type=Path,required=True);x.add_argument('--site',type=Path)
+ for command in ('hydrate','hydrate-inner'):
+  x=s.add_parser(command);x.add_argument('--bundle',type=Path,required=True);x.add_argument('--state',type=Path,required=True);x.add_argument('--site',type=Path)
  x=s.add_parser('compare');x.add_argument('--expected',type=Path,required=True);x.add_argument('--restored',type=Path,required=True)
- a=p.parse_args();r=pack(a.state,a.output) if a.command=='pack' else hydrate(a.bundle,a.state,a.site) if a.command=='hydrate' else compare(a.expected,a.restored);print(json.dumps(r,indent=2))
+ a=p.parse_args();r=pack(a.state,a.output) if a.command=='pack' else hydrate(a.bundle,a.state,a.site) if a.command=='hydrate' else hydrate_inner(a.bundle,a.state,a.site) if a.command=='hydrate-inner' else compare(a.expected,a.restored);print(json.dumps(r,indent=2))

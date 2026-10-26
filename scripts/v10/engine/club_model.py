@@ -558,7 +558,7 @@ class ClubRatingModel:
         )
         tier_sd = (
             0.0
-            if float(self.config["tier_share"]) == 0.0
+            if self.last_tier[club] == 1 or float(self.config["tier_share"]) == 0.0
             else float(self.config["tier_prior_sd"])
             / math.sqrt(1.0 + tier_information / 4.0)
         )
@@ -651,7 +651,9 @@ class ClubRatingModel:
 
     @staticmethod
     def _score(home_goals: int, away_goals: int, status: str) -> float:
-        if status.startswith("P") or home_goals == away_goals:
+        # A second-leg win may lead to a shootout with the aggregate level.
+        # Input goals exclude shootout kicks: rate the match's actual outcome.
+        if home_goals == away_goals:
             return 0.5
         return 1.0 if home_goals > away_goals else 0.0
 

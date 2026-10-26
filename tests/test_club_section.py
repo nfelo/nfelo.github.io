@@ -393,7 +393,7 @@ class ClubPublicationTests(unittest.TestCase):
 
     def test_model_release_and_fit_are_frozen(self) -> None:
         parameters = self.meta["parameters"]
-        self.assertEqual(parameters["version"], "2026-08-12-global-club-v7")
+        self.assertEqual(parameters["version"], "2026-10-25-club-correction")
         self.assertEqual(parameters["k_factor"], 18.0)
         self.assertEqual(parameters["tier_gap"], 80.0)
         self.assertEqual(parameters["tier_share"], 0.45)
@@ -404,7 +404,7 @@ class ClubPublicationTests(unittest.TestCase):
         self.assertEqual(parameters["home_advantage_cross_border"], 80.0)
         self.assertEqual(parameters["aggregate_floor"], 0.0)
         self.assertEqual(parameters["aggregate_scale"], 1.0)
-        self.assertEqual(parameters["uncertainty_penalty"], 1.25)
+        self.assertEqual(parameters["uncertainty_penalty"], 0.0)
         self.assertEqual(self.meta["fit"]["validation_period"], ["2018-01-01", "2022-12-31"])
 
     def test_shell_routes_and_reciprocal_links_mirror_the_national_site(self) -> None:
@@ -556,8 +556,9 @@ class ClubPublicationTests(unittest.TestCase):
             continent: min(club["rank"] for club in self.rankings if club["continent"] == continent)
             for continent in ("South America", "Asia", "North America")
         }
-        self.assertLess(best["South America"], best["Asia"])
-        self.assertLess(best["South America"], best["North America"])
+        # Test the publication contract, not a predetermined regional winner.
+        for club in self.rankings:
+            self.assertAlmostEqual(club["rating"], club["mean"], places=2)
         self.assertGreaterEqual(
             sum(club["continent"] == "South America" for club in self.rankings[:100]),
             5,

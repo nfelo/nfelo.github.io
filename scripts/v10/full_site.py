@@ -28,7 +28,7 @@ def build(input_path,model_path,destination,fixtures,exceptions,health,limitatio
  else:
   shutil.copytree(live.HERE/'assets',destination,dirs_exist_ok=True)
   summary=dict(first=str(first),last=str(last),matches=count,raw_matches=count,deduplicated=0,explicit_second_legs=legs,sources=source_names)
-  export_club_site(input_path,model_path,live.HERE,live.HERE/'engine',destination,{'sources':[dict(key=h['source'],name=h['source'],status=h['status'],roles=['results','fixtures']) for h in health]},summary,{'metrics':{}},static_verifier=verify_export)
+  export_club_site(input_path,model_path,live.HERE,live.HERE/'engine',destination,{'sources':[dict(key=h['source'],name=h['source'],status=h['status'],roles=['results','fixtures']) for h in health]},summary,(live.read_json(model_path.parent/'model_run.json') if (model_path.parent/'model_run.json').exists() else {'metrics':{},'metrics_status':'legacy_snapshot_unavailable'}),static_verifier=verify_export)
  shutil.copytree(live.HERE/'assets',destination,dirs_exist_ok=True);version_club_assets(destination/'clubs')
  c=live.duckdb.connect(str(input_path),read_only=True);c.execute("ATTACH '"+str(model_path).replace("'","''")+"' AS model (READ_ONLY)")
  data=destination/'clubs/data';config=live.read_json(live.HERE/'engine/club_model.json')
@@ -79,8 +79,8 @@ def build(input_path,model_path,destination,fixtures,exceptions,health,limitatio
  for h in health:
   latest=c.execute("SELECT max(day) FROM matches WHERE source_ref LIKE ?",[h['source']+':%']).fetchone()[0]
   horizon=max([r['date'] for r in future if r['source']['key']==h['source']],default=None)
-  hrows.append(dict(source_key=h['source'],source_name=h['source'],authority='ESPN live feed',competition_scope=h['source'],health=h['status'],latest_result=str(latest) if latest else None,result_lag_days=(as_of-latest).days if latest else None,fixture_horizon_days=(date.fromisoformat(horizon)-as_of).days if horizon else None,latest_retrieved_at=h['last_success'],error=h.get('error')))
- live.atomic(data/'source-health.json',dict(source_health=hrows))
+  hrows.append(dict(source_key=h['source'],source_name=h['source'],authority=h['source'].split('-')[0].upper()+' public feed',competition_scope=h['source'],health=h['status'],latest_result=str(latest) if latest else None,result_lag_days=(as_of-latest).days if latest else None,fixture_horizon_days=(date.fromisoformat(horizon)-as_of).days if horizon else None,latest_retrieved_at=h.get('last_success'),error=h.get('error'),normalised_results=h.get('normalised_results',0),held=h.get('held',0),archive_warnings=h.get('archive_warnings',[]),backfill=h.get('backfill')))
+ live.atomic(data/'source-health.json',dict(source_health=hrows,summary=dict(routes=len([h for h in health if 'rows' in h]),routes_with_results=sum(bool(h.get('normalised_results')) for h in health),partial=sum(h['status']=='partial' for h in health),unavailable=sum(h['status'] in ('stale','unavailable') for h in health))))
  dates={r['date']:r for r in live.query(c,'SELECT cast(day as varchar) date,count(*) results,0 fixtures,0 unresolved FROM matches GROUP BY day ORDER BY day')}
  for kind,rows in [('fixtures',future),('unresolved',held)]:
   for r in rows:

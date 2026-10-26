@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-12-global-club-v7",
+  "version": "2026-10-25-club-correction",
   "base_rating": 1500.0,
   "k_factor": 18.0,
   "home_advantage_domestic": 45.0,
@@ -12,7 +12,7 @@
   "tier_gap": 80.0,
   "country_retention": 0.97,
   "country_share": 0.15,
-  "country_anchor_quantile": 0.90,
+  "country_anchor_quantile": 0.9,
   "confederation_retention": 0.96,
   "confederation_share": 0.5,
   "extra_time_weight": 0.86,
@@ -24,7 +24,7 @@
   "tier_prior_sd": 65.0,
   "country_prior_sd": 105.0,
   "confederation_prior_sd": 95.0,
-  "uncertainty_penalty": 1.25,
+  "uncertainty_penalty": 0.0,
   "competition_weights": {
     "league": 1.0,
     "state": 0.82,
@@ -36,10 +36,16 @@
     "super_cup": 0.72
   },
   "fit": {
-    "status": "v7 audited global replay with current-tier repair and guarded records",
+    "status": "corrective release candidate; chronology comparison in docs/club-correction",
+    "selection": "Published ratings are estimated strengths; uncertainty is separate. Predictive coefficients remain frozen after a fixed plain-Elo comparison.",
     "replay_from": "2000-01-01",
-    "validation_period": ["2018-01-01", "2022-12-31"],
-    "test_period": ["2023-01-01", "2026-12-31"],
-    "selection": "The club retains 85% of an ordinary same-confederation cross-border result; this prevents association coefficients from stretching well-connected European leagues far apart while preserving a regional bridge. Cross-tier cup evidence is split between the clubs and the two tier levels around an 80-point baseline gap, with every association's tier-one effect fixed at zero so domestic cups cannot create a global league offset. The published lower estimate subtracts 1.25 standard errors: still conservative, without letting modern match-density differences dominate cross-era records. Complete 2025/26 league files repair current promotion and relegation states. Identity, shootout, historical-jurisdiction and world-record eligibility checks run before publication. Full replay metrics are regenerated with every installation."
+    "validation_period": [
+      "2018-01-01",
+      "2022-12-31"
+    ],
+    "test_period": [
+      "2023-01-01",
+      "2026-10-24"
+    ]
   }
 }

@@ -21,6 +21,8 @@ def public_club_name(code, name):
 
 def ledger_quality_checks(connection):
     """Recompute the original seven ledger guardrails on every full export."""
+    columns = {r[0] for r in connection.execute("DESCRIBE matches").fetchall()}
+    valid_penalty_leg = "leg=2 AND aggregate_after_home=0 AND aggregate_before_home+home_goals-away_goals=0" if {"leg","aggregate_after_home","aggregate_before_home"} <= columns else "false"
     checks = [
         ("distinct match identities", "SELECT count(*)-count(distinct match_id) FROM matches", 0,
          "No retained match ID may repeat."),
@@ -35,10 +37,11 @@ def ledger_quality_checks(connection):
                OR coalesce(country_name,'') IN ('','Unassigned','Unknown')
                OR coalesce(continent,'') IN ('','Unassigned','Unknown')
          """, 0, "Every retained club side has association and confederation metadata."),
-        ("shootout kicks excluded from football score", """
+        ("shootout kicks excluded from football score", f"""
             SELECT count(*) FROM matches
             WHERE status LIKE 'P%' AND home_goals<>away_goals
-         """, 0, "A penalty decision enters the model as a draw."),
+              AND NOT coalesce(({valid_penalty_leg}),false)
+         """, 0, "Shootout kicks are excluded; a second-leg football win remains a win when aggregate is level."),
         ("Santa Clara association collision", """
             SELECT count(*) FROM matches m
             JOIN clubs h ON h.club=m.home JOIN clubs a ON a.club=m.away

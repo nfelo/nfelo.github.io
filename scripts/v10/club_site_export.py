@@ -666,7 +666,7 @@ def export_club_site(
                         "measure": "The highest cautious published rating a club held immediately after a retained match.",
                         "order": "Descending post-match rating; ties break by the earlier date.",
                         "eligibility": f"At least {WORLD_COMPARABLE_MIN_MATCHES} prior retained results and post-match uncertainty no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
-                        "interpretation": "The underlying mean is shown for transparency, but the record is the uncertainty-adjusted rating.",
+                        "interpretation": "The record is the estimated strength. Its historical reference changes with the strongest association; cross-era absolute strength is not established.",
                     },
                     "strongest_matches": {
                         "title": "Highest-rated matches",
@@ -739,7 +739,7 @@ def export_club_site(
                 "Coverage is broad, not literally complete: lower tiers, state competitions, early cups, and some confederations remain uneven.",
                 "A club identity is kept separate when legal or sporting succession is genuinely ambiguous.",
                 "Mutable upstream feeds are hash-recorded on every build; historical corrections can change a later replay without refitting coefficients.",
-                "Penalty-shootout-decided matches are learned as regulation/extra-time draws; shootout goals are not treated as ordinary goal margin.",
+                "Shootout goals are excluded. A second-leg football win or loss is retained when a level aggregate leads to penalties.",
             ],
             "quality_checks": [
                 {
@@ -785,7 +785,7 @@ def export_club_site(
                 "world_comparable_min_matches": WORLD_COMPARABLE_MIN_MATCHES,
             },
             "method": {
-                "rating": "1500 + club residual + tier + association coefficient + confederation coefficient - uncertainty penalty",
+                "rating": "1500 + club residual + tier + association coefficient + confederation coefficient; uncertainty reported separately",
                 "home": "Separate fitted domestic and cross-border home advantages; neutral matches receive zero.",
                 "same_date": "Every match on a date is forecast from one frozen start-of-day state, then that date is updated.",
                 "aggregate": "Only a controlled second-leg loss by a club that remains ahead on aggregate is discounted; comebacks, level ties, and confirming wins retain full weight.",

@@ -21,8 +21,8 @@ from club_model import load_club_config, run_club_model
 FIELDS=('match_id','day','season','home','away','home_goals','away_goals','competition',
  'competition_key','kind','home_tier','away_tier','neutral','cross_border','status','leg',
  'tie_key','round_name','source','source_ref','aggregate_before_home','aggregate_after_home')
-ENGINE_SHA='bd1f8e7997ecd6e6931a79a4e26b69054ece97729e1658f1d9daa2b80d34b66b'
-CONFIG_SHA='ec9c58d4639b8fadde0223b044928c21cd96f6d97d24b65c1d18528cb8a5c89e'
+ENGINE_SHA='2c91939827d8c78e4e06e06db613b9a5a678c13dadd4fb14c7edc688ec4083c6'
+CONFIG_SHA='b2a246611892b80f54e494f46ea80ea6caf525696e00441ac27c2f1e68d57768'
 
 def encoded(v):
  return (json.dumps(v,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False,
@@ -64,6 +64,32 @@ class Fetcher:
   self.root,self.connection,self.timeout=root,connection,timeout
   self.requests=self.unchanged=0
   self.prefetched={}
+ def text(self,url,form=None):
+  """Bounded public HTML transport; POST bodies are part of the cache key."""
+  import urllib.parse
+  body=None if form is None else urllib.parse.urlencode(form).encode()
+  key=url if body is None else url+'#post='+digest(body)
+  headers={'User-Agent':'NFElo-club-updater/2.0','Accept-Encoding':'identity'}
+  old=self.connection.execute('SELECT sha,etag,modified FROM requests WHERE url=?',(key,)).fetchone()
+  if old and body is None:
+   if old[1]:headers['If-None-Match']=old[1]
+   if old[2]:headers['If-Modified-Since']=old[2]
+  self.requests+=1
+  try:
+   with urllib.request.urlopen(urllib.request.Request(url,data=body,headers=headers),timeout=self.timeout) as response:
+    raw=response.read(32*1024*1024+1);etag=response.headers.get('ETag');modified=response.headers.get('Last-Modified')
+   if len(raw)>32*1024*1024:raise ValueError('Source response exceeds 32 MiB')
+  except urllib.error.HTTPError as e:
+   if e.code!=304 or not old:raise
+   raw=gzip.decompress((self.root/'objects'/(old[0]+'.json.gz')).read_bytes())
+   if digest(raw)!=old[0]:raise ValueError('Cached response hash differs')
+   self.unchanged+=1;return raw.decode('utf-8')
+  if raw[:2]==b'\x1f\x8b':raw=gzip.decompress(raw)
+  sha=digest(raw);path=self.root/'objects'/(sha+'.json.gz')
+  if not path.exists():atomic(path,gzip.compress(raw,mtime=0))
+  self.connection.execute('INSERT OR REPLACE INTO requests VALUES(?,?,?,?,?)',(key,sha,etag,modified,now()));self.connection.commit()
+  if old and old[0]==sha:self.unchanged+=1
+  return raw.decode('utf-8')
  def prefetch(self,urls,workers=4):
   from concurrent.futures import ThreadPoolExecutor,as_completed
   def worker(url):
@@ -156,6 +182,9 @@ def _collect_serial(root,config,as_of):
  finally:c.close()
 
 def collect(root,config,as_of):
+ if config.get('free_sources'):
+  from free_update import collect as collect_free
+  return collect_free(root,config['free_sources'],as_of)
  c=state_db(root);c.close()
  return _collect_serial(root,config,as_of)
 
@@ -172,46 +201,19 @@ def model_record(source,event,clubs,as_of):
  if type(event.get('cross_border')) is not bool:raise ValueError('unknown_cross_border')
  if event['cross_border']!=(clubs[event['home']]['country']!=clubs[event['away']]['country']):raise ValueError('cross_border_identity_mismatch')
  if event.get('status') not in ('F','E','P','P?'):raise ValueError('unknown_score_phase')
- if event['status'] in ('P','P?') and event['home_goals']!=event['away_goals']:raise ValueError('shootout_goals_cannot_be_rating_goals')
+ if event['status'] in ('P','P?') and event['home_goals']!=event['away_goals'] and not (event.get('leg')==2 and event.get('aggregate_after_home')==0):raise ValueError('shootout_goals_cannot_be_rating_goals')
  if event.get('kind') not in load_club_config(HERE/'engine/club_model.json')['competition_weights']:raise ValueError('unknown_competition_kind')
  if not event.get('competition') or not event.get('competition_key'):raise ValueError('missing_competition')
  if event.get('leg') not in (0,1,2):raise ValueError('unknown_leg')
  if event['leg'] and (not event.get('tie_key') or event.get('aggregate_before_home') is None or event.get('aggregate_after_home') is None):raise ValueError('missing_two_leg_context')
+ if event['leg'] and event['aggregate_after_home']!=event['aggregate_before_home']+event['home_goals']-event['away_goals']:raise ValueError('aggregate_score_mismatch')
  if type(event.get('season')) is not int:raise ValueError('missing_season')
  row={k:event.get(k) for k in FIELDS};row.update(match_id='live_'+digest((source+':'+event['id']).encode())[:27],day=day,source='v10-live',source_ref=source+':'+event['id'])
  return row
 
-def reconcile(input_path,observations,as_of):
- c=duckdb.connect(str(input_path),read_only=True);clubs={r['club']:r for r in query(c,'SELECT * FROM clubs')}
- changes={};exceptions=[];fixtures=[];unchanged=0;keys={}
- try:
-  for source,event in observations:
-   mid='live_'+digest((source+':'+event['id']).encode())[:27]
-   old=query(c,'SELECT * FROM matches WHERE match_id=?',[mid])
-   if len(old)>1:raise ValueError('Duplicate ledger key')
-   old=old[0] if old else None;life=event.get('lifecycle')
-   if life in ('fixture','withdrawn','in_progress'):
-    if old:changes[mid]=None
-    if life=='fixture':fixtures.append(dict(event,source_key=source))
-    continue
-   try:
-    if life=='unresolved':raise ValueError(';'.join(event.get('reasons') or ['unresolved_source_record']))
-    row=model_record(source,event,clubs,as_of);key=(row['day'],row['home'],row['away'],row['competition_key'])
-    if key in keys and keys[key]!=mid:raise ValueError('cross_source_duplicate_candidate')
-    other=query(c,'SELECT * FROM matches WHERE day=? AND home=? AND away=? AND match_id<>?',[row['day'],row['home'],row['away'],mid])
-    if other:
-     if len(other)==1 and all(other[0][k]==row[k] for k in ('home_goals','away_goals','competition_key','status')):unchanged+=1;continue
-     raise ValueError('existing_match_conflict')
-    same_day=c.execute('SELECT count(*) FROM matches WHERE day=? AND match_id<>? AND (home IN (?,?) OR away IN (?,?))',[row['day'],mid,row['home'],row['away'],row['home'],row['away']]).fetchone()[0]
-    if same_day:raise ValueError('same_day_order_requires_resolution')
-    if any(p is not None and p['day']==row['day'] and {p['home'],p['away']}&{row['home'],row['away']} for p in changes.values()):raise ValueError('same_day_order_requires_resolution')
-    keys[key]=mid
-    if old and all(old[k]==row[k] for k in FIELDS):unchanged+=1
-    else:changes[mid]=row
-   except (KeyError,TypeError,ValueError) as e:
-    exceptions.append(dict(source=source,id=event['id'],reason=str(e),date=event.get('date'),home=event.get('home_name'),away=event.get('away_name'),previous_result_retained=bool(old)))
-  return changes,fixtures,exceptions,unchanged
- finally:c.close()
+def reconcile(input_path,observations,as_of,pending_clubs=()):
+ from reconcile_sources import reconcile as reconcile_all
+ return reconcile_all(input_path,observations,as_of,pending_clubs)
 
 def validate_model(input_path,model_path):
  c=duckdb.connect(str(model_path),read_only=True)
@@ -258,12 +260,13 @@ def initialize(root,input_path,model_path,config):
   count=c.execute('SELECT count(*) FROM matches').fetchone()[0]
   c.execute('CREATE INDEX IF NOT EXISTS live_match_id ON matches(match_id)')
   c.execute('CREATE INDEX IF NOT EXISTS live_match_day ON matches(day)');c.close()
-  meta=dict(schema=1,generation='seed',input='generations/seed/input.duckdb',model='generations/seed/model.duckdb',site=None,created_at=now(),model_runs=0,seed_matches=count)
+  meta=dict(schema=1,generation='seed',input='generations/seed/input.duckdb',model='generations/seed/model.duckdb',site=None,created_at=now(),model_runs=0,seed_matches=count,model_identity=ENGINE_SHA+CONFIG_SHA)
   atomic(root/'config.json',config);atomic(root/'current.json',meta);return meta
 
 def site_code_sha(full_site):
  files=['v10_live.py']
  if full_site:files+=['full_site.py','club_site_export.py','publication_checks.py']
+ if full_site:files += [str(p.relative_to(HERE)) for p in sorted((HERE/'assets').rglob('*')) if p.is_file()]
  return digest(encoded({name:file_sha(HERE/name) for name in files}))
 
 def update(root,as_of=None,*,fail_before_publish=False):
@@ -272,37 +275,34 @@ def update(root,as_of=None,*,fail_before_publish=False):
  with locked(root):
   current=read_json(root/'current.json');config=read_json(root/'config.json');started=time.monotonic()
   observations,health,transport=collect(root,config,as_of);old_input=root/current['input'];old_model=root/current['model']
-  changes,fixtures,exceptions,unchanged=reconcile(old_input,observations,as_of)
+  pending=read_json(root/'pending_clubs.json') if config.get('free_sources') and (root/'pending_clubs.json').exists() else []
+  changes,fixtures,exceptions,unchanged=reconcile(old_input,observations,as_of,pending)
+  model_changed=current.get('model_identity')!=ENGINE_SHA+CONFIG_SHA
   export_sha=site_code_sha(config.get('full_site',False))
   view_sha=digest(encoded(dict(site_version=3,site_code_sha=export_sha,full_site=config.get('full_site',False),fixtures=fixtures,exceptions=exceptions,health=[{k:v for k,v in h.items() if k!='last_success'} for h in health],limitations=config['limitations'],as_of=as_of.isoformat())))
-  if not changes and current.get('view_sha')==view_sha and current.get('site'):
+  if not changes and not model_changed and current.get('view_sha')==view_sha and current.get('site'):
    report=dict(result='no_change',generation=current['generation'],model_ran=False,changed_matches=0,fixtures=len(fixtures),exceptions=len(exceptions),sources=health,elapsed_seconds=round(time.monotonic()-started,3),**transport)
    atomic(root/'last_run.json',report);return report
   identifier=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')+'-'+uuid.uuid4().hex[:8];gen=root/'generations'/identifier;gen.mkdir(parents=True)
   input_path,model_path=old_input,old_model
   try:
-   if changes:
-    input_path=gen/'input.duckdb';model_path=gen/'model.duckdb';shutil.copy2(old_input,input_path)
-    c=duckdb.connect(str(input_path));c.execute('BEGIN')
-    try:
-     for mid,row in changes.items():
-      exists=c.execute('SELECT count(*) FROM matches WHERE match_id=?',[mid]).fetchone()[0]
-      if row is None:c.execute('DELETE FROM matches WHERE match_id=?',[mid])
-      elif exists:c.execute('UPDATE matches SET '+','.join(k+'=?' for k in FIELDS[1:])+' WHERE match_id=?',[row[k] for k in FIELDS[1:]]+[mid])
-      else:c.execute('INSERT INTO matches ('+','.join(FIELDS)+') VALUES ('+','.join('?' for _ in FIELDS)+')',[row[k] for k in FIELDS])
-     c.execute('DROP TABLE IF EXISTS model_route_days');c.execute('COMMIT');c.execute('CHECKPOINT')
-    except Exception:c.execute('ROLLBACK');raise
-    finally:c.close()
+   if changes or model_changed:
+    input_path=gen/'input.duckdb';model_path=gen/'model.duckdb'
+    from prepare_generation import prepare
+    prepare(old_input,input_path,changes,pending)
     os.environ['PYTHONPATH']=os.pathsep.join([str(HERE/'engine'),*sys.path])
-    result=run_club_model(input_path,load_club_config(HERE/'engine/club_model.json'),output_database=model_path)
+    from replay_cache import route_database,resume,save_states
+    checkpoint,identity=resume(root,input_path,old_model,gen)
+    result=run_club_model(input_path,load_club_config(HERE/'engine/club_model.json'),output_database=model_path,resume_checkpoint=checkpoint,checkpoint_directory=gen/'checkpoints',checkpoint_identity=identity)
     atomic(gen/'model_run.json',result);atomic(gen/'validation.json',validate_model(input_path,model_path));atomic(gen/'changes.json',changes)
-   previous=root/current['site'] if current.get('site') and not changes and current.get('site_code_sha')==export_sha else None
+   previous=root/current['site'] if current.get('site') and not changes and not model_changed and current.get('site_code_sha')==export_sha else None
    meta=build_site(input_path,model_path,gen/'site',fixtures,exceptions,health,config['limitations'],as_of,config.get('full_site',False),previous)
-   next_current=dict(current,generation=identifier,input=str(input_path.relative_to(root)),model=str(model_path.relative_to(root)),site=str((gen/'site').relative_to(root)),view_sha=view_sha,site_code_sha=export_sha,created_at=now(),model_runs=current.get('model_runs',0)+bool(changes))
+   next_current=dict(current,generation=identifier,input=str(input_path.relative_to(root)),model=str(model_path.relative_to(root)),site=str((gen/'site').relative_to(root)),view_sha=view_sha,site_code_sha=export_sha,created_at=now(),model_identity=ENGINE_SHA+CONFIG_SHA,model_runs=current.get('model_runs',0)+bool(changes or model_changed))
    atomic(gen/'receipt.json',dict(schema=1,prior_generation=current['generation'],input_sha256=file_sha(input_path),model_sha256=file_sha(model_path),engine_sha256=ENGINE_SHA,config_sha256=CONFIG_SHA,changes=len(changes),site=meta))
    if fail_before_publish:raise RuntimeError('Injected interruption before publication')
    atomic(root/'current.json',next_current)
-   report=dict(result='updated' if changes else 'site_updated',generation=identifier,model_ran=bool(changes),changed_matches=len(changes),exceptions=len(exceptions),fixtures=len(fixtures),unchanged_events=unchanged,results_through=meta['results_through'],matches=meta['matches'],sources=health,elapsed_seconds=round(time.monotonic()-started,3),**transport)
+   if changes or model_changed:save_states(root,input_path,gen/'checkpoints',identity)
+   report=dict(result='updated' if changes or model_changed else 'site_updated',generation=identifier,model_ran=bool(changes or model_changed),model_changed=model_changed,changed_matches=len(changes),exceptions=len(exceptions),fixtures=len(fixtures),unchanged_events=unchanged,results_through=meta['results_through'],matches=meta['matches'],sources=health,elapsed_seconds=round(time.monotonic()-started,3),**transport)
    atomic(root/'last_run.json',report);return report
   except Exception as e:
    atomic(gen/'FAILED.json',dict(error=str(e),prior_generation_retained=current['generation'],time=now()));raise
