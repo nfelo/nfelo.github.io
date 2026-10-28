@@ -53,7 +53,6 @@ PERSISTED_TABLES = (
 )
 
 BOUNDARY_KINDS = {"continental", "intercontinental", "global", "super_cup"}
-CONFEDERATION_KINDS = {"intercontinental", "global"}
 MODEL_STATE_SCHEMA_VERSION = 1
 MODEL_STATE_LIST_FIELDS = (
     "club_rating", "club_effective", "club_info_day", "club_year",
@@ -414,6 +413,8 @@ class ClubRatingModel:
 
     def _project_club(self, club: int, year: int, tier: int) -> None:
         tier = max(1, int(tier))
+        previous_tier = self.last_tier[club]
+        was_initialised = self.initialised[club]
         if not self.initialised[club]:
             self.initialised[club] = True
             self.club_year[club] = year
@@ -422,8 +423,21 @@ class ClubRatingModel:
                 year - self.club_year[club]
             )
             self.club_year[club] = year
-        self.last_tier[club] = tier
         self._ensure_tier(self._tier_key(club, tier), year)
+        if was_initialised and tier != previous_tier:
+            # Moving divisions changes the decomposition, not the evidence of
+            # a club's strength. Preserve club + tier before the next result.
+            # Otherwise promotion creates points (and relegation destroys
+            # them), with the size depending on the depth of the data feed.
+            gap = float(self.config["tier_gap"])
+            old_component = -(previous_tier - 1) * gap + self.tier_rating.get(
+                self._tier_key(club, previous_tier), 0.0
+            )
+            new_component = -(tier - 1) * gap + self.tier_rating.get(
+                self._tier_key(club, tier), 0.0
+            )
+            self.club_rating[club] += old_component - new_component
+        self.last_tier[club] = tier
 
     def _project_all_to_year(self, year: int) -> None:
         if year <= self.projected_year:
@@ -611,11 +625,10 @@ class ClubRatingModel:
         home_confederation = self.clubs[home].continent
         away_confederation = self.clubs[away].continent
         if home_confederation != away_confederation:
-            return (
-                "confederation"
-                if kind in CONFEDERATION_KINDS
-                else "club"
-            )
+            # A guest association in a continental competition still links
+            # regions. Historical Intercontinental Cup imports also used the
+            # generic continental kind. Both are actual bridge evidence.
+            return "confederation"
         return "country"
 
     def _home_advantage(
@@ -736,6 +749,12 @@ class ClubRatingModel:
                     break
             for country in countries:
                 self.country_rating[country] -= centre
+            # This is a change of coordinates. Transfer the reference into
+            # the parent component so no club or cross-region forecast moves
+            # merely because the centring quantile changed.
+            self.confederation_rating[
+                self.confederation_index[confederation_name]
+            ] += centre
 
     def _centre_tier_components(self) -> None:
         """Keep every association's tier-one level at the zero reference.
@@ -915,9 +934,22 @@ class ClubRatingModel:
                 )
                 previous_year = year
 
+            league_tiers: dict[int, int] = {}
             for row in rows:
-                self._project_club(int(row[3]), year, int(row[10]))
-                self._project_club(int(row[4]), year, int(row[11]))
+                if row[9] == "league":
+                    for club, tier in ((int(row[3]), int(row[10])),
+                                       (int(row[4]), int(row[11]))):
+                        if club in league_tiers and league_tiers[club] != tier:
+                            raise ValueError("conflicting league tiers on one date")
+                        league_tiers[club] = tier
+            for row in rows:
+                for club, supplied_tier in ((int(row[3]), int(row[10])),
+                                            (int(row[4]), int(row[11]))):
+                    # Cup feeds often report tier 1 for every entrant. They
+                    # must not promote a lower-division club for one evening.
+                    tier = league_tiers.get(club, self.last_tier[club]
+                        if self.initialised[club] else supplied_tier)
+                    self._project_club(club, year, tier)
             pre_anchor = self._publication_anchor()
 
             club_changes: defaultdict[int, float] = defaultdict(float)
@@ -939,7 +971,9 @@ class ClubRatingModel:
                     source, source_ref, aggregate_before, aggregate_after,
                 ) = row
                 home, away = int(home), int(away)
-                home_tier, away_tier = int(home_tier), int(away_tier)
+                # Infer membership for rating calculations while preserving the
+                # original source fields in the persisted match record.
+                home_tier, away_tier = self.last_tier[home], self.last_tier[away]
                 kind = str(kind)
                 pre_home_mean = self.mean(home, pre_anchor)
                 pre_away_mean = self.mean(away, pre_anchor)

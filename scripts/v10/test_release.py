@@ -55,4 +55,11 @@ class InstallerTests(unittest.TestCase):
    return {'':{'default_branch':'main'},'git/commits/parent':{'tree':{'sha':'tree'}},'git/trees/tree?recursive=1':{'tree':[{'path':'example.txt','type':'blob','sha':'old-blob'}]},'git/blobs':{'sha':'blob'},'git/trees':{'sha':'newtree'},'git/commits':{'sha':'newcommit'}}[path]
   with patch.object(self.module,'api',side_effect=api),self.assertRaisesRegex(RuntimeError,'main advanced'):self.module.install(self.manifest,self.files)
   self.assertFalse(any(method=='PATCH' for _,method in calls))
+ def test_reviewed_previous_release_can_upgrade(self):
+  self.manifest['files']['example.txt']['compatible_blobs']=['previous-release'];calls=[]
+  def api(path,method='GET',payload=None):
+   calls.append((path,method,payload))
+   return {'':{'default_branch':'main'},'git/ref/heads/main':{'object':{'sha':'parent'}},'git/commits/parent':{'tree':{'sha':'tree'}},'git/trees/tree?recursive=1':{'tree':[{'path':'example.txt','type':'blob','sha':'previous-release'}]},'git/blobs':{'sha':'blob'},'git/trees':{'sha':'newtree'},'git/commits':{'sha':'newcommit'},'git/refs/heads/main':{}}[path]
+  with patch.object(self.module,'api',side_effect=api),patch.object(self.module,'gh',return_value=''):self.module.install(self.manifest,self.files)
+  update=next(payload for path,method,payload in calls if method=='PATCH');self.assertEqual(update,{'sha':'newcommit','force':False})
 if __name__=='__main__':unittest.main()

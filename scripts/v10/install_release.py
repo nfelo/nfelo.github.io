@@ -36,7 +36,8 @@ def install(manifest,files):
  for name,body in files.items():
   target=hashlib.sha1(b'blob '+str(len(body)).encode()+b'\0'+body).hexdigest()
   if existing.get(name)==target:continue
-  if existing.get(name)!=manifest['files'][name]['base_blob']:raise RuntimeError('Repository code changed since this release: '+name+'. No branch was changed. Reconcile this file before installing.')
+  known=[manifest['files'][name]['base_blob'],*manifest['files'][name].get('compatible_blobs',[])]
+  if existing.get(name) not in known:raise RuntimeError('Repository code changed since this release: '+name+'. No branch was changed. Reconcile this file before installing.')
   updates.append((name,body))
  print(f'Checked {len(files)} release files; {len(updates)} need updating.',flush=True)
  if updates:
@@ -45,7 +46,7 @@ def install(manifest,files):
    blob=api('git/blobs','POST',{'content':base64.b64encode(body).decode(),'encoding':'base64'});elements.append({'path':name,'mode':'100644','type':'blob','sha':blob['sha']})
    print(f'Uploaded {i}/{len(updates)}: {name}',flush=True)
   tree=api('git/trees','POST',{'base_tree':commit['tree']['sha'],'tree':elements})
-  result=api('git/commits','POST',{'message':'Fix club updates, rating publication and source coverage [skip ci]','tree':tree['sha'],'parents':[parent]})
+  result=api('git/commits','POST',{'message':'Restore Brazilian club history and retain structural rating corrections [skip ci]','tree':tree['sha'],'parents':[parent]})
   if api('git/ref/heads/main')['object']['sha']!=parent:raise RuntimeError('main advanced during installation. No branch was changed. Run this same script again; it will preserve the new data.')
   api('git/refs/heads/main','PATCH',{'sha':result['sha'],'force':False})
   print('Installed commit: https://github.com/'+REPO+'/commit/'+result['sha'],flush=True)
@@ -56,7 +57,7 @@ def install(manifest,files):
   except RuntimeError:
    if attempt==4:raise
    time.sleep(3)
- print('\nUpdate started. GitHub now rebuilds and publishes the club section.\nProgress: https://github.com/'+REPO+'/actions/workflows/v10-clubs.yml\nThe schedule continues automatically three times a day.\nCoverage gaps and cross-era peak limitations remain documented on the site.',flush=True)
+ print('\nUpdate started. GitHub now rebuilds and publishes the club section.\nProgress: https://github.com/'+REPO+'/actions/workflows/v10-clubs.yml\nThe schedule continues automatically three times a day.',flush=True)
 
 def main():
  parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--extract',type=Path,help='Extract and verify files without changing GitHub');args=parser.parse_args();manifest,files=load_payload()

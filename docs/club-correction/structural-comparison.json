@@ -1,0 +1,745 @@
+{
+  "snapshot_commit": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+  "comparison": "Retrospective paired comparison; previously inspected periods, not a new untouched holdout. No coefficient search or club-specific rating adjustment.",
+  "periods": {
+    "all": [
+      {
+        "period": "2018-2022",
+        "matches": 214575,
+        "baseline_log_loss": 0.9995073803839345,
+        "corrected_log_loss": 0.9984182341653134,
+        "paired_change": -0.0010891462186329354
+      },
+      {
+        "period": "2023-2026",
+        "matches": 186374,
+        "baseline_log_loss": 1.005034718968513,
+        "corrected_log_loss": 1.00317308803301,
+        "paired_change": -0.001861630935495165
+      }
+    ],
+    "international": [
+      {
+        "period": "2018-2022",
+        "matches": 8194,
+        "baseline_log_loss": 0.9697747298501701,
+        "corrected_log_loss": 0.9663774673285978,
+        "paired_change": -0.003397262521572061
+      },
+      {
+        "period": "2023-2026",
+        "matches": 6819,
+        "baseline_log_loss": 0.9646533470134585,
+        "corrected_log_loss": 0.9632866220352158,
+        "paired_change": -0.0013667249782443576
+      }
+    ],
+    "interconfederation": [
+      {
+        "period": "2018-2022",
+        "matches": 38,
+        "baseline_log_loss": 0.8758324308817043,
+        "corrected_log_loss": 0.823109442648424,
+        "paired_change": -0.052722988233280206
+      },
+      {
+        "period": "2023-2026",
+        "matches": 82,
+        "baseline_log_loss": 0.88365820937964,
+        "corrected_log_loss": 0.8902027692087119,
+        "paired_change": 0.0065445598290718434
+      }
+    ],
+    "england_foreign": [
+      {
+        "period": "2018-2022",
+        "matches": 375,
+        "baseline_log_loss": 0.8945573554593124,
+        "corrected_log_loss": 0.8937533736303884,
+        "paired_change": -0.0008039818289246125
+      },
+      {
+        "period": "2023-2026",
+        "matches": 350,
+        "baseline_log_loss": 0.8692777092278425,
+        "corrected_log_loss": 0.8655679496765859,
+        "paired_change": -0.0037097595512571597
+      }
+    ]
+  },
+  "input_repairs": {
+    "applied": 2554,
+    "already_applied": 0,
+    "changed_since_review": [],
+    "reasons": {
+      "Brazilian state identity preserved": 260,
+      "Reserve team in Segunda Division": 11,
+      "Wrong season year; correctly dated match already retained": 74,
+      "Out-of-season date without an unambiguous replacement; held for review": 11,
+      "Contradictory non-league date: club also has a Football League fixture; held for review": 21,
+      "Historical intercontinental competition and neutral Japan venue": 64,
+      "Duplicate of CBF-derived result within one local date": 2112,
+      "Heart of Midlothian is based in Edinburgh, Scotland": 1
+    }
+  },
+  "current_top_20": [
+    {
+      "code": "ca4b358b5cc51",
+      "name": "Arsenal FC",
+      "country": "england",
+      "mean": 1829.5129267322259,
+      "tier": 1
+    },
+    {
+      "code": "ca7bebe4dfa7e",
+      "name": "Bayern M\u00fcnchen",
+      "country": "germany",
+      "mean": 1823.0804969498113,
+      "tier": 1
+    },
+    {
+      "code": "c4bde476dc24b",
+      "name": "Manchester City",
+      "country": "england",
+      "mean": 1802.8918587533467,
+      "tier": 1
+    },
+    {
+      "code": "cfe1f263a17ed",
+      "name": "FC Barcelona",
+      "country": "spain",
+      "mean": 1764.3776880161188,
+      "tier": 1
+    },
+    {
+      "code": "cd2555e28b91b",
+      "name": "PSG",
+      "country": "france",
+      "mean": 1734.365690281254,
+      "tier": 1
+    },
+    {
+      "code": "cfbef7ff9bb4c",
+      "name": "Real Madrid",
+      "country": "spain",
+      "mean": 1730.4707019595562,
+      "tier": 1
+    },
+    {
+      "code": "cf8de08e4f2cd",
+      "name": "Liverpool",
+      "country": "england",
+      "mean": 1692.3132093868978,
+      "tier": 1
+    },
+    {
+      "code": "c23ade959545b",
+      "name": "Aston Villa",
+      "country": "england",
+      "mean": 1689.712462652651,
+      "tier": 1
+    },
+    {
+      "code": "c16fdac6b4386",
+      "name": "Brighton & Hove Albion",
+      "country": "england",
+      "mean": 1680.330073506827,
+      "tier": 1
+    },
+    {
+      "code": "c86910820a501",
+      "name": "Inter",
+      "country": "italy",
+      "mean": 1677.0736977940637,
+      "tier": 1
+    },
+    {
+      "code": "c824c5863f863",
+      "name": "AFC Bournemouth",
+      "country": "england",
+      "mean": 1656.109919857741,
+      "tier": 1
+    },
+    {
+      "code": "ca0786994ace6",
+      "name": "Atl\u00e9tico Madrid",
+      "country": "spain",
+      "mean": 1647.8963426123055,
+      "tier": 1
+    },
+    {
+      "code": "c70c5172ba653",
+      "name": "Borussia Dortmund",
+      "country": "germany",
+      "mean": 1626.7066663964604,
+      "tier": 1
+    },
+    {
+      "code": "cf51932ffd494",
+      "name": "Brentford",
+      "country": "england",
+      "mean": 1622.140007468718,
+      "tier": 1
+    },
+    {
+      "code": "c6585e5214fad",
+      "name": "Benfica",
+      "country": "portugal",
+      "mean": 1620.928279981361,
+      "tier": 1
+    },
+    {
+      "code": "c924f11669a39",
+      "name": "Club Brugge",
+      "country": "belgium",
+      "mean": 1616.6181088934045,
+      "tier": 1
+    },
+    {
+      "code": "cb4ca51a65f6f",
+      "name": "Roma",
+      "country": "italy",
+      "mean": 1611.1903474774485,
+      "tier": 1
+    },
+    {
+      "code": "c516bd675ac9f",
+      "name": "Chelsea",
+      "country": "england",
+      "mean": 1609.7689804790978,
+      "tier": 1
+    },
+    {
+      "code": "c49452efa105e",
+      "name": "Como",
+      "country": "italy",
+      "mean": 1605.661530301449,
+      "tier": 1
+    },
+    {
+      "code": "c24cc4e0e1fdf",
+      "name": "Sporting CP",
+      "country": "portugal",
+      "mean": 1604.4623785344097,
+      "tier": 1
+    }
+  ],
+  "peak_top_30": [
+    {
+      "rank": 1,
+      "code": "ca7bebe4dfa7e",
+      "name": "Bayern M\u00fcnchen",
+      "country": "germany",
+      "continent": "Europe",
+      "day": "2013-12-07",
+      "rating": 1942.1294093607314,
+      "se": 84.63986058106052
+    },
+    {
+      "rank": 2,
+      "code": "cfe1f263a17ed",
+      "name": "FC Barcelona",
+      "country": "spain",
+      "continent": "Europe",
+      "day": "2012-12-22",
+      "rating": 1923.00615166939,
+      "se": 78.78817595580982
+    },
+    {
+      "rank": 3,
+      "code": "cfbef7ff9bb4c",
+      "name": "Real Madrid",
+      "country": "spain",
+      "continent": "Europe",
+      "day": "2014-12-20",
+      "rating": 1916.0364003129532,
+      "se": 78.64081799226923
+    },
+    {
+      "rank": 4,
+      "code": "cf8de08e4f2cd",
+      "name": "Liverpool",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2019-12-29",
+      "rating": 1915.5491677040443,
+      "se": 77.9531467994961
+    },
+    {
+      "rank": 5,
+      "code": "c4bde476dc24b",
+      "name": "Manchester City",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2023-09-23",
+      "rating": 1909.3876672399535,
+      "se": 81.68163795036438
+    },
+    {
+      "rank": 6,
+      "code": "c6dc4f3a985c0",
+      "name": "Milan",
+      "country": "italy",
+      "continent": "Europe",
+      "day": "1992-12-23",
+      "rating": 1859.3013221495414,
+      "se": 94.11453833692342
+    },
+    {
+      "rank": 7,
+      "code": "ca4b358b5cc51",
+      "name": "Arsenal FC",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2025-12-30",
+      "rating": 1858.0775920898432,
+      "se": 58.68162360158963
+    },
+    {
+      "rank": 8,
+      "code": "c516bd675ac9f",
+      "name": "Chelsea",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2005-10-19",
+      "rating": 1852.3640507209113,
+      "se": 89.13223658617699
+    },
+    {
+      "rank": 9,
+      "code": "c3994ece15c67",
+      "name": "Budapest Honved",
+      "country": "hungary",
+      "continent": "Europe",
+      "day": "1955-11-20",
+      "rating": 1842.550824905313,
+      "se": 144.62324135858466
+    },
+    {
+      "rank": 10,
+      "code": "c86910820a501",
+      "name": "Inter",
+      "country": "italy",
+      "continent": "Europe",
+      "day": "2024-12-28",
+      "rating": 1834.8821720668684,
+      "se": 80.79653595114657
+    },
+    {
+      "rank": 11,
+      "code": "c140bdf36027c",
+      "name": "Ajax",
+      "country": "netherlands",
+      "continent": "Europe",
+      "day": "1995-12-24",
+      "rating": 1825.3813372056502,
+      "se": 97.61352503925652
+    },
+    {
+      "rank": 12,
+      "code": "c1b59b7c14e8e",
+      "name": "Juventus FC",
+      "country": "italy",
+      "continent": "Europe",
+      "day": "2018-12-07",
+      "rating": 1825.0403903414451,
+      "se": 82.89762287656306
+    },
+    {
+      "rank": 13,
+      "code": "c304fbcfd38f6",
+      "name": "Manchester United",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2010-11-06",
+      "rating": 1822.0016344003038,
+      "se": 83.49882173688532
+    },
+    {
+      "rank": 14,
+      "code": "ccecc489f687f",
+      "name": "1 FC Kaiserslautern",
+      "country": "germany",
+      "continent": "Europe",
+      "day": "1955-12-11",
+      "rating": 1818.5469068481593,
+      "se": 144.12665706880344
+    },
+    {
+      "rank": 15,
+      "code": "ca0786994ace6",
+      "name": "Atl\u00e9tico Madrid",
+      "country": "spain",
+      "continent": "Europe",
+      "day": "2016-10-19",
+      "rating": 1815.811660468145,
+      "se": 83.10583136179396
+    },
+    {
+      "rank": 16,
+      "code": "cd2555e28b91b",
+      "name": "PSG",
+      "country": "france",
+      "continent": "Europe",
+      "day": "2025-07-09",
+      "rating": 1812.06358344167,
+      "se": 61.14543989821493
+    },
+    {
+      "rank": 17,
+      "code": "c6585e5214fad",
+      "name": "Benfica",
+      "country": "portugal",
+      "continent": "Europe",
+      "day": "1961-09-04",
+      "rating": 1811.7080332388573,
+      "se": 125.54059573169705
+    },
+    {
+      "rank": 18,
+      "code": "c72d0a7abd557",
+      "name": "MTK",
+      "country": "hungary",
+      "continent": "Europe",
+      "day": "1955-12-04",
+      "rating": 1809.289095150487,
+      "se": 144.37268014632895
+    },
+    {
+      "rank": 19,
+      "code": "c4369b2b7b104",
+      "name": "Rapid",
+      "country": "austria",
+      "continent": "Europe",
+      "day": "1959-10-31",
+      "rating": 1805.506964614401,
+      "se": 133.53999943876215
+    },
+    {
+      "rank": 20,
+      "code": "c16056fcb90db",
+      "name": "Olympique Lyon",
+      "country": "france",
+      "continent": "Europe",
+      "day": "2006-10-29",
+      "rating": 1794.977193982222,
+      "se": 87.9228608758222
+    },
+    {
+      "rank": 21,
+      "code": "c15275889cb50",
+      "name": "Bayer Leverkusen",
+      "country": "germany",
+      "continent": "Europe",
+      "day": "2024-05-18",
+      "rating": 1792.5826267033422,
+      "se": 81.07355940288134
+    },
+    {
+      "rank": 22,
+      "code": "ca1b3b121cbd5",
+      "name": "Hearts",
+      "country": "scotland",
+      "continent": "Europe",
+      "day": "1958-08-20",
+      "rating": 1791.2244916558911,
+      "se": 140.7871709130609
+    },
+    {
+      "rank": 23,
+      "code": "ca2941d462d3c",
+      "name": "Rosario Central",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1974-12-30",
+      "rating": 1790.7213935440268,
+      "se": 103.19459180156342
+    },
+    {
+      "rank": 24,
+      "code": "c31c3f8b5ed44",
+      "name": "Tottenham Hotspur",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2017-11-01",
+      "rating": 1782.6304862931067,
+      "se": 83.62757202099195
+    },
+    {
+      "rank": 25,
+      "code": "c1110d67a8400",
+      "name": "FCSB",
+      "country": "romania",
+      "continent": "Europe",
+      "day": "1988-12-10",
+      "rating": 1782.4410686923566,
+      "se": 103.21391777885898
+    },
+    {
+      "rank": 26,
+      "code": "c57b26a0802cd",
+      "name": "Lazio",
+      "country": "italy",
+      "continent": "Europe",
+      "day": "1999-11-07",
+      "rating": 1780.3010367379673,
+      "se": 94.6823837058876
+    },
+    {
+      "rank": 27,
+      "code": "c70c5172ba653",
+      "name": "Borussia Dortmund",
+      "country": "germany",
+      "continent": "Europe",
+      "day": "2013-11-01",
+      "rating": 1780.2032648333425,
+      "se": 85.72625964420001
+    },
+    {
+      "rank": 28,
+      "code": "cf2ef7ad1965c",
+      "name": "PSV",
+      "country": "netherlands",
+      "continent": "Europe",
+      "day": "1987-12-20",
+      "rating": 1779.0173519685986,
+      "se": 100.37749110927919
+    },
+    {
+      "rank": 29,
+      "code": "c17e02a5f0c67",
+      "name": "Borussia M'gladbach",
+      "country": "germany",
+      "continent": "Europe",
+      "day": "1975-12-06",
+      "rating": 1776.740744493875,
+      "se": 88.24412705676048
+    },
+    {
+      "rank": 30,
+      "code": "cead89b0a7ba1",
+      "name": "First Vienna FC",
+      "country": "austria",
+      "continent": "Europe",
+      "day": "1956-12-02",
+      "rating": 1775.3604970032777,
+      "se": 144.73330197900054
+    }
+  ],
+  "non_european_peak_top_10": [
+    {
+      "rank": 23,
+      "code": "ca2941d462d3c",
+      "name": "Rosario Central",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1974-12-30",
+      "rating": 1790.7213935440268,
+      "se": 103.19459180156342
+    },
+    {
+      "rank": 34,
+      "code": "c5720c0902478",
+      "name": "CA Penarol",
+      "country": "uruguay",
+      "continent": "South America",
+      "day": "1967-06-03",
+      "rating": 1768.4161973483042,
+      "se": 104.88981260284146
+    },
+    {
+      "rank": 37,
+      "code": "cf42f83368f38",
+      "name": "Boca Juniors",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1969-11-12",
+      "rating": 1767.2219458261245,
+      "se": 99.42692364930338
+    },
+    {
+      "rank": 40,
+      "code": "c098cca00a70a",
+      "name": "Ferro Carril Oeste",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1982-08-17",
+      "rating": 1764.8729688020767,
+      "se": 108.7515747276053
+    },
+    {
+      "rank": 47,
+      "code": "c8d7841229c56",
+      "name": "Nacional",
+      "country": "uruguay",
+      "continent": "South America",
+      "day": "1971-09-18",
+      "rating": 1756.2593772949313,
+      "se": 100.6150119260823
+    },
+    {
+      "rank": 49,
+      "code": "c6f2ec0d689f7",
+      "name": "San Lorenzo",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1972-12-10",
+      "rating": 1752.752011854268,
+      "se": 98.92133431010004
+    },
+    {
+      "rank": 50,
+      "code": "c9f3bc77ef0c3",
+      "name": "Velez Sarsfield",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1971-09-22",
+      "rating": 1752.0074044647881,
+      "se": 101.87910231018417
+    },
+    {
+      "rank": 52,
+      "code": "cb9985dede375",
+      "name": "River Plate",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1969-12-14",
+      "rating": 1748.5463088558029,
+      "se": 99.39407315676179
+    },
+    {
+      "rank": 56,
+      "code": "c5d5c37aa63ed",
+      "name": "Flamengo",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1982-11-02",
+      "rating": 1746.171546562225,
+      "se": 113.18890051513867
+    },
+    {
+      "rank": 59,
+      "code": "c630e76d0f81a",
+      "name": "Gremio Porto Alegre",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1984-07-03",
+      "rating": 1744.8706392980262,
+      "se": 110.23821335308413
+    }
+  ],
+  "reported_clubs_peaks": [
+    {
+      "rank": 7,
+      "code": "ca4b358b5cc51",
+      "name": "Arsenal FC",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2025-12-30",
+      "rating": 1858.0775920898432,
+      "se": 58.68162360158963
+    },
+    {
+      "rank": 56,
+      "code": "c5d5c37aa63ed",
+      "name": "Flamengo",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1982-11-02",
+      "rating": 1746.171546562225,
+      "se": 113.18890051513867
+    },
+    {
+      "rank": 123,
+      "code": "cb0e518fadcb1",
+      "name": "Neftchi Fargona",
+      "country": "uzbekistan",
+      "continent": "Asia",
+      "day": "2001-08-29",
+      "rating": 1693.6011283311584,
+      "se": 126.41269359086434
+    },
+    {
+      "rank": 154,
+      "code": "c13a9c5ee7aa1",
+      "name": "Santos FC",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1984-04-03",
+      "rating": 1678.4099832249208,
+      "se": 114.43545648412615
+    },
+    {
+      "rank": 162,
+      "code": "c0d90fadce1a1",
+      "name": "Al Ahly",
+      "country": "egypt",
+      "continent": "Africa",
+      "day": "2005-11-27",
+      "rating": 1674.2285594438836,
+      "se": 129.63974318858865
+    },
+    {
+      "rank": 163,
+      "code": "cd5eea918d627",
+      "name": "Palmeiras",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1996-09-28",
+      "rating": 1674.1327944245434,
+      "se": 111.6102690693563
+    },
+    {
+      "rank": 2884,
+      "code": "cf61804d9ba84",
+      "name": "Al Ahly",
+      "country": "jordan",
+      "continent": "Asia",
+      "day": "2017-10-14",
+      "rating": 1351.7256810526737,
+      "se": 103.96058261953321
+    },
+    {
+      "rank": 3626,
+      "code": "ca2e7d879e7e1",
+      "name": "Santos FC",
+      "country": "angola",
+      "continent": "Africa",
+      "day": "2010-02-27",
+      "rating": 1301.2441480504517,
+      "se": 105.41433251676442
+    },
+    {
+      "rank": 3889,
+      "code": "cd70dcafc6625",
+      "name": "Santos FC",
+      "country": "burkina-faso",
+      "continent": "Africa",
+      "day": "2006-07-21",
+      "rating": 1283.7916071369002,
+      "se": 136.95331265917878
+    },
+    {
+      "rank": 5596,
+      "code": "ccb1647923f46",
+      "name": "Santos FC",
+      "country": "surinam",
+      "continent": "North America",
+      "day": "2022-06-25",
+      "rating": 1140.4213713526242,
+      "se": 126.58380668286745
+    },
+    {
+      "rank": 5840,
+      "code": "ca11a281950a4",
+      "name": "Arsenal FC",
+      "country": "belarus",
+      "continent": "Europe",
+      "day": "2024-08-31",
+      "rating": 1114.3936332341698,
+      "se": 114.64388114414709
+    }
+  ],
+  "club_model.py_sha256": "15e5b56acc4b93cbdc4eeed67ae3795f035216aa737ee8f3286e4526e2b86d28",
+  "club_model.json_sha256": "3025db2346d3276d614b8649f0da1fec6a02bdbd8b20b5b3befb875ef3652952"
+}

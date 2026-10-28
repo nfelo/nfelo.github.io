@@ -21,8 +21,8 @@ from club_model import load_club_config, run_club_model
 FIELDS=('match_id','day','season','home','away','home_goals','away_goals','competition',
  'competition_key','kind','home_tier','away_tier','neutral','cross_border','status','leg',
  'tie_key','round_name','source','source_ref','aggregate_before_home','aggregate_after_home')
-ENGINE_SHA='2c91939827d8c78e4e06e06db613b9a5a678c13dadd4fb14c7edc688ec4083c6'
-CONFIG_SHA='b2a246611892b80f54e494f46ea80ea6caf525696e00441ac27c2f1e68d57768'
+ENGINE_SHA='ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2'
+CONFIG_SHA='0accb8c8666c8041d49b0ebadf7ab89519eb4bbeb525742e4134c94479cb9a72'
 
 def encoded(v):
  return (json.dumps(v,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False,
@@ -277,6 +277,11 @@ def update(root,as_of=None,*,fail_before_publish=False):
   observations,health,transport=collect(root,config,as_of);old_input=root/current['input'];old_model=root/current['model']
   pending=read_json(root/'pending_clubs.json') if config.get('free_sources') and (root/'pending_clubs.json').exists() else []
   changes,fixtures,exceptions,unchanged=reconcile(old_input,observations,as_of,pending)
+  if config.get('full_site'):
+   from ledger_repairs import held_records
+   repair_connection=duckdb.connect(str(old_input),read_only=True)
+   try:exceptions.extend(held_records(repair_connection))
+   finally:repair_connection.close()
   model_changed=current.get('model_identity')!=ENGINE_SHA+CONFIG_SHA
   export_sha=site_code_sha(config.get('full_site',False))
   view_sha=digest(encoded(dict(site_version=3,site_code_sha=export_sha,full_site=config.get('full_site',False),fixtures=fixtures,exceptions=exceptions,health=[{k:v for k,v in h.items() if k!='last_success'} for h in health],limitations=config['limitations'],as_of=as_of.isoformat())))
@@ -289,7 +294,7 @@ def update(root,as_of=None,*,fail_before_publish=False):
    if changes or model_changed:
     input_path=gen/'input.duckdb';model_path=gen/'model.duckdb'
     from prepare_generation import prepare
-    prepare(old_input,input_path,changes,pending)
+    prepare(old_input,input_path,changes,pending,historical=config.get('full_site',False))
     os.environ['PYTHONPATH']=os.pathsep.join([str(HERE/'engine'),*sys.path])
     from replay_cache import route_database,resume,save_states
     checkpoint,identity=resume(root,input_path,old_model,gen)

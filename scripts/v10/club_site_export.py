@@ -663,14 +663,14 @@ def export_club_site(
                 "definitions": {
                     "peaks": {
                         "title": "Post-match club peaks",
-                        "measure": "The highest cautious published rating a club held immediately after a retained match.",
+                        "measure": "The highest estimated rating a club held immediately after a retained match.",
                         "order": "Descending post-match rating; ties break by the earlier date.",
                         "eligibility": f"At least {WORLD_COMPARABLE_MIN_MATCHES} prior retained results and post-match uncertainty no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
                         "interpretation": "The record is the estimated strength. Its historical reference changes with the strongest association; cross-era absolute strength is not established.",
                     },
                     "strongest_matches": {
                         "title": "Highest-rated matches",
-                        "measure": "The sum of both clubs' cautious ratings before kick-off.",
+                        "measure": "The sum of both clubs' estimated ratings before kick-off.",
                         "order": "Descending combined pre-match rating.",
                         "eligibility": f"Both pre-match uncertainties must be no greater than {WORLD_COMPARABLE_MAX_SE:.0f} points.",
                         "interpretation": "This describes the strength of the pairing, not the importance or entertainment value of the match.",
@@ -690,11 +690,11 @@ def export_club_site(
                         "interpretation": "The before and after aggregate margins are from the second-leg home club's perspective; positive means that club led the tie.",
                     },
                     "year_opening_number_ones": {
-                        "title": "Eligible corpus leaders at year opening",
+                        "title": "Leading clubs at year opening",
                         "measure": "The highest eligible rating at the opening of each calendar year.",
                         "order": "Calendar year.",
                         "eligibility": f"Active within {ACTIVE_DAYS} days, tier one, at least {WORLD_COMPARABLE_MIN_MATCHES} prior results, uncertainty at or below {WORLD_COMPARABLE_MAX_SE:.0f} points.",
-                        "interpretation": "Years before the evidence network clears those safeguards are not labeled with a corpus leader.",
+                        "interpretation": "A year is listed when a club meets the match-count and uncertainty requirements.",
                     },
                 },
                 "peaks": peaks,

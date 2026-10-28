@@ -393,7 +393,7 @@ class ClubPublicationTests(unittest.TestCase):
 
     def test_model_release_and_fit_are_frozen(self) -> None:
         parameters = self.meta["parameters"]
-        self.assertEqual(parameters["version"], "2026-10-25-club-correction")
+        self.assertEqual(parameters["version"], "2026-10-27-historical-results")
         self.assertEqual(parameters["k_factor"], 18.0)
         self.assertEqual(parameters["tier_gap"], 80.0)
         self.assertEqual(parameters["tier_share"], 0.45)

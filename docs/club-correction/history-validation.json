@@ -1,0 +1,65 @@
+{
+  "clubs": 10715,
+  "matches": 1690260,
+  "model": {
+    "input_output_exact": true,
+    "invalid_probabilities": 0,
+    "matches": 1690260
+  },
+  "quality": {
+    "checks": 7,
+    "corrections": {},
+    "passed": 7,
+    "world_comparable_max_se": 145.0,
+    "world_comparable_min_matches": 50
+  },
+  "repeat_import_added": 0,
+  "scope": "Production run_club_model export path, full historical replay and club export; no live source fetch or future fixture refresh in this local check.",
+  "seconds": 224.2,
+  "static_export": "passed",
+  "history_import": {
+    "added": 12629,
+    "already_present": 1,
+    "new_clubs": 14,
+    "held": 43
+  },
+  "not_run": [
+    "National-team site rebuild",
+    "Complete repository/browser suite",
+    "Live provider refresh"
+  ],
+  "tests": {
+    "updater": {
+      "passed": 71,
+      "command": "PYTHONPATH=scripts/v10:scripts/v10/engine python -m unittest discover -s scripts/v10 -p 'test_*.py'"
+    }
+  },
+  "source_discrepancies": [
+    {
+      "competition": "Campeonato Paulista",
+      "season": 1962,
+      "club": "Santos",
+      "source": "https://rsssfbrasil.com/tablessz/sp1962.htm",
+      "dated_matches": {
+        "played": 30,
+        "wins": 23,
+        "draws": 5,
+        "losses": 2,
+        "goals_for": 102,
+        "goals_against": 31
+      },
+      "summary_table": {
+        "played": 30,
+        "wins": 24,
+        "draws": 5,
+        "losses": 1,
+        "goals_for": 105,
+        "goals_against": 28
+      },
+      "decision": "Preserve the dated match scores. The source summary disagrees with its own match list; no scores were changed to match that summary."
+    }
+  ],
+  "source_pages": 74,
+  "unresolved_parser_observations": 254,
+  "source_field_fix_preserves_evaluation_metrics": true
+}

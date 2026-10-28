@@ -1,0 +1,1973 @@
+{
+  "protocol": {
+    "schema": 1,
+    "date": "2026-10-28",
+    "input_snapshot": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+    "input_corrections": "Verified 27 October release, including 12,629 Brazilian historical matches",
+    "replay": "Full available history, same input and engine for every candidate",
+    "candidates": {
+      "baseline": {},
+      "slower_league": {
+        "country_share": 0.05
+      },
+      "longer_club_memory": {
+        "club_retention": 0.95
+      },
+      "combined": {
+        "country_share": 0.05,
+        "club_retention": 0.95
+      }
+    },
+    "selection_period": [
+      "2018-01-01",
+      "2022-12-31"
+    ],
+    "review_period": [
+      "2023-01-01",
+      "2026-10-26"
+    ],
+    "selection_rule": "Among candidates whose all-match selection log loss is no more than 0.001 above baseline, choose the lowest international selection log loss. Require at least 0.001 improvement over baseline; otherwise retain baseline. International means cross-border competitive continental, intercontinental, global or super-cup fixtures between different associations.",
+    "review_guard": "After selection, retain baseline if the selected candidate worsens review-period all-match log loss by more than 0.005 or international log loss by more than 0.01. Do not select a runner-up using the review period.",
+    "disclosure": "These periods have been inspected in previous releases. This is a finite retrospective comparison, not an untouched holdout or proof of unbiased global rankings. Named club rankings do not select the model. No further candidate search in this comparison.",
+    "baseline_parameters": {
+      "version": "2026-10-27-historical-results",
+      "base_rating": 1500.0,
+      "k_factor": 18.0,
+      "home_advantage_domestic": 45.0,
+      "home_advantage_cross_border": 80.0,
+      "draw_peak": 0.285,
+      "margin_scale": 1.05,
+      "club_retention": 0.82,
+      "tier_retention": 0.65,
+      "tier_share": 0.45,
+      "tier_gap": 80.0,
+      "country_retention": 0.97,
+      "country_share": 0.15,
+      "country_anchor_quantile": 0.9,
+      "confederation_retention": 0.96,
+      "confederation_share": 0.5,
+      "extra_time_weight": 0.86,
+      "penalty_weight": 0.72,
+      "aggregate_floor": 0.0,
+      "aggregate_scale": 1.0,
+      "effective_matches_half_life_days": 730.0,
+      "club_prior_sd": 185.0,
+      "tier_prior_sd": 65.0,
+      "country_prior_sd": 105.0,
+      "confederation_prior_sd": 95.0,
+      "uncertainty_penalty": 0.0,
+      "competition_weights": {
+        "league": 1.0,
+        "state": 0.82,
+        "domestic_cup": 1.0,
+        "playoff": 1.08,
+        "continental": 1.12,
+        "intercontinental": 1.18,
+        "global": 1.22,
+        "super_cup": 0.72
+      },
+      "fit": {
+        "status": "Structural corrections with dated Brazilian historical results",
+        "selection": "Predictive coefficients unchanged. Structural corrections preserve strength on division changes and country recentering. Dated Brazilian national, Paulista and Carioca results extend historical coverage. Retrospective paired comparisons accompany the release.",
+        "replay_from": "2000-01-01",
+        "validation_period": [
+          "2018-01-01",
+          "2022-12-31"
+        ],
+        "test_period": [
+          "2023-01-01",
+          "2026-10-24"
+        ]
+      },
+      "input_repairs_sha256": "5274109620b62e888709303f2a9ba070e13be02e0e0c13087ad866c4c0531610",
+      "brazil_history_sha256": "a405b4edaf5b1f6be7ba9144df7d985754ff8193ba31091e4358d06596f859d3"
+    },
+    "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2"
+  },
+  "decision": {
+    "selected": "baseline",
+    "selection_winner": "baseline",
+    "reason": "No eligible candidate improved selection-period international log loss by at least 0.001.",
+    "international_improvement": 0.0
+  },
+  "candidates": {
+    "baseline": {
+      "candidate": "baseline",
+      "changes": {},
+      "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2",
+      "protocol_sha256": "a71657b98f2aae7a89881390760c3062c2d91b4e77ff8e10cdb49457818b1d96",
+      "matches": 1690260,
+      "all_period_metrics": {
+        "all": {
+          "matches": 400949,
+          "log_loss": 1.0006544874549856,
+          "log_loss_se": 0.0007097387050613482,
+          "brier": 0.5977872375399197,
+          "accuracy": 0.5073138977775228
+        },
+        "club": {
+          "matches": 378028,
+          "log_loss": 1.003339698688067,
+          "log_loss_se": 0.0007200634186912305,
+          "brier": 0.5997132771294992,
+          "accuracy": 0.5043144952225761
+        },
+        "tier": {
+          "matches": 7908,
+          "log_loss": 0.9400297819651369,
+          "log_loss_se": 0.006852581516390585,
+          "brier": 0.5541084088576314,
+          "accuracy": 0.5773899848254932
+        },
+        "country": {
+          "matches": 14893,
+          "log_loss": 0.9657491275960555,
+          "log_loss_se": 0.004172116624843063,
+          "brier": 0.5728310446769158,
+          "accuracy": 0.5454240247095951
+        },
+        "confederation": {
+          "matches": 120,
+          "log_loss": 0.8688266822420643,
+          "log_loss_se": 0.04997427398382123,
+          "brier": 0.5060194338587108,
+          "accuracy": 0.6083333333333333
+        },
+        "cross_group": {
+          "matches": 22921,
+          "log_loss": 0.9563682420024208,
+          "log_loss_se": 0.003607454430207515,
+          "brier": 0.5660217432783274,
+          "accuracy": 0.5567819903145587
+        },
+        "post_tie": {
+          "matches": 39399,
+          "log_loss": 0.9606290459778053,
+          "log_loss_se": 0.002737279845969525,
+          "brier": 0.5695076257662484,
+          "accuracy": 0.5462829005812331
+        },
+        "post_controlled_tie": {
+          "matches": 5649,
+          "log_loss": 0.9681811909084985,
+          "log_loss_se": 0.007004302288682614,
+          "brier": 0.5753789707406196,
+          "accuracy": 0.5408036820676226
+        },
+        "second_leg": {
+          "matches": 2716,
+          "log_loss": 0.9694594236365871,
+          "log_loss_se": 0.010036489246954794,
+          "brier": 0.5748286433068618,
+          "accuracy": 0.5537555228276878
+        }
+      },
+      "periods": {
+        "selection": {
+          "all": {
+            "matches": 214575,
+            "log_loss": 0.998457638275758,
+            "brier": 0.5963145655907186,
+            "predicted_score": 0.5590931668442806,
+            "actual_score": 0.5643155073983456
+          },
+          "international": {
+            "matches": 8194,
+            "log_loss": 0.9664062749922854,
+            "brier": 0.5737381357896527,
+            "predicted_score": 0.5993176169572465,
+            "actual_score": 0.604832804491091
+          },
+          "non_english_foreign": {
+            "matches": 7819,
+            "log_loss": 0.9698889666270113,
+            "brier": 0.5763775356327827,
+            "predicted_score": 0.5998210966183105,
+            "actual_score": 0.6074306177260519
+          },
+          "international_new_entrants": {
+            "matches": 2111,
+            "log_loss": 0.9835914096300943,
+            "brier": 0.5864647058660445,
+            "predicted_score": 0.5994395883849178,
+            "actual_score": 0.6072951207958314
+          },
+          "english_foreign": {
+            "matches": 375,
+            "log_loss": 0.8937898326137945,
+            "brier": 0.5187048894605064,
+            "predicted_score": 0.6837012622158879,
+            "actual_score": 0.6973333333333334
+          }
+        },
+        "review": {
+          "all": {
+            "matches": 186374,
+            "log_loss": 1.0031837507247865,
+            "brier": 0.5994827454085115,
+            "predicted_score": 0.559045493817269,
+            "actual_score": 0.5646495755845773
+          },
+          "international": {
+            "matches": 6819,
+            "log_loss": 0.9632538410133843,
+            "brier": 0.5705653022108725,
+            "predicted_score": 0.5985768583764051,
+            "actual_score": 0.6055873295204576
+          },
+          "non_english_foreign": {
+            "matches": 6469,
+            "log_loss": 0.968538895548413,
+            "brier": 0.5743479782799789,
+            "predicted_score": 0.5990984348904034,
+            "actual_score": 0.6053485855619106
+          },
+          "international_new_entrants": {
+            "matches": 1446,
+            "log_loss": 1.0027865992811313,
+            "brier": 0.5960385542208769,
+            "predicted_score": 0.5966316029062283,
+            "actual_score": 0.5767634854771784
+          },
+          "english_foreign": {
+            "matches": 350,
+            "log_loss": 0.8655709330502309,
+            "brier": 0.500650640807872,
+            "predicted_score": 0.6750837543418977,
+            "actual_score": 0.6928571428571428
+          }
+        }
+      },
+      "current_top_30": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 1829.514294200644,
+          "club_component": 329.5142942006439,
+          "league_component": 2.842170943040401e-14,
+          "rank": 1
+        },
+        {
+          "code": "ca7bebe4dfa7e",
+          "name": "Bayern M\u00fcnchen",
+          "country": "germany",
+          "rating": 1823.0825734094149,
+          "club_component": 436.57849235228,
+          "league_component": -113.49591894286522,
+          "rank": 2
+        },
+        {
+          "code": "c4bde476dc24b",
+          "name": "Manchester City",
+          "country": "england",
+          "rating": 1802.8930206511493,
+          "club_component": 302.89302065114924,
+          "league_component": 2.842170943040401e-14,
+          "rank": 3
+        },
+        {
+          "code": "cfe1f263a17ed",
+          "name": "FC Barcelona",
+          "country": "spain",
+          "rating": 1764.3798900508257,
+          "club_component": 353.9400523024553,
+          "league_component": -89.56016225162955,
+          "rank": 4
+        },
+        {
+          "code": "cd2555e28b91b",
+          "name": "PSG",
+          "country": "france",
+          "rating": 1734.3688666476423,
+          "club_component": 383.5757315580678,
+          "league_component": -149.20686491042542,
+          "rank": 5
+        },
+        {
+          "code": "cfbef7ff9bb4c",
+          "name": "Real Madrid",
+          "country": "spain",
+          "rating": 1730.4731606880714,
+          "club_component": 320.03332293970095,
+          "league_component": -89.56016225162955,
+          "rank": 6
+        },
+        {
+          "code": "cf8de08e4f2cd",
+          "name": "Liverpool",
+          "country": "england",
+          "rating": 1692.314463675697,
+          "club_component": 192.31446367569686,
+          "league_component": 2.842170943040401e-14,
+          "rank": 7
+        },
+        {
+          "code": "c23ade959545b",
+          "name": "Aston Villa",
+          "country": "england",
+          "rating": 1689.7134926426031,
+          "club_component": 189.7134926426031,
+          "league_component": 2.842170943040401e-14,
+          "rank": 8
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1680.331126542822,
+          "club_component": 180.33112654282203,
+          "league_component": 2.842170943040401e-14,
+          "rank": 9
+        },
+        {
+          "code": "c86910820a501",
+          "name": "Inter",
+          "country": "italy",
+          "rating": 1677.0768143497457,
+          "club_component": 303.67643453652107,
+          "league_component": -126.59962018677543,
+          "rank": 10
+        },
+        {
+          "code": "c824c5863f863",
+          "name": "AFC Bournemouth",
+          "country": "england",
+          "rating": 1656.110972691248,
+          "club_component": 156.11097269124787,
+          "league_component": 2.842170943040401e-14,
+          "rank": 11
+        },
+        {
+          "code": "ca0786994ace6",
+          "name": "Atl\u00e9tico Madrid",
+          "country": "spain",
+          "rating": 1647.8990974546896,
+          "club_component": 237.45925970631907,
+          "league_component": -89.56016225162955,
+          "rank": 12
+        },
+        {
+          "code": "c70c5172ba653",
+          "name": "Borussia Dortmund",
+          "country": "germany",
+          "rating": 1626.7083109171353,
+          "club_component": 240.20422986000068,
+          "league_component": -113.49591894286522,
+          "rank": 13
+        },
+        {
+          "code": "cf51932ffd494",
+          "name": "Brentford",
+          "country": "england",
+          "rating": 1622.1410895408771,
+          "club_component": 122.14108954087715,
+          "league_component": 2.842170943040401e-14,
+          "rank": 14
+        },
+        {
+          "code": "c6585e5214fad",
+          "name": "Benfica",
+          "country": "portugal",
+          "rating": 1620.929646868032,
+          "club_component": 351.7922537845568,
+          "league_component": -230.86260691652467,
+          "rank": 15
+        },
+        {
+          "code": "c924f11669a39",
+          "name": "Club Brugge",
+          "country": "belgium",
+          "rating": 1616.6191184811269,
+          "club_component": 360.938486265708,
+          "league_component": -244.31936778458123,
+          "rank": 16
+        },
+        {
+          "code": "cb4ca51a65f6f",
+          "name": "Roma",
+          "country": "italy",
+          "rating": 1611.191452294157,
+          "club_component": 237.7910724809323,
+          "league_component": -126.59962018677543,
+          "rank": 17
+        },
+        {
+          "code": "c516bd675ac9f",
+          "name": "Chelsea",
+          "country": "england",
+          "rating": 1609.771272245337,
+          "club_component": 109.77127224533697,
+          "league_component": 2.842170943040401e-14,
+          "rank": 18
+        },
+        {
+          "code": "c49452efa105e",
+          "name": "Como",
+          "country": "italy",
+          "rating": 1605.662630247959,
+          "club_component": 232.26225043473448,
+          "league_component": -126.59962018677543,
+          "rank": 19
+        },
+        {
+          "code": "c24cc4e0e1fdf",
+          "name": "Sporting CP",
+          "country": "portugal",
+          "rating": 1604.4632195197676,
+          "club_component": 335.32582643629235,
+          "league_component": -230.86260691652467,
+          "rank": 20
+        },
+        {
+          "code": "c304fbcfd38f6",
+          "name": "Manchester United",
+          "country": "england",
+          "rating": 1599.314927642832,
+          "club_component": 99.3149276428318,
+          "league_component": 2.842170943040401e-14,
+          "rank": 21
+        },
+        {
+          "code": "c15275889cb50",
+          "name": "Bayer Leverkusen",
+          "country": "germany",
+          "rating": 1589.7469069280692,
+          "club_component": 203.2428258709345,
+          "league_component": -113.49591894286522,
+          "rank": 22
+        },
+        {
+          "code": "c7fb99a3c0f63",
+          "name": "Al Hilal FC",
+          "country": "saudi-arabia",
+          "rating": 1589.7113722443635,
+          "club_component": 369.738274012669,
+          "league_component": -280.0269017683055,
+          "rank": 23
+        },
+        {
+          "code": "c29f85ca096c0",
+          "name": "Newcastle United",
+          "country": "england",
+          "rating": 1587.8327009148536,
+          "club_component": 87.83270091485366,
+          "league_component": 2.842170943040401e-14,
+          "rank": 24
+        },
+        {
+          "code": "cd6fed4d7b3a4",
+          "name": "Leeds United",
+          "country": "england",
+          "rating": 1584.1883680570745,
+          "club_component": 84.18836805707441,
+          "league_component": 2.842170943040401e-14,
+          "rank": 25
+        },
+        {
+          "code": "c9cf1110a775e",
+          "name": "Union Saint-Gilloise",
+          "country": "belgium",
+          "rating": 1580.027761711846,
+          "club_component": 324.3471294964274,
+          "league_component": -244.31936778458123,
+          "rank": 26
+        },
+        {
+          "code": "c5d5c37aa63ed",
+          "name": "Flamengo",
+          "country": "brazil",
+          "rating": 1568.1830493720647,
+          "club_component": 241.58842289169294,
+          "league_component": -173.4053735196283,
+          "rank": 27
+        },
+        {
+          "code": "cd5eea918d627",
+          "name": "Palmeiras",
+          "country": "brazil",
+          "rating": 1566.66554044769,
+          "club_component": 240.07091396731835,
+          "league_component": -173.4053735196283,
+          "rank": 28
+        },
+        {
+          "code": "caf19195c87c4",
+          "name": "Porto",
+          "country": "portugal",
+          "rating": 1557.913926391952,
+          "club_component": 288.7765333084767,
+          "league_component": -230.86260691652467,
+          "rank": 29
+        },
+        {
+          "code": "c2c134d9555fc",
+          "name": "Everton",
+          "country": "england",
+          "rating": 1557.1616154114836,
+          "club_component": 57.16161541148349,
+          "league_component": 2.842170943040401e-14,
+          "rank": 30
+        }
+      ],
+      "reported_clubs": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 1829.514294200644,
+          "club_component": 329.5142942006439,
+          "league_component": 2.842170943040401e-14,
+          "rank": 1
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1680.331126542822,
+          "club_component": 180.33112654282203,
+          "league_component": 2.842170943040401e-14,
+          "rank": 9
+        },
+        {
+          "code": "c0d90fadce1a1",
+          "name": "Al Ahly",
+          "country": "egypt",
+          "rating": 1435.1099784081975,
+          "club_component": 256.058755483863,
+          "league_component": -320.94877707566536,
+          "rank": 107
+        },
+        {
+          "code": "c13a9c5ee7aa1",
+          "name": "Santos FC",
+          "country": "brazil",
+          "rating": 1408.4440836155825,
+          "club_component": 81.84945713521083,
+          "league_component": -173.4053735196283,
+          "rank": 136
+        }
+      ],
+      "seconds": 45.6
+    },
+    "slower_league": {
+      "candidate": "slower_league",
+      "changes": {
+        "country_share": 0.05
+      },
+      "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2",
+      "protocol_sha256": "a71657b98f2aae7a89881390760c3062c2d91b4e77ff8e10cdb49457818b1d96",
+      "matches": 1690260,
+      "all_period_metrics": {
+        "all": {
+          "matches": 400949,
+          "log_loss": 1.0016661269045162,
+          "log_loss_se": 0.0007073131738268482,
+          "brier": 0.5984726002093816,
+          "accuracy": 0.5066554599213366
+        },
+        "club": {
+          "matches": 378028,
+          "log_loss": 1.0035636754058705,
+          "log_loss_se": 0.0007200655255500312,
+          "brier": 0.5998573581344803,
+          "accuracy": 0.5042668797020327
+        },
+        "tier": {
+          "matches": 7908,
+          "log_loss": 0.9394596444397392,
+          "log_loss_se": 0.006896438305496721,
+          "brier": 0.5536578169885108,
+          "accuracy": 0.5782751643904906
+        },
+        "country": {
+          "matches": 14893,
+          "log_loss": 0.9876136876061887,
+          "log_loss_se": 0.0038499023150163096,
+          "brier": 0.5878720440072325,
+          "accuracy": 0.5283018867924528
+        },
+        "confederation": {
+          "matches": 120,
+          "log_loss": 0.867377601327562,
+          "log_loss_se": 0.04822326769939431,
+          "brier": 0.5050736028719658,
+          "accuracy": 0.625
+        },
+        "cross_group": {
+          "matches": 22921,
+          "log_loss": 0.9703705261510324,
+          "log_loss_se": 0.003465049193328483,
+          "brier": 0.5756342742676813,
+          "accuracy": 0.5460494742812269
+        },
+        "post_tie": {
+          "matches": 39399,
+          "log_loss": 0.9642705650230895,
+          "log_loss_se": 0.002715086595183752,
+          "brier": 0.5719999204420936,
+          "accuracy": 0.544176248128125
+        },
+        "post_controlled_tie": {
+          "matches": 5649,
+          "log_loss": 0.9722872070672028,
+          "log_loss_se": 0.006954382560269455,
+          "brier": 0.5782588285542452,
+          "accuracy": 0.5406266595857674
+        },
+        "second_leg": {
+          "matches": 2716,
+          "log_loss": 0.9798939725495331,
+          "log_loss_se": 0.009493985359351857,
+          "brier": 0.5823470563775771,
+          "accuracy": 0.5401325478645066
+        }
+      },
+      "periods": {
+        "selection": {
+          "all": {
+            "matches": 214575,
+            "log_loss": 0.9994417167428005,
+            "brier": 0.5969762421185598,
+            "predicted_score": 0.5592136460135151,
+            "actual_score": 0.5643155073983456
+          },
+          "international": {
+            "matches": 8194,
+            "log_loss": 0.9870407565712173,
+            "brier": 0.5878278293248248,
+            "predicted_score": 0.6025054406509023,
+            "actual_score": 0.604832804491091
+          },
+          "non_english_foreign": {
+            "matches": 7819,
+            "log_loss": 0.9903293196356503,
+            "brier": 0.5902891130719342,
+            "predicted_score": 0.6027685383210893,
+            "actual_score": 0.6074306177260519
+          },
+          "international_new_entrants": {
+            "matches": 2111,
+            "log_loss": 1.0055193863495324,
+            "brier": 0.6012639732939712,
+            "predicted_score": 0.602229347678505,
+            "actual_score": 0.6072951207958314
+          },
+          "english_foreign": {
+            "matches": 375,
+            "log_loss": 0.9184720243024312,
+            "brier": 0.5365084223417371,
+            "predicted_score": 0.6388987239885467,
+            "actual_score": 0.6973333333333334
+          }
+        },
+        "review": {
+          "all": {
+            "matches": 186374,
+            "log_loss": 1.004227121519935,
+            "brier": 0.6001953782649758,
+            "predicted_score": 0.5591833291018995,
+            "actual_score": 0.5646495755845773
+          },
+          "international": {
+            "matches": 6819,
+            "log_loss": 0.9861862446595947,
+            "brier": 0.5864680965327376,
+            "predicted_score": 0.6024026829830494,
+            "actual_score": 0.6055873295204576
+          },
+          "non_english_foreign": {
+            "matches": 6469,
+            "log_loss": 0.9917637336815424,
+            "brier": 0.5903356599427388,
+            "predicted_score": 0.6028025314148017,
+            "actual_score": 0.6053485855619106
+          },
+          "international_new_entrants": {
+            "matches": 1446,
+            "log_loss": 1.0308232447758543,
+            "brier": 0.6152844125906088,
+            "predicted_score": 0.5995484999738014,
+            "actual_score": 0.5767634854771784
+          },
+          "english_foreign": {
+            "matches": 350,
+            "log_loss": 0.8830983118511095,
+            "brier": 0.5149844745347385,
+            "predicted_score": 0.6258266170052752,
+            "actual_score": 0.6928571428571428
+          }
+        }
+      },
+      "current_top_30": [
+        {
+          "code": "ca7bebe4dfa7e",
+          "name": "Bayern M\u00fcnchen",
+          "country": "germany",
+          "rating": 1891.4461567215008,
+          "club_component": 455.90912179164286,
+          "league_component": -64.4629650701421,
+          "rank": 1
+        },
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 1870.426413289216,
+          "club_component": 370.426413289216,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 2
+        },
+        {
+          "code": "c4bde476dc24b",
+          "name": "Manchester City",
+          "country": "england",
+          "rating": 1839.3869970013668,
+          "club_component": 339.38699700136675,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 3
+        },
+        {
+          "code": "cfe1f263a17ed",
+          "name": "FC Barcelona",
+          "country": "spain",
+          "rating": 1832.063646435723,
+          "club_component": 367.43624436492746,
+          "league_component": -35.372597929204446,
+          "rank": 4
+        },
+        {
+          "code": "cd2555e28b91b",
+          "name": "PSG",
+          "country": "france",
+          "rating": 1808.4729095761888,
+          "club_component": 404.1161797286108,
+          "league_component": -95.6432701524219,
+          "rank": 5
+        },
+        {
+          "code": "cfbef7ff9bb4c",
+          "name": "Real Madrid",
+          "country": "spain",
+          "rating": 1798.622552077951,
+          "club_component": 333.9951500071554,
+          "league_component": -35.372597929204446,
+          "rank": 6
+        },
+        {
+          "code": "c86910820a501",
+          "name": "Inter",
+          "country": "italy",
+          "rating": 1748.150510371438,
+          "club_component": 317.17274639237866,
+          "league_component": -69.02223602094055,
+          "rank": 7
+        },
+        {
+          "code": "c23ade959545b",
+          "name": "Aston Villa",
+          "country": "england",
+          "rating": 1738.461182394809,
+          "club_component": 238.46118239480887,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 8
+        },
+        {
+          "code": "cf8de08e4f2cd",
+          "name": "Liverpool",
+          "country": "england",
+          "rating": 1733.5303394969203,
+          "club_component": 233.53033949692025,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 9
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1715.4304761725807,
+          "club_component": 215.43047617258082,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 10
+        },
+        {
+          "code": "ca0786994ace6",
+          "name": "Atl\u00e9tico Madrid",
+          "country": "spain",
+          "rating": 1712.0565631265558,
+          "club_component": 247.42916105576035,
+          "league_component": -35.372597929204446,
+          "rank": 11
+        },
+        {
+          "code": "c6585e5214fad",
+          "name": "Benfica",
+          "country": "portugal",
+          "rating": 1709.1979944132056,
+          "club_component": 370.34517909573896,
+          "league_component": -161.14718468253335,
+          "rank": 12
+        },
+        {
+          "code": "c924f11669a39",
+          "name": "Club Brugge",
+          "country": "belgium",
+          "rating": 1693.3684502308492,
+          "club_component": 365.4062777812325,
+          "league_component": -172.03782755038333,
+          "rank": 13
+        },
+        {
+          "code": "c70c5172ba653",
+          "name": "Borussia Dortmund",
+          "country": "germany",
+          "rating": 1692.0210982708245,
+          "club_component": 256.4840633409667,
+          "league_component": -64.4629650701421,
+          "rank": 14
+        },
+        {
+          "code": "c824c5863f863",
+          "name": "AFC Bournemouth",
+          "country": "england",
+          "rating": 1689.8917703988454,
+          "club_component": 189.89177039884555,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 15
+        },
+        {
+          "code": "cb4ca51a65f6f",
+          "name": "Roma",
+          "country": "italy",
+          "rating": 1688.9355984343576,
+          "club_component": 257.95783445529815,
+          "league_component": -69.02223602094055,
+          "rank": 16
+        },
+        {
+          "code": "c24cc4e0e1fdf",
+          "name": "Sporting CP",
+          "country": "portugal",
+          "rating": 1682.1651494143327,
+          "club_component": 343.31233409686615,
+          "league_component": -161.14718468253335,
+          "rank": 17
+        },
+        {
+          "code": "c49452efa105e",
+          "name": "Como",
+          "country": "italy",
+          "rating": 1675.18848050038,
+          "club_component": 244.21071652132053,
+          "league_component": -69.02223602094055,
+          "rank": 18
+        },
+        {
+          "code": "c15275889cb50",
+          "name": "Bayer Leverkusen",
+          "country": "germany",
+          "rating": 1664.7102992815007,
+          "club_component": 229.1732643516428,
+          "league_component": -64.4629650701421,
+          "rank": 19
+        },
+        {
+          "code": "c9cf1110a775e",
+          "name": "Union Saint-Gilloise",
+          "country": "belgium",
+          "rating": 1661.7393561508588,
+          "club_component": 333.7771837012422,
+          "league_component": -172.03782755038333,
+          "rank": 20
+        },
+        {
+          "code": "c5e96a2da8718",
+          "name": "Bod\u00f8 / Glimt",
+          "country": "norway",
+          "rating": 1650.1337063806275,
+          "club_component": 342.6711554375269,
+          "league_component": -192.53744905689936,
+          "rank": 21
+        },
+        {
+          "code": "cf51932ffd494",
+          "name": "Brentford",
+          "country": "england",
+          "rating": 1647.983037614473,
+          "club_component": 147.98303761447295,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 22
+        },
+        {
+          "code": "c7fb99a3c0f63",
+          "name": "Al Hilal FC",
+          "country": "saudi-arabia",
+          "rating": 1645.8901466071525,
+          "club_component": 386.55716790869013,
+          "league_component": -240.66702130153772,
+          "rank": 23
+        },
+        {
+          "code": "c5d5c37aa63ed",
+          "name": "Flamengo",
+          "country": "brazil",
+          "rating": 1642.5783718264809,
+          "club_component": 260.34842703838075,
+          "league_component": -117.7700552118998,
+          "rank": 24
+        },
+        {
+          "code": "c516bd675ac9f",
+          "name": "Chelsea",
+          "country": "england",
+          "rating": 1641.9919671234295,
+          "club_component": 141.99196712342953,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 25
+        },
+        {
+          "code": "cd5eea918d627",
+          "name": "Palmeiras",
+          "country": "brazil",
+          "rating": 1640.5081615430774,
+          "club_component": 258.27821675497734,
+          "league_component": -117.7700552118998,
+          "rank": 26
+        },
+        {
+          "code": "c304fbcfd38f6",
+          "name": "Manchester United",
+          "country": "england",
+          "rating": 1632.6929522018183,
+          "club_component": 132.6929522018183,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 27
+        },
+        {
+          "code": "caf19195c87c4",
+          "name": "Porto",
+          "country": "portugal",
+          "rating": 1630.9957798671685,
+          "club_component": 292.14296454970184,
+          "league_component": -161.14718468253335,
+          "rank": 28
+        },
+        {
+          "code": "c29f85ca096c0",
+          "name": "Newcastle United",
+          "country": "england",
+          "rating": 1624.780649841346,
+          "club_component": 124.78064984134608,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 29
+        },
+        {
+          "code": "c668c5c551a3c",
+          "name": "Stuttgart",
+          "country": "germany",
+          "rating": 1621.3756419049118,
+          "club_component": 185.8386069750539,
+          "league_component": -64.4629650701421,
+          "rank": 30
+        }
+      ],
+      "reported_clubs": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 1870.426413289216,
+          "club_component": 370.426413289216,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 2
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1715.4304761725807,
+          "club_component": 215.43047617258082,
+          "league_component": -1.4210854715202004e-14,
+          "rank": 10
+        },
+        {
+          "code": "c0d90fadce1a1",
+          "name": "Al Ahly",
+          "country": "egypt",
+          "rating": 1491.0824518324548,
+          "club_component": 269.4855637551855,
+          "league_component": -278.40311192273066,
+          "rank": 144
+        },
+        {
+          "code": "c13a9c5ee7aa1",
+          "name": "Santos FC",
+          "country": "brazil",
+          "rating": 1485.1846035204105,
+          "club_component": 102.95465873231025,
+          "league_component": -117.7700552118998,
+          "rank": 165
+        }
+      ],
+      "seconds": 46.3
+    },
+    "longer_club_memory": {
+      "candidate": "longer_club_memory",
+      "changes": {
+        "club_retention": 0.95
+      },
+      "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2",
+      "protocol_sha256": "a71657b98f2aae7a89881390760c3062c2d91b4e77ff8e10cdb49457818b1d96",
+      "matches": 1690260,
+      "all_period_metrics": {
+        "all": {
+          "matches": 400949,
+          "log_loss": 1.0032551031507742,
+          "log_loss_se": 0.0007948319374792991,
+          "brier": 0.5994287068278834,
+          "accuracy": 0.5065806374376791
+        },
+        "club": {
+          "matches": 378028,
+          "log_loss": 1.0058900853083859,
+          "log_loss_se": 0.0008099016903311879,
+          "brier": 0.6013445314612728,
+          "accuracy": 0.5035526468938809
+        },
+        "tier": {
+          "matches": 7908,
+          "log_loss": 0.9380972980782676,
+          "log_loss_se": 0.007322808784533759,
+          "brier": 0.5518755688907241,
+          "accuracy": 0.5811836115326252
+        },
+        "country": {
+          "matches": 14893,
+          "log_loss": 0.972043453045431,
+          "log_loss_se": 0.004441953083149656,
+          "brier": 0.5768000526758745,
+          "accuracy": 0.5428724904317465
+        },
+        "confederation": {
+          "matches": 120,
+          "log_loss": 0.8699717069296925,
+          "log_loss_se": 0.054375239458997644,
+          "brier": 0.5062904283391629,
+          "accuracy": 0.625
+        },
+        "cross_group": {
+          "matches": 22921,
+          "log_loss": 0.9597972681924893,
+          "log_loss_se": 0.0038478281779963487,
+          "brier": 0.5678316842498253,
+          "accuracy": 0.5565202216308189
+        },
+        "post_tie": {
+          "matches": 39399,
+          "log_loss": 0.965263697068256,
+          "log_loss_se": 0.0030295030117530332,
+          "brier": 0.5719958196948297,
+          "accuracy": 0.5467397649686541
+        },
+        "post_controlled_tie": {
+          "matches": 5649,
+          "log_loss": 0.9730810657726161,
+          "log_loss_se": 0.007731446331123621,
+          "brier": 0.5783258889854781,
+          "accuracy": 0.5381483448397947
+        },
+        "second_leg": {
+          "matches": 2716,
+          "log_loss": 0.9719984726996709,
+          "log_loss_se": 0.010612247071463432,
+          "brier": 0.5762317583610271,
+          "accuracy": 0.5526509572901326
+        }
+      },
+      "periods": {
+        "selection": {
+          "all": {
+            "matches": 214575,
+            "log_loss": 1.0014205616304253,
+            "brier": 0.5982021998062813,
+            "predicted_score": 0.5571604236658568,
+            "actual_score": 0.5643155073983456
+          },
+          "international": {
+            "matches": 8194,
+            "log_loss": 0.9735915234282029,
+            "brier": 0.5784297706592425,
+            "predicted_score": 0.5970318796444815,
+            "actual_score": 0.604832804491091
+          },
+          "non_english_foreign": {
+            "matches": 7819,
+            "log_loss": 0.9774851035428684,
+            "brier": 0.581371186320399,
+            "predicted_score": 0.597555125881693,
+            "actual_score": 0.6074306177260519
+          },
+          "international_new_entrants": {
+            "matches": 2111,
+            "log_loss": 0.9999779467370556,
+            "brier": 0.5968513498428073,
+            "predicted_score": 0.5961374603292356,
+            "actual_score": 0.6072951207958314
+          },
+          "english_foreign": {
+            "matches": 375,
+            "log_loss": 0.8924077823173556,
+            "brier": 0.5170992931803671,
+            "predicted_score": 0.6951456885505466,
+            "actual_score": 0.6973333333333334
+          }
+        },
+        "review": {
+          "all": {
+            "matches": 186374,
+            "log_loss": 1.0053672365316697,
+            "brier": 0.6008408015630003,
+            "predicted_score": 0.5573548902237213,
+            "actual_score": 0.5646495755845773
+          },
+          "international": {
+            "matches": 6819,
+            "log_loss": 0.9683869787456221,
+            "brier": 0.5736008938437714,
+            "predicted_score": 0.596564498673528,
+            "actual_score": 0.6055873295204576
+          },
+          "non_english_foreign": {
+            "matches": 6469,
+            "log_loss": 0.9739133423926508,
+            "brier": 0.5775650348097477,
+            "predicted_score": 0.5970887244109667,
+            "actual_score": 0.6053485855619106
+          },
+          "international_new_entrants": {
+            "matches": 1446,
+            "log_loss": 1.0152244439161617,
+            "brier": 0.6025253037020196,
+            "predicted_score": 0.5929243442001402,
+            "actual_score": 0.5767634854771784
+          },
+          "english_foreign": {
+            "matches": 350,
+            "log_loss": 0.8662439889381082,
+            "brier": 0.5003322426754846,
+            "predicted_score": 0.6808535213091422,
+            "actual_score": 0.6928571428571428
+          }
+        }
+      },
+      "current_top_30": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 2007.000436471294,
+          "club_component": 507.000436471294,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 1
+        },
+        {
+          "code": "ca7bebe4dfa7e",
+          "name": "Bayern M\u00fcnchen",
+          "country": "germany",
+          "rating": 2003.9527924934218,
+          "club_component": 584.2050246939467,
+          "league_component": -80.25223220052499,
+          "rank": 2
+        },
+        {
+          "code": "c4bde476dc24b",
+          "name": "Manchester City",
+          "country": "england",
+          "rating": 1976.217414767561,
+          "club_component": 476.21741476756097,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 3
+        },
+        {
+          "code": "cfe1f263a17ed",
+          "name": "FC Barcelona",
+          "country": "spain",
+          "rating": 1937.5310707037702,
+          "club_component": 445.02551766574766,
+          "league_component": -7.494446961977545,
+          "rank": 4
+        },
+        {
+          "code": "cd2555e28b91b",
+          "name": "PSG",
+          "country": "france",
+          "rating": 1913.805468564355,
+          "club_component": 475.47687165188665,
+          "league_component": -61.67140308753175,
+          "rank": 5
+        },
+        {
+          "code": "cfbef7ff9bb4c",
+          "name": "Real Madrid",
+          "country": "spain",
+          "rating": 1900.873112251303,
+          "club_component": 408.3675592132805,
+          "league_component": -7.494446961977545,
+          "rank": 6
+        },
+        {
+          "code": "cf8de08e4f2cd",
+          "name": "Liverpool",
+          "country": "england",
+          "rating": 1859.9223746428474,
+          "club_component": 359.9223746428474,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 7
+        },
+        {
+          "code": "c23ade959545b",
+          "name": "Aston Villa",
+          "country": "england",
+          "rating": 1851.2077506367132,
+          "club_component": 351.2077506367133,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 8
+        },
+        {
+          "code": "c86910820a501",
+          "name": "Inter",
+          "country": "italy",
+          "rating": 1842.8329188810087,
+          "club_component": 388.21448761000005,
+          "league_component": -45.38156872899128,
+          "rank": 9
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1837.096429797924,
+          "club_component": 337.0964297979241,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 10
+        },
+        {
+          "code": "ca0786994ace6",
+          "name": "Atl\u00e9tico Madrid",
+          "country": "spain",
+          "rating": 1812.0028691106236,
+          "club_component": 319.49731607260117,
+          "league_component": -7.494446961977545,
+          "rank": 11
+        },
+        {
+          "code": "c824c5863f863",
+          "name": "AFC Bournemouth",
+          "country": "england",
+          "rating": 1811.2914424524415,
+          "club_component": 311.2914424524416,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 12
+        },
+        {
+          "code": "c70c5172ba653",
+          "name": "Borussia Dortmund",
+          "country": "germany",
+          "rating": 1789.4936330858359,
+          "club_component": 369.745865286361,
+          "league_component": -80.25223220052499,
+          "rank": 13
+        },
+        {
+          "code": "c6585e5214fad",
+          "name": "Benfica",
+          "country": "portugal",
+          "rating": 1780.7851070400343,
+          "club_component": 441.715858697375,
+          "league_component": -160.93075165734055,
+          "rank": 14
+        },
+        {
+          "code": "cf51932ffd494",
+          "name": "Brentford",
+          "country": "england",
+          "rating": 1777.7314077657709,
+          "club_component": 277.7314077657708,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 15
+        },
+        {
+          "code": "c924f11669a39",
+          "name": "Club Brugge",
+          "country": "belgium",
+          "rating": 1777.4156274510622,
+          "club_component": 442.8394745283901,
+          "league_component": -165.42384707732793,
+          "rank": 16
+        },
+        {
+          "code": "c516bd675ac9f",
+          "name": "Chelsea",
+          "country": "england",
+          "rating": 1773.9028960894816,
+          "club_component": 273.9028960894815,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 17
+        },
+        {
+          "code": "c24cc4e0e1fdf",
+          "name": "Sporting CP",
+          "country": "portugal",
+          "rating": 1770.7782948454437,
+          "club_component": 431.7090465027843,
+          "league_component": -160.93075165734055,
+          "rank": 18
+        },
+        {
+          "code": "cb4ca51a65f6f",
+          "name": "Roma",
+          "country": "italy",
+          "rating": 1764.986205397976,
+          "club_component": 310.36777412696716,
+          "league_component": -45.38156872899128,
+          "rank": 19
+        },
+        {
+          "code": "c7fb99a3c0f63",
+          "name": "Al Hilal FC",
+          "country": "saudi-arabia",
+          "rating": 1761.4921535072858,
+          "club_component": 447.83061832383527,
+          "league_component": -186.33846481654936,
+          "rank": 20
+        },
+        {
+          "code": "c304fbcfd38f6",
+          "name": "Manchester United",
+          "country": "england",
+          "rating": 1756.3677993945926,
+          "club_component": 256.3677993945925,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 21
+        },
+        {
+          "code": "c15275889cb50",
+          "name": "Bayer Leverkusen",
+          "country": "germany",
+          "rating": 1752.327242189616,
+          "club_component": 332.57947439014106,
+          "league_component": -80.25223220052499,
+          "rank": 22
+        },
+        {
+          "code": "c29f85ca096c0",
+          "name": "Newcastle United",
+          "country": "england",
+          "rating": 1752.2937019494684,
+          "club_component": 252.2937019494684,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 23
+        },
+        {
+          "code": "c49452efa105e",
+          "name": "Como",
+          "country": "italy",
+          "rating": 1746.1108435214212,
+          "club_component": 291.49241225041254,
+          "league_component": -45.38156872899128,
+          "rank": 24
+        },
+        {
+          "code": "c9cf1110a775e",
+          "name": "Union Saint-Gilloise",
+          "country": "belgium",
+          "rating": 1735.0511034534338,
+          "club_component": 400.4749505307619,
+          "league_component": -165.42384707732793,
+          "rank": 25
+        },
+        {
+          "code": "cd6fed4d7b3a4",
+          "name": "Leeds United",
+          "country": "england",
+          "rating": 1732.9100290859644,
+          "club_component": 232.91002908596448,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 26
+        },
+        {
+          "code": "c5d5c37aa63ed",
+          "name": "Flamengo",
+          "country": "brazil",
+          "rating": 1725.6593753145578,
+          "club_component": 351.2402450388109,
+          "league_component": -125.580869724253,
+          "rank": 27
+        },
+        {
+          "code": "cd5eea918d627",
+          "name": "Palmeiras",
+          "country": "brazil",
+          "rating": 1723.8128114885963,
+          "club_component": 349.39368121284934,
+          "league_component": -125.580869724253,
+          "rank": 28
+        },
+        {
+          "code": "c2c134d9555fc",
+          "name": "Everton",
+          "country": "england",
+          "rating": 1711.2219078600401,
+          "club_component": 211.22190786003998,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 29
+        },
+        {
+          "code": "caf19195c87c4",
+          "name": "Porto",
+          "country": "portugal",
+          "rating": 1710.5869468045291,
+          "club_component": 371.51769846186977,
+          "league_component": -160.93075165734055,
+          "rank": 30
+        }
+      ],
+      "reported_clubs": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 2007.000436471294,
+          "club_component": 507.000436471294,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 1
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1837.096429797924,
+          "club_component": 337.0964297979241,
+          "league_component": 1.4210854715202004e-14,
+          "rank": 10
+        },
+        {
+          "code": "c0d90fadce1a1",
+          "name": "Al Ahly",
+          "country": "egypt",
+          "rating": 1585.389913741393,
+          "club_component": 332.26037174316986,
+          "league_component": -246.87045800177683,
+          "rank": 96
+        },
+        {
+          "code": "c13a9c5ee7aa1",
+          "name": "Santos FC",
+          "country": "brazil",
+          "rating": 1558.5578889784929,
+          "club_component": 184.138758702746,
+          "league_component": -125.580869724253,
+          "rank": 130
+        }
+      ],
+      "seconds": 45.7
+    },
+    "combined": {
+      "candidate": "combined",
+      "changes": {
+        "country_share": 0.05,
+        "club_retention": 0.95
+      },
+      "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2",
+      "protocol_sha256": "a71657b98f2aae7a89881390760c3062c2d91b4e77ff8e10cdb49457818b1d96",
+      "matches": 1690260,
+      "all_period_metrics": {
+        "all": {
+          "matches": 400949,
+          "log_loss": 1.0042244018997348,
+          "log_loss_se": 0.0007934404418329349,
+          "brier": 0.6000705122481172,
+          "accuracy": 0.5060094924790933
+        },
+        "club": {
+          "matches": 378028,
+          "log_loss": 1.0061816830180426,
+          "log_loss_se": 0.0008101821239282394,
+          "brier": 0.6015258027979267,
+          "accuracy": 0.503531484440306
+        },
+        "tier": {
+          "matches": 7908,
+          "log_loss": 0.9380176294308007,
+          "log_loss_se": 0.0073978719199128,
+          "brier": 0.551617579471284,
+          "accuracy": 0.5815629742033384
+        },
+        "country": {
+          "matches": 14893,
+          "log_loss": 0.9908077563383325,
+          "log_loss_se": 0.004193732412114197,
+          "brier": 0.5896323463853254,
+          "accuracy": 0.5278318673202176
+        },
+        "confederation": {
+          "matches": 120,
+          "log_loss": 0.866476005542477,
+          "log_loss_se": 0.052987103236417685,
+          "brier": 0.5040773508476737,
+          "accuracy": 0.625
+        },
+        "cross_group": {
+          "matches": 22921,
+          "log_loss": 0.971943652081094,
+          "log_loss_se": 0.0037476760728427766,
+          "brier": 0.5760689165078848,
+          "accuracy": 0.5468784084464029
+        },
+        "post_tie": {
+          "matches": 39399,
+          "log_loss": 0.9683413433534265,
+          "log_loss_se": 0.0030148889092997,
+          "brier": 0.5740691484864769,
+          "accuracy": 0.5448615447092566
+        },
+        "post_controlled_tie": {
+          "matches": 5649,
+          "log_loss": 0.9768274779519657,
+          "log_loss_se": 0.007705449423355578,
+          "brier": 0.5808980595879697,
+          "accuracy": 0.5390334572490706
+        },
+        "second_leg": {
+          "matches": 2716,
+          "log_loss": 0.9805091943933609,
+          "log_loss_se": 0.010167625992819064,
+          "brier": 0.5823302658843872,
+          "accuracy": 0.5438144329896907
+        }
+      },
+      "periods": {
+        "selection": {
+          "all": {
+            "matches": 214575,
+            "log_loss": 1.002336699336992,
+            "brier": 0.5988050366625711,
+            "predicted_score": 0.5572520375634745,
+            "actual_score": 0.5643155073983456
+          },
+          "international": {
+            "matches": 8194,
+            "log_loss": 0.9912280761803507,
+            "brier": 0.590398034748333,
+            "predicted_score": 0.5996079817482389,
+            "actual_score": 0.604832804491091
+          },
+          "non_english_foreign": {
+            "matches": 7819,
+            "log_loss": 0.9953019555507566,
+            "brier": 0.593426593401448,
+            "predicted_score": 0.5999613502341048,
+            "actual_score": 0.6074306177260519
+          },
+          "international_new_entrants": {
+            "matches": 2111,
+            "log_loss": 1.0201451102663175,
+            "brier": 0.6103029055229942,
+            "predicted_score": 0.5984356949301554,
+            "actual_score": 0.6072951207958314
+          },
+          "english_foreign": {
+            "matches": 375,
+            "log_loss": 0.9062849753878299,
+            "brier": 0.5272505677917789,
+            "predicted_score": 0.6665155323593115,
+            "actual_score": 0.6973333333333334
+          }
+        },
+        "review": {
+          "all": {
+            "matches": 186374,
+            "log_loss": 1.0063977403342992,
+            "brier": 0.601527472037434,
+            "predicted_score": 0.557442001559214,
+            "actual_score": 0.5646495755845773
+          },
+          "international": {
+            "matches": 6819,
+            "log_loss": 0.9881147059085105,
+            "brier": 0.587206675478883,
+            "predicted_score": 0.5996592787226556,
+            "actual_score": 0.6055873295204576
+          },
+          "non_english_foreign": {
+            "matches": 6469,
+            "log_loss": 0.9942736190498471,
+            "brier": 0.5914898554215574,
+            "predicted_score": 0.6001217264035503,
+            "actual_score": 0.6053485855619106
+          },
+          "international_new_entrants": {
+            "matches": 1446,
+            "log_loss": 1.0403480487669472,
+            "brier": 0.6193806470949529,
+            "predicted_score": 0.595095114398977,
+            "actual_score": 0.5767634854771784
+          },
+          "english_foreign": {
+            "matches": 350,
+            "log_loss": 0.8742803941618966,
+            "brier": 0.5080412724812914,
+            "predicted_score": 0.6488307402834954,
+            "actual_score": 0.6928571428571428
+          }
+        }
+      },
+      "current_top_30": [
+        {
+          "code": "ca7bebe4dfa7e",
+          "name": "Bayern M\u00fcnchen",
+          "country": "germany",
+          "rating": 2053.3779037742415,
+          "club_component": 614.175123794686,
+          "league_component": -60.797220020444456,
+          "rank": 1
+        },
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 2033.8299508901457,
+          "club_component": 556.0593082567436,
+          "league_component": -22.22935736659796,
+          "rank": 2
+        },
+        {
+          "code": "c4bde476dc24b",
+          "name": "Manchester City",
+          "country": "england",
+          "rating": 1997.4993785348665,
+          "club_component": 519.7287359014646,
+          "league_component": -22.22935736659796,
+          "rank": 3
+        },
+        {
+          "code": "cfe1f263a17ed",
+          "name": "FC Barcelona",
+          "country": "spain",
+          "rating": 1981.544491212157,
+          "club_component": 481.54449121215697,
+          "league_component": 0.0,
+          "rank": 4
+        },
+        {
+          "code": "cd2555e28b91b",
+          "name": "PSG",
+          "country": "france",
+          "rating": 1965.2839717002935,
+          "club_component": 515.6192419293945,
+          "league_component": -50.33527022910113,
+          "rank": 5
+        },
+        {
+          "code": "cfbef7ff9bb4c",
+          "name": "Real Madrid",
+          "country": "spain",
+          "rating": 1946.0124012646083,
+          "club_component": 446.0124012646084,
+          "league_component": 0.0,
+          "rank": 6
+        },
+        {
+          "code": "c86910820a501",
+          "name": "Inter",
+          "country": "italy",
+          "rating": 1889.509049481959,
+          "club_component": 419.67242703145496,
+          "league_component": -30.16337754949592,
+          "rank": 7
+        },
+        {
+          "code": "cf8de08e4f2cd",
+          "name": "Liverpool",
+          "country": "england",
+          "rating": 1885.4366926173293,
+          "club_component": 407.6660499839274,
+          "league_component": -22.22935736659796,
+          "rank": 8
+        },
+        {
+          "code": "c23ade959545b",
+          "name": "Aston Villa",
+          "country": "england",
+          "rating": 1883.8826600513082,
+          "club_component": 406.11201741790626,
+          "league_component": -22.22935736659796,
+          "rank": 9
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1857.327119986955,
+          "club_component": 379.5564773535531,
+          "league_component": -22.22935736659796,
+          "rank": 10
+        },
+        {
+          "code": "ca0786994ace6",
+          "name": "Atl\u00e9tico Madrid",
+          "country": "spain",
+          "rating": 1853.6824971185733,
+          "club_component": 353.6824971185733,
+          "league_component": 0.0,
+          "rank": 11
+        },
+        {
+          "code": "c6585e5214fad",
+          "name": "Benfica",
+          "country": "portugal",
+          "rating": 1842.5652823624082,
+          "club_component": 464.83981133255423,
+          "league_component": -122.2745289701461,
+          "rank": 12
+        },
+        {
+          "code": "c70c5172ba653",
+          "name": "Borussia Dortmund",
+          "country": "germany",
+          "rating": 1836.3571963571521,
+          "club_component": 397.15441637759665,
+          "league_component": -60.797220020444456,
+          "rank": 13
+        },
+        {
+          "code": "c824c5863f863",
+          "name": "AFC Bournemouth",
+          "country": "england",
+          "rating": 1831.5426350251869,
+          "club_component": 353.771992391785,
+          "league_component": -22.22935736659796,
+          "rank": 14
+        },
+        {
+          "code": "c924f11669a39",
+          "name": "Club Brugge",
+          "country": "belgium",
+          "rating": 1826.2492631856076,
+          "club_component": 453.20268580543984,
+          "league_component": -126.95342261983224,
+          "rank": 15
+        },
+        {
+          "code": "c24cc4e0e1fdf",
+          "name": "Sporting CP",
+          "country": "portugal",
+          "rating": 1823.0032811635951,
+          "club_component": 445.27781013374135,
+          "league_component": -122.2745289701461,
+          "rank": 16
+        },
+        {
+          "code": "cb4ca51a65f6f",
+          "name": "Roma",
+          "country": "italy",
+          "rating": 1818.007661525221,
+          "club_component": 348.1710390747169,
+          "league_component": -30.16337754949592,
+          "rank": 17
+        },
+        {
+          "code": "c15275889cb50",
+          "name": "Bayer Leverkusen",
+          "country": "germany",
+          "rating": 1807.5718277216297,
+          "club_component": 368.3690477420741,
+          "league_component": -60.797220020444456,
+          "rank": 18
+        },
+        {
+          "code": "c7fb99a3c0f63",
+          "name": "Al Hilal FC",
+          "country": "saudi-arabia",
+          "rating": 1797.6109930445964,
+          "club_component": 470.52024588134685,
+          "league_component": -172.90925283675054,
+          "rank": 19
+        },
+        {
+          "code": "c516bd675ac9f",
+          "name": "Chelsea",
+          "country": "england",
+          "rating": 1793.2783294280955,
+          "club_component": 315.5076867946935,
+          "league_component": -22.22935736659796,
+          "rank": 20
+        },
+        {
+          "code": "cf51932ffd494",
+          "name": "Brentford",
+          "country": "england",
+          "rating": 1791.7480705527475,
+          "club_component": 313.9774279193456,
+          "league_component": -22.22935736659796,
+          "rank": 21
+        },
+        {
+          "code": "c49452efa105e",
+          "name": "Como",
+          "country": "italy",
+          "rating": 1789.9537603625106,
+          "club_component": 320.11713791200646,
+          "league_component": -30.16337754949592,
+          "rank": 22
+        },
+        {
+          "code": "c9cf1110a775e",
+          "name": "Union Saint-Gilloise",
+          "country": "belgium",
+          "rating": 1787.329288659766,
+          "club_component": 414.28271127959823,
+          "league_component": -126.95342261983224,
+          "rank": 23
+        },
+        {
+          "code": "c5d5c37aa63ed",
+          "name": "Flamengo",
+          "country": "brazil",
+          "rating": 1779.8948761709876,
+          "club_component": 371.0262073685464,
+          "league_component": -91.13133119755875,
+          "rank": 24
+        },
+        {
+          "code": "cd5eea918d627",
+          "name": "Palmeiras",
+          "country": "brazil",
+          "rating": 1777.5767057927137,
+          "club_component": 368.70803699027255,
+          "league_component": -91.13133119755875,
+          "rank": 25
+        },
+        {
+          "code": "c304fbcfd38f6",
+          "name": "Manchester United",
+          "country": "england",
+          "rating": 1775.6013903995015,
+          "club_component": 297.83074776609953,
+          "league_component": -22.22935736659796,
+          "rank": 26
+        },
+        {
+          "code": "c29f85ca096c0",
+          "name": "Newcastle United",
+          "country": "england",
+          "rating": 1775.2733108666102,
+          "club_component": 297.5026682332083,
+          "league_component": -22.22935736659796,
+          "rank": 27
+        },
+        {
+          "code": "c5e96a2da8718",
+          "name": "Bod\u00f8 / Glimt",
+          "country": "norway",
+          "rating": 1773.9366565456717,
+          "club_component": 423.0177544084403,
+          "league_component": -149.08109786276853,
+          "rank": 28
+        },
+        {
+          "code": "caf19195c87c4",
+          "name": "Porto",
+          "country": "portugal",
+          "rating": 1759.6445567655946,
+          "club_component": 381.91908573574085,
+          "league_component": -122.2745289701461,
+          "rank": 29
+        },
+        {
+          "code": "c668c5c551a3c",
+          "name": "Stuttgart",
+          "country": "germany",
+          "rating": 1755.6344451521582,
+          "club_component": 316.43166517260255,
+          "league_component": -60.797220020444456,
+          "rank": 30
+        }
+      ],
+      "reported_clubs": [
+        {
+          "code": "ca4b358b5cc51",
+          "name": "Arsenal FC",
+          "country": "england",
+          "rating": 2033.8299508901457,
+          "club_component": 556.0593082567436,
+          "league_component": -22.22935736659796,
+          "rank": 2
+        },
+        {
+          "code": "c16fdac6b4386",
+          "name": "Brighton & Hove Albion",
+          "country": "england",
+          "rating": 1857.327119986955,
+          "club_component": 379.5564773535531,
+          "league_component": -22.22935736659796,
+          "rank": 10
+        },
+        {
+          "code": "c0d90fadce1a1",
+          "name": "Al Ahly",
+          "country": "egypt",
+          "rating": 1621.1534630309484,
+          "club_component": 351.7770374536358,
+          "league_component": -230.6235744226874,
+          "rank": 136
+        },
+        {
+          "code": "c13a9c5ee7aa1",
+          "name": "Santos FC",
+          "country": "brazil",
+          "rating": 1614.9710457154033,
+          "club_component": 206.1023769129621,
+          "league_component": -91.13133119755875,
+          "rank": 147
+        }
+      ],
+      "seconds": 45.2
+    }
+  },
+  "input_validation": {
+    "snapshot": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+    "matches": 1690260,
+    "row_hash_sum": "15597968279254344610963594",
+    "clubs": 10715,
+    "repairs": {
+      "applied": 2554,
+      "already_applied": 0,
+      "changed_since_review": [],
+      "reasons": {
+        "Brazilian state identity preserved": 260,
+        "Reserve team in Segunda Division": 11,
+        "Wrong season year; correctly dated match already retained": 74,
+        "Out-of-season date without an unambiguous replacement; held for review": 11,
+        "Contradictory non-league date: club also has a Football League fixture; held for review": 21,
+        "Historical intercontinental competition and neutral Japan venue": 64,
+        "Duplicate of CBF-derived result within one local date": 2112,
+        "Heart of Midlothian is based in Edinburgh, Scotland": 1
+      }
+    },
+    "history": {
+      "added": 12629,
+      "already_present": 1,
+      "new_clubs": 14,
+      "held": 43
+    },
+    "repeat_added": 0,
+    "cold_copy_verified": true
+  },
+  "validation": {
+    "comparison_tests": 2,
+    "updater_suite": "73 tests; see completed release verification",
+    "production_runtime": "Byte-identical to verified 27 October release; no model or source-refresh behavior changed.",
+    "baseline_reproduces_prior_metrics_and_top20": true
+  }
+}

@@ -1,0 +1,359 @@
+{
+  "release": "2026-10-27-historical-results",
+  "input_snapshot": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+  "comparison": "Descriptive before/after historical data supplement; coefficients unchanged. Previously inspected periods, not an untouched holdout.",
+  "baseline_log_loss_2018_2026": 1.0006284432810315,
+  "expanded_log_loss_2018_2026": 1.0006544874549856,
+  "evaluation_matches": 400949,
+  "current_top_20": [
+    {
+      "code": "ca4b358b5cc51",
+      "name": "Arsenal FC",
+      "country": "england",
+      "mean": 1829.514294200644,
+      "tier": 1
+    },
+    {
+      "code": "ca7bebe4dfa7e",
+      "name": "Bayern M\u00fcnchen",
+      "country": "germany",
+      "mean": 1823.0825734094149,
+      "tier": 1
+    },
+    {
+      "code": "c4bde476dc24b",
+      "name": "Manchester City",
+      "country": "england",
+      "mean": 1802.8930206511493,
+      "tier": 1
+    },
+    {
+      "code": "cfe1f263a17ed",
+      "name": "FC Barcelona",
+      "country": "spain",
+      "mean": 1764.3798900508257,
+      "tier": 1
+    },
+    {
+      "code": "cd2555e28b91b",
+      "name": "PSG",
+      "country": "france",
+      "mean": 1734.3688666476423,
+      "tier": 1
+    },
+    {
+      "code": "cfbef7ff9bb4c",
+      "name": "Real Madrid",
+      "country": "spain",
+      "mean": 1730.4731606880714,
+      "tier": 1
+    },
+    {
+      "code": "cf8de08e4f2cd",
+      "name": "Liverpool",
+      "country": "england",
+      "mean": 1692.314463675697,
+      "tier": 1
+    },
+    {
+      "code": "c23ade959545b",
+      "name": "Aston Villa",
+      "country": "england",
+      "mean": 1689.7134926426031,
+      "tier": 1
+    },
+    {
+      "code": "c16fdac6b4386",
+      "name": "Brighton & Hove Albion",
+      "country": "england",
+      "mean": 1680.331126542822,
+      "tier": 1
+    },
+    {
+      "code": "c86910820a501",
+      "name": "Inter",
+      "country": "italy",
+      "mean": 1677.0768143497457,
+      "tier": 1
+    },
+    {
+      "code": "c824c5863f863",
+      "name": "AFC Bournemouth",
+      "country": "england",
+      "mean": 1656.110972691248,
+      "tier": 1
+    },
+    {
+      "code": "ca0786994ace6",
+      "name": "Atl\u00e9tico Madrid",
+      "country": "spain",
+      "mean": 1647.8990974546896,
+      "tier": 1
+    },
+    {
+      "code": "c70c5172ba653",
+      "name": "Borussia Dortmund",
+      "country": "germany",
+      "mean": 1626.7083109171353,
+      "tier": 1
+    },
+    {
+      "code": "cf51932ffd494",
+      "name": "Brentford",
+      "country": "england",
+      "mean": 1622.1410895408771,
+      "tier": 1
+    },
+    {
+      "code": "c6585e5214fad",
+      "name": "Benfica",
+      "country": "portugal",
+      "mean": 1620.929646868032,
+      "tier": 1
+    },
+    {
+      "code": "c924f11669a39",
+      "name": "Club Brugge",
+      "country": "belgium",
+      "mean": 1616.6191184811269,
+      "tier": 1
+    },
+    {
+      "code": "cb4ca51a65f6f",
+      "name": "Roma",
+      "country": "italy",
+      "mean": 1611.191452294157,
+      "tier": 1
+    },
+    {
+      "code": "c516bd675ac9f",
+      "name": "Chelsea",
+      "country": "england",
+      "mean": 1609.771272245337,
+      "tier": 1
+    },
+    {
+      "code": "c49452efa105e",
+      "name": "Como",
+      "country": "italy",
+      "mean": 1605.662630247959,
+      "tier": 1
+    },
+    {
+      "code": "c24cc4e0e1fdf",
+      "name": "Sporting CP",
+      "country": "portugal",
+      "mean": 1604.4632195197676,
+      "tier": 1
+    }
+  ],
+  "non_european_peak_top_10": [
+    {
+      "rank": 8,
+      "code": "c13a9c5ee7aa1",
+      "name": "Santos FC",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1962-12-05",
+      "rating": 1855.4185130131332
+    },
+    {
+      "rank": 24,
+      "code": "c098cca00a70a",
+      "name": "Ferro Carril Oeste",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1982-08-17",
+      "rating": 1789.7929505217455
+    },
+    {
+      "rank": 28,
+      "code": "ca2941d462d3c",
+      "name": "Rosario Central",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1974-12-30",
+      "rating": 1781.7354871446435
+    },
+    {
+      "rank": 32,
+      "code": "c5720c0902478",
+      "name": "CA Penarol",
+      "country": "uruguay",
+      "continent": "South America",
+      "day": "1967-08-05",
+      "rating": 1776.7466343559654
+    },
+    {
+      "rank": 39,
+      "code": "cf42f83368f38",
+      "name": "Boca Juniors",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1969-11-12",
+      "rating": 1767.6145311745893
+    },
+    {
+      "rank": 49,
+      "code": "c8d7841229c56",
+      "name": "Nacional",
+      "country": "uruguay",
+      "continent": "South America",
+      "day": "1970-09-26",
+      "rating": 1755.9562270882311
+    },
+    {
+      "rank": 51,
+      "code": "cb9985dede375",
+      "name": "River Plate",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1980-08-17",
+      "rating": 1752.43405821363
+    },
+    {
+      "rank": 61,
+      "code": "c9f3bc77ef0c3",
+      "name": "Velez Sarsfield",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1971-09-22",
+      "rating": 1742.6712344579855
+    },
+    {
+      "rank": 62,
+      "code": "c6f2ec0d689f7",
+      "name": "San Lorenzo",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1972-12-10",
+      "rating": 1742.2496019835935
+    },
+    {
+      "rank": 64,
+      "code": "ce4113a2054e1",
+      "name": "Independiente",
+      "country": "argentina",
+      "continent": "South America",
+      "day": "1982-10-10",
+      "rating": 1739.879939584629
+    }
+  ],
+  "reported_clubs_peaks": [
+    {
+      "rank": 7,
+      "code": "ca4b358b5cc51",
+      "name": "Arsenal FC",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2025-12-30",
+      "rating": 1858.0789897107431
+    },
+    {
+      "rank": 8,
+      "code": "c13a9c5ee7aa1",
+      "name": "Santos FC",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1962-12-05",
+      "rating": 1855.4185130131332
+    },
+    {
+      "rank": 67,
+      "code": "c5d5c37aa63ed",
+      "name": "Flamengo",
+      "country": "brazil",
+      "continent": "South America",
+      "day": "1982-11-02",
+      "rating": 1738.1605821294659
+    },
+    {
+      "rank": 115,
+      "code": "c16fdac6b4386",
+      "name": "Brighton & Hove Albion",
+      "country": "england",
+      "continent": "Europe",
+      "day": "2026-10-18",
+      "rating": 1701.4486602602217
+    },
+    {
+      "rank": 169,
+      "code": "c0d90fadce1a1",
+      "name": "Al Ahly",
+      "country": "egypt",
+      "continent": "Africa",
+      "day": "2005-11-27",
+      "rating": 1673.716429062495
+    },
+    {
+      "rank": 2931,
+      "code": "cf61804d9ba84",
+      "name": "Al Ahly",
+      "country": "jordan",
+      "continent": "Asia",
+      "day": "2017-10-14",
+      "rating": 1351.5811181850834
+    },
+    {
+      "rank": 5864,
+      "code": "ca11a281950a4",
+      "name": "Arsenal FC",
+      "country": "belarus",
+      "continent": "Europe",
+      "day": "2024-08-31",
+      "rating": 1114.3947798467707
+    }
+  ],
+  "brazil_results": [
+    {
+      "competition": "Campeonato Brasileiro",
+      "first_result": "1971-08-07",
+      "last_result": "1976-12-12",
+      "matches": 2446
+    },
+    {
+      "competition": "Campeonato Carioca",
+      "first_result": "1950-08-12",
+      "last_result": "1976-08-29",
+      "matches": 3316
+    },
+    {
+      "competition": "Campeonato Paulista",
+      "first_result": "1950-08-20",
+      "last_result": "1976-08-28",
+      "matches": 5982
+    },
+    {
+      "competition": "Ta\u00e7a Brasil",
+      "first_result": "1959-08-23",
+      "last_result": "1969-10-04",
+      "matches": 342
+    },
+    {
+      "competition": "Torneio Roberto Gomes Pedrosa",
+      "first_result": "1967-03-05",
+      "last_result": "1970-12-20",
+      "matches": 543
+    }
+  ],
+  "santos_before_1970": [
+    {
+      "matches": 710,
+      "domestic": 683,
+      "first_result": "1950-08-20"
+    }
+  ],
+  "england_foreign": {
+    "matches": 350,
+    "predicted_score": 0.6750837543418974,
+    "actual_score": 0.6928571428571428
+  },
+  "brighton_foreign": {
+    "matches": 12,
+    "predicted_score": 0.7070392849654631,
+    "actual_score": 0.7083333333333334
+  },
+  "engine/club_model.py_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2",
+  "engine/club_model.json_sha256": "0accb8c8666c8041d49b0ebadf7ab89519eb4bbeb525742e4134c94479cb9a72",
+  "brazil_history.json_sha256": "a405b4edaf5b1f6be7ba9144df7d985754ff8193ba31091e4358d06596f859d3"
+}

@@ -1,0 +1,56 @@
+{
+  "release": "2026-10-26-structural-correction",
+  "audit_snapshot": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+  "local_validation": {
+    "updater_tests": {
+      "passed": 61,
+      "seconds": 84.449
+    },
+    "installer_and_source_tests_after_commit_message_change": {
+      "passed": 6
+    },
+    "python_compilation": "passed",
+    "club_javascript_syntax": "passed",
+    "patch_whitespace": "passed",
+    "static_export": {
+      "passed": true,
+      "matches": 1677631,
+      "clubs": 10701,
+      "seconds": 79.9,
+      "ledger_quality_checks": {
+        "checks": 7,
+        "corrections": {},
+        "passed": 7,
+        "world_comparable_max_se": 145.0,
+        "world_comparable_min_matches": 50
+      },
+      "held_records": 32,
+      "purpose": "Static export validation using the full repaired ledger and corrected model. No live provider refresh or future fixture fetch was attempted in this export."
+    },
+    "repair_idempotence": {
+      "second_application_changes": 0
+    },
+    "retained_duplicate_witnesses": {
+      "verified": 2112,
+      "missing": 0
+    },
+    "not_run": [
+      "Full national-team site build",
+      "Complete repository unittest suite",
+      "Browser interaction/screenshot suite",
+      "Live provider refresh as part of this static export"
+    ]
+  },
+  "predictive_comparison": "structural-comparison.json",
+  "deployment": "Not run by this local validation. Installer dispatches the existing updater; Pages validates before deployment.",
+  "remaining_issues": [
+    "Brighton remains ninth in this snapshot; English-ranking concern is not established as resolved.",
+    "Brazilian domestic matches before 1977 are absent.",
+    "Cross-confederation evaluation is small and mixed; global historical comparability is not established."
+  ],
+  "files": {
+    "scripts/v10/engine/club_model.py": "15e5b56acc4b93cbdc4eeed67ae3795f035216aa737ee8f3286e4526e2b86d28",
+    "scripts/v10/engine/club_model.json": "3025db2346d3276d614b8649f0da1fec6a02bdbd8b20b5b3befb875ef3652952",
+    "scripts/v10/ledger_repairs.json": "5274109620b62e888709303f2a9ba070e13be02e0e0c13087ad866c4c0531610"
+  }
+}

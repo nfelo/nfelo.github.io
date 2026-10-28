@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "date": "2026-10-28",
+  "input_snapshot": "eaa1aa0198f5dd8f15bf1a7681988d5e1657b127",
+  "input_corrections": "Verified 27 October release, including 12,629 Brazilian historical matches",
+  "replay": "Full available history, same input and engine for every candidate",
+  "candidates": {
+    "baseline": {},
+    "slower_league": {
+      "country_share": 0.05
+    },
+    "longer_club_memory": {
+      "club_retention": 0.95
+    },
+    "combined": {
+      "country_share": 0.05,
+      "club_retention": 0.95
+    }
+  },
+  "selection_period": [
+    "2018-01-01",
+    "2022-12-31"
+  ],
+  "review_period": [
+    "2023-01-01",
+    "2026-10-26"
+  ],
+  "selection_rule": "Among candidates whose all-match selection log loss is no more than 0.001 above baseline, choose the lowest international selection log loss. Require at least 0.001 improvement over baseline; otherwise retain baseline. International means cross-border competitive continental, intercontinental, global or super-cup fixtures between different associations.",
+  "review_guard": "After selection, retain baseline if the selected candidate worsens review-period all-match log loss by more than 0.005 or international log loss by more than 0.01. Do not select a runner-up using the review period.",
+  "disclosure": "These periods have been inspected in previous releases. This is a finite retrospective comparison, not an untouched holdout or proof of unbiased global rankings. Named club rankings do not select the model. No further candidate search in this comparison.",
+  "baseline_parameters": {
+    "version": "2026-10-27-historical-results",
+    "base_rating": 1500.0,
+    "k_factor": 18.0,
+    "home_advantage_domestic": 45.0,
+    "home_advantage_cross_border": 80.0,
+    "draw_peak": 0.285,
+    "margin_scale": 1.05,
+    "club_retention": 0.82,
+    "tier_retention": 0.65,
+    "tier_share": 0.45,
+    "tier_gap": 80.0,
+    "country_retention": 0.97,
+    "country_share": 0.15,
+    "country_anchor_quantile": 0.9,
+    "confederation_retention": 0.96,
+    "confederation_share": 0.5,
+    "extra_time_weight": 0.86,
+    "penalty_weight": 0.72,
+    "aggregate_floor": 0.0,
+    "aggregate_scale": 1.0,
+    "effective_matches_half_life_days": 730.0,
+    "club_prior_sd": 185.0,
+    "tier_prior_sd": 65.0,
+    "country_prior_sd": 105.0,
+    "confederation_prior_sd": 95.0,
+    "uncertainty_penalty": 0.0,
+    "competition_weights": {
+      "league": 1.0,
+      "state": 0.82,
+      "domestic_cup": 1.0,
+      "playoff": 1.08,
+      "continental": 1.12,
+      "intercontinental": 1.18,
+      "global": 1.22,
+      "super_cup": 0.72
+    },
+    "fit": {
+      "status": "Structural corrections with dated Brazilian historical results",
+      "selection": "Predictive coefficients unchanged. Structural corrections preserve strength on division changes and country recentering. Dated Brazilian national, Paulista and Carioca results extend historical coverage. Retrospective paired comparisons accompany the release.",
+      "replay_from": "2000-01-01",
+      "validation_period": [
+        "2018-01-01",
+        "2022-12-31"
+      ],
+      "test_period": [
+        "2023-01-01",
+        "2026-10-24"
+      ]
+    },
+    "input_repairs_sha256": "5274109620b62e888709303f2a9ba070e13be02e0e0c13087ad866c4c0531610",
+    "brazil_history_sha256": "a405b4edaf5b1f6be7ba9144df7d985754ff8193ba31091e4358d06596f859d3"
+  },
+  "engine_sha256": "ba74406f8d3002c727ff6780bec74e38cd30063aad17bb12db3ab59ee01a9ff2"
+}

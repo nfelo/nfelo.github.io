@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-25-club-correction",
+  "version": "2026-10-27-historical-results",
   "base_rating": 1500.0,
   "k_factor": 18.0,
   "home_advantage_domestic": 45.0,
@@ -36,8 +36,8 @@
     "super_cup": 0.72
   },
   "fit": {
-    "status": "corrective release candidate; chronology comparison in docs/club-correction",
-    "selection": "Published ratings are estimated strengths; uncertainty is separate. Predictive coefficients remain frozen after a fixed plain-Elo comparison.",
+    "status": "Structural corrections with dated Brazilian historical results",
+    "selection": "Predictive coefficients unchanged. Structural corrections preserve strength on division changes and country recentering. Dated Brazilian national, Paulista and Carioca results extend historical coverage. Retrospective paired comparisons accompany the release.",
     "replay_from": "2000-01-01",
     "validation_period": [
       "2018-01-01",
@@ -47,5 +47,7 @@
       "2023-01-01",
       "2026-10-24"
     ]
-  }
+  },
+  "input_repairs_sha256": "5274109620b62e888709303f2a9ba070e13be02e0e0c13087ad866c4c0531610",
+  "brazil_history_sha256": "a405b4edaf5b1f6be7ba9144df7d985754ff8193ba31091e4358d06596f859d3"
 }
