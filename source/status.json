@@ -1,10 +1,10 @@
 {
-  "source_checked_at": "2026-10-31T02:24:20+00:00",
+  "source_checked_at": "2026-10-31T12:48:49+00:00",
   "mode": "multi-source open-results supplement",
   "base_snapshot_through": "2026-10-06",
   "supplemental_results": 0,
   "upcoming_fixtures": 270,
-  "open_feed_rows": 49945,
+  "open_feed_rows": 49940,
   "unresolved_names": [],
   "base_urls": [
     "https://raw.githubusercontent.com/martj42/international_results/master/results.csv",
@@ -18,7 +18,7 @@
   "retained_stored_fixture_rows": 0,
   "integrity": "All result and fixture sources passed schema, size, date, score, alias and conflict checks",
   "base_snapshot": {
-    "source_checked_at": "2026-10-31T02:24:18+00:00",
+    "source_checked_at": "2026-10-31T12:48:47+00:00",
     "mode": "rating-change detection",
     "world_teams": 244,
     "pages_checked": 0,
