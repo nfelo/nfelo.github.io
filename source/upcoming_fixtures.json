@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-01T02:17:12+00:00",
+  "checked_at": "2026-11-01T13:40:09+00:00",
   "fixtures": [
     {
       "date": "2026-11-05",
@@ -354,34 +354,6 @@
       "tournament_name": "CONCACAF Nations League B",
       "city": "",
       "country": "Guyana",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "IR",
-      "team2_code": "PS",
-      "team1_name": "Iran",
-      "team2_name": "Palestine",
-      "tournament_code": "FT",
-      "tournament_name": "Friendly tournament",
-      "city": "",
-      "country": "Iraq",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "IQ",
-      "team2_code": "LB",
-      "team1_name": "Iraq",
-      "team2_name": "Lebanon",
-      "tournament_code": "FT",
-      "tournament_name": "Friendly tournament",
-      "city": "",
-      "country": "Iraq",
       "neutral": false,
       "home_sign": 1
     },
@@ -1172,16 +1144,30 @@
     {
       "date": "2026-11-14",
       "date_precision": "day",
-      "team1_code": "HT",
-      "team2_code": "US",
-      "team1_name": "Haiti",
-      "team2_name": "United States",
-      "tournament_code": "CNL",
-      "tournament_name": "CONCACAF Nations League",
+      "team1_code": "IR",
+      "team2_code": "PS",
+      "team1_name": "Iran",
+      "team2_name": "Palestine",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
       "city": "",
-      "country": "Jamaica",
+      "country": "Iraq",
       "neutral": true,
       "home_sign": 0
+    },
+    {
+      "date": "2026-11-14",
+      "date_precision": "day",
+      "team1_code": "IQ",
+      "team2_code": "LB",
+      "team1_name": "Iraq",
+      "team2_name": "Lebanon",
+      "tournament_code": "FT",
+      "tournament_name": "Friendly tournament",
+      "city": "",
+      "country": "Iraq",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-11-14",
@@ -1348,6 +1334,20 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Uganda",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-11-14",
+      "date_precision": "day",
+      "team1_code": "US",
+      "team2_code": "HT",
+      "team1_name": "United States",
+      "team2_name": "Haiti",
+      "tournament_code": "CNL",
+      "tournament_name": "CONCACAF Nations League",
+      "city": "",
+      "country": "United States",
       "neutral": false,
       "home_sign": 1
     },
