@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-03T03:56:57+00:00",
+  "checked_at": "2026-11-03T14:29:50+00:00",
   "fixtures": [
     {
       "date": "2026-11-05",
@@ -382,6 +382,20 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Ivory Coast",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-11-12",
+      "date_precision": "day",
+      "team1_code": "LT",
+      "team2_code": "SR",
+      "team1_name": "Lithuania",
+      "team2_name": "Suriname",
+      "tournament_code": "F",
+      "tournament_name": "Friendly",
+      "city": "",
+      "country": "Lithuania",
       "neutral": false,
       "home_sign": 1
     },
