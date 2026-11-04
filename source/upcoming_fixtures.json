@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-04T14:44:24+00:00",
+  "checked_at": "2026-11-04T21:23:53+00:00",
   "fixtures": [
     {
       "date": "2026-11-05",
@@ -1480,20 +1480,6 @@
     {
       "date": "2026-11-15",
       "date_precision": "day",
-      "team1_code": "MO",
-      "team2_code": "HK",
-      "team1_name": "Macao",
-      "team2_name": "Hong Kong",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Macao",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-15",
-      "date_precision": "day",
       "team1_code": "MM",
       "team2_code": "BT",
       "team1_name": "Myanmar",
@@ -1802,6 +1788,20 @@
     {
       "date": "2026-11-16",
       "date_precision": "day",
+      "team1_code": "SN",
+      "team2_code": "SD",
+      "team1_name": "Senegal",
+      "team2_name": "Sudan",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "South Sudan",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-11-16",
+      "date_precision": "day",
       "team1_code": "SO",
       "team2_code": "GH",
       "team1_name": "Somalia",
@@ -1810,20 +1810,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Somalia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-16",
-      "date_precision": "day",
-      "team1_code": "SD",
-      "team2_code": "SN",
-      "team1_name": "Sudan",
-      "team2_name": "Senegal",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Sudan",
       "neutral": false,
       "home_sign": 1
     },
