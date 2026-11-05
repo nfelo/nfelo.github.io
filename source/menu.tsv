@@ -1012,7 +1012,7 @@ GLF	3	1974	1974-03-14	1974-03-29	1974_Gulf_Cup
 GLF	3	1972	1972-03-15	1972-03-28	1972_Gulf_Cup
 GLF	3	1970	1970-03-26	1970-04-03	1970_Gulf_Cup
 SFF	2				2026_South_Asian_Championship
-SFF	3	2026			2026_South_Asian_Championship
+SFF	3	2026	2026-11-04		2026_South_Asian_Championship
 SFF	3	2023	2023-06-20	2023-07-04	2023_South_Asian_Championship
 SFF	3	2021	2021-09-30	2021-10-16	2021_South_Asian_Championship
 SFF	3	2018	2018-09-03	2018-09-15	2018_South_Asian_Championship
@@ -1211,7 +1211,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-11-04	Unaffiliated
+UN	1	UFL		2026-11-05	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1239,12 +1239,12 @@ SEE	2				Southeast_Europe
 SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-11-04	Melanesia
-MI	2			2026-11-04	Micronesia
-PO	2			2026-11-04	Polynesia
+ME	2			2026-11-05	Melanesia
+MI	2			2026-11-05	Micronesia
+PO	2			2026-11-05	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-11-04	2026
+YR	2	2026	2025-12-31	2026-11-05	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
