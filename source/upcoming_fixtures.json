@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-06T03:27:41+00:00",
+  "checked_at": "2026-11-06T14:26:21+00:00",
   "fixtures": [
     {
       "date": "2026-11-08",
@@ -269,9 +269,9 @@
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
-      "country": "Equatorial Guinea",
-      "neutral": false,
-      "home_sign": 1
+      "country": "Cameroon",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-11-12",
@@ -314,6 +314,20 @@
       "country": "Guinea",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-11-12",
+      "date_precision": "day",
+      "team1_code": "GW",
+      "team2_code": "MG",
+      "team1_name": "Guinea-Bissau",
+      "team2_name": "Madagascar",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Morocco",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-11-12",
@@ -368,20 +382,6 @@
       "tournament_name": "Friendly",
       "city": "",
       "country": "Lithuania",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "MG",
-      "team2_code": "GW",
-      "team1_name": "Madagascar",
-      "team2_name": "Guinea-Bissau",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Madagascar",
       "neutral": false,
       "home_sign": 1
     },
@@ -1536,6 +1536,20 @@
     {
       "date": "2026-11-16",
       "date_precision": "day",
+      "team1_code": "CM",
+      "team2_code": "NA",
+      "team1_name": "Cameroon",
+      "team2_name": "Namibia",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Botswana",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-11-16",
+      "date_precision": "day",
       "team1_code": "CA",
       "team2_code": "GT",
       "team1_name": "Canada",
@@ -1740,20 +1754,6 @@
       "tournament_name": "CONCACAF Championship qualifier",
       "city": "",
       "country": "Martinique",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-16",
-      "date_precision": "day",
-      "team1_code": "NA",
-      "team2_code": "CM",
-      "team1_name": "Namibia",
-      "team2_name": "Cameroon",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Namibia",
       "neutral": false,
       "home_sign": 1
     },
@@ -1980,6 +1980,20 @@
       "country": "Congo",
       "neutral": false,
       "home_sign": 1
+    },
+    {
+      "date": "2026-11-17",
+      "date_precision": "day",
+      "team1_code": "CD",
+      "team2_code": "SL",
+      "team1_name": "DR Congo",
+      "team2_name": "Sierra Leone",
+      "tournament_code": "FQ",
+      "tournament_name": "African Nations Cup qualifier",
+      "city": "",
+      "country": "Morocco",
+      "neutral": true,
+      "home_sign": 0
     },
     {
       "date": "2026-11-17",
@@ -2271,9 +2285,9 @@
       "tournament_code": "FQ",
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
-      "country": "Benin",
-      "neutral": true,
-      "home_sign": 0
+      "country": "Morocco",
+      "neutral": false,
+      "home_sign": 1
     },
     {
       "date": "2026-11-17",
@@ -2372,20 +2386,6 @@
       "country": "Qatar",
       "neutral": true,
       "home_sign": 0
-    },
-    {
-      "date": "2026-11-17",
-      "date_precision": "day",
-      "team1_code": "SL",
-      "team2_code": "CD",
-      "team1_name": "Sierra Leone",
-      "team2_name": "DR Congo",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Sierra Leone",
-      "neutral": false,
-      "home_sign": 1
     },
     {
       "date": "2026-11-17",
