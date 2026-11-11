@@ -5,22 +5,8 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-11T02:48:48+00:00",
+  "checked_at": "2026-11-11T14:34:26+00:00",
   "fixtures": [
-    {
-      "date": "2026-11-10",
-      "date_precision": "day",
-      "team1_code": "SX",
-      "team2_code": "AI",
-      "team1_name": "Sint Maarten",
-      "team2_name": "Anguilla",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Sint Maarten",
-      "neutral": false,
-      "home_sign": 1
-    },
     {
       "date": "2026-11-11",
       "date_precision": "day",
@@ -32,34 +18,6 @@
       "tournament_name": "South Asian Championship",
       "city": "",
       "country": "Bangladesh",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-11",
-      "date_precision": "day",
-      "team1_code": "IN",
-      "team2_code": "MV",
-      "team1_name": "India",
-      "team2_name": "Maldives",
-      "tournament_code": "SFF",
-      "tournament_name": "South Asian Championship",
-      "city": "",
-      "country": "Bangladesh",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-11-11",
-      "date_precision": "day",
-      "team1_code": "VN",
-      "team2_code": "TW",
-      "team1_name": "Vietnam",
-      "team2_name": "Taiwan",
-      "tournament_code": "VFF",
-      "tournament_name": "Vietnam FF Cup",
-      "city": "",
-      "country": "Vietnam",
       "neutral": false,
       "home_sign": 1
     },
@@ -368,20 +326,6 @@
       "tournament_name": "UEFA Nations League",
       "city": "Stadion pod Goricom",
       "country": "Montenegro",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "MM",
-      "team2_code": "BT",
-      "team1_name": "Myanmar",
-      "team2_name": "Bhutan",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Myanmar",
       "neutral": false,
       "home_sign": 1
     },
@@ -1418,20 +1362,6 @@
       "tournament_name": "UEFA Nations League",
       "city": "Daugava Stadium",
       "country": "Latvia",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-15",
-      "date_precision": "day",
-      "team1_code": "MM",
-      "team2_code": "BT",
-      "team1_name": "Myanmar",
-      "team2_name": "Bhutan",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Myanmar",
       "neutral": false,
       "home_sign": 1
     },
