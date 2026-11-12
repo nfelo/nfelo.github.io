@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-12T15:27:13+00:00",
+  "checked_at": "2026-11-12T21:52:58+00:00",
   "fixtures": [
     {
       "date": "2026-11-12",
@@ -32,20 +32,6 @@
       "tournament_name": "CONCACAF Championship qualifier",
       "city": "",
       "country": "Antigua and Barbuda",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "AM",
-      "team2_code": "CY",
-      "team1_name": "Armenia",
-      "team2_name": "Cyprus",
-      "tournament_code": "ENC",
-      "tournament_name": "European Nations League C",
-      "city": "",
-      "country": "Armenia",
       "neutral": false,
       "home_sign": 1
     },
@@ -136,20 +122,6 @@
     {
       "date": "2026-11-12",
       "date_precision": "day",
-      "team1_code": "CD",
-      "team2_code": "SL",
-      "team1_name": "DR Congo",
-      "team2_name": "Sierra Leone",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "DR Congo",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
       "team1_code": "EN",
       "team2_code": "HR",
       "team1_name": "England",
@@ -158,34 +130,6 @@
       "tournament_name": "European Nations League A",
       "city": "",
       "country": "England",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "GQ",
-      "team2_code": "ZW",
-      "team1_name": "Equatorial Guinea",
-      "team2_name": "Zimbabwe",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Cameroon",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "GH",
-      "team2_code": "SO",
-      "team1_name": "Ghana",
-      "team2_name": "Somalia",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Ghana",
       "neutral": false,
       "home_sign": 1
     },
@@ -202,34 +146,6 @@
       "country": "Guadeloupe",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "GN",
-      "team2_code": "ER",
-      "team1_name": "Guinea",
-      "team2_name": "Eritrea",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Guinea",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "GW",
-      "team2_code": "MG",
-      "team1_name": "Guinea-Bissau",
-      "team2_name": "Madagascar",
-      "tournament_code": "FQ",
-      "tournament_name": "African Nations Cup qualifier",
-      "city": "",
-      "country": "Morocco",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-11-12",
@@ -270,20 +186,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Ivory Coast",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "LT",
-      "team2_code": "SR",
-      "team1_name": "Lithuania",
-      "team2_name": "Suriname",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Lithuania",
       "neutral": false,
       "home_sign": 1
     },
@@ -340,34 +242,6 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Senegal",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "TR",
-      "team2_code": "BE",
-      "team1_name": "Turkey",
-      "team2_name": "Belgium",
-      "tournament_code": "ENA",
-      "tournament_name": "European Nations League A",
-      "city": "",
-      "country": "Turkey",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-12",
-      "date_precision": "day",
-      "team1_code": "UZ",
-      "team2_code": "RU",
-      "team1_name": "Uzbekistan",
-      "team2_name": "Russia",
-      "tournament_code": "F",
-      "tournament_name": "Friendly",
-      "city": "",
-      "country": "Uzbekistan",
       "neutral": false,
       "home_sign": 1
     },
