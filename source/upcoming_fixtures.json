@@ -5,7 +5,7 @@
     "https://www.eloratings.net/fixtures.tsv",
     "TheSportsDB v1 schedule API"
   ],
-  "checked_at": "2026-11-14T13:41:20+00:00",
+  "checked_at": "2026-11-14T19:59:28+00:00",
   "fixtures": [
     {
       "date": "2026-11-14",
@@ -66,20 +66,6 @@
     {
       "date": "2026-11-14",
       "date_precision": "day",
-      "team1_code": "CN",
-      "team2_code": "MY",
-      "team1_name": "China",
-      "team2_name": "Malaysia",
-      "tournament_code": "FT",
-      "tournament_name": "Friendly tournament",
-      "city": "",
-      "country": "China",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
       "team1_code": "GF",
       "team2_code": "SX",
       "team1_name": "French Guiana",
@@ -104,20 +90,6 @@
       "country": "Georgia",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
-      "team1_code": "IN",
-      "team2_code": "BT",
-      "team1_name": "India",
-      "team2_name": "Bhutan",
-      "tournament_code": "SFF",
-      "tournament_name": "South Asian Championship",
-      "city": "",
-      "country": "Bangladesh",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-11-14",
@@ -150,34 +122,6 @@
     {
       "date": "2026-11-14",
       "date_precision": "day",
-      "team1_code": "KO",
-      "team2_code": "IL",
-      "team1_name": "Kosovo",
-      "team2_name": "Israel",
-      "tournament_code": "ENB",
-      "tournament_name": "European Nations League B",
-      "city": "",
-      "country": "Kosovo",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
-      "team1_code": "KG",
-      "team2_code": "TW",
-      "team1_name": "Kyrgyzstan",
-      "team2_name": "Taiwan",
-      "tournament_code": "VFF",
-      "tournament_name": "Vietnam FF Cup",
-      "city": "",
-      "country": "Vietnam",
-      "neutral": true,
-      "home_sign": 0
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
       "team1_code": "EI",
       "team2_code": "UA",
       "team1_name": "Northern Ireland",
@@ -202,20 +146,6 @@
       "country": "Norway",
       "neutral": false,
       "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
-      "team1_code": "OM",
-      "team2_code": "TJ",
-      "team1_name": "Oman",
-      "team2_name": "Tajikistan",
-      "tournament_code": "KNG",
-      "tournament_name": "King's Cup",
-      "city": "",
-      "country": "Thailand",
-      "neutral": true,
-      "home_sign": 0
     },
     {
       "date": "2026-11-14",
@@ -270,20 +200,6 @@
       "tournament_name": "European Nations League B",
       "city": "",
       "country": "Sweden",
-      "neutral": false,
-      "home_sign": 1
-    },
-    {
-      "date": "2026-11-14",
-      "date_precision": "day",
-      "team1_code": "TH",
-      "team2_code": "BN",
-      "team1_name": "Thailand",
-      "team2_name": "Brunei",
-      "tournament_code": "KNG",
-      "tournament_name": "King's Cup",
-      "city": "",
-      "country": "Thailand",
       "neutral": false,
       "home_sign": 1
     },
@@ -892,6 +808,20 @@
     {
       "date": "2026-11-17",
       "date_precision": "day",
+      "team1_code": "BN",
+      "team2_code": "OM",
+      "team1_name": "Brunei",
+      "team2_name": "Oman",
+      "tournament_code": "KNG",
+      "tournament_name": "King's Cup",
+      "city": "",
+      "country": "Thailand",
+      "neutral": true,
+      "home_sign": 0
+    },
+    {
+      "date": "2026-11-17",
+      "date_precision": "day",
       "team1_code": "BI",
       "team2_code": "ZM",
       "team1_name": "Burundi",
@@ -1432,6 +1362,20 @@
       "tournament_name": "African Nations Cup qualifier",
       "city": "",
       "country": "Tanzania",
+      "neutral": false,
+      "home_sign": 1
+    },
+    {
+      "date": "2026-11-17",
+      "date_precision": "day",
+      "team1_code": "TH",
+      "team2_code": "TJ",
+      "team1_name": "Thailand",
+      "team2_name": "Tajikistan",
+      "tournament_code": "KNG",
+      "tournament_name": "King's Cup",
+      "city": "",
+      "country": "Thailand",
       "neutral": false,
       "home_sign": 1
     },
