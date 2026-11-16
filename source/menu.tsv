@@ -259,8 +259,8 @@ ENL	2				2026-27_European_Nations_League_A
 ENL	3	2026-27			2026-27_European_Nations_League_A
 ENA	4	LA	2026-09-23		2026-27_European_Nations_League_A
 ENB	4	LB	2026-09-23		2026-27_European_Nations_League_B
-ENC	4	LC	2026-09-24		2026-27_European_Nations_League_C
-END	4	LD	2026-09-23		2026-27_European_Nations_League_D
+ENC	4	LC	2026-09-24	2026-11-16	2026-27_European_Nations_League_C
+END	4	LD	2026-09-23	2026-11-16	2026-27_European_Nations_League_D
 ENL	3	2024-25	2025-03-19	2025-06-08	2024-25_European_Nations_League
 ENA	4	LA	2024-09-04	2024-11-19	2024-25_European_Nations_League_A
 ABT	4	LAB	2025-03-19	2025-03-23	2024-25_European_Nations_League_A_B_Play-offs
@@ -1211,7 +1211,7 @@ SAF	2	SSF			SAFF
 WAF	2	WSF			WAFF
 OFC	1	OF			OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-11-15	Unaffiliated
+UN	1	UFL		2026-11-16	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1239,12 +1239,12 @@ SEE	2				Southeast_Europe
 SE	2				Southern_Europe
 WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-11-15	Melanesia
-MI	2			2026-11-15	Micronesia
+ME	2			2026-11-16	Melanesia
+MI	2			2026-11-16	Micronesia
 PO	2				Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-11-15	2026
+YR	2	2026	2025-12-31	2026-11-16	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
