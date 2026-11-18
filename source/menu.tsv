@@ -458,7 +458,7 @@ SA	4	1917	1917-09-29	1917-10-14	1917_South_American_Championship
 SA	4	1916	1916-07-01	1916-07-17	1916_South_American_Championship
 CCH	2				2027_CONCACAF_Championship_qualifying
 CCH	3	2027			2027_CONCACAF_Championship_qualifying
-NQT	4	Q	2026-11-11		2027_CONCACAF_Championship_qualifying
+NQT	4	Q	2026-11-11	2026-11-17	2027_CONCACAF_Championship_qualifying
 CCH	3	2025	2025-06-13	2025-07-06	2025_CONCACAF_Championship
 NQT	4	Q	2024-11-13	2025-03-25	2025_CONCACAF_Championship_qualifying
 CCH	3	2023	2023-06-23	2023-07-16	2023_CONCACAF_Championship
@@ -1192,7 +1192,7 @@ PLN	3	2000	2000-06-05	2000-06-14	2000_Polynesian_Cup
 PLN	3	1998	1998-09-01	1998-09-08	1998_Polynesian_Cup
 PLN	3	1994	1994-11-23	1994-11-28	1994_Polynesian_Cup
 C	0				
-UEF	1	UE		2026-11-17	UEFA
+UEF	1	UE		2026-11-18	UEFA
 CMB	1	MB			CONMEBOL
 CNC	1	NC			CONCACAF
 CFU	2	CU			CFU
@@ -1207,11 +1207,11 @@ AFC	1	SC			AFC
 AFF	2	SNF			AFF
 CAA	2	CSA			CAFA
 EAF	2	EAS			EAFF
-SAF	2	SSF		2026-11-17	SAFF
+SAF	2	SSF		2026-11-18	SAFF
 WAF	2	WSF			WAFF
-OFC	1	OF		2026-11-17	OFC
+OFC	1	OF		2026-11-18	OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-11-17	Unaffiliated
+UN	1	UFL		2026-11-18	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1229,22 +1229,22 @@ AS	1				Asia
 CS	2				Central_Asia
 ES	2				Eastern_Asia
 SES	2				Southeast_Asia
-SS	2			2026-11-17	Southern_Asia
+SS	2			2026-11-18	Southern_Asia
 WS	2				Western_Asia
-E	1			2026-11-17	Europe
-CE	2			2026-11-17	Central_Europe
-EE	2			2026-11-17	Eastern_Europe
-NE	2			2026-11-17	Northern_Europe
-SEE	2			2026-11-17	Southeast_Europe
-SE	2			2026-11-17	Southern_Europe
-WE	2			2026-11-17	Western_Europe
+E	1			2026-11-18	Europe
+CE	2			2026-11-18	Central_Europe
+EE	2			2026-11-18	Eastern_Europe
+NE	2			2026-11-18	Northern_Europe
+SEE	2			2026-11-18	Southeast_Europe
+SE	2			2026-11-18	Southern_Europe
+WE	2			2026-11-18	Western_Europe
 O	1				Oceania
-ME	2			2026-11-17	Melanesia
-MI	2			2026-11-17	Micronesia
-PO	2			2026-11-17	Polynesia
+ME	2			2026-11-18	Melanesia
+MI	2			2026-11-18	Micronesia
+PO	2			2026-11-18	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-11-17	2026
+YR	2	2026	2025-12-31	2026-11-18	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
