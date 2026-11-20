@@ -255,10 +255,12 @@ EC	3	1964	1964-06-16	1964-06-21	1964_European_Championship
 EQT	4	Q	1962-06-20	1964-05-27	1964_European_Championship_qualifying
 EC	3	1960	1960-07-05	1960-07-10	1960_European_Championship
 EQT	4	Q	1958-09-27	1960-05-29	1960_European_Championship_qualifying
-ENL	2				2026-27_European_Nations_League_A
-ENL	3	2026-27			2026-27_European_Nations_League_A
+ENL	2				2026-27_European_Nations_League
+ENL	3	2026-27			2026-27_European_Nations_League
 ENA	4	LA	2026-09-23	2026-11-17	2026-27_European_Nations_League_A
+ABT	4	LAB			2026-27_European_Nations_League_A_B_Play-offs
 ENB	4	LB	2026-09-23	2026-11-17	2026-27_European_Nations_League_B
+BCT	4	LBC			2026-27_European_Nations_League_B_C_Play-offs
 ENC	4	LC	2026-09-24	2026-11-16	2026-27_European_Nations_League_C
 END	4	LD	2026-09-23	2026-11-16	2026-27_European_Nations_League_D
 ENL	3	2024-25	2025-03-19	2025-06-08	2024-25_European_Nations_League
@@ -1192,7 +1194,7 @@ PLN	3	2000	2000-06-05	2000-06-14	2000_Polynesian_Cup
 PLN	3	1998	1998-09-01	1998-09-08	1998_Polynesian_Cup
 PLN	3	1994	1994-11-23	1994-11-28	1994_Polynesian_Cup
 C	0				
-UEF	1	UE		2026-11-18	UEFA
+UEF	1	UE			UEFA
 CMB	1	MB			CONMEBOL
 CNC	1	NC			CONCACAF
 CFU	2	CU			CFU
@@ -1207,11 +1209,11 @@ AFC	1	SC			AFC
 AFF	2	SNF			AFF
 CAA	2	CSA			CAFA
 EAF	2	EAS			EAFF
-SAF	2	SSF		2026-11-18	SAFF
+SAF	2	SSF		2026-11-20	SAFF
 WAF	2	WSF			WAFF
-OFC	1	OF		2026-11-18	OFC
+OFC	1	OF		2026-11-20	OFC
 UAF	1	AFA			UAFA
-UN	1	UFL		2026-11-18	Unaffiliated
+UN	1	UFL		2026-11-20	Unaffiliated
 R	0				
 AF	1				Africa
 CF	2				Central_Africa
@@ -1229,22 +1231,22 @@ AS	1				Asia
 CS	2				Central_Asia
 ES	2				Eastern_Asia
 SES	2				Southeast_Asia
-SS	2			2026-11-18	Southern_Asia
+SS	2			2026-11-20	Southern_Asia
 WS	2				Western_Asia
-E	1			2026-11-18	Europe
-CE	2			2026-11-18	Central_Europe
-EE	2			2026-11-18	Eastern_Europe
-NE	2			2026-11-18	Northern_Europe
-SEE	2			2026-11-18	Southeast_Europe
-SE	2			2026-11-18	Southern_Europe
-WE	2			2026-11-18	Western_Europe
+E	1				Europe
+CE	2				Central_Europe
+EE	2				Eastern_Europe
+NE	2				Northern_Europe
+SEE	2				Southeast_Europe
+SE	2				Southern_Europe
+WE	2				Western_Europe
 O	1				Oceania
-ME	2			2026-11-18	Melanesia
-MI	2			2026-11-18	Micronesia
-PO	2			2026-11-18	Polynesia
+ME	2			2026-11-20	Melanesia
+MI	2			2026-11-20	Micronesia
+PO	2			2026-11-20	Polynesia
 YR	0	YRL			2026
 2020-26	1
-YR	2	2026	2025-12-31	2026-11-18	2026
+YR	2	2026	2025-12-31	2026-11-20	2026
 YR	2	2025	2024-12-31	2025-12-31	2025
 YR	2	2024	2023-12-31	2024-12-31	2024
 YR	2	2023	2022-12-31	2023-12-31	2023
